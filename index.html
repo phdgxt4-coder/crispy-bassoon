@@ -97,6 +97,7 @@ const SUBJECTS = [
   {id:"philosophy",name:"فلسفة",g:"؟",c:"#6D28D9"},
   {id:"math",name:"رياضيات",g:"π",c:"#15803D"}
 ];
+const gcount = e => e.questions.filter(q=>!q.fun).length;
 const subName = id => (SUBJECTS.find(s=>s.id===id)||{name:id}).name;
 
 const $ = s => document.querySelector(s);
@@ -133,8 +134,9 @@ function parseQs(t){
   const qs=[],errors=[];
   t.replace(/\r/g,"").trim().split(/\n\s*\n/).filter(b=>b.trim()).forEach((blk,i)=>{
     const lines=blk.split("\n").map(l=>l.trim()).filter(Boolean);
-    const q=[],o=[];let a;
+    const q=[],o=[];let a,fun=false;
     for(const l of lines){
+      if(/^\[(?:ترفيه|fun)\]$/i.test(l)){fun=true;continue}
       let m=l.match(/^(?:الإجابة|الاجابة|الجواب|answer|ans)\s*[:：\-]\s*(.+)$/i);
       if(m){a=LET[m[1].trim().toLowerCase().charAt(0)];continue}
       m=l.match(/^([أابجدa-dA-D1-4])\s*[\)\.\-–]\s*(.+)$/);
@@ -144,11 +146,11 @@ function parseQs(t){
     if(!q.length)errors.push(`سؤال ${i+1}: نص السؤال ناقص`);
     else if(o.length<2||o.length>4)errors.push(`سؤال ${i+1}: لازم من 2 إلى 4 اختيارات (أ ب ج د)`);
     else if(a===undefined||a>=o.length)errors.push(`سؤال ${i+1}: سطر "الإجابة: ب" ناقص أو غلط`);
-    else qs.push({q:q.join("\n"),o,a});
+    else qs.push(fun?{q:q.join("\n"),o,a,fun:true}:{q:q.join("\n"),o,a});
   });
   return {qs,errors};
 }
-const serialize = qs => qs.map(x=>x.q+"\n"+x.o.map((t,i)=>`${LETTERS[i]}) ${t}`).join("\n")+`\nالإجابة: ${LETTERS[x.a]}`).join("\n\n");
+const serialize = qs => qs.map(x=>x.q+"\n"+x.o.map((t,i)=>`${LETTERS[i]}) ${t}`).join("\n")+`\nالإجابة: ${LETTERS[x.a]}`+(x.fun?"\n[ترفيه]":"")).join("\n\n");
 const SAMPLE=`عاصمة مصر هي؟
 أ) الإسكندرية
 ب) القاهرة
@@ -256,15 +258,15 @@ function subjectView(){
   const s=SUBJECTS.find(x=>x.id===S.subject),ex=S.exams.filter(e=>e.subject===s.id);
   return `<div class="wrap"><div class="top">${logo}<button class="btn ghost sm" data-act="home">رجوع</button></div>
 <h2 style="color:${s.c}">امتحانات ${s.name}</h2>
-${ex.length?ex.map(e=>{const r=S.myResults[e.id];return `<div class="card row"><div><b>${esc(e.title)}</b><div class="mut">${e.questions.length} سؤال · ${e.minutes?e.minutes+" دقيقة":"من غير وقت محدد"}</div></div>
+${ex.length?ex.map(e=>{const r=S.myResults[e.id];return `<div class="card row"><div><b>${esc(e.title)}</b><div class="mut">${gcount(e)} سؤال${e.questions.length>gcount(e)?" + ألغاز":""} · ${e.minutes?e.minutes+" دقيقة":"من غير وقت محدد"}</div></div>
 ${r?`<span class="pill g">خلصته: ${r.score}/${r.total}</span>`:`<button class="btn sm" data-act="start" data-id="${e.id}">ابدأ</button>`}</div>`}).join(""):`<div class="card mut">مفيش امتحانات في المادة دي دلوقتي. ارجع تاني بعدين.</div>`}
 </div>`}
 
 function examView(){
   const c=S.cur,e=c.exam;
-  return `<div class="wrap"><div class="timer"><span>${esc(e.title)}</span>${c.endAt?`<span id="timer">--:--</span>`:`<span>${e.questions.length} سؤال</span>`}</div>
+  return `<div class="wrap"><div class="timer"><span>${esc(e.title)}</span>${c.endAt?`<span id="timer">--:--</span>`:`<span>${gcount(e)} سؤال</span>`}</div>
 <form data-submit="submit">
-${e.questions.map((q,i)=>`<div class="q"><p dir="auto"><span class="n">${i+1}</span>${esc(q.q)}</p>${q.o.map((t,j)=>`<label class="opt"><input type="radio" name="q${i}" value="${j}"><span dir="auto">${esc(t)}</span></label>`).join("")}</div>`).join("")}
+${e.questions.map((q,i)=>(q.fun&&!e.questions[i-1]?.fun?`<div class="card" style="background:#fff3cf;border-color:var(--gold)"><b>قسم الترفيه: ألغاز ومسابقات</b><div class="mut">القسم ده للتسلية بس، مش بيتحسب في الدرجة.</div></div>`:"")+`<div class="q"><p dir="auto"><span class="n">${i+1}</span>${esc(q.q)}</p>${q.o.map((t,j)=>`<label class="opt"><input type="radio" name="q${i}" value="${j}"><span dir="auto">${esc(t)}</span></label>`).join("")}</div>`).join("")}
 <button class="btn block gold" id="sub">تسليم الامتحان</button></form></div>`}
 
 function resultView(){
@@ -272,7 +274,7 @@ function resultView(){
   return `<div class="wrap"><div class="top">${logo}</div>
 <div class="card center" style="padding:28px 16px"><div class="mut">${esc(exam.title)}</div><div class="big">${score} / ${total}</div><div class="pill ${p>=50?"g":"r"}">${p}%</div>
 <p style="margin:14px 0 0">${p>=85?"ممتاز! كمّل كده.":p>=50?"كويس. شوية مراجعة وهتبقى أحسن.":"محتاج مراجعة أكتر. متزعلش، المرة الجاية أحسن."}</p></div>
-${exam.showAnswers?exam.questions.map((q,i)=>`<div class="q"><p dir="auto"><span class="n">${i+1}</span>${esc(q.q)}</p>${q.o.map((t,j)=>`<div class="opt ${j===q.a?"right":j===ans[i]?"wrong":""}"><span dir="auto">${esc(t)}${j===q.a?" ✓":j===ans[i]?" ✗":""}</span></div>`).join("")}</div>`).join(""):""}
+${exam.showAnswers?exam.questions.map((q,i)=>(q.fun&&!exam.questions[i-1]?.fun?`<div class="card" style="background:#fff3cf;border-color:var(--gold)"><b>الألغاز</b> <span class="mut">(مش في الدرجة)</span></div>`:"")+`<div class="q"><p dir="auto"><span class="n">${i+1}</span>${esc(q.q)}</p>${q.o.map((t,j)=>`<div class="opt ${j===q.a?"right":j===ans[i]?"wrong":""}"><span dir="auto">${esc(t)}${j===q.a?" ✓":j===ans[i]?" ✗":""}</span></div>`).join("")}</div>`).join(""):""}
 <button class="btn block" data-act="home">رجوع للمواد</button></div>`}
 
 /* ---------- لوحة الأدمن ---------- */
@@ -287,7 +289,7 @@ ${t==="exams"?adminExams():t==="results"?adminResults():t==="students"?adminStud
 function adminExams(){
   return `<div class="row" style="margin-bottom:12px"><div class="mut">${S.exams.length} امتحان</div><button class="btn" data-act="newExam">امتحان جديد</button></div>
 ${S.exams.length?S.exams.map(e=>{const n=S.results.filter(r=>r.examId===e.id).length;return `<div class="card"><div class="row"><div><b>${esc(e.title)}</b> <span class="pill">${subName(e.subject)}</span> <span class="pill ${e.published?"g":"y"}">${e.published?"ظاهر للطلاب":"مخفي"}</span>
-<div class="mut">${e.questions.length} سؤال · ${e.minutes?e.minutes+" دقيقة":"بدون وقت"} · امتحنه ${n} طالب</div></div>
+<div class="mut">${gcount(e)} سؤال${e.questions.length>gcount(e)?" + ألغاز":""} · ${e.minutes?e.minutes+" دقيقة":"بدون وقت"} · امتحنه ${n} طالب</div></div>
 <div class="row"><button class="btn ghost sm" data-act="editExam" data-id="${e.id}">تعديل</button><button class="btn ghost sm" data-act="togglePub" data-id="${e.id}">${e.published?"إخفاء":"إظهار"}</button><button class="btn danger sm" data-act="delExam" data-id="${e.id}">حذف</button></div></div></div>`}).join(""):`<div class="card mut">لسه مفيش امتحانات. دوس "امتحان جديد" وابدأ.</div>`}`}
 
 function adminResults(){
@@ -407,9 +409,9 @@ async function submitExam(auto){
   const c=S.cur;if(!c||c.done)return;
   const e=c.exam;
   const ans=e.questions.map((_,i)=>{const r=document.querySelector(`input[name=q${i}]:checked`);return r?+r.value:-1});
-  if(!auto&&ans.includes(-1)&&!confirm("في أسئلة لسه ما جاوبتش عليها. تسلّم برضه؟"))return;
+  if(!auto&&ans.some((a,i)=>a===-1&&!e.questions[i].fun)&&!confirm("في أسئلة لسه ما جاوبتش عليها. تسلّم برضه؟"))return;
   c.done=true;clearInterval(timer);
-  const score=ans.filter((a,i)=>a===e.questions[i].a).length,total=e.questions.length;
+  const score=ans.filter((a,i)=>!e.questions[i].fun&&a===e.questions[i].a).length,total=gcount(e);
   const btn=$("#sub");if(btn)btn.disabled=true;
   try{
     await setDoc(doc(db,"results",S.user.uid+"_"+e.id),{uid:S.user.uid,examId:e.id,examTitle:e.title,subject:e.subject,name:S.profile.name,phone:S.profile.phone,score,total,createdAt:serverTimestamp()});
