@@ -87,7 +87,7 @@ const firebaseConfig = {
 };
 /* ================================================================ */
 
-const ADMIN_EMAIL = "admin@eltafawoq.app";   // لازم يطابق الإيميل اللي هتعمله في Firebase وفي ملف الـ rules
+const ADMIN_EMAIL = "01061572071@eltafawoq.app";   // لازم يطابق الإيميل اللي هتعمله في Firebase وفي ملف الـ rules
 const DOMAIN = "@eltafawoq.app";
 const SUBJECTS = [
   {id:"arabic",name:"عربي",g:"أ ب",c:"#B91C1C"},
@@ -234,14 +234,15 @@ function authView(){
 <form class="card" data-submit="${reg?"doRegister":"doLogin"}" autocomplete="on">
 <h2>${S.adminLogin?"دخول الأدمن":reg?"إنشاء حساب جديد":"تسجيل الدخول"}</h2>
 ${reg?`<label class="f" for="nm">الاسم بالكامل</label><input id="nm" type="text" autocomplete="name" required>`:""}
-<label class="f" for="id">${S.adminLogin?"اسم المستخدم":"رقم التليفون"}</label>
-<input id="id" class="ltr" type="${S.adminLogin?"text":"tel"}" inputmode="${S.adminLogin?"text":"numeric"}" autocomplete="username" ${S.adminLogin?'value="admin"':'placeholder="01xxxxxxxxx"'} required>
+<label class="f" for="id">رقم التليفون</label>
+<input id="id" class="ltr" type="tel" inputmode="numeric" autocomplete="username" placeholder="01xxxxxxxxx" required>
 <label class="f" for="pw">كلمة السر</label>
 <input id="pw" class="ltr" type="password" autocomplete="${reg?"new-password":"current-password"}" required>
 ${S.error?`<div class="err">${esc(S.error)}</div>`:""}
 <div style="margin-top:16px"><button class="btn block" id="go">${reg?"إنشاء الحساب":"دخول"}</button></div>
 ${S.adminLogin?"":`<p class="mut" style="text-align:center;margin:14px 0 0">${reg?"عندك حساب؟":"أول مرة؟"} <a href="#" data-act="mode" style="color:var(--pri);font-weight:600">${reg?"سجّل دخول":"أنشئ حساب"}</a></p>`}
-</form></div>`}
+</form>
+${S.adminLogin?`<p style="text-align:center;margin:8px 0 0"><a href="#" data-act="studentLink" class="mut">رجوع</a></p>`:""}</div>`}
 
 function homeView(){
   const mine=Object.values(S.myResults).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
@@ -329,6 +330,7 @@ function editor(){
 const A={
   mode(){S.mode=S.mode==="login"?"register":"login";S.error="";render(true)},
   adminLink(){S.adminLogin=true;S.error="";render(true)},
+  studentLink(){S.adminLogin=false;S.error="";render(true)},
   async logout(){await signOut(auth)},
   home(){S.view="home";render(true)},
   openSubject(d){S.subject=d.id;S.view="subject";render(true)},
@@ -375,7 +377,7 @@ const A={
   async doLogin(){
     if(!configured){S.error="المنصة تحت التعديل.";render(true);return}
     const idv=norm($("#id").value),pw=$("#pw").value;
-    const email=idv.toLowerCase()==="admin"?ADMIN_EMAIL:idv+DOMAIN;
+    const email=idv+DOMAIN;
     $("#go").disabled=true;S.error="";
     try{await signInWithEmailAndPassword(auth,email,pw)}catch(e){S.error=authErr(e);render(true)}
   },
