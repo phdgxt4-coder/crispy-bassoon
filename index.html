@@ -8,94 +8,132 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Reem+Kufi:wght@600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#EDF2F1;--card:#fff;--ink:#12302D;--mut:#5B726F;--pri:#0B5D57;--pri2:#084a45;--onpri:#fff;--gold:#E3A81C;--line:#D5E0DE;--sel:#e3efed;--ok:#157F3B;--bad:#B42318;--gbg:#dcf3e3;--rbg:#fde8e6;--ybg:#fff3cf;--yfg:#7a5700}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1A19;--card:#152826;--ink:#E6F1EF;--mut:#8FA9A5;--pri:#2FB5A8;--pri2:#4cc7ba;--onpri:#04201D;--gold:#F0B93A;--line:#244240;--sel:#1b3836;--ok:#4cd081;--bad:#ff8a80;--gbg:#183d2a;--rbg:#4a1f1b;--ybg:#3f3210;--yfg:#f0d27a}}
-:root[data-theme="dark"]{--bg:#0E1A19;--card:#152826;--ink:#E6F1EF;--mut:#8FA9A5;--pri:#2FB5A8;--pri2:#4cc7ba;--onpri:#04201D;--gold:#F0B93A;--line:#244240;--sel:#1b3836;--ok:#4cd081;--bad:#ff8a80;--gbg:#183d2a;--rbg:#4a1f1b;--ybg:#3f3210;--yfg:#f0d27a}
+:root{--bg:#EEF3F2;--card:#fff;--ink:#12302D;--mut:#5B726F;--pri:#0B5D57;--pri2:#084a45;--onpri:#fff;--gold:#E3A81C;--ind:#4F46E5;--line:#D5E0DE;--sel:#e3efed;--ok:#157F3B;--bad:#B42318;--gbg:#dcf3e3;--rbg:#fde8e6;--ybg:#fff3cf;--yfg:#7a5700;--sh:0 1px 2px rgba(16,48,45,.06),0 10px 28px rgba(16,48,45,.08)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0C1716;--card:#142624;--ink:#E6F1EF;--mut:#8FA9A5;--pri:#2FB5A8;--pri2:#4cc7ba;--onpri:#04201D;--gold:#F0B93A;--ind:#8B93FF;--line:#244240;--sel:#1b3836;--ok:#4cd081;--bad:#ff8a80;--gbg:#183d2a;--rbg:#4a1f1b;--ybg:#3f3210;--yfg:#f0d27a;--sh:0 10px 28px rgba(0,0,0,.4)}}
+:root[data-theme="dark"]{--bg:#0C1716;--card:#142624;--ink:#E6F1EF;--mut:#8FA9A5;--pri:#2FB5A8;--pri2:#4cc7ba;--onpri:#04201D;--gold:#F0B93A;--ind:#8B93FF;--line:#244240;--sel:#1b3836;--ok:#4cd081;--bad:#ff8a80;--gbg:#183d2a;--rbg:#4a1f1b;--ybg:#3f3210;--yfg:#f0d27a;--sh:0 10px 28px rgba(0,0,0,.4)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 'IBM Plex Sans Arabic',system-ui,sans-serif;-webkit-text-size-adjust:100%;transition:background-color .35s,color .35s}
+.bgfx{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.bgfx i{position:absolute;width:60vmax;height:60vmax;border-radius:50%;opacity:.4;animation:drift 30s ease-in-out infinite alternate;will-change:transform}
+.bgfx i:nth-child(1){background:radial-gradient(circle,color-mix(in srgb,var(--pri) 38%,transparent),transparent 66%);top:-22vmax;inset-inline-end:-18vmax}
+.bgfx i:nth-child(2){background:radial-gradient(circle,color-mix(in srgb,var(--ind) 30%,transparent),transparent 66%);bottom:-28vmax;inset-inline-start:-22vmax;animation-duration:38s}
+@keyframes drift{to{transform:translate(7vmax,5vmax) scale(1.12)}}
 .wrap{max-width:720px;margin:0 auto;padding:16px 16px 100px}
 .wrap.wide{max-width:1000px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0 16px}
 .logo{font-family:'Reem Kufi',sans-serif;font-size:30px;font-weight:700;color:var(--pri);text-decoration:underline;text-decoration-color:var(--gold);text-decoration-thickness:3px;text-underline-offset:9px;user-select:none;-webkit-user-select:none;transition:color .35s}
-.tg{width:42px;height:42px;border-radius:50%;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font-size:19px;cursor:pointer;transition:transform .5s cubic-bezier(.3,1.4,.5,1),background-color .35s,border-color .35s}
+.tg{width:42px;height:42px;border-radius:50%;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font-size:19px;cursor:pointer;box-shadow:var(--sh);transition:transform .5s cubic-bezier(.3,1.4,.5,1),background-color .35s,border-color .35s}
 .tg.spin{transform:rotate(360deg)}
 h1,h2,h3{margin:0 0 8px;line-height:1.4}h2{font-size:20px}h3{font-size:17px}
 .mut{color:var(--mut);font-size:14px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px;transition:background-color .35s,border-color .35s}
-.btn{font:inherit;font-weight:600;border:0;border-radius:10px;padding:11px 18px;background:var(--pri);color:var(--onpri);cursor:pointer;min-height:44px;transition:transform .15s,background-color .2s}
-.btn:hover{background:var(--pri2)}.btn:active{transform:scale(.97)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:var(--sh);transition:background-color .35s,border-color .25s,transform .25s}
+@media (hover:hover){.card.lift:hover{transform:translateY(-5px);border-color:var(--pri)}}
+.btn,.subj,.tab{position:relative;overflow:hidden}
+.btn{font:inherit;font-weight:600;border:0;border-radius:12px;padding:11px 18px;background:var(--pri);color:var(--onpri);cursor:pointer;min-height:44px;transition:transform .15s,background-color .2s,box-shadow .25s}
+.btn:hover{background:var(--pri2);box-shadow:0 6px 18px color-mix(in srgb,var(--pri) 40%,transparent)}.btn:active{transform:scale(.97)}
 .btn:disabled{opacity:.55;cursor:wait}
-.btn.ghost{background:transparent;color:var(--pri);border:1.5px solid var(--pri)}
-.btn.ghost:hover{background:var(--sel)}
+.btn.ghost{background:transparent;color:var(--pri);border:1.5px solid var(--pri)}.btn.ghost:hover{background:var(--sel);box-shadow:none}
 .btn.danger{background:var(--bad);color:#fff}
-.btn.gold{background:var(--gold);color:#2b2000}
+.btn.gold{background:var(--gold);color:#2b2000}.btn.gold:hover{background:var(--gold);filter:brightness(1.06);box-shadow:0 6px 18px color-mix(in srgb,var(--gold) 50%,transparent)}
 .btn.sm{padding:6px 12px;min-height:36px;font-size:14px}
 .btn.block{width:100%}
+.rip{position:absolute;border-radius:50%;background:currentColor;opacity:0;pointer-events:none;animation:rip .55s ease-out}
+@keyframes rip{from{transform:scale(0);opacity:.28}to{transform:scale(4);opacity:0}}
 :focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 label.f{display:block;font-weight:600;margin:12px 0 4px}
-input[type=text],input[type=password],input[type=number],input[type=tel],select,textarea{width:100%;font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);transition:border-color .2s,box-shadow .2s}
+input[type=text],input[type=password],input[type=number],input[type=tel],input[type=datetime-local],select,textarea{width:100%;font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);transition:border-color .2s,box-shadow .2s}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 3px color-mix(in srgb,var(--pri) 25%,transparent)}
 input.ltr{direction:ltr;text-align:right}
 textarea{min-height:320px;line-height:1.8;font-size:15px}
 .err{background:var(--rbg);color:var(--bad);border-radius:10px;padding:10px 12px;margin-top:12px;font-size:15px}
-.warnbar{display:none;background:var(--rbg);color:var(--bad);border:1.5px solid var(--bad);border-radius:10px;padding:8px 12px;margin-bottom:10px;font-weight:600}
+.warnbar{display:none;background:var(--rbg);color:var(--bad);border:1.5px solid var(--bad);border-radius:10px;padding:8px 12px;margin-bottom:10px;font-weight:600;animation:shake .45s}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
-.tab{font:inherit;font-weight:600;border:1.5px solid var(--line);background:var(--card);border-radius:10px;padding:8px 14px;cursor:pointer;color:var(--ink);transition:background-color .2s}
+.tab{font:inherit;font-weight:600;border:1.5px solid var(--line);background:var(--card);border-radius:10px;padding:8px 14px;cursor:pointer;color:var(--ink);transition:background-color .2s,color .2s}
 .tab.on{background:var(--pri);color:var(--onpri);border-color:var(--pri)}
-.badge{display:inline-block;background:var(--gold);color:#2b2000;border-radius:99px;padding:0 8px;font-size:13px;margin-inline-start:6px}
-.screen{animation:enter .32s ease-out both}
+.badge{display:inline-block;background:var(--gold);color:#2b2000;border-radius:99px;padding:0 8px;font-size:13px;margin-inline-start:6px;animation:bp 1.8s ease-in-out infinite}
+@keyframes bp{50%{transform:scale(1.18)}}
+.screen{animation:enter .34s ease-out both}
 @keyframes enter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.splash{display:grid;place-items:center;min-height:80vh;text-align:center}
+.splash .logo{font-size:60px;text-decoration:none;display:inline-block;animation:enter .6s ease-out both}
+.uline{display:block;height:5px;border-radius:5px;background:var(--gold);width:0;margin:6px auto 0;animation:uline 1s .2s ease-out forwards}
+@keyframes uline{to{width:100%}}
+.sk{border-radius:14px;min-height:128px;background:linear-gradient(90deg,var(--line),var(--sel),var(--line));background-size:200% 100%;animation:shim 1.3s linear infinite}
+@keyframes shim{to{background-position:-200% 0}}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.subj{border:0;border-radius:18px;padding:18px 14px;color:#fff;text-align:start;cursor:pointer;font:inherit;display:flex;flex-direction:column;gap:2px;min-height:128px;transition:transform .15s;animation:tile .45s cubic-bezier(.3,1.3,.5,1) both}
-.subj:active{transform:scale(.96)}
-.subj:nth-child(2){animation-delay:.06s}.subj:nth-child(3){animation-delay:.12s}.subj:nth-child(4){animation-delay:.18s}.subj:nth-child(5){animation-delay:.24s}.subj:nth-child(6){animation-delay:.3s}
-@keyframes tile{from{opacity:0;transform:translateY(18px) scale(.94)}to{opacity:1;transform:none}}
-.subj .g{font-size:34px;font-weight:700;line-height:1.2;direction:ltr;text-align:right}
-.subj b{font-size:19px}.subj small{opacity:.92}
+.subj{border:0;border-radius:20px;padding:16px 14px;color:#fff;text-align:start;cursor:pointer;font:inherit;display:flex;flex-direction:column;gap:2px;min-height:136px;box-shadow:var(--sh);transition:transform .2s,box-shadow .25s}
+.subj:active{transform:scale(.95)}
+@media (hover:hover){.subj:hover{transform:translateY(-5px);box-shadow:0 14px 30px rgba(0,0,0,.25)}}
+.screen .subj{animation:tile .5s cubic-bezier(.3,1.3,.5,1) both}
+.screen .subj:nth-child(2){animation-delay:.06s}.screen .subj:nth-child(3){animation-delay:.12s}.screen .subj:nth-child(4){animation-delay:.18s}.screen .subj:nth-child(5){animation-delay:.24s}.screen .subj:nth-child(6){animation-delay:.3s}
+@keyframes tile{from{opacity:0;transform:translateY(18px) scale(.93)}to{opacity:1;transform:none}}
+.subj .g{font-size:36px;font-weight:700;line-height:1.2;direction:ltr;text-align:right;text-shadow:0 3px 8px rgba(0,0,0,.25)}
+.subj b{font-size:19px}.subj small{opacity:.95}
+.sp{height:6px;background:rgba(255,255,255,.3);border-radius:99px;margin-top:auto;overflow:hidden}
+.sp i{display:block;height:100%;width:var(--w);background:#fff;border-radius:99px;animation:grow .9s ease-out .3s both}
+@keyframes grow{from{width:0}}
 .row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .pill{display:inline-block;border-radius:99px;padding:2px 10px;font-size:13px;font-weight:600;background:var(--sel);color:var(--pri)}
-.pill.g{background:var(--gbg);color:var(--ok)}.pill.r{background:var(--rbg);color:var(--bad)}.pill.y{background:var(--ybg);color:var(--yfg)}
-.q{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;transition:background-color .35s}
+.pill.g{background:var(--gbg);color:var(--ok)}.pill.r{background:var(--rbg);color:var(--bad)}.pill.y{background:var(--ybg);color:var(--yfg)}.pill.i{background:color-mix(in srgb,var(--ind) 18%,transparent);color:var(--ind)}
+.q{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:var(--sh);transition:background-color .35s}
+.q.in{animation:qin .42s ease-out both;animation-delay:calc(var(--i)*45ms)}
+@keyframes qin{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:none}}
 .q .n{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--pri);color:var(--onpri);font-size:14px;font-weight:600;margin-inline-end:8px}
 .q p{margin:0 0 10px;font-weight:500;white-space:pre-wrap}
 .opt{display:block;position:relative;margin-top:8px}
 .opt input{position:absolute;opacity:0}
-.opt span{display:block;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;cursor:pointer;transition:border-color .2s,background-color .2s}
-.opt input:checked+span{border-color:var(--pri);background:var(--sel);font-weight:600;animation:pop .3s ease-out}
+.opt span{display:block;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;cursor:pointer;transition:border-color .2s,background-color .2s,transform .15s}
+@media (hover:hover){label.opt:hover span{border-color:var(--pri)}}
+.opt input:checked+span{border-color:var(--pri);background:var(--sel);font-weight:600;animation:pop .32s ease-out}
 .opt input:focus-visible+span{outline:3px solid var(--gold)}
-@keyframes pop{50%{transform:scale(1.03)}}
-div.opt.right span{border-color:var(--ok);background:var(--gbg);cursor:default}
-div.opt.wrong span{border-color:var(--bad);background:var(--rbg);cursor:default}
+@keyframes pop{50%{transform:scale(1.035)}}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 div.opt span{cursor:default}
-.timer{position:sticky;top:0;z-index:5;background:var(--pri);color:var(--onpri);border-radius:10px;padding:8px 14px;margin-bottom:8px;display:flex;justify-content:space-between;font-weight:600}
+div.opt.right span{border-color:var(--ok);background:var(--gbg)}
+div.opt.wrong span{border-color:var(--bad);background:var(--rbg);animation:shake .45s}
+.tk{display:inline-block;animation:tkp .5s cubic-bezier(.3,1.7,.5,1) both}.tk.x{color:var(--bad)}.tk:not(.x){color:var(--ok)}
+@keyframes tkp{from{transform:scale(0) rotate(-40deg)}to{transform:none}}
+.timer{position:sticky;top:0;z-index:5;background:var(--pri);color:var(--onpri);border-radius:12px;padding:8px 14px;margin-bottom:8px;display:flex;justify-content:space-between;font-weight:600;box-shadow:var(--sh)}
 .prog{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin-bottom:12px}
-.prog i{display:block;height:100%;width:0;background:var(--gold);border-radius:99px;transition:width .5s cubic-bezier(.3,1,.4,1)}
-.ring{width:150px;height:150px;margin:6px auto 10px;position:relative}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--ind));border-radius:99px;transition:width .5s cubic-bezier(.3,1,.4,1)}
+.ring{width:150px;height:150px;margin:6px auto 4px;position:relative}
 .ring svg{transform:rotate(-90deg)}.ring circle{fill:none;stroke-width:10;stroke-linecap:round}
 .ring .bg{stroke:var(--line)}.ring .fg{stroke:var(--gold);stroke-dasharray:339.3;stroke-dashoffset:339.3;transition:stroke-dashoffset 1.1s cubic-bezier(.3,1,.4,1)}
 .ring b{position:absolute;inset:0;display:grid;place-items:center;font-family:'Reem Kufi',sans-serif;font-size:34px;color:var(--pri)}
+.stars span{display:inline-block;font-size:34px;color:var(--gold);animation:tkp .6s cubic-bezier(.3,1.7,.5,1) both}
+.stars span.off{color:var(--line)}
+.stars span:nth-child(2){animation-delay:.25s}.stars span:nth-child(3){animation-delay:.5s}
+.conf{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:60}
+.conf i{position:absolute;top:-16px;width:8px;height:14px;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(108vh) rotate(720deg)}}
 .tw{overflow-x:auto}
 table{border-collapse:collapse;width:100%;font-size:14px;background:var(--card)}
 th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:start;white-space:nowrap}
 th{background:var(--sel)}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
 .stat{text-align:center;margin:0}.stat b{display:block;font-size:26px;color:var(--pri);line-height:1.3}
-.bars{display:flex;align-items:flex-end;gap:8px;height:150px;padding-top:8px}
-.bars div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:12px;color:var(--mut)}
-.bars i{display:block;width:100%;max-width:34px;border-radius:6px 6px 0 0;background:var(--pri);min-height:3px;transition:height .6s cubic-bezier(.3,1,.4,1)}
+.bars{display:flex;align-items:flex-end;gap:5px;height:160px;padding-top:6px}
+.bars div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:11px;color:var(--mut);min-width:0}
+.bars i{display:block;width:100%;max-width:30px;border-radius:6px 6px 0 0;background:linear-gradient(180deg,var(--pri),var(--ind));min-height:3px;animation:rise .7s cubic-bezier(.3,1,.4,1) both;transform-origin:bottom}
+@keyframes rise{from{transform:scaleY(0)}}
 .bars i.f{background:var(--mut)}
-.hb{height:10px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:4px}.hb i{display:block;height:100%;border-radius:99px}
+.hb{height:10px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:4px}.hb i{display:block;height:100%;border-radius:99px;animation:grow .9s ease-out both}
 .center{text-align:center;padding-top:60px}
 .big{font-family:'Reem Kufi',sans-serif;font-size:56px;color:var(--pri);line-height:1.2}
-nav.bot{position:fixed;inset-inline:0;bottom:0;display:flex;justify-content:center;gap:8px;padding:8px 12px;background:var(--card);border-top:1px solid var(--line);z-index:9;transition:background-color .35s}
-nav.bot button{font:inherit;font-weight:600;flex:1;max-width:180px;border:0;border-radius:10px;padding:9px 6px;background:transparent;color:var(--mut);cursor:pointer;transition:background-color .2s,color .2s}
+.ann{background:linear-gradient(135deg,color-mix(in srgb,var(--ind) 16%,var(--card)),color-mix(in srgb,var(--gold) 18%,var(--card)));border-color:var(--gold)}
+.fab{position:fixed;inset-inline-start:18px;bottom:22px;width:58px;height:58px;border-radius:50%;border:0;background:var(--gold);color:#2b2000;font-size:30px;font-weight:700;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.3);z-index:20;transition:transform .2s}
+.fab:active{transform:scale(.9)}
+nav.bot{position:fixed;inset-inline:0;bottom:0;display:flex;justify-content:center;gap:8px;padding:8px 12px;background:color-mix(in srgb,var(--card) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line);z-index:9}
+nav.bot button{font:inherit;font-weight:600;flex:1;max-width:180px;border:0;border-radius:12px;padding:9px 6px;background:transparent;color:var(--mut);cursor:pointer;transition:background-color .2s,color .2s}
 nav.bot button.on{background:var(--sel);color:var(--pri)}
-#toast{position:fixed;inset-inline:12px;bottom:78px;max-width:460px;margin:0 auto;background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:12px;display:none;z-index:50;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+#toast{position:fixed;inset-inline:12px;bottom:78px;max-width:460px;margin:0 auto;background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:14px;z-index:50;box-shadow:0 8px 28px rgba(0,0,0,.3);opacity:0;transform:translateY(24px) scale(.97);pointer-events:none;transition:opacity .3s,transform .35s cubic-bezier(.3,1.4,.5,1)}
+#toast.show{opacity:1;transform:none}
 #toast.gold{background:var(--gold);color:#2b2000;font-weight:600}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.uline{width:100%}}
 </style>
 </head>
 <body>
+<div class="bgfx"><i></i><i></i></div>
 <div id="app"></div>
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -119,12 +157,12 @@ const ADMIN_EMAIL = "01061572071@eltafawoq.app";   // لازم يطابق الإ
 const DOMAIN = "@eltafawoq.app";
 const MAX_ATTEMPTS = 2;
 const SUBJECTS = [
-  {id:"arabic",name:"عربي",g:"أ ب",c:"#B91C1C"},
-  {id:"science",name:"علوم",g:"H₂O",c:"#0E7490"},
-  {id:"history",name:"تاريخ",g:"م",c:"#A16207"},
-  {id:"english",name:"إنجليزي",g:"Aa",c:"#1D4ED8"},
-  {id:"philosophy",name:"فلسفة",g:"؟",c:"#6D28D9"},
-  {id:"math",name:"رياضيات",g:"π",c:"#15803D"}
+  {id:"arabic",name:"عربي",g:"أ ب",c:"#B91C1C",c2:"#C2410C"},
+  {id:"science",name:"علوم",g:"H₂O",c:"#155E75",c2:"#0E7490"},
+  {id:"history",name:"تاريخ",g:"م",c:"#92400E",c2:"#B45309"},
+  {id:"english",name:"إنجليزي",g:"Aa",c:"#1D4ED8",c2:"#4338CA"},
+  {id:"philosophy",name:"فلسفة",g:"؟",c:"#6D28D9",c2:"#86198F"},
+  {id:"math",name:"رياضيات",g:"π",c:"#166534",c2:"#15803D"}
 ];
 const subName = id => (SUBJECTS.find(s=>s.id===id)||{name:id}).name;
 const subColor = id => (SUBJECTS.find(s=>s.id===id)||{c:"#0B5D57"}).c;
@@ -141,16 +179,24 @@ const tms = r => r.createdAt&&r.createdAt.seconds?r.createdAt.seconds:0;
 const pill = (t,c) => `<span class="pill ${c||""}">${t}</span>`;
 const passPill = r => r.passMark>0 ? (r.passed?pill("ناجح","g"):pill("راسب","r")) : "";
 
-const S = {user:null,isAdmin:false,profile:null,site:{maintenance:false,message:""},exams:[],results:[],students:[],alerts:[],
+const S = {starts:[],examsLoaded:false,user:null,isAdmin:false,profile:null,site:{maintenance:false,message:""},exams:[],results:[],students:[],alerts:[],
   myList:[],attempts:{},view:"loading",tab:"dash",subject:null,cur:null,last:null,review:null,studentId:null,editing:null,
   adminLogin:false,mode:"login",error:"",filter:"",unread:0,unreadAlerts:0,registering:false,taps:[]};
-let subs=[],timer=null,db,auth,lastLeave=0;
+const splashUntil=Date.now()+1100;
+const vis=e=>!e.publishAt||Date.now()>=e.publishAt;
+const todayKey=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
+const dkey=sec=>{const d=new Date(sec*1000);return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
+const lastDays=n=>{const a=[];for(let i=n-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);a.push({k:d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()),l:d.getDate()})}return a};
+const device=()=>{const u=navigator.userAgent;const os=/Android/i.test(u)?"Android":/iPhone|iPad|iPod/i.test(u)?"iOS":/Windows/i.test(u)?"Windows":/Mac/i.test(u)?"Mac":/Linux/i.test(u)?"Linux":"?";const br=/Edg\//.test(u)?"Edge":/OPR\//.test(u)?"Opera":/SamsungBrowser/.test(u)?"Samsung":/Chrome\//.test(u)?"Chrome":/Firefox\//.test(u)?"Firefox":/Safari\//.test(u)?"Safari":"?";return os+" · "+br+(/FB_IAB|FBAN|FBAV|Messenger/i.test(u)?" (داخل فيسبوك)":"")};
+let myIp=null;
+async function getIp(){if(myIp!==null)return myIp;try{const c=new AbortController(),t=setTimeout(()=>c.abort(),4000);const r=await fetch("https://api.ipify.org?format=json",{signal:c.signal});clearTimeout(t);myIp=(await r.json()).ip||""}catch(e){myIp=""}return myIp}
+let subs=[],timer=null,hb=null,ansT=null,db,auth,lastLeave=0;
 
 const configured = !firebaseConfig.apiKey.startsWith("PASTE");
 if(configured){const app=initializeApp(firebaseConfig);auth=getAuth(app);db=getFirestore(app)}
 
 /* ---------- أدوات ---------- */
-function toast(msg,gold){const t=$("#toast");t.textContent=msg;t.className=gold?"gold":"";t.style.display="block";clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display="none",gold?7000:3500)}
+function toast(msg,gold){const t=$("#toast");t.textContent=msg;t.className=(gold?"gold ":"")+"show";clearTimeout(toast.h);toast.h=setTimeout(()=>t.className=gold?"gold":"",gold?7000:3500)}
 function updTitle(){const n=S.unread+S.unreadAlerts;document.title=(n?`(${n}) `:"")+"التفوق"}
 function authErr(e){
   const c=e&&e.code||"";
@@ -224,12 +270,20 @@ function stats(){
   const avg=a=>a.length?Math.round(a.reduce((s,r)=>s+pctOf(r),0)/a.length):0;
   const wp=R.filter(r=>r.passMark>0);
   const per=S.exams.map(e=>{const rs=R.filter(r=>r.examId===e.id),w=rs.filter(r=>r.passMark>0);
-    return {e,n:rs.length,avg:avg(rs),pass:w.length?Math.round(w.filter(r=>r.passed).length/w.length*100):null}});
+    const ts=rs.filter(r=>r.secs>0);
+    return {e,n:rs.length,avg:avg(rs),secs:ts.length?Math.round(ts.reduce((a,r)=>a+r.secs,0)/ts.length):null,pass:w.length?Math.round(w.filter(r=>r.passed).length/w.length*100):null}});
   const qm={};
   R.forEach(r=>{const e=S.exams.find(x=>x.id===r.examId);if(!e||!r.ans)return;
     e.questions.forEach((q,i)=>{if(q.fun)return;const k=e.id+"#"+i;const m=qm[k]||(qm[k]={q:q.q,exam:e.title,n:0,c:0});m.n++;if(r.ans[i]===q.a)m.c++})});
   const ql=Object.values(qm).filter(m=>m.n>=3).map(m=>({...m,p:Math.round(m.c/m.n*100)})).sort((a,b)=>a.p-b.p);
   return {R,avg:avg(R),passRate:wp.length?Math.round(wp.filter(r=>r.passed).length/wp.length*100):null,per,hard:ql.slice(0,3),easy:ql.slice(-3).reverse()};
+}
+
+function board(){
+  const by={};S.results.forEach(r=>{(by[r.uid]=by[r.uid]||{uid:r.uid,name:r.name,rs:[]}).rs.push(r)});
+  const L=Object.values(by).map(x=>{const good=x.rs.filter(r=>pctOf(r)>=50&&r.secs>0);
+    return {uid:x.uid,name:x.name,n:x.rs.length,avg:Math.round(x.rs.reduce((a,r)=>a+pctOf(r),0)/x.rs.length),fast:good.length?Math.round(good.reduce((a,r)=>a+r.secs,0)/good.length):null}});
+  return {top:L.slice().sort((a,b)=>b.avg-a.avg||b.n-a.n).slice(0,10),act:L.slice().sort((a,b)=>b.n-a.n).slice(0,5),fast:L.filter(x=>x.fast!=null).sort((a,b)=>a.fast-b.fast).slice(0,3)};
 }
 
 /* ---------- الجلسة والاشتراكات ---------- */
@@ -244,7 +298,7 @@ async function startSession(u){
   try{
     if(S.isAdmin){
       S.view="admin";S.tab="dash";
-      let f1=true,f2=true;
+      let f1=true,f2=true,f3=true;
       subs.push(onSnapshot(collection(db,"exams"),s=>{S.exams=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));render()}));
       subs.push(onSnapshot(query(collection(db,"results"),orderBy("createdAt","desc")),s=>{
         if(!f1)s.docChanges().forEach(c=>{if(c.type==="added"&&c.doc.data().createdAt){const r=c.doc.data();toast(`${r.name} امتحن ${r.examTitle} (محاولة ${r.attempt||1}) وجاب ${r.score}/${r.total}`,true);if(S.tab!=="results"){S.unread++;updTitle()}}});
@@ -255,11 +309,19 @@ async function startSession(u){
         if(!f2)s.docChanges().forEach(c=>{if(c.type==="added"&&c.doc.data().createdAt){const a=c.doc.data();toast(`⚠ ${a.name} (${a.phone}) خرج من الامتحان: ${a.examTitle}`,true);if(S.tab!=="alerts"){S.unreadAlerts++;updTitle()}}});
         f2=false;S.alerts=s.docs.map(d=>({id:d.id,...d.data()}));render();
       }));
+      subs.push(onSnapshot(collection(db,"starts"),s=>{
+        if(!f3)s.docChanges().forEach(c=>{if(c.type==="added"){const a=c.doc.data();toast(`🟢 ${a.name||"طالب"} بدأ امتحان ${a.examTitle||""}`,true)}});
+        f3=false;S.starts=s.docs.map(d=>({id:d.id,...d.data()}));render();
+      }));
+      const iv=setInterval(()=>{if(S.view==="admin"&&S.tab==="live")render()},20000);subs.push(()=>clearInterval(iv));
     }else{
       const p=await getDoc(doc(db,"students",u.uid));
       S.profile=p.exists()?p.data():{name:"طالب",phone:""};
-      S.view="home";
-      subs.push(onSnapshot(collection(db,"exams"),s=>{S.exams=s.docs.map(d=>({id:d.id,...d.data()})).filter(e=>e.published).sort((a,b)=>tms(b)-tms(a));render()}));
+      S.view="home";S.examsLoaded=false;
+      subs.push(onSnapshot(doc(db,"students",u.uid),s=>{if(s.exists()){S.profile=s.data();render()}}));
+      getIp().then(ip=>updateDoc(doc(db,"students",u.uid),{lastLogin:serverTimestamp(),ip:ip||"",device:device()}).catch(()=>{}));
+      const iv2=setInterval(()=>{if(S.user&&!S.isAdmin&&(S.view==="home"||S.view==="subject"))render()},60000);subs.push(()=>clearInterval(iv2));
+      subs.push(onSnapshot(collection(db,"exams"),s=>{S.examsLoaded=true;S.exams=s.docs.map(d=>({id:d.id,...d.data()})).filter(e=>e.published).sort((a,b)=>tms(b)-tms(a));render()}));
       subs.push(onSnapshot(query(collection(db,"results"),where("uid","==",u.uid)),s=>{
         S.myList=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(a)-tms(b));S.attempts=groupAttempts(S.myList);render();
       }));
@@ -272,14 +334,18 @@ if(configured){
   onSnapshot(doc(db,"config","site"),s=>{
     const d=s.exists()?s.data():{};
     const was=S.site.maintenance;
-    S.site={maintenance:!!d.maintenance,message:d.message||""};
+    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn};
     if(S.view==="loading")return;
-    if(was!==S.site.maintenance||S.view==="admin")render();
+    if(S.view==="auth"&&was===S.site.maintenance)return;
+    render();
   },()=>{S.site={maintenance:true,message:"في مشكلة مؤقتة. جرّب بعد شوية."};render()});
   onAuthStateChanged(auth,u=>{
     if(S.registering)return;
-    if(u)startSession(u);
-    else{stopSubs();S.user=null;S.isAdmin=false;S.profile=null;S.myList=[];S.attempts={};S.view="auth";render(true)}
+    const run=()=>{
+      if(u)startSession(u);
+      else{stopSubs();S.user=null;S.isAdmin=false;S.profile=null;S.myList=[];S.attempts={};S.view="auth";render(true)}
+    };
+    const w=splashUntil-Date.now();w>0?setTimeout(run,w):run();
   });
 }else{S.site={maintenance:true,message:"المنصة تحت التعديل."};S.view="auth"}
 
@@ -287,26 +353,30 @@ if(configured){
 const app=$("#app");
 function render(force){
   if(!force&&(S.view==="exam"||S.view==="editExam"))return;
-  if(S.view!=="exam")clearInterval(timer);
+  if(S.view!=="exam"){clearInterval(timer);clearInterval(hb)}
   let h;
-  if(S.view==="loading")h=`<div class="center mut">جاري التحميل…</div>`;
+  if(S.view==="loading")h=splash();
   else if(S.site.maintenance&&!S.isAdmin&&!S.adminLogin)h=maintenance();
   else if(!S.user)h=authView();
   else if(S.isAdmin){
     h=S.view==="editExam"?editor():S.view==="studentDetail"?studentDetail():S.view==="review"?reviewView():adminView();
-  }else{
+  }else if(S.profile&&S.profile.blocked){h=blockedView()}
+  else{
     const m={subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView};
     h=(m[S.view]||homeView)();
   }
   app.innerHTML=h;
+  if(force&&app.firstElementChild)app.firstElementChild.classList.add("screen");
   if(S.view==="result"&&!S.isAdmin&&S.user)runResult();
   if(S.view==="editExam")bindEditor();
 }
+const splash=()=>`<div class="splash"><div><div class="logo">التفوق</div><i class="uline"></i><div class="mut" style="margin-top:16px">جاري التحضير…</div></div></div>`;
+const blockedView=()=>`<div class="wrap"><div class="center"><div class="logo" style="display:inline-block">التفوق</div><h1 style="margin-top:28px">حسابك موقوف</h1><p class="mut" style="max-width:360px;margin:8px auto 24px">تواصل مع المدرس لإعادة تفعيل الحساب.</p><button class="btn ghost" data-act="logout">تسجيل خروج</button></div></div>`;
 const logo=`<div class="logo">التفوق</div>`;
 const header=(extra)=>`<div class="top">${logo}<div class="row">${extra||""}${themeBtn()}</div></div>`;
 const studentNav=()=>`<nav class="bot"><button class="${S.view==="progress"?"":"on"}" data-act="home">المواد</button><button class="${S.view==="progress"?"on":""}" data-act="progress">تقدمي</button></nav>`;
 
-function maintenance(){return `<div class="wrap screen"><div class="center"><div class="logo" data-act="logoTap" style="display:inline-block;font-size:40px">التفوق</div>
+function maintenance(){return `<div class="wrap"><div class="center"><div class="logo" data-act="logoTap" style="display:inline-block;font-size:40px">التفوق</div>
 <h1 style="margin-top:28px">المنصة تحت التعديل</h1>
 <p class="mut" style="max-width:380px;margin:8px auto 28px">${esc(S.site.message||"بنحدّث المنصة دلوقتي. ارجع بعد شوية.")}</p>
 ${S.user?`<button class="btn ghost" data-act="logout">تسجيل خروج</button>`:""}
@@ -314,7 +384,7 @@ ${S.user?`<button class="btn ghost" data-act="logout">تسجيل خروج</butto
 
 function authView(){
   const reg=S.mode==="register"&&!S.adminLogin;
-  return `<div class="wrap screen">${header()}
+  return `<div class="wrap">${header()}
 <form class="card" data-submit="${reg?"doRegister":"doLogin"}" autocomplete="on">
 <h2>${S.adminLogin?"دخول الأدمن":reg?"إنشاء حساب جديد":"تسجيل الدخول"}</h2>
 ${reg?`<label class="f" for="nm">الاسم بالكامل</label><input id="nm" type="text" autocomplete="name" required>`:""}
@@ -324,36 +394,38 @@ ${reg?`<label class="f" for="nm">الاسم بالكامل</label><input id="nm"
 <input id="pw" class="ltr" type="password" autocomplete="${reg?"new-password":"current-password"}" required>
 ${S.error?`<div class="err">${esc(S.error)}</div>`:""}
 <div style="margin-top:16px"><button class="btn block" id="go">${reg?"إنشاء الحساب":"دخول"}</button></div>
+${S.adminLogin?"":`<p class="mut" style="font-size:12px;margin:10px 0 0;text-align:center">بنسجّل نوع الجهاز وعنوان الاتصال لأغراض الأمان.</p>`}
 ${S.adminLogin?"":`<p class="mut" style="text-align:center;margin:14px 0 0">${reg?"عندك حساب؟":"أول مرة؟"} <a href="#" data-act="mode" style="color:var(--pri);font-weight:600">${reg?"سجّل دخول":"أنشئ حساب"}</a></p>`}
 </form>${S.adminLogin?`<p style="text-align:center;margin:8px 0 0"><a href="#" data-act="studentLink" class="mut">رجوع</a></p>`:""}</div>`}
 
 /* ---------- الطالب ---------- */
 function homeView(){
-  return `<div class="wrap screen">${header(`<button class="btn ghost sm" data-act="logout">خروج</button>`)}
-<h2>أهلاً يا ${esc(S.profile.name.split(" ")[0])}</h2><p class="mut">اختار المادة اللي عايز تمتحن فيها.</p>
-<div class="grid">${SUBJECTS.map(s=>{const n=S.exams.filter(e=>e.subject===s.id).length;return `<button class="subj" style="background:${s.c}" data-act="openSubject" data-id="${s.id}"><span class="g">${s.g}</span><b>${s.name}</b><small>${n?n+" امتحان":"مفيش امتحانات لسه"}</small></button>`}).join("")}</div>
+  const ex=S.exams.filter(vis);
+  const an=S.site.announceOn&&S.site.announce?`<div class="card ann"><b>📢 إعلان</b><div style="white-space:pre-wrap;margin-top:4px">${esc(S.site.announce)}</div></div>`:"";
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="logout">خروج</button>`)}
+<h2>أهلاً يا ${esc(S.profile.name.split(" ")[0])}</h2><p class="mut">اختار المادة اللي عايز تمتحن فيها.</p>${an}
+<div class="grid">${S.examsLoaded?SUBJECTS.map(s=>{const l=ex.filter(e=>e.subject===s.id),done=l.filter(e=>(S.attempts[e.id]||[]).length).length,p=l.length?Math.round(done/l.length*100):0;
+  return `<button class="subj" style="background:linear-gradient(135deg,${s.c},${s.c2})" data-act="openSubject" data-id="${s.id}"><span class="g">${s.g}</span><b>${s.name}</b><small>${l.length?l.length+" امتحان · خلصت "+done:"مفيش امتحانات لسه"}</small><div class="sp"><i style="--w:${p}%"></i></div></button>`}).join(""):SUBJECTS.map(()=>`<div class="sk"></div>`).join("")}</div>
 </div>${studentNav()}`}
-
 function subjectView(){
-  const s=SUBJECTS.find(x=>x.id===S.subject),ex=S.exams.filter(e=>e.subject===s.id);
-  return `<div class="wrap screen">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
-<h2 style="color:${s.c}">امتحانات ${s.name}</h2>
+  const s=SUBJECTS.find(x=>x.id===S.subject),ex=S.exams.filter(e=>e.subject===s.id&&vis(e));
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
+<h2 style="color:${s.c2}">امتحانات ${s.name}</h2>
 ${ex.length?ex.map(e=>{
   const at=S.attempts[e.id]||[];
-  return `<div class="card"><b>${esc(e.title)}</b>
+  return `<div class="card lift"><b>${esc(e.title)}</b>
 <div class="mut">${gcount(e)} سؤال${e.questions.length>gcount(e)?" + ألغاز":""} · ${e.minutes?e.minutes+" دقيقة":"من غير وقت محدد"}${e.passMark>0?" · النجاح من "+e.passMark:""} · عندك ${MAX_ATTEMPTS} محاولات</div>
 ${at.map(a=>`<div class="row" style="margin-top:8px"><span>محاولة ${a.attempt||1}: <b>${a.score}/${a.total}</b> ${passPill(a)}</span><button class="btn ghost sm" data-act="reviewMine" data-id="${a.id}">شوف حلّك</button></div>`).join("")}
 <div style="margin-top:10px">${at.length<MAX_ATTEMPTS?`<button class="btn sm" data-act="start" data-id="${e.id}">${at.length?"محاولة تانية":"ابدأ"}</button>`:`<span class="mut">خلصت محاولتيك على الامتحان ده.</span>`}</div></div>`}).join(""):`<div class="card mut">مفيش امتحانات في المادة دي دلوقتي. ارجع تاني بعدين.</div>`}
 </div>${studentNav()}`}
-
 function examView(){
   const c=S.cur,e=c.exam;let pos=0,fun=false;
-  return `<div class="wrap screen"><div class="timer"><span>${esc(e.title)} · محاولة ${c.n}</span>${c.endAt?`<span id="timer">--:--</span>`:`<span>${gcount(e)} سؤال</span>`}</div>
+  return `<div class="wrap"><div class="timer"><span>${esc(e.title)} · محاولة ${c.n}</span>${c.endAt?`<span id="timer">--:--</span>`:`<span>${gcount(e)} سؤال</span>`}</div>
 <div class="prog"><i id="pg"></i></div><div class="warnbar" id="warn"></div>
 <form data-submit="submit">
 ${c.order.map(({i,o})=>{const q=e.questions[i];pos++;
   const head=q.fun&&!fun?(fun=true,`<div class="card" style="background:var(--ybg);border-color:var(--gold)"><b>قسم الترفيه: ألغاز ومسابقات</b><div class="mut">القسم ده للتسلية بس، مش بيتحسب في الدرجة.</div></div>`):"";
-  return head+`<div class="q"><p dir="auto"><span class="n">${pos}</span>${esc(q.q)}</p>${o.map(j=>`<label class="opt"><input type="radio" name="q${i}" value="${j}"><span dir="auto">${esc(q.o[j])}</span></label>`).join("")}</div>`}).join("")}
+  return head+`<div class="q in" style="--i:${Math.min(pos,12)}"><p dir="auto"><span class="n">${pos}</span>${esc(q.q)}</p>${o.map(j=>`<label class="opt"><input type="radio" name="q${i}" value="${j}"><span dir="auto">${esc(q.o[j])}</span></label>`).join("")}</div>`}).join("")}
 <button class="btn block gold" id="sub">تسليم الامتحان</button></form></div>`}
 
 function reviewBody(r,e,showAns){
@@ -362,13 +434,13 @@ function reviewBody(r,e,showAns){
     const a=(r.ans||[])[i];
     const head=q.fun&&!fun?(fun=true,`<div class="card" style="background:var(--ybg);border-color:var(--gold)"><b>الألغاز</b> <span class="mut">(مش في الدرجة)</span></div>`):"";
     const ok=a===q.a;
-    return head+`<div class="q"><p dir="auto"><span class="n">${i+1}</span>${esc(q.q)} ${a===-1||a==null?pill("لم تُجب","y"):q.fun?"":ok?pill("صح","g"):pill("غلط","r")}</p>${q.o.map((t,j)=>`<div class="opt ${j===q.a?"right":j===a?"wrong":""}"><span dir="auto">${esc(t)}${j===q.a?" ✓":j===a?" ✗":""}${j===a?` <small>(إجابة ${S.isAdmin?"الطالب":"تك"})</small>`:""}</span></div>`).join("")}</div>`}).join("");
+    return head+`<div class="q"><p dir="auto"><span class="n">${i+1}</span>${esc(q.q)} ${a===-1||a==null?pill("لم تُجب","y"):q.fun?"":ok?pill("صح","g"):pill("غلط","r")}</p>${q.o.map((t,j)=>`<div class="opt ${j===q.a?"right":j===a?"wrong":""}"><span dir="auto">${esc(t)}${j===q.a?` <b class="tk">✓</b>`:j===a?` <b class="tk x">✗</b>`:""}${j===a?` <small>(إجابة ${S.isAdmin?"الطالب":"تك"})</small>`:""}</span></div>`).join("")}</div>`}).join("");
 }
 function reviewView(){
   const {r,back}=S.review,e=S.exams.find(x=>x.id===r.examId);
   const showAns=S.isAdmin||(e&&e.showAnswers!==false);
   const adminBar=S.isAdmin?`<div class="mut">${esc(r.name)} · ${esc(r.phone)}</div>`:"";
-  return `<div class="wrap screen">${header(`<button class="btn ghost sm" data-act="backReview">رجوع</button>`)}
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="backReview">رجوع</button>`)}
 <div class="card"><h2>${esc(r.examTitle)} · محاولة ${r.attempt||1}</h2>${adminBar}
 <div style="margin-top:6px"><b style="font-size:22px;color:var(--pri)">${r.score}/${r.total}</b> ${pill(pctOf(r)+"%")} ${passPill(r)}</div>
 <div class="mut" style="margin-top:4px">${r.secs!=null?"الوقت: "+dur(r.secs)+" · ":""}${r.tabs?`<span style="color:var(--bad)">خرج من الامتحان ${r.tabs} مرة</span> · `:""}${fmt(r.createdAt)}</div></div>
@@ -377,9 +449,11 @@ ${!e?`<div class="card mut">الامتحان ده اتمسح أو اتخفى، �
 
 function resultView(){
   const r=S.last,p=pctOf(r),left=MAX_ATTEMPTS-(S.attempts[r.examId]||[]).length;
-  return `<div class="wrap screen">${header()}
+  const st=p>=90?3:p>=70?2:p>=50?1:0;
+  return `<div class="wrap">${header()}
 <div class="card" style="text-align:center;padding:24px 16px"><div class="mut">${esc(r.examTitle)} · محاولة ${r.attempt}</div>
 <div class="ring"><svg viewBox="0 0 120 120" width="150" height="150"><circle class="bg" cx="60" cy="60" r="54"/><circle class="fg" id="fg" cx="60" cy="60" r="54"/></svg><b id="sc">0</b></div>
+<div class="stars">${[1,2,3].map(i=>`<span class="${i<=st?"":"off"}">★</span>`).join("")}</div>
 <div class="mut">من ${r.total} · ${p}% ${passPill(r)}</div>
 <p style="margin:12px 0 0">${r.passMark>0?(r.passed?"مبروك، نجحت! 🎉":`محتاج ${r.passMark} إجابات صح على الأقل. راجع أخطاءك وحاول تاني.`):p>=85?"ممتاز! كمّل كده.":p>=50?"كويس. شوية مراجعة وهتبقى أحسن.":"محتاج مراجعة أكتر. المرة الجاية أحسن."}</p>
 ${left>0?`<p class="mut">لسه عندك محاولة تانية على الامتحان ده.</p>`:`<p class="mut">دي كانت آخر محاولة على الامتحان ده.</p>`}</div>
@@ -391,7 +465,7 @@ function progressView(){
   const bySub=SUBJECTS.map(s=>{const rs=L.filter(r=>r.subject===s.id);return {s,n:rs.length,avg:rs.length?Math.round(rs.reduce((a,r)=>a+pctOf(r),0)/rs.length):0}}).filter(x=>x.n);
   const weak=bySub.length>1?bySub.slice().sort((a,b)=>a.avg-b.avg)[0]:null;
   const last=L.slice(-10);
-  return `<div class="wrap screen">${header(`<button class="btn ghost sm" data-act="logout">خروج</button>`)}
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="logout">خروج</button>`)}
 <h2>تقدمي</h2>
 ${L.length?`<div class="stats"><div class="card stat"><b>${L.length}</b><span class="mut">محاولة</span></div><div class="card stat"><b>${exams}</b><span class="mut">امتحان</span></div><div class="card stat"><b>${avgP}%</b><span class="mut">المتوسط</span></div><div class="card stat"><b>${best}%</b><span class="mut">أعلى نتيجة</span></div></div>
 <div class="card"><h3>تطور درجاتك (آخر ${last.length})</h3><div class="bars">${last.map(r=>`<div>${pctOf(r)}<i class="${r.passMark>0&&!r.passed?"f":""}" style="height:${Math.max(3,pctOf(r))*0.9}%"></i></div>`).join("")}</div></div>
@@ -402,37 +476,70 @@ ${weak&&weak.avg<75?`<p class="mut" style="margin-top:12px">محتاج تركّ�
 </div>${studentNav()}`}
 
 /* ---------- لوحة الأدمن ---------- */
+const NOW=()=>Date.now();
+const liveActive=()=>S.starts.filter(x=>NOW()-(x.seen||x.t)<150000);
 function adminView(){
   const t=S.tab;
-  const tabs=[["dash","الرئيسية"],["exams","الامتحانات"],["students","الطلاب"],["results","النتايج"],["alerts","التنبيهات"],["settings","الإعدادات"]];
-  const bd={results:S.unread,alerts:S.unreadAlerts};
-  return `<div class="wrap wide screen">${header(`${pill("أدمن","y")}<button class="btn ghost sm" data-act="logout">خروج</button>`)}
+  const tabs=[["dash","الرئيسية"],["live","مباشر"],["exams","الامتحانات"],["students","الطلاب"],["results","النتايج"],["alerts","التنبيهات"],["settings","الإعدادات"]];
+  const bd={results:S.unread,alerts:S.unreadAlerts,live:liveActive().length};
+  return `<div class="wrap wide">${header(`${pill("أدمن","i")}<button class="btn ghost sm" data-act="logout">خروج</button>`)}
 ${S.site.maintenance?`<div class="err" style="margin:0 0 12px">وضع الصيانة شغّال. الطلاب شايفين "المنصة تحت التعديل".</div>`:""}
 <div class="tabs">${tabs.map(([k,v])=>`<button class="tab ${t===k?"on":""}" data-act="tab" data-id="${k}">${v}${bd[k]?`<span class="badge">${bd[k]}</span>`:""}</button>`).join("")}</div>
-${({dash:adminDash,exams:adminExams,students:adminStudents,results:adminResults,alerts:adminAlerts,settings:adminSettings}[t])()}</div>`}
-
+${({dash:adminDash,live:adminLive,exams:adminExams,students:adminStudents,results:adminResults,alerts:adminAlerts,settings:adminSettings}[t])()}
+${t==="exams"?`<button class="fab" data-act="newExam" aria-label="امتحان جديد">+</button>`:""}</div>`}
+const chart=(days,vals,cls)=>{const mx=Math.max(1,...vals);return `<div class="bars">${vals.map((v,i)=>`<div>${v||""}<i class="${cls||""}" style="height:${Math.max(3,v/mx*68)}%"></i><span>${days[i].l}</span></div>`).join("")}</div>`};
 function adminDash(){
-  const st=stats();
+  const st=stats(),days=lastDays(14),tk=todayKey();
+  const regs=days.map(d=>S.students.filter(x=>x.createdAt&&x.createdAt.seconds&&dkey(x.createdAt.seconds)===d.k).length);
+  const atts=days.map(d=>S.results.filter(x=>x.createdAt&&x.createdAt.seconds&&dkey(x.createdAt.seconds)===d.k).length);
+  const today=S.results.filter(x=>x.createdAt&&x.createdAt.seconds&&dkey(x.createdAt.seconds)===tk);
+  const act=new Set(today.map(x=>x.uid));S.students.forEach(x=>{if(x.lastLogin&&x.lastLogin.seconds&&dkey(x.lastLogin.seconds)===tk)act.add(x.id)});
+  const ts=S.results.filter(r=>r.secs>0),avgT=ts.length?Math.round(ts.reduce((a,r)=>a+r.secs,0)/ts.length):null;
+  const blocked=S.students.filter(x=>x.blocked).length;
+  const sub=SUBJECTS.map(s=>{const rs=S.results.filter(r=>r.subject===s.id),w=rs.filter(r=>r.passMark>0);return {s,n:rs.length,pass:w.length?Math.round(w.filter(r=>r.passed).length/w.length*100):null}});
+  const mxn=Math.max(1,...sub.map(x=>x.n));
+  const bd=board();
   const rec=S.results.slice(0,5);
-  const ql=(a,t)=>a.length?a.map(m=>`<div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><span dir="auto" style="white-space:normal;flex:1">${esc(m.q.slice(0,90))}<div class="mut">${esc(m.exam)}</div></span>${pill(m.p+"% صح "+"("+m.n+")",t)}</div>`).join(""):`<div class="mut">محتاج 3 محاولات على الأقل على السؤال الواحد.</div>`;
+  const ql=(a,t)=>a.length?a.map(m=>`<div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><span dir="auto" style="white-space:normal;flex:1">${esc(m.q.slice(0,90))}<div class="mut">${esc(m.exam)}</div></span>${pill(m.p+"% صح ("+m.n+")",t)}</div>`).join(""):`<div class="mut">محتاج 3 محاولات على الأقل على السؤال الواحد.</div>`;
+  const li=(a,f)=>a.length?a.map((x,i)=>`<div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><span>${["🥇","🥈","🥉"][i]||(i+1)+"."} <a href="#" data-act="student" data-id="${x.uid}" style="color:var(--pri);font-weight:600">${esc(x.name)}</a></span><span>${f(x)}</span></div>`).join(""):`<div class="mut">لسه مفيش بيانات.</div>`;
   return `<div class="stats">
 <div class="card stat"><b>${S.students.length}</b><span class="mut">طالب</span></div>
 <div class="card stat"><b>${S.exams.length}</b><span class="mut">امتحان</span></div>
-<div class="card stat"><b>${S.results.length}</b><span class="mut">محاولة</span></div>
+<div class="card stat"><b>${today.length}</b><span class="mut">اتحل النهاردة</span></div>
+<div class="card stat"><b>${act.size}</b><span class="mut">نشيط النهاردة</span></div>
 <div class="card stat"><b>${st.avg}%</b><span class="mut">متوسط الدرجات</span></div>
-<div class="card stat"><b>${st.passRate==null?"-":st.passRate+"%"}</b><span class="mut">نسبة النجاح</span></div></div>
+<div class="card stat"><b>${st.passRate==null?"-":st.passRate+"%"}</b><span class="mut">نسبة النجاح</span></div>
+<div class="card stat"><b>${avgT==null?"-":dur(avgT)}</b><span class="mut">متوسط وقت الحل</span></div>
+<div class="card stat"><b>${blocked}</b><span class="mut">محظور</span></div></div>
+<div class="card"><h3>التسجيلات (آخر 14 يوم)</h3>${chart(days,regs)}</div>
+<div class="card"><h3>المحاولات (آخر 14 يوم)</h3>${chart(days,atts)}</div>
+<div class="card"><h3>المواد</h3>${sub.map(x=>`<div style="margin-top:8px"><div class="row"><span>${x.s.name}</span><span class="mut">${x.n} محاولة${x.pass==null?"":" · نجاح "+x.pass+"%"}</span></div><div class="hb"><i style="width:${x.n/mxn*100}%;background:linear-gradient(90deg,${x.s.c},${x.s.c2})"></i></div></div>`).join("")}</div>
+<div class="card"><h3>🏆 أعلى متوسط</h3>${li(bd.top,x=>pill(x.avg+"%","g")+" <span class='mut'>"+x.n+" محاولة</span>")}</div>
+<div class="card"><h3>🔥 الأكتر نشاطًا</h3>${li(bd.act,x=>pill(x.n+" محاولة"))}</div>
+<div class="card"><h3>⚡ الأسرع (من اللي جابوا 50% فأكتر)</h3>${li(bd.fast,x=>pill(dur(x.fast)))}</div>
 <div class="card"><h3>آخر النشاط</h3>${rec.length?rec.map(r=>`<div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><span><a href="#" data-act="student" data-id="${r.uid}" style="color:var(--pri);font-weight:600">${esc(r.name)}</a> <span class="mut">${esc(r.examTitle)} · م${r.attempt||1}</span></span><span>${r.score}/${r.total} ${passPill(r)}</span></div>`).join(""):`<div class="mut">لسه مفيش حد امتحن.</div>`}</div>
-<div class="card"><h3>الامتحانات</h3><div class="tw"><table><tr><th>الامتحان</th><th>المادة</th><th>المحاولات</th><th>المتوسط</th><th>النجاح</th></tr>
-${st.per.map(p=>`<tr><td>${esc(p.e.title)}</td><td>${subName(p.e.subject)}</td><td>${p.n}</td><td>${p.n?p.avg+"%":"-"}</td><td>${p.pass==null?"-":p.pass+"%"}</td></tr>`).join("")||`<tr><td colspan="5" class="mut">مفيش امتحانات</td></tr>`}</table></div></div>
+<div class="card"><h3>الامتحانات</h3><div class="tw"><table><tr><th>الامتحان</th><th>المادة</th><th>المحاولات</th><th>المتوسط</th><th>النجاح</th><th>الوقت</th></tr>
+${st.per.map(p=>`<tr><td>${esc(p.e.title)}</td><td>${subName(p.e.subject)}</td><td>${p.n}</td><td>${p.n?p.avg+"%":"-"}</td><td>${p.pass==null?"-":p.pass+"%"}</td><td>${p.secs==null?"-":dur(p.secs)}</td></tr>`).join("")||`<tr><td colspan="6" class="mut">مفيش امتحانات</td></tr>`}</table></div></div>
 <div class="card"><h3>أصعب الأسئلة</h3>${ql(st.hard,"r")}</div>
 <div class="card"><h3>أسهل الأسئلة</h3>${ql(st.easy,"g")}</div>`}
 
+function adminLive(){
+  const n=NOW();
+  const rows=S.starts.map(x=>{const e=S.exams.find(q=>q.id===x.examId);
+    return {...x,e,left:e&&e.minutes?Math.max(0,Math.round((x.t+e.minutes*60000-n)/1000)):null,active:n-(x.seen||x.t)<150000}}).sort((a,b)=>b.t-a.t);
+  const act=rows.filter(r=>r.active),old=rows.filter(r=>!r.active&&n-(r.seen||r.t)<6*3600000);
+  const row=r=>`<div class="card"><div class="row"><b><a href="#" data-act="student" data-id="${r.uid}" style="color:var(--pri)">${esc(r.name||"طالب")}</a></b><span>${r.active?(r.away?pill("🔴 خرج من الامتحان","r"):pill("🟢 بيحل","g")):pill("⚪ انقطع الاتصال","y")}</span></div>
+<div class="mut">${esc(r.examTitle||"")} · محاولة ${r.n}${r.left!=null?" · باقي "+dur(r.left):""}</div>
+<div class="hb" style="margin:6px 0"><i style="width:${r.total?Math.round((r.answered||0)/r.total*100):0}%;background:var(--pri)"></i></div>
+<div class="mut">جاوب ${r.answered||0} من ${r.total||"؟"} · 📱 ${esc(r.device||"؟")} · IP ${esc(r.ip||"؟")} · آخر ظهور ${Math.max(0,Math.round((n-(r.seen||r.t))/1000))} ث</div></div>`;
+  return `<p class="mut">بيتحدّث لحظيًا. الطالب بيظهر هنا من أول ما يبدأ الامتحان لحد ما يسلّم.</p>
+<h3>شغالين دلوقتي (${act.length})</h3>${act.length?act.map(row).join(""):`<div class="card mut">مفيش حد بيمتحن دلوقتي.</div>`}
+${old.length?`<h3 style="margin-top:18px">اتقطع اتصالهم (${old.length})</h3>${old.map(row).join("")}`:""}`}
 function adminExams(){
   return `<div class="row" style="margin-bottom:12px"><div class="mut">${S.exams.length} امتحان</div><button class="btn" data-act="newExam">امتحان جديد</button></div>
-${S.exams.length?S.exams.map(e=>{const n=S.results.filter(r=>r.examId===e.id).length;return `<div class="card"><div class="row"><div><b>${esc(e.title)}</b> ${pill(subName(e.subject))} ${pill(e.published?"ظاهر للطلاب":"مخفي",e.published?"g":"y")}
-<div class="mut">${gcount(e)} سؤال${e.questions.length>gcount(e)?" + ألغاز":""} · ${e.minutes?e.minutes+" دقيقة":"بدون وقت"} · ${e.passMark>0?"النجاح من "+e.passMark:"بدون درجة نجاح"} · ${n} محاولة</div></div>
-<div class="row"><button class="btn ghost sm" data-act="editExam" data-id="${e.id}">تعديل</button><button class="btn ghost sm" data-act="togglePub" data-id="${e.id}">${e.published?"إخفاء":"إظهار"}</button><button class="btn danger sm" data-act="delExam" data-id="${e.id}">حذف</button></div></div></div>`}).join(""):`<div class="card mut">لسه مفيش امتحانات. دوس "امتحان جديد" وابدأ.</div>`}`}
-
+${S.exams.length?S.exams.map(e=>{const n=S.results.filter(r=>r.examId===e.id).length;return `<div class="card"><div class="row"><div><b>${esc(e.title)}</b> ${pill(subName(e.subject))} ${pill(e.published?(e.publishAt&&!vis(e)?"مجدول":"ظاهر للطلاب"):"مخفي",e.published?(e.publishAt&&!vis(e)?"i":"g"):"y")}
+<div class="mut">${gcount(e)} سؤال${e.questions.length>gcount(e)?" + ألغاز":""} · ${e.minutes?e.minutes+" دقيقة":"بدون وقت"} · ${e.passMark>0?"النجاح من "+e.passMark:"بدون درجة نجاح"} · ${n} محاولة${e.publishAt?" · ينزل "+new Date(e.publishAt).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}):""}</div></div>
+<div class="row"><button class="btn ghost sm" data-act="editExam" data-id="${e.id}">تعديل</button><button class="btn ghost sm" data-act="dupExam" data-id="${e.id}">نسخ</button><button class="btn ghost sm" data-act="togglePub" data-id="${e.id}">${e.published?"إخفاء":"إظهار"}</button><button class="btn danger sm" data-act="delExam" data-id="${e.id}">حذف</button></div></div></div>`}).join(""):`<div class="card mut">لسه مفيش امتحانات. دوس "+" وابدأ.</div>`}`}
 function studentRows(){
   return S.students.map(s=>{const rs=S.results.filter(r=>r.uid===s.id);
     const avg=rs.length?Math.round(rs.reduce((a,r)=>a+pctOf(r),0)/rs.length):null;
@@ -441,20 +548,20 @@ function studentRows(){
 function adminStudents(){
   const rows=studentRows();
   return `<div class="stats"><div class="card stat"><b>${S.students.length}</b><span class="mut">طالب مسجّل</span></div></div>
-${rows.length?`<div class="tw card" style="padding:0"><table><tr><th>الاسم</th><th>التليفون</th><th>تسجيل</th><th>المحاولات</th><th>المتوسط</th><th>خروج من الامتحان</th><th>آخر نشاط</th><th></th></tr>
-${rows.map(x=>`<tr><td>${esc(x.s.name)}</td><td dir="ltr">${esc(x.s.phone)}</td><td>${fmt(x.s.createdAt)}</td><td>${x.rs.length}</td><td>${x.avg==null?"-":x.avg+"%"}</td><td>${x.tabs?pill(x.tabs,"r"):0}</td><td>${x.last?fmt(x.last.createdAt):"-"}</td><td><button class="btn ghost sm" data-act="student" data-id="${x.s.id}">تفاصيل</button></td></tr>`).join("")}</table></div>`:`<div class="card mut">لسه مفيش طلاب سجلوا.</div>`}
-<p class="mut">لو عايز تمسح حساب أو تغيّر كلمة سر طالب: من Firebase Console ← Authentication.</p>`}
-
+${rows.length?`<div class="tw card" style="padding:0"><table><tr><th>الاسم</th><th>التليفون</th><th>آخر دخول</th><th>آخر IP</th><th>الجهاز</th><th>المحاولات</th><th>المتوسط</th><th>خروج</th><th></th></tr>
+${rows.map(x=>`<tr><td>${esc(x.s.name)} ${x.s.blocked?pill("موقوف","r"):""}</td><td dir="ltr">${esc(x.s.phone)}</td><td>${fmt(x.s.lastLogin)||"-"}</td><td dir="ltr">${esc(x.s.ip||"-")}</td><td>${esc(x.s.device||"-")}</td><td>${x.rs.length}</td><td>${x.avg==null?"-":x.avg+"%"}</td><td>${x.tabs?pill(x.tabs,"r"):0}</td><td><button class="btn ghost sm" data-act="student" data-id="${x.s.id}">تفاصيل</button> <button class="btn ${x.s.blocked?"":"danger"} sm" data-act="${x.s.blocked?"unblock":"block"}" data-id="${x.s.id}">${x.s.blocked?"فك الحظر":"حظر"}</button></td></tr>`).join("")}</table></div>`:`<div class="card mut">لسه مفيش طلاب سجلوا.</div>`}
+<p class="mut">الـ IP بيتسجل من اتصال الطالب وقت دخوله، وممكن يبقى فاضي أو غير دقيق (VPN أو مانع إعلانات). لمسح حساب أو تغيير كلمة سر: Firebase Console ← Authentication.</p>`}
 function studentDetail(){
   const s=S.students.find(x=>x.id===S.studentId)||{name:"؟",phone:""};
   const rs=S.results.filter(r=>r.uid===S.studentId),avg=rs.length?Math.round(rs.reduce((a,r)=>a+pctOf(r),0)/rs.length):null;
   const w=rs.filter(r=>r.passMark>0);
-  return `<div class="wrap wide screen">${header(`<button class="btn ghost sm" data-act="backAdmin">رجوع</button>`)}
-<div class="card"><h2>${esc(s.name)}</h2><div class="mut" dir="auto">${esc(s.phone)} · سجّل ${fmt(s.createdAt)}</div></div>
+  return `<div class="wrap wide">${header(`<button class="btn ghost sm" data-act="backAdmin">رجوع</button>`)}
+<div class="card"><div class="row"><h2>${esc(s.name)} ${s.blocked?pill("موقوف","r"):""}</h2><button class="btn ${s.blocked?"":"danger"} sm" data-act="${s.blocked?"unblock":"block"}" data-id="${s.id}">${s.blocked?"فك الحظر":"حظر"}</button></div>
+<div class="mut" dir="auto">${esc(s.phone)} · سجّل ${fmt(s.createdAt)}</div>
+<div class="mut" style="margin-top:4px">آخر دخول: ${fmt(s.lastLogin)||"-"} · IP: <span dir="ltr">${esc(s.ip||"-")}</span> · الجهاز: ${esc(s.device||"-")}</div></div>
 <div class="stats"><div class="card stat"><b>${rs.length}</b><span class="mut">محاولة</span></div><div class="card stat"><b>${avg==null?"-":avg+"%"}</b><span class="mut">المتوسط</span></div><div class="card stat"><b>${w.length?w.filter(r=>r.passed).length+"/"+w.length:"-"}</b><span class="mut">نجاح</span></div><div class="card stat"><b>${rs.reduce((a,r)=>a+(r.tabs||0),0)}</b><span class="mut">مرات خروج</span></div></div>
 ${rs.length?`<div class="tw card" style="padding:0"><table><tr><th>الامتحان</th><th>المادة</th><th>م</th><th>الدرجة</th><th>%</th><th>النتيجة</th><th>الوقت</th><th>خروج</th><th>التاريخ</th><th></th></tr>
 ${rs.map(r=>`<tr><td>${esc(r.examTitle)}</td><td>${subName(r.subject)}</td><td>${r.attempt||1}</td><td><b>${r.score}/${r.total}</b></td><td>${pctOf(r)}%</td><td>${passPill(r)||"-"}</td><td>${dur(r.secs)}</td><td>${r.tabs?pill(r.tabs,"r"):0}</td><td>${fmt(r.createdAt)}</td><td><button class="btn ghost sm" data-act="reviewAdmin" data-id="${r.id}" data-back="studentDetail">شوف الحل</button></td></tr>`).join("")}</table></div>`:`<div class="card mut">الطالب ده لسه ما امتحنش.</div>`}</div>`}
-
 function adminResults(){
   const exs=[...new Map(S.results.map(r=>[r.examId,r.examTitle]))];
   const rows=S.results.filter(r=>!S.filter||r.examId===S.filter);
@@ -473,18 +580,23 @@ function adminSettings(){
   return `<div class="card"><h3>وضع الصيانة</h3>
 <p class="mut">لما تشغّله، الطلاب بيشوفوا "المنصة تحت التعديل". وإنت تدخل بحساب الأدمن بالضغط 3 مرات على كلمة "التفوق" اللي في نص الشاشة.</p>
 <label class="f" for="mmsg">الرسالة اللي هتظهر للطلاب</label><textarea id="mmsg" style="min-height:90px">${esc(S.site.message||"بنحدّث المنصة دلوقتي. ارجع بعد شوية.")}</textarea>
-<div class="row" style="margin-top:14px"><button class="btn ${S.site.maintenance?"gold":"danger"}" data-act="toggleMaint">${S.site.maintenance?"إيقاف وضع الصيانة":"تشغيل وضع الصيانة"}</button><button class="btn ghost" data-act="saveMsg">حفظ الرسالة بس</button></div></div>`}
-
+<div class="row" style="margin-top:14px"><button class="btn ${S.site.maintenance?"gold":"danger"}" data-act="toggleMaint">${S.site.maintenance?"إيقاف وضع الصيانة":"تشغيل وضع الصيانة"}</button><button class="btn ghost" data-act="saveMsg">حفظ الرسالة بس</button></div></div>
+<div class="card"><h3>📢 إعلان للطلاب</h3>
+<p class="mut">بيظهر في الصفحة الرئيسية للطالب أول ما يدخل. مناسب لمواعيد الامتحانات والتنبيهات.</p>
+<textarea id="ann" style="min-height:90px" placeholder="مثال: امتحان الفلسفة يوم الخميس الساعة 5">${esc(S.site.announce||"")}</textarea>
+<div class="row" style="margin-top:14px"><button class="btn" data-act="saveAnn" data-on="1">نشر الإعلان</button><button class="btn ghost" data-act="saveAnn" data-on="0">إخفاء الإعلان</button></div>
+<div class="mut" style="margin-top:6px">${S.site.announceOn&&S.site.announce?"الإعلان ظاهر دلوقتي.":"مفيش إعلان ظاهر."}</div></div>`}
 function editor(){
   const e=S.editing.exam||{subject:"arabic",title:"",minutes:30,passMark:0,shuffle:true,published:true,showAnswers:true,questions:[]};
   const has=S.editing.id&&S.results.some(r=>r.examId===S.editing.id);
-  return `<div class="wrap wide screen">${header(`<button class="btn ghost sm" data-act="cancelEdit">إلغاء</button>`)}
+  return `<div class="wrap wide">${header(`<button class="btn ghost sm" data-act="cancelEdit">إلغاء</button>`)}
 <form class="card" data-submit="saveExam"><h2>${S.editing.id?"تعديل الامتحان":"امتحان جديد"}</h2>
 ${has?`<div class="err" style="margin:0 0 8px">الامتحان ده فيه محاولات سابقة. لو غيّرت الأسئلة أو ترتيب الاختيارات، مراجعة الطلاب القديمة هتبقى غلط. تغيير العنوان والمدة آمن.</div>`:""}
 <label class="f" for="esub">المادة</label><select id="esub">${SUBJECTS.map(s=>`<option value="${s.id}" ${e.subject===s.id?"selected":""}>${s.name}</option>`).join("")}</select>
 <label class="f" for="etitle">اسم الامتحان</label><input id="etitle" type="text" value="${esc(e.title)}" placeholder="مثال: امتحان الوحدة الأولى" required>
 <label class="f" for="emin">المدة بالدقايق (0 = من غير وقت)</label><input id="emin" type="number" min="0" value="${e.minutes}">
 <label class="f" for="epass">درجة النجاح: عدد الإجابات الصح المطلوبة (0 = بدون)</label><input id="epass" type="number" min="0" value="${e.passMark||0}">
+<label class="f" for="eat">نشر تلقائي في موعد (اختياري)</label><input id="eat" type="datetime-local" value="${e.publishAt?new Date(e.publishAt-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16):""}">
 <label class="f"><input id="eshuf" type="checkbox" ${e.shuffle!==false?"checked":""}> ترتيب عشوائي للأسئلة والاختيارات لكل طالب</label>
 <label class="f" style="margin-top:4px"><input id="epub" type="checkbox" ${e.published?"checked":""}> يظهر للطلاب</label>
 <label class="f" style="margin-top:4px"><input id="eshow" type="checkbox" ${e.showAnswers!==false?"checked":""}> يشوف الطالب الإجابات الصحيحة بعد التسليم</label>
@@ -512,25 +624,28 @@ const A={
   backAdmin(){S.view="admin";render(true)},
   async start(d){
     const e=S.exams.find(x=>x.id===d.id),at=S.attempts[d.id]||[];
-    if(!e)return;
+    if(!e||!vis(e))return;
+    if(S.profile&&S.profile.blocked){toast("حسابك موقوف");return}
     if(at.length>=MAX_ATTEMPTS){toast("خلصت محاولاتك على الامتحان ده");return}
     const n=at.length+1,sid=`${S.user.uid}_${e.id}_${n}`;
     let st;
     try{
       const g=await getDoc(doc(db,"starts",sid));
       if(g.exists())st=g.data();
-      else{st={uid:S.user.uid,examId:e.id,n,t:Date.now(),seed:Math.floor(Math.random()*2147483647)};await setDoc(doc(db,"starts",sid),st)}
+      else{st={uid:S.user.uid,examId:e.id,n,t:Date.now(),seed:Math.floor(Math.random()*2147483647),name:S.profile.name,phone:S.profile.phone,examTitle:e.title,total:gcount(e),answered:0,away:false,seen:Date.now(),device:device(),ip:myIp||""};await setDoc(doc(db,"starts",sid),st)}
     }catch(err){toast("مقدرتش أبدأ الامتحان. اتأكد من النت وجرّب تاني.");return}
     const endAt=e.minutes?st.t+e.minutes*60000:0;
-    S.cur={exam:e,n,sid,st,endAt,done:false,busy:false,tabs:0,order:buildOrder(e,st.seed)};
+    S.cur={exam:e,n,sid,st,endAt,done:false,busy:false,away:false,tabs:0,answered:0,order:buildOrder(e,st.seed)};
     S.view="exam";render(true);
-    clearInterval(timer);
+    clearInterval(timer);clearInterval(hb);
+    hb=setInterval(()=>liveUpdate({answered:S.cur?S.cur.answered:0,away:S.cur?S.cur.away:false}),60000);
+    liveUpdate({away:false});
     if(endAt){tick();timer=setInterval(tick,1000)}
     if(endAt&&Date.now()>=endAt){toast("وقت الامتحان كان خلص.");submitExam(true)}
   },
   submit(){submitExam(false)},
   tab(d){S.tab=d.id;if(d.id==="results")S.unread=0;if(d.id==="alerts")S.unreadAlerts=0;updTitle();render(true)},
-  filter(d,el){S.filter=el.value;render(true)},
+  filter(d,el){S.filter=el.value;render()},
   newExam(){S.editing={id:null,exam:null};S.view="editExam";render(true)},
   editExam(d){S.editing={id:d.id,exam:S.exams.find(e=>e.id===d.id)};S.view="editExam";render(true)},
   cancelEdit(){S.view="admin";render(true)},
@@ -538,7 +653,8 @@ const A={
   async saveExam(){
     const {qs,errors}=parseQs($("#qtext").value);
     if(errors.length||!qs.length){toast(errors[0]||"اكتب سؤال واحد على الأقل");return}
-    const data={subject:$("#esub").value,title:$("#etitle").value.trim(),minutes:Math.max(0,+$("#emin").value||0),passMark:Math.max(0,+$("#epass").value||0),shuffle:$("#eshuf").checked,published:$("#epub").checked,showAnswers:$("#eshow").checked,questions:qs};
+    const at=$("#eat").value?new Date($("#eat").value).getTime():null;
+    const data={subject:$("#esub").value,title:$("#etitle").value.trim(),publishAt:at,minutes:Math.max(0,+$("#emin").value||0),passMark:Math.max(0,+$("#epass").value||0),shuffle:$("#eshuf").checked,published:$("#epub").checked,showAnswers:$("#eshow").checked,questions:qs};
     if(!data.title){toast("اكتب اسم الامتحان");return}
     if(data.passMark>qs.filter(q=>!q.fun).length){toast("درجة النجاح أكبر من عدد الأسئلة");return}
     $("#sv").disabled=true;
@@ -561,9 +677,13 @@ const A={
   async toggleMaint(){
     const on=!S.site.maintenance;
     if(on&&!confirm("تشغّل وضع الصيانة؟ الطلاب مش هيقدروا يدخلوا."))return;
-    try{await setDoc(doc(db,"config","site"),{maintenance:on,message:$("#mmsg").value.trim()});toast(on?"وضع الصيانة شغّال":"المنصة رجعت للطلاب")}catch(e){toast("مقدرتش أحفظ")}
+    try{await setDoc(doc(db,"config","site"),{maintenance:on,message:$("#mmsg").value.trim()},{merge:true});toast(on?"وضع الصيانة شغّال":"المنصة رجعت للطلاب")}catch(e){toast("مقدرتش أحفظ")}
   },
-  async saveMsg(){try{await setDoc(doc(db,"config","site"),{maintenance:S.site.maintenance,message:$("#mmsg").value.trim()});toast("اتحفظت الرسالة")}catch(e){toast("مقدرتش أحفظ")}},
+  async saveMsg(){try{await setDoc(doc(db,"config","site"),{message:$("#mmsg").value.trim()},{merge:true});toast("اتحفظت الرسالة")}catch(e){toast("مقدرتش أحفظ")}},
+  async saveAnn(d){try{await setDoc(doc(db,"config","site"),{announce:$("#ann").value.trim(),announceOn:d.on==="1"&&!!$("#ann").value.trim()},{merge:true});toast(d.on==="1"?"اتنشر الإعلان":"اتخفى الإعلان")}catch(e){toast("مقدرتش أحفظ")}},
+  async dupExam(d){const e=S.exams.find(x=>x.id===d.id);if(!e)return;const {id,createdAt,...rest}=e;try{await addDoc(collection(db,"exams"),{...rest,title:e.title+" (نسخة)",published:false,createdAt:serverTimestamp()});toast("اتعملت نسخة مخفية")}catch(err){toast("مقدرتش أنسخ")}},
+  async block(d){if(confirm("تحظر الطالب ده؟ مش هيقدر يمتحن."))try{await updateDoc(doc(db,"students",d.id),{blocked:true});toast("اتحظر")}catch(e){toast("مقدرتش أحظر")}},
+  async unblock(d){try{await updateDoc(doc(db,"students",d.id),{blocked:false});toast("اتفك الحظر")}catch(e){toast("مقدرتش")}},
   async doLogin(){
     if(!configured){S.error="المنصة تحت التعديل.";render(true);return}
     const idv=norm($("#id").value),pw=$("#pw").value;
@@ -598,6 +718,11 @@ function updProg(){
   const g=c.exam.questions.map((q,i)=>q.fun?null:i).filter(i=>i!==null);
   const done=g.filter(i=>document.querySelector(`input[name=q${i}]:checked`)).length;
   const el=$("#pg");if(el)el.style.width=(g.length?done/g.length*100:0)+"%";
+  c.answered=done;clearTimeout(ansT);ansT=setTimeout(()=>liveUpdate({answered:done}),6000);
+}
+function liveUpdate(extra){
+  const c=S.cur;if(!c||c.done)return;
+  updateDoc(doc(db,"starts",c.sid),{seen:Date.now(),...extra}).catch(()=>{});
 }
 async function submitExam(auto){
   const c=S.cur;if(!c||c.done)return;
@@ -607,7 +732,7 @@ async function submitExam(auto){
     c.busy=true;const ok=confirm("في أسئلة لسه ما جاوبتش عليها. تسلّم برضه؟");setTimeout(()=>{c.busy=false},800);
     if(!ok)return;
   }
-  c.done=true;clearInterval(timer);
+  c.done=true;clearInterval(timer);clearInterval(hb);clearTimeout(ansT);
   const score=ans.filter((a,i)=>!e.questions[i].fun&&a===e.questions[i].a).length,total=gcount(e);
   const btn=$("#sub");if(btn)btn.disabled=true;
   const rec={uid:S.user.uid,examId:e.id,examTitle:e.title,subject:e.subject,name:S.profile.name,phone:S.profile.phone,attempt:c.n,
@@ -625,18 +750,26 @@ function runResult(){
   requestAnimationFrame(()=>requestAnimationFrame(()=>{fg.style.strokeDashoffset=339.3*(1-(r.total?r.score/r.total:0))}));
   const t0=performance.now();
   (function step(n){const p=Math.min(1,(n-t0)/1000);sc.textContent=Math.round(r.score*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(step)})(t0);
+  if(pctOf(r)>=90&&!matchMedia("(prefers-reduced-motion: reduce)").matches)confetti();
+}
+function confetti(){
+  const cols=["#E3A81C","#2FB5A8","#4F46E5","#ef4444","#22c55e","#f97316"];
+  const w=document.createElement("div");w.className="conf";
+  for(let i=0;i<46;i++){const p=document.createElement("i");p.style.cssText=`left:${Math.random()*100}%;background:${cols[i%cols.length]};animation-duration:${2.4+Math.random()*2}s;animation-delay:${Math.random()*.8}s;transform:rotate(${Math.random()*360}deg)`;w.appendChild(p)}
+  document.body.appendChild(w);setTimeout(()=>w.remove(),5200);
 }
 
 /* ---------- كشف الخروج من الامتحان ---------- */
 function leave(){
   const c=S.cur;if(S.view!=="exam"||!c||c.done||c.busy)return;
   const n=Date.now();if(n-lastLeave<1500)return;lastLeave=n;
-  c.tabs++;
+  c.tabs++;c.away=true;liveUpdate({away:true,awayAt:Date.now()});
   const w=$("#warn");if(w){w.style.display="block";w.textContent=`⚠ تم تسجيل خروجك من الامتحان (${c.tabs}) وإبلاغ المدرس.`}
   if(c.tabs<=10)addDoc(collection(db,"alerts"),{uid:S.user.uid,name:S.profile.name,phone:S.profile.phone,examId:c.exam.id,examTitle:c.exam.title,attempt:c.n,count:c.tabs,createdAt:serverTimestamp()}).catch(()=>{});
 }
-document.addEventListener("visibilitychange",()=>{if(document.hidden)leave()});
-window.addEventListener("blur",leave);
+function back(){const c=S.cur;if(S.view==="exam"&&c&&!c.done&&c.away){c.away=false;liveUpdate({away:false})}}
+document.addEventListener("visibilitychange",()=>{if(document.hidden)leave();else back()});
+window.addEventListener("blur",leave);window.addEventListener("focus",back);
 
 /* ---------- المحرر ---------- */
 function checkQs(){
@@ -647,10 +780,16 @@ function checkQs(){
 }
 function bindEditor(){const t=$("#qtext");if(t){t.addEventListener("input",checkQs);checkQs()}}
 
+document.addEventListener("pointerdown",e=>{
+  const b=e.target.closest(".btn,.subj,.tab");if(!b||b.disabled)return;
+  const r=b.getBoundingClientRect(),z=Math.max(r.width,r.height),x=document.createElement("span");
+  x.className="rip";x.style.cssText=`width:${z}px;height:${z}px;left:${e.clientX-r.left-z/2}px;top:${e.clientY-r.top-z/2}px`;
+  b.appendChild(x);setTimeout(()=>x.remove(),600);
+});
 document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(!b)return;e.preventDefault();A[b.dataset.act]?.(b.dataset,b)});
 document.addEventListener("change",e=>{
   const c=e.target.dataset&&e.target.dataset.change;if(c)A[c]?.(e.target.dataset,e.target);
-  if(e.target.type==="radio"&&S.view==="exam")updProg();
+  if(e.target.type==="radio"&&S.view==="exam"){updProg();if(navigator.vibrate)navigator.vibrate(8)}
 });
 document.addEventListener("submit",e=>{e.preventDefault();const f=e.target.dataset.submit;if(f)A[f]?.()});
 
