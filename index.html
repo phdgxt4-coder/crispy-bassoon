@@ -121,6 +121,14 @@ th{background:var(--sel)}
 .av{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--pri),var(--ind));color:#fff;display:grid;place-items:center;font-size:26px;font-weight:700;flex:none}
 .tl{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}.tl span:first-child{flex:none}
 a.btn{text-decoration:none;display:inline-flex;align-items:center}
+.subj.wide{grid-column:1/-1;min-height:96px;flex-direction:row;align-items:center;gap:16px}
+.screen .subj:nth-child(7){animation-delay:.36s}
+.asmimg{width:100%;border-radius:10px;display:block;cursor:zoom-in}
+.thumb{display:inline-flex;align-items:center;gap:6px;margin:4px;padding:4px 8px;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:13px}
+.thumb img{height:44px;border-radius:6px}
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.92);overflow:auto;z-index:70;padding:56px 0 20px;text-align:center}
+.lb img{width:100%;display:block;margin:0 auto;cursor:zoom-in}.lb img.z{width:240%;max-width:none;cursor:zoom-out}
+.lbx{position:fixed;top:12px;inset-inline-end:12px;z-index:71}
 .center{text-align:center;padding-top:60px}
 .big{font-family:'Reem Kufi',sans-serif;font-size:56px;color:var(--pri);line-height:1.2}
 .ann{background:linear-gradient(135deg,color-mix(in srgb,var(--ind) 16%,var(--card)),color-mix(in srgb,var(--gold) 18%,var(--card)));border-color:var(--gold)}
@@ -167,7 +175,7 @@ const SUBJECTS = [
   {id:"philosophy",name:"فلسفة",g:"؟",c:"#6D28D9",c2:"#86198F"},
   {id:"math",name:"رياضيات",g:"π",c:"#166534",c2:"#15803D"}
 ];
-const subName = id => (SUBJECTS.find(s=>s.id===id)||{name:id}).name;
+const subName = id => id==="general"?"عام":(SUBJECTS.find(s=>s.id===id)||{name:id}).name;
 const subColor = id => (SUBJECTS.find(s=>s.id===id)||{c:"#0B5D57"}).c;
 
 const $ = s => document.querySelector(s);
@@ -182,7 +190,7 @@ const tms = r => r.createdAt&&r.createdAt.seconds?r.createdAt.seconds:0;
 const pill = (t,c) => `<span class="pill ${c||""}">${t}</span>`;
 const passPill = r => r.passMark>0 ? (r.passed?pill("ناجح","g"):pill("راسب","r")) : "";
 
-const S = {logins:{},sq:"",starts:[],examsLoaded:false,user:null,isAdmin:false,profile:null,site:{maintenance:false,message:""},exams:[],results:[],students:[],alerts:[],
+const S = {asms:[],asm:null,editingAsm:null,logins:{},sq:"",starts:[],examsLoaded:false,user:null,isAdmin:false,profile:null,site:{maintenance:false,message:""},exams:[],results:[],students:[],alerts:[],
   myList:[],attempts:{},view:"loading",tab:"dash",subject:null,cur:null,last:null,review:null,studentId:null,editing:null,
   adminLogin:false,mode:"login",error:"",filter:"",unread:0,unreadAlerts:0,registering:false,taps:[]};
 const splashUntil=Date.now()+1100;
@@ -307,6 +315,7 @@ async function startSession(u){
         if(!f1)s.docChanges().forEach(c=>{if(c.type==="added"&&c.doc.data().createdAt){const r=c.doc.data();toast(`${r.name} امتحن ${r.examTitle} (محاولة ${r.attempt||1}) وجاب ${r.score}/${r.total}`,true);if(S.tab!=="results"){S.unread++;updTitle()}}});
         f1=false;S.results=s.docs.map(d=>({id:d.id,...d.data()}));render();
       }));
+      subs.push(onSnapshot(collection(db,"assessments"),s=>{S.asms=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));render()}));
       subs.push(onSnapshot(collection(db,"students"),s=>{S.students=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));render()}));
       subs.push(onSnapshot(query(collection(db,"alerts"),orderBy("createdAt","desc"),limit(200)),s=>{
         if(!f2)s.docChanges().forEach(c=>{if(c.type==="added"&&c.doc.data().createdAt){const a=c.doc.data();toast(`⚠ ${a.name} (${a.phone}) خرج من الامتحان: ${a.examTitle}`,true);if(S.tab!=="alerts"){S.unreadAlerts++;updTitle()}}});
@@ -322,6 +331,7 @@ async function startSession(u){
       S.profile=p.exists()?p.data():{name:"طالب",phone:""};
       S.view="home";S.examsLoaded=false;
       subs.push(onSnapshot(doc(db,"students",u.uid),s=>{if(s.exists()){S.profile=s.data();render()}}));
+      subs.push(onSnapshot(collection(db,"assessments"),s=>{S.asms=s.docs.map(d=>({id:d.id,...d.data()})).filter(a=>a.published).sort((a,b)=>tms(b)-tms(a));render()}));
       getIp().then(ip=>{
         updateDoc(doc(db,"students",u.uid),{lastLogin:serverTimestamp(),ip:ip||"",device:device()}).catch(()=>{});
         let ok=true;try{const k="lg_"+u.uid,l=+localStorage.getItem(k)||0;if(Date.now()-l<1800000)ok=false;else localStorage.setItem(k,String(Date.now()))}catch(e){}
@@ -359,23 +369,24 @@ if(configured){
 /* ---------- العرض ---------- */
 const app=$("#app");
 function render(force){
-  if(!force&&(S.view==="exam"||S.view==="editExam"))return;
+  if(!force&&(S.view==="exam"||S.view==="editExam"||S.view==="editAsm"))return;
   if(S.view!=="exam"){clearInterval(timer);clearInterval(hb)}
   let h;
   if(S.view==="loading")h=splash();
   else if(S.site.maintenance&&!S.isAdmin&&!S.adminLogin)h=maintenance();
   else if(!S.user)h=authView();
   else if(S.isAdmin){
-    h=S.view==="editExam"?editor():S.view==="studentDetail"?studentDetail():S.view==="review"?reviewView():adminView();
+    h=S.view==="editExam"?editor():S.view==="editAsm"?asmEditor():S.view==="studentDetail"?studentDetail():S.view==="review"?reviewView():adminView();
   }else if(S.profile&&S.profile.blocked){h=blockedView()}
   else{
-    const m={subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView};
+    const m={subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView};
     h=(m[S.view]||homeView)();
   }
   app.innerHTML=h;
   if(force&&app.firstElementChild)app.firstElementChild.classList.add("screen");
   if(S.view==="result"&&!S.isAdmin&&S.user)runResult();
   if(S.view==="editExam")bindEditor();
+  ensureSol();
 }
 const splash=()=>`<div class="splash"><div><div class="logo">التفوق</div><i class="uline"></i><div class="mut" style="margin-top:16px">جاري التحضير…</div></div></div>`;
 const blockedView=()=>`<div class="wrap"><div class="center"><div class="logo" style="display:inline-block">التفوق</div><h1 style="margin-top:28px">حسابك موقوف</h1><p class="mut" style="max-width:360px;margin:8px auto 24px">تواصل مع المدرس لإعادة تفعيل الحساب.</p><button class="btn ghost" data-act="logout">تسجيل خروج</button></div></div>`;
@@ -412,7 +423,7 @@ function homeView(){
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="logout">خروج</button>`)}
 <h2>أهلاً يا ${esc(S.profile.name.split(" ")[0])}</h2><p class="mut">اختار المادة اللي عايز تمتحن فيها.</p>${an}
 <div class="grid">${S.examsLoaded?SUBJECTS.map(s=>{const l=ex.filter(e=>e.subject===s.id),done=l.filter(e=>(S.attempts[e.id]||[]).length).length,p=l.length?Math.round(done/l.length*100):0;
-  return `<button class="subj" style="background:linear-gradient(135deg,${s.c},${s.c2})" data-act="openSubject" data-id="${s.id}"><span class="g">${s.g}</span><b>${s.name}</b><small>${l.length?l.length+" امتحان · خلصت "+done:"مفيش امتحانات لسه"}</small><div class="sp"><i style="--w:${p}%"></i></div></button>`}).join(""):SUBJECTS.map(()=>`<div class="sk"></div>`).join("")}</div>
+  return `<button class="subj" style="background:linear-gradient(135deg,${s.c},${s.c2})" data-act="openSubject" data-id="${s.id}"><span class="g">${s.g}</span><b>${s.name}</b><small>${l.length?l.length+" امتحان · خلصت "+done:"مفيش امتحانات لسه"}</small><div class="sp"><i style="--w:${p}%"></i></div></button>`}).join("")+`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#0B5D57)" data-act="openAsms"><span class="g">A+</span><div><b>التقييمات</b><br><small>${S.asms.length?S.asms.length+" تقييم · حلول ونماذج":"مفيش تقييمات لسه"}</small></div></button>`:SUBJECTS.map(()=>`<div class="sk"></div>`).join("")}</div>
 </div>${studentNav()}`}
 function subjectView(){
   const s=SUBJECTS.find(x=>x.id===S.subject),ex=S.exams.filter(e=>e.subject===s.id&&vis(e));
@@ -466,6 +477,25 @@ function resultView(){
 ${left>0?`<p class="mut">لسه عندك محاولة تانية على الامتحان ده.</p>`:`<p class="mut">دي كانت آخر محاولة على الامتحان ده.</p>`}</div>
 <div class="row"><button class="btn" style="flex:1" data-act="reviewLast">شوف الصح والغلط</button><button class="btn ghost" style="flex:1" data-act="home">رجوع للمواد</button></div></div>`}
 
+const okUrl=u=>/^https?:\/\//i.test(u||"");
+const skel=()=>`<div class="sk" style="min-height:90px;margin-bottom:12px"></div>`;
+const filesHtml=(l,part,aid)=>l.map(f=>f.kind==="image"?`<div class="card" style="padding:8px"><img class="asmimg" src="${f.data}" alt="${esc(f.name)}" data-act="zoom"><div style="margin-top:6px"><a class="btn ghost sm" href="${f.data}" download="${esc(f.name.replace(/\.\w+$/,""))}.jpg">⬇ تحميل الصورة</a></div></div>`:`<div class="card row"><span>📄 ${esc(f.name)}</span><button class="btn sm" data-act="dlpdf" data-aid="${aid}" data-part="${part}" data-gid="${f.gid}" data-name="${esc(f.name)}">⬇ تحميل</button></div>`).join("");
+function asmListView(){
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
+<h2 style="color:var(--ind)">التقييمات</h2>
+${S.asms.length?S.asms.map(a=>`<div class="card lift"><div class="row"><div><b>${esc(a.title)}</b><div>${pill(subName(a.subject))} ${a.showSolution?pill("محلول ✓","g"):pill("الحل لسه","y")}</div></div><button class="btn sm" data-act="openAsm" data-id="${a.id}">افتح</button></div></div>`).join(""):`<div class="card mut">مفيش تقييمات دلوقتي. ارجع تاني بعدين.</div>`}
+</div>${studentNav()}`}
+function asmView(){
+  const x=S.asm,a=S.asms.find(q=>q.id===x.id);
+  if(!a)return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openAsms">رجوع</button>`)}<div class="card mut">التقييم ده مش متاح دلوقتي.</div></div>`;
+  const sol=a.showSolution?(x.loading?skel():((x.solText?`<div class="card" style="white-space:pre-wrap" dir="auto">${esc(x.solText)}</div>`:"")+filesHtml(x.s,"s",a.id)||`<div class="card mut">الحل هيتضاف قريب.</div>`)):`<div class="card mut">🔒 الحل هيتنزل قريب.</div>`;
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openAsms">رجوع</button>`)}
+<h2>${esc(a.title)}</h2><div>${pill(subName(a.subject))} ${a.showSolution?pill("محلول ✓","g"):pill("الحل لسه","y")}</div>
+${a.desc?`<div class="card" style="white-space:pre-wrap;margin-top:12px" dir="auto">${esc(a.desc)}</div>`:""}
+${okUrl(a.link)?`<p><a class="btn ghost sm" href="${esc(a.link)}" target="_blank" rel="noopener">🔗 فتح الرابط</a></p>`:""}
+<h3 style="margin-top:16px">التقييم</h3>${x.loading?skel():(filesHtml(x.q,"q",a.id)||(a.desc||okUrl(a.link)?"":`<div class="card mut">مفيش ملفات.</div>`))}
+<h3 style="margin-top:16px">الحل</h3>${sol}</div>`}
+
 function progressView(){
   const L=S.myList,avgP=L.length?Math.round(L.reduce((s,r)=>s+pctOf(r),0)/L.length):0;
   const best=L.length?Math.max(...L.map(pctOf)):0,exams=new Set(L.map(r=>r.examId)).size;
@@ -487,12 +517,12 @@ const NOW=()=>Date.now();
 const liveActive=()=>S.starts.filter(x=>NOW()-(x.seen||x.t)<150000);
 function adminView(){
   const t=S.tab;
-  const tabs=[["dash","الرئيسية"],["live","مباشر"],["exams","الامتحانات"],["students","الطلاب"],["results","النتايج"],["alerts","التنبيهات"],["settings","الإعدادات"]];
+  const tabs=[["dash","الرئيسية"],["live","مباشر"],["exams","الامتحانات"],["asm","التقييمات"],["students","الطلاب"],["results","النتايج"],["alerts","التنبيهات"],["settings","الإعدادات"]];
   const bd={results:S.unread,alerts:S.unreadAlerts,live:liveActive().length};
   return `<div class="wrap wide">${header(`${pill("أدمن","i")}<button class="btn ghost sm" data-act="logout">خروج</button>`)}
 ${S.site.maintenance?`<div class="err" style="margin:0 0 12px">وضع الصيانة شغّال. الطلاب شايفين "المنصة تحت التعديل".</div>`:""}
 <div class="tabs">${tabs.map(([k,v])=>`<button class="tab ${t===k?"on":""}" data-act="tab" data-id="${k}">${v}${bd[k]?`<span class="badge">${bd[k]}</span>`:""}</button>`).join("")}</div>
-${({dash:adminDash,live:adminLive,exams:adminExams,students:adminStudents,results:adminResults,alerts:adminAlerts,settings:adminSettings}[t])()}
+${({dash:adminDash,live:adminLive,exams:adminExams,asm:adminAsm,students:adminStudents,results:adminResults,alerts:adminAlerts,settings:adminSettings}[t])()}
 ${t==="exams"?`<button class="fab" data-act="newExam" aria-label="امتحان جديد">+</button>`:""}</div>`}
 const chart=(days,vals,cls)=>{const mx=Math.max(1,...vals);return `<div class="bars">${vals.map((v,i)=>`<div>${v||""}<i class="${cls||""}" style="height:${Math.max(3,v/mx*68)}%"></i><span>${days[i].l}</span></div>`).join("")}</div>`};
 function adminDash(){
@@ -532,6 +562,32 @@ function adminDash(){
 ${st.per.map(p=>`<tr><td>${esc(p.e.title)}</td><td>${subName(p.e.subject)}</td><td>${p.n}</td><td>${p.n?p.avg+"%":"-"}</td><td>${p.pass==null?"-":p.pass+"%"}</td><td>${p.secs==null?"-":dur(p.secs)}</td></tr>`).join("")||`<tr><td colspan="6" class="mut">مفيش امتحانات</td></tr>`}</table></div></div>
 <div class="card"><h3>أصعب الأسئلة</h3>${ql(st.hard,"r")}</div>
 <div class="card"><h3>أسهل الأسئلة</h3>${ql(st.easy,"g")}</div>`}
+
+function adminAsm(){
+  return `<div class="row" style="margin-bottom:12px"><div class="mut">${S.asms.length} تقييم</div><button class="btn" data-act="newAsm">تقييم جديد</button></div>
+${S.asms.length?S.asms.map(a=>`<div class="card"><div class="row"><div><b>${esc(a.title)}</b> ${pill(subName(a.subject))} ${pill(a.published?"ظاهر":"مخفي",a.published?"g":"y")} ${pill(a.showSolution?"الحل ظاهر":"الحل مقفول",a.showSolution?"g":"y")}
+<div class="mut">${a.qn||0} ملف تقييم · ${a.sn||0} ملف حل${a.link?" · فيه رابط":""}</div></div>
+<div class="row"><button class="btn ghost sm" data-act="editAsm" data-id="${a.id}">تعديل</button><button class="btn ghost sm" data-act="toggleSol" data-id="${a.id}">${a.showSolution?"اقفل الحل":"نزّل الحل"}</button><button class="btn ghost sm" data-act="toggleAsm" data-id="${a.id}">${a.published?"إخفاء":"إظهار"}</button><button class="btn danger sm" data-act="delAsm" data-id="${a.id}">حذف</button></div></div></div>`).join(""):`<div class="card mut">لسه مفيش تقييمات. دوس "تقييم جديد" وارفع صور أو ملفات PDF، أو اكتب التقييم وحله.</div>`}`}
+
+const fileList=(arr,part)=>arr.length?arr.map(f=>`<span class="thumb">${f.kind==="image"?`<img src="${f.data}" alt="">`:"📄"} ${esc((f.name||"").slice(0,22))} <button type="button" class="btn danger sm" style="min-height:28px;padding:0 8px" data-act="delFile" data-part="${part}" data-id="${f.id}" data-gid="${f.gid}" data-kind="${f.kind}">✕</button></span>`).join(""):`<span class="mut">مفيش ملفات مرفوعة.</span>`;
+function asmEditor(){
+  const e=S.editingAsm,a=e.asm||{subject:"arabic",title:"",desc:"",link:"",published:true,showSolution:false};
+  return `<div class="wrap wide">${header(`<button class="btn ghost sm" data-act="cancelAsm">إلغاء</button>`)}
+<form class="card" data-submit="saveAsm"><h2>${e.id?"تعديل التقييم":"تقييم جديد"}</h2>
+<label class="f" for="asub">المادة</label><select id="asub">${SUBJECTS.map(s=>`<option value="${s.id}" ${a.subject===s.id?"selected":""}>${s.name}</option>`).join("")}<option value="general" ${a.subject==="general"?"selected":""}>عام</option></select>
+<label class="f" for="atitle">اسم التقييم</label><input id="atitle" type="text" value="${esc(a.title)}" placeholder="مثال: تقييم الأسبوع الأول" required>
+<label class="f" for="adesc">نص التقييم (اختياري، لو هتكتبه بدل الصور)</label><textarea id="adesc" style="min-height:130px" dir="auto">${esc(a.desc||"")}</textarea>
+<label class="f" for="qf">ملفات التقييم: صور أو PDF (اختياري)</label><input id="qf" type="file" accept="image/*,application/pdf" multiple>
+<div id="qlist" style="margin-top:6px">${fileList(e.q,"q")}</div>
+<label class="f" for="alink">رابط خارجي (اختياري، مثلاً Google Drive)</label><input id="alink" class="ltr" type="text" value="${esc(a.link||"")}" placeholder="https://...">
+<h3 style="margin-top:18px">الحل</h3>
+<label class="f" for="asol">نص الحل (اختياري)</label><textarea id="asol" style="min-height:130px" dir="auto">${esc(e.solText||"")}</textarea>
+<label class="f" for="sf">ملفات الحل: صور أو PDF (اختياري)</label><input id="sf" type="file" accept="image/*,application/pdf" multiple>
+<div id="slist" style="margin-top:6px">${fileList(e.s,"s")}</div>
+<label class="f" style="margin-top:14px"><input id="apub" type="checkbox" ${a.published?"checked":""}> يظهر للطلاب</label>
+<label class="f" style="margin-top:4px"><input id="ashow" type="checkbox" ${a.showSolution?"checked":""}> نزّل الحل للطلاب (لو مش معلّم، الحل مقفول عنهم)</label>
+<p class="mut">الصور بتتصغّر تلقائيًا قبل الرفع. حجم الـ PDF الأقصى 15MB. ملفات Word مش مدعومة: حوّلها لـ PDF أو صور.</p>
+<div style="margin-top:12px"><button class="btn" id="sva">حفظ التقييم</button></div></form></div>`}
 
 function adminLive(){
   const n=NOW();
@@ -593,7 +649,7 @@ function studentDetail(){
 <div class="tl"><span>📍</span><span>IP وجهاز التسجيل: <b dir="ltr">${esc(s.regIp||"-")}</b> · ${esc(s.regDevice||"-")}</span></div>
 ${shared.length?`<div class="err" style="margin-top:10px">نفس الـ IP اتستخدم في حسابات تانية: ${shared.map(x=>`<a href="#" data-act="student" data-id="${x.id}" style="color:inherit;font-weight:700">${esc(x.name)}</a>`).join("، ")}</div>`:""}</div>
 <div class="stats"><div class="card stat"><b>${rs.length}</b><span class="mut">محاولة</span></div><div class="card stat"><b>${avg==null?"-":avg+"%"}</b><span class="mut">المتوسط</span></div><div class="card stat"><b>${w.length?w.filter(r=>r.passed).length+"/"+w.length:"-"}</b><span class="mut">نجاح</span></div><div class="card stat"><b>${rs.reduce((a,r)=>a+(r.tabs||0),0)}</b><span class="mut">مرات خروج</span></div></div>
-<div class="card"><h3>ملاحظاتك عن الطالب (ليك بس)</h3><textarea id="note" style="min-height:80px" placeholder="مثال: بيذاكر بالليل، محتاج متابعة في الرياضيات">${esc(s.note||"")}</textarea><div style="margin-top:10px"><button class="btn sm" data-act="saveNote" data-id="${s.id}">حفظ الملاحظة</button></div></div>
+<div class="card"><h3>ملاحظاتك الخاصة (مش بتظهر للطالب)</h3><textarea id="note" style="min-height:80px" placeholder="مثال: بيذاكر بالليل، محتاج متابعة في الرياضيات">${esc(s.note||"")}</textarea><div style="margin-top:10px"><button class="btn sm" data-act="saveNote" data-id="${s.id}">حفظ الملاحظة</button></div></div>
 <div class="card"><h3>كل نشاط الطالب</h3>${ev.length?ev.slice(0,60).map(e=>`<div class="tl"><span>${e.i}</span><span style="flex:1">${esc(e.x)}</span><span class="mut" style="white-space:nowrap">${new Date(e.t*1000).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"})}</span></div>`).join(""):`<div class="mut">لسه مفيش نشاط.</div>`}</div>
 <div class="card"><h3>سجل الدخول (آخر 30 مرة)</h3>${lg===null||lg===undefined?`<div class="sk" style="min-height:60px"></div>`:lg.length?`<div class="tw"><table><tr><th>الوقت</th><th>IP</th><th>الجهاز والمتصفح</th><th>الشاشة</th><th>المنطقة</th></tr>${lg.map(x=>`<tr><td>${fmt(x.createdAt)}</td><td dir="ltr">${esc(x.ip||"-")}</td><td>${esc(x.device||"-")}</td><td dir="ltr">${esc(x.screen||"-")}</td><td dir="ltr">${esc(x.tz||"-")}</td></tr>`).join("")}</table></div>`:`<div class="mut">مفيش سجل دخول لسه (بيتسجل من الإصدار ده).</div>`}</div>
 <div class="card"><h3>المحاولات</h3>${rs.length?`<div class="tw"><table><tr><th>الامتحان</th><th>المادة</th><th>م</th><th>الدرجة</th><th>%</th><th>النتيجة</th><th>الوقت</th><th>خروج</th><th>التاريخ</th><th></th></tr>
@@ -646,6 +702,34 @@ ${has?`<div class="err" style="margin:0 0 8px">الامتحان ده فيه مح
 <div class="row" style="margin-top:12px"><button class="btn" id="sv">حفظ الامتحان</button><button type="button" class="btn ghost" data-act="sample">حط مثال</button></div></form></div>`}
 
 /* ---------- الأفعال ---------- */
+const readB64=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=rej;r.readAsDataURL(f)});
+const byOrder=(a,b)=>(a.order||0)-(b.order||0);
+const isFile=f=>f.kind==="image"||f.kind==="pdf";
+async function loadAsm(id){
+  const x=S.asm;if(!x||x.id!==id)return;
+  const a=S.asms.find(q=>q.id===id);
+  try{
+    if(!x.qDone){
+      const sn=await getDocs(query(collection(db,"assessments",id,"files"),where("part","==","q")));
+      x.q=sn.docs.map(d=>({id:d.id,...d.data()})).filter(isFile).sort(byOrder);x.qDone=true;
+    }
+    if(a&&a.showSolution&&!x.solDone){
+      const sn=await getDocs(query(collection(db,"assessments",id,"files"),where("part","==","s")));
+      const all=sn.docs.map(d=>({id:d.id,...d.data()}));
+      x.s=all.filter(isFile).sort(byOrder);const t=all.find(f=>f.kind==="text");x.solText=t?t.text:"";x.solDone=true;
+    }
+  }catch(e){x.err=true;x.qDone=true;if(a&&a.showSolution)x.solDone=true}
+  x.loading=false;if(S.view==="asm"&&S.asm===x)render();
+}
+function ensureSol(){
+  const x=S.asm;if(S.view!=="asm"||!x||S.isAdmin)return;
+  const a=S.asms.find(q=>q.id===x.id);
+  if(a&&a.showSolution&&!x.solDone&&!x.loading){x.loading=true;loadAsm(x.id)}
+}
+async function wipeFiles(id,part,gid){
+  const sn=await getDocs(query(collection(db,"assessments",id,"chunks"),where("part","==",part),where("gid","==",gid)));
+  for(const d of sn.docs)await deleteDoc(d.ref);
+}
 const A={
   theme(d,el){const t=isDark()?"light":"dark";document.querySelectorAll(".tg").forEach(b=>{b.classList.add("spin");setTimeout(()=>b.classList.remove("spin"),500)});setTheme(t)},
   mode(){S.mode=S.mode==="login"?"register":"login";S.error="";render(true)},
@@ -663,6 +747,79 @@ const A={
     S.studentId=d.id;S.logins[d.id]=null;S.view="studentDetail";render(true);
     try{const sn=await getDocs(query(collection(db,"students",d.id,"logins"),orderBy("createdAt","desc"),limit(30)));S.logins[d.id]=sn.docs.map(x=>({id:x.id,...x.data()}))}catch(e){S.logins[d.id]=[]}
     if(S.view==="studentDetail"&&S.studentId===d.id)render();
+  },
+  openAsms(){S.view="asmList";render(true)},
+  openAsm(d){S.asm={id:d.id,loading:true,q:[],s:[],solText:""};S.view="asm";render(true);loadAsm(d.id)},
+  zoom(d,el){
+    const o=document.createElement("div");o.className="lb";
+    o.innerHTML=`<button class="btn sm" type="button">إغلاق ✕</button><img src="${el.src}" alt="">`;
+    o.onclick=()=>o.remove();document.body.appendChild(o);
+  },
+  async dlpdf(d,el){
+    el.disabled=true;toast("جاري تجهيز الملف…");
+    try{
+      const sn=await getDocs(query(collection(db,"assessments",d.aid,"chunks"),where("part","==",d.part),where("gid","==",d.gid)));
+      const b64=sn.docs.map(x=>x.data()).sort((p,q)=>p.seq-q.seq).map(x=>x.data).join("");
+      if(!b64)throw new Error("empty");
+      const blob=await (await fetch("data:application/pdf;base64,"+b64)).blob();
+      const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(d.name||"file").replace(/\.pdf$/i,"")+".pdf";a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    }catch(e){toast("مقدرتش أحمّل الملف. جرّب تاني.")}
+    el.disabled=false;
+  },
+  newAsm(){S.editingAsm={id:null,asm:null,q:[],s:[],solText:"",solId:null,rm:[]};S.view="editAsm";render(true)},
+  async editAsm(d){
+    const a=S.asms.find(q=>q.id===d.id);if(!a)return;
+    try{
+      const sn=await getDocs(collection(db,"assessments",d.id,"files"));
+      const all=sn.docs.map(x=>({id:x.id,...x.data()}));
+      const t=all.find(f=>f.kind==="text"&&f.part==="s");
+      S.editingAsm={id:d.id,asm:a,q:all.filter(f=>f.part==="q"&&isFile(f)).sort(byOrder),s:all.filter(f=>f.part==="s"&&isFile(f)).sort(byOrder),solText:t?t.text:"",solId:t?t.id:null,rm:[]};
+    }catch(e){toast("مقدرتش أحمّل ملفات التقييم");return}
+    S.view="editAsm";render(true);
+  },
+  cancelAsm(){S.view="admin";render(true)},
+  delFile(d){
+    const e=S.editingAsm,arr=e[d.part],i=arr.findIndex(f=>String(f.id)===d.id);if(i<0)return;
+    const f=arr[i];if(!f.pend)e.rm.push({id:f.id,gid:f.gid,kind:f.kind,part:d.part});
+    arr.splice(i,1);$("#qlist").innerHTML=fileList(e.q,"q");$("#slist").innerHTML=fileList(e.s,"s");
+  },
+  async saveAsm(){
+    const e=S.editingAsm,title=$("#atitle").value.trim();
+    if(!title){toast("اكتب اسم التقييم");return}
+    const link=$("#alink").value.trim();if(link&&!okUrl(link)){toast("الرابط لازم يبدأ بـ https://");return}
+    const solText=$("#asol").value.trim();
+    const data={title,subject:$("#asub").value,desc:$("#adesc").value,link,published:$("#apub").checked,showSolution:$("#ashow").checked,qn:e.q.length,sn:e.s.length};
+    const b=$("#sva");b.disabled=true;b.textContent="جاري الحفظ والرفع… متقفلش الصفحة";
+    try{
+      let id=e.id;
+      if(id)await updateDoc(doc(db,"assessments",id),data);
+      else{const r=await addDoc(collection(db,"assessments"),{...data,createdAt:serverTimestamp()});id=r.id}
+      for(const r of e.rm){if(r.kind==="pdf")await wipeFiles(id,r.part,r.gid);await deleteDoc(doc(db,"assessments",id,"files",r.id))}
+      let k=0;
+      for(const part of ["q","s"])for(const f of e[part]){
+        if(!f.pend)continue;
+        const order=Date.now()+(k++);
+        if(f.kind==="image")await addDoc(collection(db,"assessments",id,"files"),{part,kind:"image",name:f.name,order,data:f.data,createdAt:serverTimestamp()});
+        else{
+          const CH=700000;let n=0;
+          for(let i=0;i<f.b64.length;i+=CH,n++)await addDoc(collection(db,"assessments",id,"chunks"),{part,gid:f.gid,seq:n,data:f.b64.slice(i,i+CH),createdAt:serverTimestamp()});
+          await addDoc(collection(db,"assessments",id,"files"),{part,kind:"pdf",name:f.name,order,gid:f.gid,n,createdAt:serverTimestamp()});
+        }
+      }
+      if(solText){if(e.solId)await updateDoc(doc(db,"assessments",id,"files",e.solId),{text:solText});else await addDoc(collection(db,"assessments",id,"files"),{part:"s",kind:"text",text:solText,createdAt:serverTimestamp()})}
+      else if(e.solId)await deleteDoc(doc(db,"assessments",id,"files",e.solId));
+      S.view="admin";S.tab="asm";render(true);toast("اتحفظ التقييم");
+    }catch(err){b.disabled=false;b.textContent="حفظ التقييم";toast("مقدرتش أحفظ. اتأكد من النت ومن إن الـ Rules الجديدة اتنشرت.")}
+  },
+  async toggleAsm(d){const a=S.asms.find(q=>q.id===d.id);await updateDoc(doc(db,"assessments",d.id),{published:!a.published})},
+  async toggleSol(d){const a=S.asms.find(q=>q.id===d.id);await updateDoc(doc(db,"assessments",d.id),{showSolution:!a.showSolution});toast(a.showSolution?"اتقفل الحل":"اتنزّل الحل للطلاب")},
+  async delAsm(d){
+    if(!confirm("تمسح التقييم ده بكل ملفاته؟ مفيش رجوع."))return;
+    try{
+      for(const c of ["files","chunks"]){const sn=await getDocs(collection(db,"assessments",d.id,c));for(const x of sn.docs)await deleteDoc(x.ref)}
+      await deleteDoc(doc(db,"assessments",d.id));toast("اتمسح التقييم");
+    }catch(e){toast("مقدرتش أمسح")}
   },
   async saveNote(d){try{await updateDoc(doc(db,"students",d.id),{note:$("#note").value.trim()});toast("اتحفظت الملاحظة")}catch(e){toast("مقدرتش أحفظ")}},
   backAdmin(){S.view="admin";render(true)},
@@ -844,6 +1001,22 @@ document.addEventListener("pointerdown",e=>{
 document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(!b)return;e.preventDefault();A[b.dataset.act]?.(b.dataset,b)});
 document.addEventListener("change",e=>{
   const c=e.target.dataset&&e.target.dataset.change;if(c)A[c]?.(e.target.dataset,e.target);
+  if(e.target.type==="file"&&(e.target.id==="qf"||e.target.id==="sf")&&S.editingAsm){
+    const part=e.target.id==="qf"?"q":"s",files=[...e.target.files];e.target.value="";
+    (async()=>{
+      const ed=S.editingAsm;let bad=0;
+      for(const f of files){
+        try{
+          const id="t"+Date.now()+Math.random().toString(36).slice(2,6);
+          if(/^image\//.test(f.type))ed[part].push({id,pend:true,kind:"image",name:f.name,data:await packImage(f)});
+          else if(f.type==="application/pdf"&&f.size<=15*1024*1024)ed[part].push({id,pend:true,kind:"pdf",name:f.name,gid:id,b64:await readB64(f)});
+          else bad++;
+        }catch(err){bad++}
+      }
+      const ql=$("#qlist"),sl=$("#slist");if(ql)ql.innerHTML=fileList(ed.q,"q");if(sl)sl.innerHTML=fileList(ed.s,"s");
+      if(bad)toast(bad+" ملف اترفض (لازم صورة أو PDF أقل من 15MB)");
+    })();
+  }
   if(e.target.type==="radio"&&S.view==="exam"){updProg();if(navigator.vibrate)navigator.vibrate(8)}
 });
 document.addEventListener("input",e=>{if(e.target.id==="sq"){S.sq=e.target.value;const t=$("#stbl");if(t)t.innerHTML=studentsTable()}});
