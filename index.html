@@ -118,6 +118,9 @@ th{background:var(--sel)}
 @keyframes rise{from{transform:scaleY(0)}}
 .bars i.f{background:var(--mut)}
 .hb{height:10px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:4px}.hb i{display:block;height:100%;border-radius:99px;animation:grow .9s ease-out both}
+.av{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--pri),var(--ind));color:#fff;display:grid;place-items:center;font-size:26px;font-weight:700;flex:none}
+.tl{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}.tl span:first-child{flex:none}
+a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .center{text-align:center;padding-top:60px}
 .big{font-family:'Reem Kufi',sans-serif;font-size:56px;color:var(--pri);line-height:1.2}
 .ann{background:linear-gradient(135deg,color-mix(in srgb,var(--ind) 16%,var(--card)),color-mix(in srgb,var(--gold) 18%,var(--card)));border-color:var(--gold)}
@@ -179,7 +182,7 @@ const tms = r => r.createdAt&&r.createdAt.seconds?r.createdAt.seconds:0;
 const pill = (t,c) => `<span class="pill ${c||""}">${t}</span>`;
 const passPill = r => r.passMark>0 ? (r.passed?pill("ناجح","g"):pill("راسب","r")) : "";
 
-const S = {starts:[],examsLoaded:false,user:null,isAdmin:false,profile:null,site:{maintenance:false,message:""},exams:[],results:[],students:[],alerts:[],
+const S = {logins:{},sq:"",starts:[],examsLoaded:false,user:null,isAdmin:false,profile:null,site:{maintenance:false,message:""},exams:[],results:[],students:[],alerts:[],
   myList:[],attempts:{},view:"loading",tab:"dash",subject:null,cur:null,last:null,review:null,studentId:null,editing:null,
   adminLogin:false,mode:"login",error:"",filter:"",unread:0,unreadAlerts:0,registering:false,taps:[]};
 const splashUntil=Date.now()+1100;
@@ -193,7 +196,7 @@ async function getIp(){if(myIp!==null)return myIp;try{const c=new AbortControlle
 let subs=[],timer=null,hb=null,ansT=null,db,auth,lastLeave=0;
 
 const configured = !firebaseConfig.apiKey.startsWith("PASTE");
-if(configured){const app=initializeApp(firebaseConfig);auth=getAuth(app);db=getFirestore(app)}
+if(configured){const app=initializeApp(firebaseConfig);auth=getAuth(app);db=getFirestore(app);getIp()}
 
 /* ---------- أدوات ---------- */
 function toast(msg,gold){const t=$("#toast");t.textContent=msg;t.className=(gold?"gold ":"")+"show";clearTimeout(toast.h);toast.h=setTimeout(()=>t.className=gold?"gold":"",gold?7000:3500)}
@@ -319,7 +322,11 @@ async function startSession(u){
       S.profile=p.exists()?p.data():{name:"طالب",phone:""};
       S.view="home";S.examsLoaded=false;
       subs.push(onSnapshot(doc(db,"students",u.uid),s=>{if(s.exists()){S.profile=s.data();render()}}));
-      getIp().then(ip=>updateDoc(doc(db,"students",u.uid),{lastLogin:serverTimestamp(),ip:ip||"",device:device()}).catch(()=>{}));
+      getIp().then(ip=>{
+        updateDoc(doc(db,"students",u.uid),{lastLogin:serverTimestamp(),ip:ip||"",device:device()}).catch(()=>{});
+        let ok=true;try{const k="lg_"+u.uid,l=+localStorage.getItem(k)||0;if(Date.now()-l<1800000)ok=false;else localStorage.setItem(k,String(Date.now()))}catch(e){}
+        if(ok)addDoc(collection(db,"students",u.uid,"logins"),{ip:ip||"",device:device(),screen:screen.width+"×"+screen.height,lang:navigator.language||"",tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||""),createdAt:serverTimestamp()}).catch(()=>{});
+      });
       const iv2=setInterval(()=>{if(S.user&&!S.isAdmin&&(S.view==="home"||S.view==="subject"))render()},60000);subs.push(()=>clearInterval(iv2));
       subs.push(onSnapshot(collection(db,"exams"),s=>{S.examsLoaded=true;S.exams=s.docs.map(d=>({id:d.id,...d.data()})).filter(e=>e.published).sort((a,b)=>tms(b)-tms(a));render()}));
       subs.push(onSnapshot(query(collection(db,"results"),where("uid","==",u.uid)),s=>{
@@ -499,6 +506,8 @@ function adminDash(){
   const sub=SUBJECTS.map(s=>{const rs=S.results.filter(r=>r.subject===s.id),w=rs.filter(r=>r.passMark>0);return {s,n:rs.length,pass:w.length?Math.round(w.filter(r=>r.passed).length/w.length*100):null}});
   const mxn=Math.max(1,...sub.map(x=>x.n));
   const bd=board();
+  const wk=Date.now()/1000-7*86400;
+  const need=S.students.filter(x=>!x.blocked).map(x=>{const r=S.results.filter(q=>q.uid===x.id);return {x,last:r.length?Math.max(...r.map(tms)):0}}).filter(y=>y.last<wk).sort((a,b)=>a.last-b.last).slice(0,8);
   const rec=S.results.slice(0,5);
   const ql=(a,t)=>a.length?a.map(m=>`<div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><span dir="auto" style="white-space:normal;flex:1">${esc(m.q.slice(0,90))}<div class="mut">${esc(m.exam)}</div></span>${pill(m.p+"% صح ("+m.n+")",t)}</div>`).join(""):`<div class="mut">محتاج 3 محاولات على الأقل على السؤال الواحد.</div>`;
   const li=(a,f)=>a.length?a.map((x,i)=>`<div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><span>${["🥇","🥈","🥉"][i]||(i+1)+"."} <a href="#" data-act="student" data-id="${x.uid}" style="color:var(--pri);font-weight:600">${esc(x.name)}</a></span><span>${f(x)}</span></div>`).join(""):`<div class="mut">لسه مفيش بيانات.</div>`;
@@ -517,6 +526,7 @@ function adminDash(){
 <div class="card"><h3>🏆 أعلى متوسط</h3>${li(bd.top,x=>pill(x.avg+"%","g")+" <span class='mut'>"+x.n+" محاولة</span>")}</div>
 <div class="card"><h3>🔥 الأكتر نشاطًا</h3>${li(bd.act,x=>pill(x.n+" محاولة"))}</div>
 <div class="card"><h3>⚡ الأسرع (من اللي جابوا 50% فأكتر)</h3>${li(bd.fast,x=>pill(dur(x.fast)))}</div>
+<div class="card"><h3>📌 محتاجين متابعة (ما امتحنوش من أسبوع)</h3>${need.length?need.map(y=>`<div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><span><a href="#" data-act="student" data-id="${y.x.id}" style="color:var(--pri);font-weight:600">${esc(y.x.name)}</a></span><span class="mut">${y.last?"آخر امتحان "+new Date(y.last*1000).toLocaleDateString("ar-EG"):"لسه ما امتحنش"}</span></div>`).join(""):`<div class="mut">كله ماشي كويس.</div>`}</div>
 <div class="card"><h3>آخر النشاط</h3>${rec.length?rec.map(r=>`<div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><span><a href="#" data-act="student" data-id="${r.uid}" style="color:var(--pri);font-weight:600">${esc(r.name)}</a> <span class="mut">${esc(r.examTitle)} · م${r.attempt||1}</span></span><span>${r.score}/${r.total} ${passPill(r)}</span></div>`).join(""):`<div class="mut">لسه مفيش حد امتحن.</div>`}</div>
 <div class="card"><h3>الامتحانات</h3><div class="tw"><table><tr><th>الامتحان</th><th>المادة</th><th>المحاولات</th><th>المتوسط</th><th>النجاح</th><th>الوقت</th></tr>
 ${st.per.map(p=>`<tr><td>${esc(p.e.title)}</td><td>${subName(p.e.subject)}</td><td>${p.n}</td><td>${p.n?p.avg+"%":"-"}</td><td>${p.pass==null?"-":p.pass+"%"}</td><td>${p.secs==null?"-":dur(p.secs)}</td></tr>`).join("")||`<tr><td colspan="6" class="mut">مفيش امتحانات</td></tr>`}</table></div></div>
@@ -545,23 +555,49 @@ function studentRows(){
     const avg=rs.length?Math.round(rs.reduce((a,r)=>a+pctOf(r),0)/rs.length):null;
     return {s,rs,avg,tabs:rs.reduce((a,r)=>a+(r.tabs||0),0),last:rs.length?rs[0]:null}});
 }
+function studentsTable(){
+  const q=(S.sq||"").trim().toLowerCase(),cnt={};
+  S.students.forEach(x=>{if(x.ip)cnt[x.ip]=(cnt[x.ip]||0)+1});
+  const rows=studentRows().filter(x=>!q||(x.s.name||"").toLowerCase().includes(q)||(x.s.phone||"").includes(q));
+  return rows.length?`<div class="tw card" style="padding:0"><table><tr><th>الاسم</th><th>التليفون</th><th>آخر دخول</th><th>آخر IP</th><th>الجهاز</th><th>المحاولات</th><th>المتوسط</th><th>خروج</th><th></th></tr>
+${rows.map(x=>`<tr><td>${esc(x.s.name)} ${x.s.blocked?pill("موقوف","r"):""}</td><td dir="ltr">${esc(x.s.phone)}</td><td>${fmt(x.s.lastLogin)||"-"}</td><td dir="ltr">${esc(x.s.ip||"-")} ${x.s.ip&&cnt[x.s.ip]>1?pill("مشترك","y"):""}</td><td>${esc(x.s.device||"-")}</td><td>${x.rs.length}</td><td>${x.avg==null?"-":x.avg+"%"}</td><td>${x.tabs?pill(x.tabs,"r"):0}</td><td><button class="btn sm" data-act="student" data-id="${x.s.id}">فتح الملف</button> <button class="btn ${x.s.blocked?"ghost":"danger"} sm" data-act="${x.s.blocked?"unblock":"block"}" data-id="${x.s.id}">${x.s.blocked?"فك الحظر":"حظر"}</button></td></tr>`).join("")}</table></div>`:`<div class="card mut">مفيش طلاب بالمواصفات دي.</div>`;
+}
 function adminStudents(){
-  const rows=studentRows();
   return `<div class="stats"><div class="card stat"><b>${S.students.length}</b><span class="mut">طالب مسجّل</span></div></div>
-${rows.length?`<div class="tw card" style="padding:0"><table><tr><th>الاسم</th><th>التليفون</th><th>آخر دخول</th><th>آخر IP</th><th>الجهاز</th><th>المحاولات</th><th>المتوسط</th><th>خروج</th><th></th></tr>
-${rows.map(x=>`<tr><td>${esc(x.s.name)} ${x.s.blocked?pill("موقوف","r"):""}</td><td dir="ltr">${esc(x.s.phone)}</td><td>${fmt(x.s.lastLogin)||"-"}</td><td dir="ltr">${esc(x.s.ip||"-")}</td><td>${esc(x.s.device||"-")}</td><td>${x.rs.length}</td><td>${x.avg==null?"-":x.avg+"%"}</td><td>${x.tabs?pill(x.tabs,"r"):0}</td><td><button class="btn ghost sm" data-act="student" data-id="${x.s.id}">تفاصيل</button> <button class="btn ${x.s.blocked?"":"danger"} sm" data-act="${x.s.blocked?"unblock":"block"}" data-id="${x.s.id}">${x.s.blocked?"فك الحظر":"حظر"}</button></td></tr>`).join("")}</table></div>`:`<div class="card mut">لسه مفيش طلاب سجلوا.</div>`}
-<p class="mut">الـ IP بيتسجل من اتصال الطالب وقت دخوله، وممكن يبقى فاضي أو غير دقيق (VPN أو مانع إعلانات). لمسح حساب أو تغيير كلمة سر: Firebase Console ← Authentication.</p>`}
+<input id="sq" type="text" placeholder="ابحث بالاسم أو رقم التليفون" value="${esc(S.sq||"")}" style="margin-bottom:12px">
+<div id="stbl">${studentsTable()}</div>
+<p class="mut">علامة "مشترك" معناها إن نفس الـ IP استخدمه أكتر من حساب (ممكن أخوات في نفس البيت، أو حساب واحد بيتشارك). الـ IP ممكن يبقى فاضي أو غير دقيق مع VPN أو مانع إعلانات. لمسح حساب أو تغيير كلمة سر: Firebase Console ← Authentication.</p>`}
 function studentDetail(){
-  const s=S.students.find(x=>x.id===S.studentId)||{name:"؟",phone:""};
-  const rs=S.results.filter(r=>r.uid===S.studentId),avg=rs.length?Math.round(rs.reduce((a,r)=>a+pctOf(r),0)/rs.length):null;
-  const w=rs.filter(r=>r.passMark>0);
+  const s=S.students.find(x=>x.id===S.studentId)||{id:"",name:"؟",phone:""};
+  const rs=S.results.filter(r=>r.uid===s.id),avg=rs.length?Math.round(rs.reduce((a,r)=>a+pctOf(r),0)/rs.length):null;
+  const w=rs.filter(r=>r.passMark>0),lg=S.logins[s.id],al=S.alerts.filter(a=>a.uid===s.id),lv=S.starts.filter(x=>x.uid===s.id);
+  const ips=new Set([s.ip,...(lg||[]).map(x=>x.ip)].filter(Boolean));
+  const shared=S.students.filter(x=>x.id!==s.id&&((x.ip&&ips.has(x.ip))));
+  const ev=[];
+  if(s.createdAt&&s.createdAt.seconds)ev.push({t:s.createdAt.seconds,i:"🆕",x:"سجّل الحساب"+(s.regIp?` · IP ${s.regIp}`:"")+(s.regDevice?` · ${s.regDevice}`:"")});
+  (lg||[]).forEach(x=>{if(x.createdAt&&x.createdAt.seconds)ev.push({t:x.createdAt.seconds,i:"🔑",x:`دخل من ${x.device||"؟"} · IP ${x.ip||"؟"}`})});
+  rs.forEach(r=>{if(r.createdAt&&r.createdAt.seconds)ev.push({t:r.createdAt.seconds,i:"📝",x:`سلّم ${r.examTitle} (م${r.attempt||1}): ${r.score}/${r.total}${r.passMark>0?(r.passed?" · ناجح":" · راسب"):""}${r.tabs?` · خرج ${r.tabs} مرة`:""}`})});
+  al.forEach(a=>{if(a.createdAt&&a.createdAt.seconds)ev.push({t:a.createdAt.seconds,i:"⚠",x:`خرج من الامتحان ${a.examTitle} (المرة ${a.count})`})});
+  lv.forEach(x=>ev.push({t:Math.floor(x.t/1000),i:"▶",x:`بدأ ${x.examTitle||""} (م${x.n}) وجاوب ${x.answered||0} من ${x.total||"؟"}${x.away?" · خارج الصفحة دلوقتي":""}`}));
+  ev.sort((a,b)=>b.t-a.t);
+  const wa=s.phone&&/^01\d{9}$/.test(s.phone)?`https://wa.me/20${s.phone.slice(1)}`:"";
   return `<div class="wrap wide">${header(`<button class="btn ghost sm" data-act="backAdmin">رجوع</button>`)}
-<div class="card"><div class="row"><h2>${esc(s.name)} ${s.blocked?pill("موقوف","r"):""}</h2><button class="btn ${s.blocked?"":"danger"} sm" data-act="${s.blocked?"unblock":"block"}" data-id="${s.id}">${s.blocked?"فك الحظر":"حظر"}</button></div>
-<div class="mut" dir="auto">${esc(s.phone)} · سجّل ${fmt(s.createdAt)}</div>
-<div class="mut" style="margin-top:4px">آخر دخول: ${fmt(s.lastLogin)||"-"} · IP: <span dir="ltr">${esc(s.ip||"-")}</span> · الجهاز: ${esc(s.device||"-")}</div></div>
+<div class="card"><div class="row" style="flex-wrap:nowrap;gap:14px;justify-content:flex-start"><div class="av">${esc((s.name||"؟").trim().charAt(0))}</div>
+<div style="flex:1"><h2 style="margin:0">${esc(s.name)} ${s.blocked?pill("موقوف","r"):pill("نشط","g")}</h2><div class="mut" dir="auto">${esc(s.phone)}</div></div></div>
+<div class="row" style="margin-top:12px;justify-content:flex-start">${s.phone?`<a class="btn ghost sm" href="tel:${esc(s.phone)}">📞 اتصال</a>`:""}${wa?`<a class="btn ghost sm" href="${wa}" target="_blank" rel="noopener">💬 واتساب</a>`:""}<button class="btn ${s.blocked?"":"danger"} sm" data-act="${s.blocked?"unblock":"block"}" data-id="${s.id}">${s.blocked?"فك الحظر":"حظر"}</button></div></div>
+<div class="card"><h3>بيانات الحساب</h3>
+<div class="tl"><span>🆕</span><span>تاريخ التسجيل: <b>${fmt(s.createdAt)||"-"}</b></span></div>
+<div class="tl"><span>🔑</span><span>آخر دخول: <b>${fmt(s.lastLogin)||"-"}</b></span></div>
+<div class="tl"><span>🌐</span><span>آخر IP: <b dir="ltr">${esc(s.ip||"-")}</b></span></div>
+<div class="tl"><span>📱</span><span>آخر جهاز ومتصفح: <b>${esc(s.device||"-")}</b></span></div>
+<div class="tl"><span>📍</span><span>IP وجهاز التسجيل: <b dir="ltr">${esc(s.regIp||"-")}</b> · ${esc(s.regDevice||"-")}</span></div>
+${shared.length?`<div class="err" style="margin-top:10px">نفس الـ IP اتستخدم في حسابات تانية: ${shared.map(x=>`<a href="#" data-act="student" data-id="${x.id}" style="color:inherit;font-weight:700">${esc(x.name)}</a>`).join("، ")}</div>`:""}</div>
 <div class="stats"><div class="card stat"><b>${rs.length}</b><span class="mut">محاولة</span></div><div class="card stat"><b>${avg==null?"-":avg+"%"}</b><span class="mut">المتوسط</span></div><div class="card stat"><b>${w.length?w.filter(r=>r.passed).length+"/"+w.length:"-"}</b><span class="mut">نجاح</span></div><div class="card stat"><b>${rs.reduce((a,r)=>a+(r.tabs||0),0)}</b><span class="mut">مرات خروج</span></div></div>
-${rs.length?`<div class="tw card" style="padding:0"><table><tr><th>الامتحان</th><th>المادة</th><th>م</th><th>الدرجة</th><th>%</th><th>النتيجة</th><th>الوقت</th><th>خروج</th><th>التاريخ</th><th></th></tr>
-${rs.map(r=>`<tr><td>${esc(r.examTitle)}</td><td>${subName(r.subject)}</td><td>${r.attempt||1}</td><td><b>${r.score}/${r.total}</b></td><td>${pctOf(r)}%</td><td>${passPill(r)||"-"}</td><td>${dur(r.secs)}</td><td>${r.tabs?pill(r.tabs,"r"):0}</td><td>${fmt(r.createdAt)}</td><td><button class="btn ghost sm" data-act="reviewAdmin" data-id="${r.id}" data-back="studentDetail">شوف الحل</button></td></tr>`).join("")}</table></div>`:`<div class="card mut">الطالب ده لسه ما امتحنش.</div>`}</div>`}
+<div class="card"><h3>ملاحظاتك عن الطالب (ليك بس)</h3><textarea id="note" style="min-height:80px" placeholder="مثال: بيذاكر بالليل، محتاج متابعة في الرياضيات">${esc(s.note||"")}</textarea><div style="margin-top:10px"><button class="btn sm" data-act="saveNote" data-id="${s.id}">حفظ الملاحظة</button></div></div>
+<div class="card"><h3>كل نشاط الطالب</h3>${ev.length?ev.slice(0,60).map(e=>`<div class="tl"><span>${e.i}</span><span style="flex:1">${esc(e.x)}</span><span class="mut" style="white-space:nowrap">${new Date(e.t*1000).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"})}</span></div>`).join(""):`<div class="mut">لسه مفيش نشاط.</div>`}</div>
+<div class="card"><h3>سجل الدخول (آخر 30 مرة)</h3>${lg===null||lg===undefined?`<div class="sk" style="min-height:60px"></div>`:lg.length?`<div class="tw"><table><tr><th>الوقت</th><th>IP</th><th>الجهاز والمتصفح</th><th>الشاشة</th><th>المنطقة</th></tr>${lg.map(x=>`<tr><td>${fmt(x.createdAt)}</td><td dir="ltr">${esc(x.ip||"-")}</td><td>${esc(x.device||"-")}</td><td dir="ltr">${esc(x.screen||"-")}</td><td dir="ltr">${esc(x.tz||"-")}</td></tr>`).join("")}</table></div>`:`<div class="mut">مفيش سجل دخول لسه (بيتسجل من الإصدار ده).</div>`}</div>
+<div class="card"><h3>المحاولات</h3>${rs.length?`<div class="tw"><table><tr><th>الامتحان</th><th>المادة</th><th>م</th><th>الدرجة</th><th>%</th><th>النتيجة</th><th>الوقت</th><th>خروج</th><th>التاريخ</th><th></th></tr>
+${rs.map(r=>`<tr><td>${esc(r.examTitle)}</td><td>${subName(r.subject)}</td><td>${r.attempt||1}</td><td><b>${r.score}/${r.total}</b></td><td>${pctOf(r)}%</td><td>${passPill(r)||"-"}</td><td>${dur(r.secs)}</td><td>${r.tabs?pill(r.tabs,"r"):0}</td><td>${fmt(r.createdAt)}</td><td><button class="btn ghost sm" data-act="reviewAdmin" data-id="${r.id}" data-back="studentDetail">شوف الحل</button> <button class="btn ghost sm" data-act="delResult" data-id="${r.id}">حذف</button></td></tr>`).join("")}</table></div>`:`<div class="mut">الطالب ده لسه ما امتحنش.</div>`}</div></div>`}
 function adminResults(){
   const exs=[...new Map(S.results.map(r=>[r.examId,r.examTitle]))];
   const rows=S.results.filter(r=>!S.filter||r.examId===S.filter);
@@ -623,7 +659,12 @@ const A={
   reviewLast(){S.review={r:S.last,back:"result"};S.view="review";render(true)},
   reviewAdmin(d){const r=S.results.find(x=>x.id===d.id);if(!r)return;S.review={r,back:d.back||"admin"};S.view="review";render(true)},
   backReview(){S.view=S.review.back;render(true)},
-  student(d){S.studentId=d.id;S.view="studentDetail";render(true)},
+  async student(d){
+    S.studentId=d.id;S.logins[d.id]=null;S.view="studentDetail";render(true);
+    try{const sn=await getDocs(query(collection(db,"students",d.id,"logins"),orderBy("createdAt","desc"),limit(30)));S.logins[d.id]=sn.docs.map(x=>({id:x.id,...x.data()}))}catch(e){S.logins[d.id]=[]}
+    if(S.view==="studentDetail"&&S.studentId===d.id)render();
+  },
+  async saveNote(d){try{await updateDoc(doc(db,"students",d.id),{note:$("#note").value.trim()});toast("اتحفظت الملاحظة")}catch(e){toast("مقدرتش أحفظ")}},
   backAdmin(){S.view="admin";render(true)},
   async start(d){
     const e=S.exams.find(x=>x.id===d.id),at=S.attempts[d.id]||[];
@@ -713,7 +754,7 @@ const A={
     $("#go").disabled=true;S.error="";S.registering=true;
     try{
       const c=await createUserWithEmailAndPassword(auth,phone+DOMAIN,pw);
-      try{await setDoc(doc(db,"students",c.user.uid),{name,phone,createdAt:serverTimestamp()})}catch(_){}
+      try{await setDoc(doc(db,"students",c.user.uid),{name,phone,regIp:myIp||"",regDevice:device(),createdAt:serverTimestamp()})}catch(_){}
       S.registering=false;await startSession(c.user);
     }catch(e){S.registering=false;S.error=authErr(e);render(true)}
   }
@@ -805,6 +846,7 @@ document.addEventListener("change",e=>{
   const c=e.target.dataset&&e.target.dataset.change;if(c)A[c]?.(e.target.dataset,e.target);
   if(e.target.type==="radio"&&S.view==="exam"){updProg();if(navigator.vibrate)navigator.vibrate(8)}
 });
+document.addEventListener("input",e=>{if(e.target.id==="sq"){S.sq=e.target.value;const t=$("#stbl");if(t)t.innerHTML=studentsTable()}});
 document.addEventListener("submit",e=>{e.preventDefault();const f=e.target.dataset.submit;if(f)A[f]?.()});
 
 if(!configured)render(true);
