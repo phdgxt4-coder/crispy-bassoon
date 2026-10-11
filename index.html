@@ -140,7 +140,7 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,collection,onSnapshot,query,where,orderBy,limit,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,collection,onSnapshot,query,where,orderBy,limit,getDocs,writeBatch,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ============ إعدادات Firebase ============ */
 const firebaseConfig = {
@@ -581,6 +581,9 @@ function adminSettings(){
 <p class="mut">لما تشغّله، الطلاب بيشوفوا "المنصة تحت التعديل". وإنت تدخل بحساب الأدمن بالضغط 3 مرات على كلمة "التفوق" اللي في نص الشاشة.</p>
 <label class="f" for="mmsg">الرسالة اللي هتظهر للطلاب</label><textarea id="mmsg" style="min-height:90px">${esc(S.site.message||"بنحدّث المنصة دلوقتي. ارجع بعد شوية.")}</textarea>
 <div class="row" style="margin-top:14px"><button class="btn ${S.site.maintenance?"gold":"danger"}" data-act="toggleMaint">${S.site.maintenance?"إيقاف وضع الصيانة":"تشغيل وضع الصيانة"}</button><button class="btn ghost" data-act="saveMsg">حفظ الرسالة بس</button></div></div>
+<div class="card" style="border-color:var(--bad)"><h3 style="color:var(--bad)">⚠ ابدأ من الصفر</h3>
+<p class="mut">بيمسح <b>كل الامتحانات</b> و<b>كل نتايج الطلاب وتقدمهم</b> وسجل التنبيهات والمتابعة المباشرة. حسابات الطلاب نفسها (الاسم والرقم وكلمة السر) بتفضل زي ما هي. مفيش رجوع بعد المسح.</p>
+<button class="btn danger" data-act="wipe">مسح الامتحانات والنتايج</button></div>
 <div class="card"><h3>📢 إعلان للطلاب</h3>
 <p class="mut">بيظهر في الصفحة الرئيسية للطالب أول ما يدخل. مناسب لمواعيد الامتحانات والتنبيهات.</p>
 <textarea id="ann" style="min-height:90px" placeholder="مثال: امتحان الفلسفة يوم الخميس الساعة 5">${esc(S.site.announce||"")}</textarea>
@@ -681,6 +684,17 @@ const A={
   },
   async saveMsg(){try{await setDoc(doc(db,"config","site"),{message:$("#mmsg").value.trim()},{merge:true});toast("اتحفظت الرسالة")}catch(e){toast("مقدرتش أحفظ")}},
   async saveAnn(d){try{await setDoc(doc(db,"config","site"),{announce:$("#ann").value.trim(),announceOn:d.on==="1"&&!!$("#ann").value.trim()},{merge:true});toast(d.on==="1"?"اتنشر الإعلان":"اتخفى الإعلان")}catch(e){toast("مقدرتش أحفظ")}},
+  async wipe(){
+    if(prompt("ده هيمسح كل الامتحانات ونتايج وتقدم كل الطلاب نهائيًا. لو متأكد اكتب كلمة: مسح")!=="مسح"){toast("اتلغى المسح");return}
+    try{
+      for(const c of ["results","starts","alerts","exams"]){
+        const sn=await getDocs(collection(db,c));
+        for(let i=0;i<sn.docs.length;i+=400){const b=writeBatch(db);sn.docs.slice(i,i+400).forEach(d=>b.delete(d.ref));await b.commit()}
+      }
+      S.unread=0;S.unreadAlerts=0;updTitle();
+      toast("اتمسح كل حاجة. دوس تبويب الامتحانات وضيف امتحان جديد.",true);
+    }catch(e){toast("حصلت مشكلة في المسح ("+(e.code||"؟")+")")}
+  },
   async dupExam(d){const e=S.exams.find(x=>x.id===d.id);if(!e)return;const {id,createdAt,...rest}=e;try{await addDoc(collection(db,"exams"),{...rest,title:e.title+" (نسخة)",published:false,createdAt:serverTimestamp()});toast("اتعملت نسخة مخفية")}catch(err){toast("مقدرتش أنسخ")}},
   async block(d){if(confirm("تحظر الطالب ده؟ مش هيقدر يمتحن."))try{await updateDoc(doc(db,"students",d.id),{blocked:true});toast("اتحظر")}catch(e){toast("مقدرتش أحظر")}},
   async unblock(d){try{await updateDoc(doc(db,"students",d.id),{blocked:false});toast("اتفك الحظر")}catch(e){toast("مقدرتش")}},
