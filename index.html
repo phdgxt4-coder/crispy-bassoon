@@ -158,6 +158,57 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 @keyframes spIn{to{opacity:1;transform:none}}
 @keyframes spLine{to{width:56px}}
 @keyframes spBar{to{width:100%}}
+
+/* ---- تحدي الأوائل ---- */
+.qb-hero{background:linear-gradient(145deg,#1a0a3e 0%,#0B5D57 55%,#084a45 100%);color:#fff;border:0;border-radius:22px;padding:22px 18px;margin-bottom:14px;position:relative;overflow:hidden}
+.qb-hero::before{content:"";position:absolute;inset:-40%;background:radial-gradient(circle at 70% 20%,rgba(227,168,28,.35),transparent 50%),radial-gradient(circle at 20% 80%,rgba(79,70,229,.3),transparent 45%);animation:qbPulse 6s ease-in-out infinite alternate}
+@keyframes qbPulse{to{transform:scale(1.08) rotate(3deg)}}
+.qb-hero>*{position:relative}
+.qb-crown{font-size:48px;line-height:1;filter:drop-shadow(0 4px 12px rgba(227,168,28,.5));animation:qbBob 2.2s ease-in-out infinite}
+@keyframes qbBob{50%{transform:translateY(-6px)}}
+.qb-title{font-family:'Reem Kufi',sans-serif;font-size:28px;margin:8px 0 4px}
+.qb-modes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.qb-mode{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.22);border-radius:16px;padding:16px 12px;color:#fff;cursor:pointer;font:inherit;text-align:center;transition:transform .2s,background .2s}
+.qb-mode:hover{background:rgba(255,255,255,.2);transform:translateY(-3px)}
+.qb-mode b{display:block;font-size:16px;margin-top:6px}
+.qb-mode span{font-size:28px}
+.qb-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:var(--sh)}
+.qb-arena{min-height:70vh;display:flex;flex-direction:column}
+.qb-hud{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:10px}
+.qb-player{flex:1;min-width:120px;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;text-align:center;transition:border-color .3s,box-shadow .3s}
+.qb-player.me{border-color:var(--pri);box-shadow:0 0 0 3px color-mix(in srgb,var(--pri) 25%,transparent)}
+.qb-player.lead{border-color:var(--gold);box-shadow:0 0 16px color-mix(in srgb,var(--gold) 40%,transparent)}
+.qb-player .score{font-family:'Reem Kufi',sans-serif;font-size:28px;color:var(--pri);line-height:1.1}
+.qb-player .name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qb-streak{display:inline-block;background:var(--gold);color:#2b2000;border-radius:99px;padding:1px 8px;font-size:12px;font-weight:700;margin-top:2px;animation:pop .35s ease}
+.qb-qbox{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 16px;margin:8px 0 12px;box-shadow:var(--sh);animation:qin .4s ease}
+.qb-opts{display:grid;gap:8px}
+.qb-opt{font:inherit;text-align:start;padding:14px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;transition:transform .15s,border-color .2s,background .2s;font-weight:500}
+.qb-opt:hover:not(:disabled){border-color:var(--pri);transform:translateX(-3px)}
+.qb-opt:disabled{cursor:default;opacity:.95}
+.qb-opt.pick{border-color:var(--ind);background:color-mix(in srgb,var(--ind) 12%,var(--card))}
+.qb-opt.right{border-color:var(--ok);background:var(--gbg)}
+.qb-opt.wrong{border-color:var(--bad);background:var(--rbg);animation:shake .4s}
+.qb-timer-bar{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-bottom:10px}
+.qb-timer-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--pri));border-radius:99px;transition:width .2s linear}
+.qb-timer-bar.low i{background:linear-gradient(90deg,#ef4444,#f97316)}
+.qb-cd{position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:rgba(8,20,18,.88);color:#fff}
+.qb-cd b{font-family:'Reem Kufi',sans-serif;font-size:96px;animation:tkp .55s cubic-bezier(.3,1.7,.5,1)}
+.qb-podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;padding:20px 8px 8px;min-height:200px}
+.qb-pod{flex:1;max-width:110px;text-align:center}
+.qb-pod .bar{border-radius:14px 14px 0 0;background:linear-gradient(180deg,var(--pri),var(--ind));margin-top:8px;animation:rise .8s cubic-bezier(.3,1,.4,1) both}
+.qb-pod.p1 .bar{height:120px;background:linear-gradient(180deg,#F0B93A,#E3A81C)}
+.qb-pod.p2 .bar{height:90px}
+.qb-pod.p3 .bar{height:70px;background:linear-gradient(180deg,#a78bfa,#6366f1)}
+.qb-pod .medal{font-size:32px}
+.qb-fx{position:fixed;inset:0;pointer-events:none;z-index:70;display:grid;place-items:center}
+.qb-fx .msg{font-family:'Reem Kufi',sans-serif;font-size:36px;color:var(--gold);text-shadow:0 4px 20px rgba(0,0,0,.4);animation:tkp .6s cubic-bezier(.3,1.7,.5,1)}
+.qb-lobby-players{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.qb-chip{background:var(--sel);border-radius:99px;padding:6px 14px;font-weight:600;font-size:14px}
+.qb-chip.host{background:color-mix(in srgb,var(--gold) 30%,var(--sel))}
+.qb-chip.ready{box-shadow:0 0 0 2px var(--ok)}
+.qb-code{font-family:ui-monospace,monospace;font-size:28px;letter-spacing:.2em;font-weight:700;color:var(--pri);direction:ltr}
+
 </style>
 </head>
 <body>
@@ -176,7 +227,7 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,collection,onSnapshot,query,where,orderBy,limit,getDocs,writeBatch,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,deleteField,collection,onSnapshot,query,where,orderBy,limit,getDocs,writeBatch,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ============ إعدادات Firebase ============ */
 const firebaseConfig = {
@@ -217,7 +268,8 @@ const passPill = r => r.passMark>0 ? (r.passed?pill("ناجح","g"):pill("راس
 
 const S = {asms:[],asm:null,editingAsm:null,logins:{},sq:"",starts:[],examsLoaded:false,user:null,isAdmin:false,profile:null,site:{maintenance:false,message:""},exams:[],results:[],students:[],alerts:[],
   myList:[],attempts:{},view:"loading",tab:"dash",subject:null,cur:null,last:null,review:null,studentId:null,editing:null,
-  adminLogin:false,mode:"login",error:"",filter:"",unread:0,unreadAlerts:0,registering:false,taps:[]};
+  adminLogin:false,mode:"login",error:"",filter:"",unread:0,unreadAlerts:0,registering:false,taps:[],
+  qb:null,qbSub:null};
 const splashUntil=Date.now()+1100;
 const vis=e=>!e.publishAt||Date.now()>=e.publishAt;
 const todayKey=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
@@ -452,7 +504,7 @@ function render(force){
     h=S.view==="editExam"?editor():S.view==="editAsm"?asmEditor():S.view==="studentDetail"?studentDetail():S.view==="review"?reviewView():adminView();
   }else if(S.profile&&S.profile.blocked){h=blockedView()}
   else{
-    const m={games:gamesView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView};
+    const m={games:gamesView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView};
     h=(m[S.view]||homeView)();
   }
   app.innerHTML=h;
@@ -566,12 +618,157 @@ ${left>0?`<p class="mut">لسه عندك محاولة تانية على الام
 const okUrl=u=>/^https?:\/\//i.test(u||"");
 const skel=()=>`<div class="sk" style="min-height:90px;margin-bottom:12px"></div>`;
 const filesHtml=(l,part,aid)=>l.map(f=>f.kind==="image"?`<div class="card" style="padding:8px"><img class="asmimg" src="${f.data}" alt="${esc(f.name)}" data-act="zoom"><div style="margin-top:6px"><a class="btn ghost sm" href="${f.data}" download="${esc(f.name.replace(/\.\w+$/,""))}.jpg">⬇ تحميل الصورة</a></div></div>`:`<div class="card row"><span>📄 ${esc(f.name)}</span><button class="btn sm" data-act="dlpdf" data-aid="${aid}" data-part="${part}" data-gid="${f.gid}" data-name="${esc(f.name)}">⬇ تحميل</button></div>`).join("");
+
+/* ============================================================
+   تحدي الأوائل — Quiz Battle Engine
+   ============================================================ */
+function qbPool(subject, maxN){
+  const pool=[];
+  S.exams.filter(e=>e.published && (!subject||subject==="random"||e.subject===subject)).forEach(e=>{
+    (e.questions||[]).forEach(q=>{
+      if(q.fun||q.essay||!q.o||q.o.length<2||q.a==null||q.a<0) return;
+      pool.push({q:q.q,o:q.o.slice(),a:q.a,sub:e.subject,exam:e.title});
+    });
+  });
+  // shuffle pool with fresh seed
+  const rnd=mulberry(Date.now()^(Math.random()*1e9|0));
+  const sh=shuf(pool,rnd);
+  return sh.slice(0, Math.min(maxN, sh.length));
+}
+function qbShuffleQ(item, seed){
+  const rnd=mulberry(seed);
+  const idx=item.o.map((_,i)=>i);
+  const order=shuf(idx,rnd);
+  const o=order.map(i=>item.o[i]);
+  const a=order.indexOf(item.a);
+  return {q:item.q,o,a,sub:item.sub,exam:item.exam};
+}
+function qbCode(){const c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<5;i++)s+=c[Math.floor(Math.random()*c.length)];return s}
+function qbStopSub(){if(S.qbSub){try{S.qbSub()}catch(_){}S.qbSub=null}}
+function qbBotDelay(diff, correct){
+  // easy / medium / hard reaction times + accuracy
+  const cfg={easy:{acc:.55,min:1800,max:4500},medium:{acc:.72,min:900,max:2800},hard:{acc:.9,min:400,max:1400}}[diff]||{acc:.7,min:1000,max:2500};
+  const willCorrect=Math.random()<cfg.acc;
+  const ms=cfg.min+Math.random()*(cfg.max-cfg.min);
+  return {ms, willCorrect};
+}
+
+function qbSetupView(){
+  const m=S.qb&&S.qb.mode;
+  const subjects=[{id:"random",name:"عشوائي 🎲"},...SUBJECTS];
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openGames">رجوع</button>`)}
+<div class="qb-hero" style="padding:18px">
+  <div class="qb-crown" style="font-size:36px">👑</div>
+  <div class="qb-title" style="font-size:22px">${m==="bot"?"ضد الروبوت":"غرفة الأصدقاء"}</div>
+</div>
+<div class="qb-card">
+<label class="f">المادة</label>
+<select id="qbSub">${subjects.map(s=>`<option value="${s.id}">${s.name}</option>`).join("")}</select>
+<label class="f">عدد الأسئلة</label>
+<select id="qbN">${[5,10,15,20,25].map(n=>`<option value="${n}" ${n===10?"selected":""}>${n}</option>`).join("")}</select>
+<label class="f">وقت كل سؤال (ث)</label>
+<select id="qbT">${[10,15,20,30,0].map(n=>`<option value="${n}" ${n===15?"selected":""}>${n?n:"بدون حد"}</option>`).join("")}</select>
+${m==="bot"?`<label class="f">مستوى الروبوت</label>
+<select id="qbDiff"><option value="easy">سهل</option><option value="medium" selected>متوسط</option><option value="hard">صعب</option></select>`:""}
+</div>
+<button class="btn block gold" data-act="${m==="bot"?"qbStartBot":"qbCreateRoom"}">${m==="bot"?"ابدأ المباراة ⚡":"إنشاء غرفة 🔗"}</button>
+${m==="friends"?`<div class="qb-card" style="margin-top:14px"><h3>أو انضم بكود</h3>
+<input id="qbJoinCode" class="ltr" type="text" maxlength="6" placeholder="ABX72" style="text-transform:uppercase;letter-spacing:.15em;font-size:20px;text-align:center">
+<button class="btn block" style="margin-top:10px" data-act="qbJoinRoom">انضم للغرفة</button></div>`:""}
+</div>${studentNav()}`;
+}
+
+function qbLobbyView(){
+  const r=S.qb&&S.qb.room;if(!r)return gamesView();
+  const isHost=r.host===S.user.uid;
+  const players=Object.values(r.players||{});
+  const need=r.maxPlayers||2;
+  const allReady=players.length>=need && players.every(p=>p.ready);
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="qbLeaveRoom">خروج</button>`)}
+<div class="qb-hero" style="padding:18px">
+  <div class="qb-title" style="font-size:22px">غرفة الانتظار</div>
+  <div class="qb-code" style="margin:10px 0">${esc(r.code)}</div>
+  <div style="opacity:.85;font-size:13px">${subName(r.subject)} · ${r.qCount} سؤال · ${r.sec?r.sec+"ث":"بدون وقت"}</div>
+</div>
+<div class="qb-card">
+<div class="row"><b>اللاعبون (${players.length}/${need})</b>
+<button class="btn ghost sm" data-act="qbCopyCode">نسخ الكود</button></div>
+<div class="qb-lobby-players">${players.map(p=>`<span class="qb-chip ${p.uid===r.host?"host":""} ${p.ready?"ready":""}">${esc(p.name)}${p.uid===r.host?" 👑":""}${p.ready?" ✓":""}</span>`).join("")}</div>
+${!isHost?`<button class="btn block ${ (r.players[S.user.uid]||{}).ready?"ghost":"gold"}" data-act="qbReady">${(r.players[S.user.uid]||{}).ready?"إلغاء الاستعداد":"أنا جاهز ✓"}</button>`:
+  `<button class="btn block gold" data-act="qbBeginMatch" ${allReady?"":"disabled"}>${allReady?"ابدأ المباراة ⚡":"استنى الكل يكون جاهز"}</button>`}
+</div>
+<p class="mut" style="text-align:center">ابعت الكود لصحابك يدخلوا · الأسئلة هتتخلط تلقائي</p>
+</div>${studentNav()}`;
+}
+
+function qbPlayView(){
+  const g=S.qb;if(!g||!g.match)return gamesView();
+  const m=g.match, q=m.qs[m.idx];
+  if(!q)return qbResultView();
+  const left=m.sec?Math.max(0,Math.ceil((m.deadline-Date.now())/1000)):0;
+  const pct=m.sec?Math.max(0,(m.deadline-Date.now())/(m.sec*1000)*100):100;
+  const me=m.players.find(p=>p.uid===S.user.uid)||m.players[0];
+  const sorted=[...m.players].sort((a,b)=>b.score-a.score);
+  return `<div class="wrap qb-arena">
+<div class="qb-hud">${sorted.map(p=>`<div class="qb-player ${p.uid===S.user.uid?"me":""} ${sorted[0]&&sorted[0].uid===p.uid?"lead":""}">
+  <div class="name">${esc(p.name)}${sorted[0]&&sorted[0].uid===p.uid?" 👑":""}</div>
+  <div class="score">${p.score}</div>
+  ${p.streak>=3?`<span class="qb-streak">🔥 ×${p.streak}</span>`:""}
+</div>`).join("")}</div>
+<div class="row mut" style="margin-bottom:4px"><span>سؤال ${m.idx+1} / ${m.qs.length}</span>${m.sec?`<span id="qbSec">${left}ث</span>`:""}</div>
+<div class="qb-timer-bar ${left<=5&&m.sec?"low":""}"><i id="qbBar" style="width:${pct}%"></i></div>
+<div class="prog" style="height:6px;margin-bottom:8px"><i style="width:${(m.idx/m.qs.length)*100}%"></i></div>
+<div class="qb-qbox"><p dir="auto" style="margin:0;font-weight:600;font-size:17px">${esc(q.q)}</p></div>
+<div class="qb-opts" id="qbOpts">${q.o.map((t,j)=>`<button class="qb-opt" data-act="qbAnswer" data-i="${j}" ${m.answered?"disabled":""} dir="auto">${LETTERS[j]||(j+1)}) ${esc(t)}</button>`).join("")}</div>
+</div>`;
+}
+
+function qbResultView(){
+  const g=S.qb;if(!g||!g.match)return gamesView();
+  const m=g.match;
+  const sorted=[...m.players].sort((a,b)=>b.score-a.score||b.correct-a.correct);
+  const me=sorted.find(p=>p.uid===S.user.uid)||sorted[0];
+  const total=m.qs.length;
+  const acc=me.correct?Math.round(me.correct/total*100):0;
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openGames">الألعاب</button>`)}
+<div class="qb-hero" style="text-align:center;padding:20px">
+  <div style="font-size:40px">🏆</div>
+  <div class="qb-title" style="font-size:24px">انتهت المباراة</div>
+</div>
+<div class="qb-podium">${sorted.slice(0,3).map((p,i)=>`<div class="qb-pod p${i+1}">
+  <div class="medal">${["🥇","🥈","🥉"][i]}</div>
+  <div style="font-weight:700;font-size:13px">${esc(p.name)}</div>
+  <div style="color:var(--pri);font-weight:700">${p.score}</div>
+  <div class="bar"></div>
+</div>`).join("")}</div>
+<div class="qb-card">
+<div class="stats">
+  <div class="stat card"><b>${me.score}</b><span class="mut">نقاطك</span></div>
+  <div class="stat card"><b>${me.correct}/${total}</b><span class="mut">صحيحة</span></div>
+  <div class="stat card"><b>${acc}%</b><span class="mut">دقة</span></div>
+  <div class="stat card"><b>${me.bestStreak||0}</b><span class="mut">أفضل ستريك</span></div>
+</div>
+</div>
+<button class="btn block gold" data-act="${g.mode==="bot"?"qbBot":"qbFriends"}">إعادة اللعب ↺</button>
+<button class="btn block ghost" style="margin-top:8px" data-act="openGames">رجوع للألعاب</button>
+</div>${studentNav()}`;
+}
+
+
 function gamesView(){
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
-<h2>الألعاب</h2><p class="mut">استرح شوية بين المذاكرة.</p>
-<div class="card lift"><div class="row" style="flex-wrap:nowrap;gap:14px"><div class="av" style="border-radius:16px;font-size:28px">🔫</div><div style="flex:1"><b>آخر واحد واقف</b><div class="mut">مواجهة ١ ضد ١. اجمع السلاح، وخلي بالك من المنطقة اللي بتضيق، وآخر واحد يفضل واقف يكسب.</div>
-<div class="mut" style="margin-top:6px">🤖 ضد الروبوت (3 مستويات) &nbsp; 🔗 أو ابعت رابط لصاحبك وتلعبوا سوا</div></div></div>
-<a class="btn block" href="last-one-standing.html" style="margin-top:12px;justify-content:center">العب</a></div>
+<h2>الألعاب</h2><p class="mut">راجع المنهج بطريقة تنافسية وممتعة.</p>
+<div class="qb-hero">
+  <div class="qb-crown">👑</div>
+  <div class="qb-title">تحدي الأوائل</div>
+  <div style="opacity:.85;font-size:14px">مسابقة مباشرة من أسئلة الامتحانات والتقييمات · ترتيب جديد كل مرة</div>
+  <div class="qb-modes">
+    <button class="qb-mode" data-act="qbBot"><span>🤖</span><b>ضد الروبوت</b><small style="opacity:.8">1 ضد 1</small></button>
+    <button class="qb-mode" data-act="qbFriends"><span>👥</span><b>مع الأصدقاء</b><small style="opacity:.8">غرف · أكواد</small></button>
+  </div>
+</div>
+<div class="card lift"><div class="row" style="flex-wrap:nowrap;gap:14px"><div class="av" style="border-radius:16px;font-size:28px">🔫</div><div style="flex:1"><b>آخر واحد واقف</b><div class="mut">مواجهة ١ ضد ١. اجمع السلاح، وخلي بالك من المنطقة اللي بتضيق.</div></div></div>
+<a class="btn block ghost" href="last-one-standing.html" style="margin-top:12px;justify-content:center">العب</a></div>
 </div>${studentNav()}`}
 
 function asmListView(){
@@ -845,6 +1042,79 @@ const A={
     if(S.view==="studentDetail"&&S.studentId===d.id)render();
   },
   openGames(){S.view="games";render(true)},
+
+  qbBot(){S.qb={mode:"bot"};S.view="qbSetup";render(true)},
+  qbFriends(){S.qb={mode:"friends"};S.view="qbSetup";render(true)},
+  qbStartBot(){
+    const subject=$("#qbSub").value, n=+$("#qbN").value||10, sec=+$("#qbT").value||0, diff=$("#qbDiff")?$("#qbDiff").value:"medium";
+    const raw=qbPool(subject,n);
+    if(raw.length<3){toast("مفيش أسئلة كفاية في المادة دي. انشر امتحانات أول");return}
+    const seed=Date.now()^ (Math.random()*1e9|0);
+    const qs=raw.map((it,i)=>qbShuffleQ(it, seed+i*9973));
+    const me={uid:S.user.uid,name:S.profile.name.split(" ")[0],score:0,correct:0,wrong:0,streak:0,bestStreak:0};
+    const bot={uid:"bot",name:"الروبوت 🤖",score:0,correct:0,wrong:0,streak:0,bestStreak:0};
+    S.qb={mode:"bot",diff,match:{qs,idx:0,sec,deadline:sec?Date.now()+sec*1000:0,players:[me,bot],answered:false,pick:null,seed}};
+    S.view="qbPlay";render(true);qbStartRound();
+  },
+  async qbCreateRoom(){
+    const subject=$("#qbSub").value, n=+$("#qbN").value||10, sec=+$("#qbT").value||0;
+    const raw=qbPool(subject,n);
+    if(raw.length<3){toast("مفيش أسئلة كفاية. انشر امتحانات أول");return}
+    const code=qbCode();
+    const seed=Date.now()^(Math.random()*1e9|0);
+    const qs=raw.map((it,i)=>qbShuffleQ(it, seed+i*9973));
+    const room={code,host:S.user.uid,subject,qCount:n,sec,maxPlayers:2,status:"lobby",seed,qs,
+      players:{[S.user.uid]:{uid:S.user.uid,name:S.profile.name.split(" ")[0],ready:true,score:0,correct:0,wrong:0,streak:0,bestStreak:0}},
+      createdAt:serverTimestamp()};
+    try{
+      await setDoc(doc(db,"qb_rooms",code),room);
+      S.qb={mode:"friends",roomCode:code,room};
+      qbListenRoom(code);
+      S.view="qbLobby";render(true);
+    }catch(e){toast("مقدرتش أعمل الغرفة. تأكد من قواعد Firebase")}
+  },
+  async qbJoinRoom(){
+    const code=($("#qbJoinCode").value||"").trim().toUpperCase();
+    if(code.length<4){toast("اكتب كود الغرفة");return}
+    try{
+      const snap=await getDoc(doc(db,"qb_rooms",code));
+      if(!snap.exists()){toast("الكود غلط أو الغرفة اتقفلت");return}
+      const room=snap.data();
+      if(room.status!=="lobby"){toast("المباراة بدأت أو خلصت");return}
+      if(Object.keys(room.players||{}).length>=(room.maxPlayers||2) && !room.players[S.user.uid]){toast("الغرفة ممتلئة");return}
+      await updateDoc(doc(db,"qb_rooms",code),{[`players.${S.user.uid}`]:{uid:S.user.uid,name:S.profile.name.split(" ")[0],ready:false,score:0,correct:0,wrong:0,streak:0,bestStreak:0}});
+      S.qb={mode:"friends",roomCode:code,room:{...room,id:code}};
+      qbListenRoom(code);
+      S.view="qbLobby";render(true);
+    }catch(e){toast("مقدرتش أدخل الغرفة")}
+  },
+  async qbReady(){
+    const code=S.qb.roomCode;if(!code)return;
+    const cur=(S.qb.room.players||{})[S.user.uid];
+    try{await updateDoc(doc(db,"qb_rooms",code),{[`players.${S.user.uid}.ready`]:!cur.ready})}catch(e){toast("خطأ")}
+  },
+  async qbBeginMatch(){
+    const code=S.qb.roomCode;if(!code)return;
+    try{await updateDoc(doc(db,"qb_rooms",code),{status:"playing",startedAt:Date.now()})}catch(e){toast("مقدرتش أبدأ")}
+  },
+  qbCopyCode(){
+    const c=S.qb&&S.qb.room&&S.qb.room.code;if(!c)return;
+    navigator.clipboard.writeText(c).then(()=>toast("اتنسخ الكود ✓")).catch(()=>toast(c));
+  },
+  async qbLeaveRoom(){
+    const code=S.qb&&S.qb.roomCode;
+    qbStopSub();
+    if(code&&S.user){
+      try{
+        const room=S.qb.room||{};
+        if(room.host===S.user.uid)await deleteDoc(doc(db,"qb_rooms",code));
+        else await updateDoc(doc(db,"qb_rooms",code),{[`players.${S.user.uid}`]:deleteField()});
+      }catch(_){}
+    }
+    S.qb=null;S.view="games";render(true);
+  },
+  qbAnswer(d){qbOnAnswer(+d.i)},
+
   openAsms(){S.view="asmList";render(true)},
   openAsm(d){S.asm={id:d.id,loading:true,q:[],s:[],solText:""};S.view="asm";render(true);loadAsm(d.id)},
   zoom(d,el){
@@ -1014,6 +1284,127 @@ const A={
   }
 };
 function fail(m){S.error=m;render(true)}
+
+
+/* ---- QB runtime ---- */
+function qbListenRoom(code){
+  qbStopSub();
+  S.qbSub=onSnapshot(doc(db,"qb_rooms",code),snap=>{
+    if(!snap.exists()){toast("الغرفة اتقفلت");S.qb=null;S.view="games";render(true);return}
+    const room={...snap.data(),code};
+    if(!S.qb)S.qb={mode:"friends"};
+    S.qb.room=room;S.qb.roomCode=code;
+    if(room.status==="playing"&&S.view!=="qbPlay"&&S.view!=="qbResult"){
+      const players=Object.values(room.players||{}).map(p=>({...p}));
+      S.qb.match={qs:room.qs,idx:room.idx||0,sec:room.sec,deadline:room.sec?Date.now()+room.sec*1000:0,players,answered:false,pick:null,seed:room.seed};
+      S.view="qbPlay";render(true);qbStartRound();
+    }else if(room.status==="lobby"){S.view="qbLobby";render()}
+    else if(room.status==="done"){S.view="qbResult";render(true)}
+  },err=>toast("انقطع الاتصال بالغرفة"));
+}
+function qbStartRound(){
+  clearInterval(window.__qbT);
+  const m=S.qb&&S.qb.match;if(!m)return;
+  m.answered=false;m.pick=null;
+  if(m.sec)m.deadline=Date.now()+m.sec*1000;
+  // bot schedules answer
+  if(S.qb.mode==="bot"){
+    const bot=m.players.find(p=>p.uid==="bot");
+    const q=m.qs[m.idx];
+    const {ms,willCorrect}=qbBotDelay(S.qb.diff);
+    clearTimeout(window.__qbBot);
+    window.__qbBot=setTimeout(()=>{
+      if(!S.qb||!S.qb.match||S.qb.match.idx!==m.idx||m.answered)return;
+      const choice=willCorrect?q.a:shuf(q.o.map((_,i)=>i).filter(i=>i!==q.a),mulberry(Date.now()))[0];
+      qbApplyAnswer(bot, choice, false);
+      render(true);
+    },ms);
+  }
+  if(m.sec){
+    window.__qbT=setInterval(()=>{
+      if(!S.qb||!S.qb.match){clearInterval(window.__qbT);return}
+      const left=Math.max(0,S.qb.match.deadline-Date.now());
+      const el=$("#qbSec"),bar=$("#qbBar");
+      if(el)el.textContent=Math.ceil(left/1000)+"ث";
+      if(bar){bar.style.width=(left/(S.qb.match.sec*1000)*100)+"%";bar.parentElement.classList.toggle("low",left<=5000)}
+      if(left<=0){clearInterval(window.__qbT);qbOnAnswer(-1)}
+    },200);
+  }
+}
+function qbOnAnswer(choice){
+  const m=S.qb&&S.qb.match;if(!m||m.answered)return;
+  const me=m.players.find(p=>p.uid===S.user.uid);if(!me)return;
+  qbApplyAnswer(me, choice, true);
+  // reveal UI
+  m.answered=true;m.pick=choice;
+  render(true);
+  // highlight
+  setTimeout(()=>{
+    const opts=document.querySelectorAll(".qb-opt");
+    const q=m.qs[m.idx];
+    opts.forEach((el,j)=>{
+      el.disabled=true;
+      if(j===q.a)el.classList.add("right");
+      else if(j===choice&&choice!==q.a)el.classList.add("wrong");
+    });
+  },30);
+  // next after delay
+  setTimeout(qbNext, choice===m.qs[m.idx].a?900:1200);
+}
+function qbApplyAnswer(player, choice, isHuman){
+  const m=S.qb.match,q=m.qs[m.idx];
+  const correct=choice===q.a;
+  // speed bonus only for human first answer timing
+  let pts=0;
+  if(correct){
+    pts=10;
+    if(isHuman&&m.sec&&m.deadline){
+      const remain=(m.deadline-Date.now())/(m.sec*1000);
+      if(remain>0.66)pts+=3; else if(remain>0.33)pts+=2; else if(remain>0)pts+=1;
+    }
+    player.streak=(player.streak||0)+1;
+    player.bestStreak=Math.max(player.bestStreak||0,player.streak);
+    if(player.streak>=10)pts*=5; else if(player.streak>=5)pts*=3; else if(player.streak>=3)pts*=2;
+    player.correct=(player.correct||0)+1;
+    player.score=(player.score||0)+pts;
+    if(isHuman&&navigator.vibrate)navigator.vibrate(12);
+  }else{
+    player.streak=0;
+    player.wrong=(player.wrong||0)+1;
+    if(isHuman&&navigator.vibrate)navigator.vibrate([30,40,30]);
+  }
+}
+function qbNext(){
+  const m=S.qb&&S.qb.match;if(!m)return;
+  clearTimeout(window.__qbBot);
+  m.idx++;
+  if(m.idx>=m.qs.length){
+    clearInterval(window.__qbT);
+    S.view="qbResult";render(true);
+    // confetti for winner
+    const sorted=[...m.players].sort((a,b)=>b.score-a.score);
+    if(sorted[0]&&sorted[0].uid===S.user.uid&&typeof confetti==="function")try{confetti()}catch(_){}
+    qbSaveBattle();
+    return;
+  }
+  m.answered=false;m.pick=null;
+  render(true);qbStartRound();
+}
+async function qbSaveBattle(){
+  const g=S.qb;if(!g||!g.match||!S.user)return;
+  const m=g.match;
+  const me=m.players.find(p=>p.uid===S.user.uid);if(!me)return;
+  try{
+    await addDoc(collection(db,"qb_battles"),{
+      uid:S.user.uid,name:S.profile.name,phone:S.profile.phone,
+      mode:g.mode,diff:g.diff||null,subject:m.qs[0]&&m.qs[0].sub,
+      score:me.score,correct:me.correct,wrong:me.wrong,total:m.qs.length,
+      bestStreak:me.bestStreak||0,rank:[...m.players].sort((a,b)=>b.score-a.score).findIndex(p=>p.uid===S.user.uid)+1,
+      players:m.players.map(p=>({uid:p.uid,name:p.name,score:p.score})),
+      createdAt:serverTimestamp()
+    });
+  }catch(_){}
+}
 
 /* ---------- الامتحان ---------- */
 function tick(){
