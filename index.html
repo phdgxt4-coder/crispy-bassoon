@@ -234,23 +234,72 @@ function parseQs(t){
   const qs=[],errors=[];
   t.replace(/\r/g,"").trim().split(/\n\s*\n/).filter(b=>b.trim()).forEach((blk,i)=>{
     const lines=blk.split("\n").map(l=>l.trim()).filter(Boolean);
-    const q=[],o=[];let a,fun=false;
+    const q=[],o=[];let a,fun=false,essay=false,modelAns="";
     for(const l of lines){
       if(/^\[(?:ترفيه|fun)\]$/i.test(l)){fun=true;continue}
-      let m=l.match(/^(?:الإجابة|الاجابة|الجواب|answer|ans)\s*[:：\-]\s*(.+)$/i);
-      if(m){a=LET[m[1].trim().toLowerCase().charAt(0)];continue}
+      if(/^\[(?:مقالي|essay)\]$/i.test(l)){essay=true;continue}
+      let m=l.match(/^(?:الإجابة|الاجابة|الجواب|answer|ans|الحل)\s*[:：\-]\s*(.+)$/i);
+      if(m){
+        if(essay){modelAns=m[1].trim();continue}
+        a=LET[m[1].trim().toLowerCase().charAt(0)];continue
+      }
+      // multi-line model answer continuation for essays
+      if(essay && modelAns && !/^\[/.test(l) && !/^[أابجدa-dA-D1-4]\s*[\)\.\-–]/.test(l)){
+        modelAns+=" "+l;continue
+      }
       m=l.match(/^([أابجدa-dA-D1-4])\s*[\)\.\-–]\s*(.+)$/);
       if(m&&LET[m[1].toLowerCase()]===o.length){o.push(m[2].trim());continue}
-      if(!o.length)q.push(l);else errors.push(`سؤال ${i+1}: سطر مش مفهوم: "${l}"`);
+      if(!o.length && !modelAns)q.push(l);
+      else if(!essay) errors.push(`سؤال ${i+1}: سطر مش مفهوم: "${l}"`);
     }
-    if(!q.length)errors.push(`سؤال ${i+1}: نص السؤال ناقص`);
-    else if(o.length<2||o.length>4)errors.push(`سؤال ${i+1}: لازم من 2 إلى 4 اختيارات (أ ب ج د)`);
-    else if(a===undefined||a>=o.length)errors.push(`سؤال ${i+1}: سطر "الإجابة: ب" ناقص أو غلط`);
-    else qs.push(fun?{q:q.join("\n"),o,a,fun:true}:{q:q.join("\n"),o,a});
+    if(!q.length){errors.push(`سؤال ${i+1}: نص السؤال ناقص`);return}
+    if(essay){
+      if(!modelAns){errors.push(`سؤال ${i+1}: سؤال مقالي لازم يكون فيه سطر "الحل: ..." أو "الإجابة: ..."`);return}
+      qs.push({q:q.join("\n"),essay:true,model:modelAns,fun:!!fun});
+    }else{
+      if(o.length<2||o.length>4)errors.push(`سؤال ${i+1}: لازم من 2 إلى 4 اختيارات (أ ب ج د)`);
+      else if(a===undefined||a>=o.length)errors.push(`سؤال ${i+1}: سطر "الإجابة: ب" ناقص أو غلط`);
+      else qs.push(fun?{q:q.join("\n"),o,a,fun:true}:{q:q.join("\n"),o,a});
+    }
   });
   return {qs,errors};
 }
-const serialize = qs => qs.map(x=>x.q+"\n"+x.o.map((t,i)=>`${LETTERS[i]}) ${t}`).join("\n")+`\nالإجابة: ${LETTERS[x.a]}`+(x.fun?"\n[ترفيه]":"")).join("\n\n");
+const serialize = qs => qs.map(x=>{
+  if(x.essay) return x.q+"\n[مقالي]\nالحل: "+x.model+(x.fun?"\n[ترفيه]":"");
+  return x.q+"\n"+x.o.map((t,i)=>`${LETTERS[i]}) ${t}`).join("\n")+`\nالإجابة: ${LETTERS[x.a]}`+(x.fun?"\n[ترفيه]":"");
+}).join("\n\n");
+
+/* ---------- تصحيح مرن للمقالي ---------- */
+function normalizeAr(s){
+  return String(s||"").toLowerCase()
+    .replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي")
+    .replace(/[ًٌٍَُِّْ]/g,"").replace(/[^\u0600-\u06FFa-z0-9\s]/g," ")
+    .replace(/\s+/g," ").trim();
+}
+function tokenSet(s){return new Set(normalizeAr(s).split(" ").filter(w=>w.length>1))}
+function essayScore(student, model){
+  if(!student||!student.trim()) return 0;
+  const st=normalizeAr(student), md=normalizeAr(model);
+  if(st===md) return 1;
+  // exact containment
+  if(st.includes(md)||md.includes(st)) return 0.95;
+  const ts=tokenSet(student), tm=tokenSet(model);
+  if(!tm.size) return 0;
+  let hit=0;
+  tm.forEach(w=>{if(ts.has(w)) hit++});
+  const recall=hit/tm.size;
+  const precision=ts.size?hit/ts.size:0;
+  const f1= (recall+precision)? (2*recall*precision)/(recall+precision) : 0;
+  // bonus for length similarity
+  const lenRatio=Math.min(st.length,md.length)/Math.max(st.length,md.length||1);
+  let score=f1*0.75 + lenRatio*0.15 + (recall>0.5?0.1:0);
+  // keyword density: if student has most important words
+  if(recall>=0.7) score=Math.max(score,0.75);
+  if(recall>=0.85) score=Math.max(score,0.9);
+  if(recall>=0.95) score=Math.max(score,1);
+  return Math.min(1, Math.round(score*100)/100);
+}
+
 const SAMPLE=`عاصمة مصر هي؟
 أ) الإسكندرية
 ب) القاهرة
@@ -263,7 +312,11 @@ const SAMPLE=`عاصمة مصر هي؟
 ب) 56
 ج) 58
 د) 64
-الإجابة: ب`;
+الإجابة: ب
+
+علل: الجليد يطفو فوق سطح الماء؟
+[مقالي]
+الحل: بسبب الترتيب الشبكي الناتج عن الروابط الهيدروجينية مما يجعل كثافة الجليد أقل من كثافة الماء السائل`;
 
 /* ---------- ترتيب عشوائي ثابت لكل محاولة ---------- */
 function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -272,7 +325,11 @@ function buildOrder(e,seed){
   const rnd=mulberry(seed),on=e.shuffle!==false;
   const idx=e.questions.map((_,i)=>i);
   const g=idx.filter(i=>!e.questions[i].fun),f=idx.filter(i=>e.questions[i].fun);
-  return (on?shuf(g,rnd):g).concat(f).map(i=>({i,o:on?shuf(e.questions[i].o.map((_,j)=>j),rnd):e.questions[i].o.map((_,j)=>j)}));
+  return (on?shuf(g,rnd):g).concat(f).map(i=>{
+    const q=e.questions[i];
+    if(q.essay) return {i,o:[]};
+    return {i,o:on?shuf(q.o.map((_,j)=>j),rnd):q.o.map((_,j)=>j)};
+  });
 }
 
 /* ---------- إحصائيات الأدمن ---------- */
@@ -443,6 +500,11 @@ function examView(){
 <form data-submit="submit">
 ${c.order.map(({i,o})=>{const q=e.questions[i];pos++;
   const head=q.fun&&!fun?(fun=true,`<div class="card" style="background:var(--ybg);border-color:var(--gold)"><b>قسم الترفيه: ألغاز ومسابقات</b><div class="mut">القسم ده للتسلية بس، مش بيتحسب في الدرجة.</div></div>`):"";
+  if(q.essay){
+    return head+`<div class="q in" style="--i:${Math.min(pos,12)}"><p dir="auto"><span class="n">${pos}</span>${esc(q.q)} <span class="pill" style="background:#e8f4ff;color:#0369a1;font-size:11px">مقالي</span></p>
+    <textarea name="q${i}" rows="4" dir="auto" placeholder="اكتب إجابتك هنا..." style="width:100%;padding:12px;border-radius:12px;border:1.5px solid var(--line);font:inherit;resize:vertical;margin-top:8px"></textarea>
+    <div class="mut" style="font-size:12px;margin-top:4px">اكتب بأسلوبك — لو قريب من الحل الصحيح هتاخد درجة جزئية أو كاملة</div></div>`
+  }
   return head+`<div class="q in" style="--i:${Math.min(pos,12)}"><p dir="auto"><span class="n">${pos}</span>${esc(q.q)}</p>${o.map(j=>`<label class="opt"><input type="radio" name="q${i}" value="${j}"><span dir="auto">${esc(q.o[j])}</span></label>`).join("")}</div>`}).join("")}
 <button class="btn block gold" id="sub">تسليم الامتحان</button></form></div>`}
 
@@ -451,6 +513,14 @@ function reviewBody(r,e,showAns){
   return e.questions.map((q,i)=>{
     const a=(r.ans||[])[i];
     const head=q.fun&&!fun?(fun=true,`<div class="card" style="background:var(--ybg);border-color:var(--gold)"><b>الألغاز</b> <span class="mut">(مش في الدرجة)</span></div>`):"";
+    if(q.essay){
+      const sc=essayScore(a,q.model);
+      const label=(!a||!String(a).trim())?pill("لم تُجب","y"):sc>=0.85?pill("ممتاز "+Math.round(sc*100)+"%","g"):sc>=0.5?pill("جزئي "+Math.round(sc*100)+"%","y"):pill("ضعيف "+Math.round(sc*100)+"%","r");
+      return head+`<div class="q"><p dir="auto"><span class="n">${i+1}</span>${esc(q.q)} ${q.fun?"":label}</p>
+        <div style="background:var(--bg);border-radius:10px;padding:10px;margin:6px 0"><b>إجابة الطالب:</b><div dir="auto" style="white-space:pre-wrap;margin-top:4px">${esc(a||"—")}</div></div>
+        ${showAns?`<div style="background:#f0fdf4;border-radius:10px;padding:10px;margin:6px 0;border:1px solid #86efac"><b>الحل النموذجي:</b><div dir="auto" style="white-space:pre-wrap;margin-top:4px">${esc(q.model)}</div></div>`:""}
+      </div>`
+    }
     const ok=a===q.a;
     return head+`<div class="q"><p dir="auto"><span class="n">${i+1}</span>${esc(q.q)} ${a===-1||a==null?pill("لم تُجب","y"):q.fun?"":ok?pill("صح","g"):pill("غلط","r")}</p>${q.o.map((t,j)=>`<div class="opt ${j===q.a?"right":j===a?"wrong":""}"><span dir="auto">${esc(t)}${j===q.a?` <b class="tk">✓</b>`:j===a?` <b class="tk x">✗</b>`:""}${j===a?` <small>(إجابة ${S.isAdmin?"الطالب":"تك"})</small>`:""}</span></div>`).join("")}</div>`}).join("");
 }
@@ -704,7 +774,9 @@ ${has?`<div class="err" style="margin:0 0 8px">الامتحان ده فيه مح
 <label class="f" style="margin-top:4px"><input id="epub" type="checkbox" ${e.published?"checked":""}> يظهر للطلاب</label>
 <label class="f" style="margin-top:4px"><input id="eshow" type="checkbox" ${e.showAnswers!==false?"checked":""}> يشوف الطالب الإجابات الصحيحة بعد التسليم</label>
 <label class="f" for="qtext">الأسئلة</label>
-<p class="mut" style="margin:0 0 6px">اكتب كل سؤال وتحته الاختيارات (أ ب ج د) وبعدين سطر "الإجابة: ب". سيب سطر فاضي بين كل سؤال والتاني. لو سؤال للتسلية (مش في الدرجة) ضيف تحته سطر <b>[ترفيه]</b>. لو استخدمت الترتيب العشوائي متكتبش اختيارات زي "كل ما سبق".</p>
+<p class="mut" style="margin:0 0 6px">اكتب كل سؤال وتحته الاختيارات (أ ب ج د) وبعدين سطر "الإجابة: ب". سيب سطر فاضي بين كل سؤال والتاني.<br>
+<b>للمقالي:</b> اكتب السؤال ثم سطر <b>[مقالي]</b> ثم سطر <b>الحل: ...</b> (الحل النموذجي). النظام هيدي درجة جزئية لو إجابة الطالب قريبة من الحل.<br>
+لو سؤال للتسلية (مش في الدرجة) ضيف تحته سطر <b>[ترفيه]</b>.</p>
 <textarea id="qtext" dir="auto">${esc(serialize(e.questions))}</textarea>
 <div id="qinfo" class="mut" style="margin:6px 0"></div>
 <div class="row" style="margin-top:12px"><button class="btn" id="sv">حفظ الامتحان</button><button type="button" class="btn ghost" data-act="sample">حط مثال</button></div></form></div>`}
@@ -948,13 +1020,27 @@ function liveUpdate(extra){
 async function submitExam(auto){
   const c=S.cur;if(!c||c.done)return;
   const e=c.exam;
-  const ans=e.questions.map((_,i)=>{const r=document.querySelector(`input[name=q${i}]:checked`);return r?+r.value:-1});
-  if(!auto&&ans.some((a,i)=>a===-1&&!e.questions[i].fun)){
+  const ans=e.questions.map((q,i)=>{
+    if(q.essay){const ta=document.querySelector(`textarea[name=q${i}]`);return ta?ta.value.trim():""}
+    const r=document.querySelector(`input[name=q${i}]:checked`);return r?+r.value:-1
+  });
+  if(!auto&&ans.some((a,i)=>{
+    const q=e.questions[i];if(q.fun)return false;
+    if(q.essay)return !a||!String(a).trim();
+    return a===-1;
+  })){
     c.busy=true;const ok=confirm("في أسئلة لسه ما جاوبتش عليها. تسلّم برضه؟");setTimeout(()=>{c.busy=false},800);
     if(!ok)return;
   }
   c.done=true;clearInterval(timer);clearInterval(hb);clearTimeout(ansT);
-  const score=ans.filter((a,i)=>!e.questions[i].fun&&a===e.questions[i].a).length,total=gcount(e);
+  // درجة جزئية للمقالي (0..1) + درجة كاملة للاختياري
+  let scoreRaw=0;
+  e.questions.forEach((q,i)=>{
+    if(q.fun)return;
+    if(q.essay) scoreRaw += essayScore(ans[i], q.model);
+    else if(ans[i]===q.a) scoreRaw += 1;
+  });
+  const score=Math.round(scoreRaw*100)/100, total=gcount(e);
   const btn=$("#sub");if(btn)btn.disabled=true;
   const rec={uid:S.user.uid,examId:e.id,examTitle:e.title,subject:e.subject,name:S.profile.name,phone:S.profile.phone,attempt:c.n,
     score,total,passMark:e.passMark||0,passed:e.passMark>0?score>=e.passMark:null,ans,secs:Math.round((Date.now()-c.st.t)/1000),tabs:c.tabs};
