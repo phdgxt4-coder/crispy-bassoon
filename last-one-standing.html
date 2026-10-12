@@ -42,11 +42,13 @@ input{width:100%;margin-top:12px;padding:12px;border-radius:10px;border:1px soli
 .lv{display:flex;gap:8px}.lv .bt{margin-top:8px;font-size:16px;padding:12px 6px}
 a.bt{text-decoration:none;text-align:center}
 .hid{display:none!important}
-/* أثناء اللعب فقط: لو الجهاز لسه بالطول نطلب التدوير بلطف */
-#rot{position:fixed;inset:0;z-index:50;background:rgba(10,13,9,.92);color:var(--am);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:20px;font-weight:800;line-height:1.6;pointer-events:none}
+/* أثناء اللعب فقط: لو الجهاز بالطول نوقف ونطلب التدوير */
+#rot{position:fixed;inset:0;z-index:9999;background:#0a0d09;color:var(--am);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;font-size:22px;font-weight:800;line-height:1.65;pointer-events:auto}
 #rot.show{display:flex}
-#rot svg{width:64px;height:64px;margin-bottom:14px;animation:spin 2s ease-in-out infinite}
-@keyframes spin{0%,100%{transform:rotate(0deg)}40%{transform:rotate(90deg)}60%{transform:rotate(90deg)}}
+#rot svg{width:80px;height:80px;margin-bottom:18px;animation:spin 1.8s ease-in-out infinite}
+@keyframes spin{0%,100%{transform:rotate(0deg)}35%{transform:rotate(90deg)}65%{transform:rotate(90deg)}}
+#rot .sub{font-size:15px;opacity:.8;font-weight:600;margin-top:8px}
+#rot .hint{margin-top:22px;font-size:13px;opacity:.55;font-weight:600}
 </style>
 </head>
 <body>
@@ -56,7 +58,9 @@ a.bt{text-decoration:none;text-align:center}
     <path d="M32 4v4M22 56h20"/>
     <path d="M48 28l8 4-8 4"/>
   </svg>
-  دوّر الجهاز أفقياً للعب<br><span style="font-size:14px;opacity:.75;font-weight:600">اللعبة تشتغل بالعرض</span>
+  دوّر الموبايل أفقياً
+  <div class="sub">اللعبة بتشتغل بالعرض فقط</div>
+  <div class="hint">بعد ما تدور هتكمل اللعب مباشرة</div>
 </div>
 <canvas id="c"></canvas><canvas id="mm" width="240" height="240"></canvas>
 <div id="top"></div><div id="kf"></div><div id="bot"><div id="wn"></div><div id="ab"><i id="af"></i></div><div id="hb"><i id="hf"></i></div></div>
@@ -302,10 +306,17 @@ $('go').onclick=()=>{audio();closeAll();role='host';me=0;enterPlay();round()};
 $('iv').onclick=()=>{audio();host()};
 $('st').onclick=()=>{audio();enterPlay();round()};
 const upl=()=>{const t='اللاعبين المتصلين: '+Object.keys(cs).length+' / '+(NP-1);$('cn').textContent=t;$('cn2').textContent=t};
+function mkPeer(){
+  // إعدادات أوضح لـ GitHub Pages والموبايل
+  return new Peer({debug:0,config:{iceServers:[
+    {urls:'stun:stun.l.google.com:19302'},
+    {urls:'stun:global.stun.twilio.com:3478'}
+  ]}});
+}
 function host(){
-  if(typeof Peer==='undefined')return fail('ما قدرنا نحمّل مكتبة الاتصال. تأكد من الإنترنت.');
+  if(typeof Peer==='undefined')return fail('ما قدرنا نحمّل مكتبة الاتصال. تأكد من الإنترنت وافتح الصفحة من جديد.');
   closeAll();role='host';me=0;TEAM=MD[mode];NP=TEAM.length;show('m2');$('lk').value='جاري تجهيز الرابط…';upl();
-  peer=new Peer();
+  peer=mkPeer();
   peer.on('open',id=>{link=location.href.split('?')[0].split('#')[0]+'?r='+id;$('lk').value=link});
   peer.on('connection',c=>{
     let s=0;for(let i=1;i<NP;i++)if(!cs[i]){s=i;break}
@@ -313,20 +324,20 @@ function host(){
     cs[s]=c;c.on('open',()=>{upl();if(ph===1)try{c.send({t:'w'})}catch(e){}});c.on('data',d=>onData(d,s));
     c.on('close',()=>{if(cs[s]===c){delete cs[s];upl();const p=pl[s];if(p&&ph){p.hu=false;p.ai={}}}});
   });
-  peer.on('error',()=>fail('حصلت مشكلة في الاتصال. تأكد من الإنترنت وجرب تاني.'));
+  peer.on('error',e=>{console.warn(e);fail('مشكلة في الاتصال الأونلاين. جرب تاني أو العب ضد الروبوت.')});
 }
 function join(id){
-  if(typeof Peer==='undefined'){msg('ما قدرنا نحمّل مكتبة الاتصال. تأكد من الإنترنت.',false);return}
+  if(typeof Peer==='undefined'){msg('ما قدرنا نحمّل مكتبة الاتصال. تأكد من الإنترنت وافتح الصفحة من جديد.',false);return}
   role='guest';msg('جاري الاتصال بصاحبك…',false);$('bk').classList.add('hid');
-  peer=new Peer();
-  const to=setTimeout(()=>{$('bk').classList.remove('hid');fail('ما قدرنا نتصل. اتأكد إن صاحبك فاتح اللعبة وفيها مكان، وجرب تاني.')},15000);
+  peer=mkPeer();
+  const to=setTimeout(()=>{$('bk').classList.remove('hid');fail('ما قدرنا نتصل. اتأكد إن صاحبك فاتح اللعبة وفيها مكان، وجرب تاني.')},18000);
   peer.on('open',()=>{
-    gc=peer.connect(id);
+    gc=peer.connect(id,{reliable:true});
     gc.on('open',()=>{clearTimeout(to);$('ms').textContent='اتصلنا! استنى المضيف يبدأ المباراة…'});
     gc.on('data',d=>onData(d));
     gc.on('close',()=>{clearTimeout(to);$('bk').classList.remove('hid');if(ph||!$('ov').classList.contains('off')){ph=0;fail('الاتصال انقطع أو المباراة ممتلئة.')}});
   });
-  peer.on('error',()=>{clearTimeout(to);$('bk').classList.remove('hid');fail('ما قدرنا نتصل بالمضيف. تأكد من الرابط.')});
+  peer.on('error',e=>{console.warn(e);clearTimeout(to);$('bk').classList.remove('hid');fail('ما قدرنا نتصل بالمضيف. تأكد من الرابط والإنترنت.')});
 }
 $('cp').onclick=()=>{const b=$('cp');(navigator.clipboard?navigator.clipboard.writeText(link):Promise.reject()).then(()=>{b.textContent='تم النسخ ✓'}).catch(()=>{$('lk').select();document.execCommand('copy');b.textContent='تم النسخ ✓'})};
 $('rk').onclick=()=>{$('cp').click();$('rk').textContent='تم نسخ الرابط ✓'};
@@ -448,6 +459,8 @@ function loop(t){
   requestAnimationFrame(loop);
   dtG=Math.min(.05,(t-last)/1000);last=t;TM=t/1000;const dt=dtG;
   if(ph&&pl.length){
+    // لو الفون بالطول أثناء اللعب: نوقف المحاكاة والمؤقت لحد ما يدور
+    if(window.__pauseGame){draw();return}
     if(role==='host'){acc+=dt;while(acc>=1/60){step(1/60);acc-=1/60}tS+=dt;if(tS>=.033){tS=0;const ks=Object.values(cs);if(ks.length){const s=snap();ks.forEach(c=>{try{c.send(s)}catch(e){}})}imp=[];ev=[]}}
     else{
       const P=pl[me],n=myIn();
@@ -496,18 +509,21 @@ function enterPlay(){
   audio();
   enterFS();
   lockLandscape();
-  // حاول تاني بعد شوية (بعد ما الفول سكرين يشتغل)
-  setTimeout(lockLandscape,300);
-  setTimeout(lockLandscape,800);
+  setTimeout(lockLandscape,250);
+  setTimeout(lockLandscape,700);
+  setTimeout(lockLandscape,1500);
+  // لو لسه بالطول، الرسالة هتظهر فوراً وتفضل لحد ما يدور
+  setTimeout(updateRotHint,100);
 }
 function updateRotHint(){
   const need=document.body.classList.contains('play')&&isPortrait();
   $('rot').classList.toggle('show',need);
+  // لو بالطول أثناء اللعب: نوقف الوقت عشان المؤقت واللعبة متكملش ورا الرسالة
+  if(need) window.__pauseGame=true; else window.__pauseGame=false;
 }
-addEventListener('orientationchange',()=>{setTimeout(()=>{if(document.body.classList.contains('play'))lockLandscape();updateRotHint()},250)});
+addEventListener('orientationchange',()=>{setTimeout(()=>{if(document.body.classList.contains('play')){lockLandscape();enterFS()}updateRotHint()},200)});
 addEventListener('resize',updateRotHint);
-// حدّث التلميح كل فريم تقريباً أثناء اللعب
-setInterval(updateRotHint,400);
+setInterval(updateRotHint,300);
 </script>
 </body>
 </html>
