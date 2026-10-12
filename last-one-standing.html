@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="screen-orientation" content="landscape">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>آخر واحد واقف</title>
 <style>
 :root{--bg:#0d110c;--pn:#161c14;--ln:#2a3526;--tx:#eef2ea;--am:#f5a524;--rd:#ff5d4a;--gr:#3ddc97}
@@ -39,9 +42,22 @@ input{width:100%;margin-top:12px;padding:12px;border-radius:10px;border:1px soli
 .lv{display:flex;gap:8px}.lv .bt{margin-top:8px;font-size:16px;padding:12px 6px}
 a.bt{text-decoration:none;text-align:center}
 .hid{display:none!important}
+/* أثناء اللعب فقط: لو الجهاز لسه بالطول نطلب التدوير بلطف */
+#rot{position:fixed;inset:0;z-index:50;background:rgba(10,13,9,.92);color:var(--am);display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:20px;font-weight:800;line-height:1.6;pointer-events:none}
+#rot.show{display:flex}
+#rot svg{width:64px;height:64px;margin-bottom:14px;animation:spin 2s ease-in-out infinite}
+@keyframes spin{0%,100%{transform:rotate(0deg)}40%{transform:rotate(90deg)}60%{transform:rotate(90deg)}}
 </style>
 </head>
 <body>
+<div id="rot">
+  <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+    <rect x="14" y="8" width="36" height="48" rx="4"/>
+    <path d="M32 4v4M22 56h20"/>
+    <path d="M48 28l8 4-8 4"/>
+  </svg>
+  دوّر الجهاز أفقياً للعب<br><span style="font-size:14px;opacity:.75;font-weight:600">اللعبة تشتغل بالعرض</span>
+</div>
 <canvas id="c"></canvas><canvas id="mm" width="240" height="240"></canvas>
 <div id="top"></div><div id="kf"></div><div id="bot"><div id="wn"></div><div id="ab"><i id="af"></i></div><div id="hb"><i id="hf"></i></div></div>
 <div id="hit"></div><div id="vg"></div><div id="cd"></div>
@@ -207,7 +223,7 @@ function onData(d,slot){
   if(!d||typeof d!=='object')return;
   if(role==='host'&&d.t==='i'){const p=pl[slot],n=v=>clamp(+v||0,-1,1);if(p&&p.hu)p.gi={dx:n(d.dx),dy:n(d.dy),a:+d.a||0,f:d.f?1:0,r:d.r?1:0,s:d.s?1:0}}
   if(role==='guest'){
-    if(d.t==='h'){seed=d.s;me=d.me;TEAM=d.tm;NP=TEAM.length;SP=spawns(NP);gen(seed);pl=TEAM.map((_,i)=>mk(i));ph=1;T=-3;win=-1;GB=[];reset()}
+    if(d.t==='h'){seed=d.s;me=d.me;TEAM=d.tm;NP=TEAM.length;SP=spawns(NP);gen(seed);pl=TEAM.map((_,i)=>mk(i));ph=1;T=-3;win=-1;GB=[];enterPlay();reset()}
     if(d.t==='w'&&!ph)$('ms').textContent='في جولة شغالة — هتدخل أول ما تخلص…';
     if(d.t==='s'&&Array.isArray(d.p)&&pl.length===d.p.length){
       d.p.forEach((q,i)=>{const v=pl[i];if(Math.hypot(q[0]-v.x,q[1]-v.y)>200){v.x=q[0];v.y=q[1]}v.tx=q[0];v.ty=q[1];v.ta=q[2];v.hp=q[3];v.w=q[4];v.sh=q[5];v.am=q[6];v.rl=q[7];v.bl=q[8];v.ar=q[9];v.al=q[3]>0});SNT=performance.now()/1000;
@@ -270,8 +286,8 @@ function botAI(b,dt){
 const sel=()=>{document.querySelectorAll('[data-md]').forEach(b=>b.classList.toggle('on',b.dataset.md===mode));document.querySelectorAll('[data-lv]').forEach(b=>b.classList.toggle('on',+b.dataset.lv===bot))};
 document.querySelectorAll('[data-md]').forEach(b=>b.onclick=()=>{mode=b.dataset.md;sel()});
 document.querySelectorAll('[data-lv]').forEach(b=>b.onclick=()=>{bot=+b.dataset.lv;sel()});sel();
-function show(id){['m1','m2','m3'].forEach(m=>$(m).classList.toggle('hid',m!==id));$('ov').classList.remove('off');document.body.classList.remove('play')}
-function ov(on){$('ov').classList.toggle('off',!on);document.body.classList.toggle('play',!on)}
+function show(id){['m1','m2','m3'].forEach(m=>$(m).classList.toggle('hid',m!==id));$('ov').classList.remove('off');document.body.classList.remove('play');$('rot').classList.remove('show');exitFS()}
+function ov(on){$('ov').classList.toggle('off',!on);document.body.classList.toggle('play',!on);if(!on)$('rot').classList.remove('show')}
 function msg(t,again){show('m3');$('ms').textContent=t;$('ag').classList.toggle('hid',!again);const on=role==='host'&&!!peer;$('rk').classList.toggle('hid',!on);$('cn2').classList.toggle('hid',!on);$('rk').textContent='نسخ رابط الغرفة';if(on)upl()}
 function end(){
   const w=win===-1?'تعادل':pl[me].tm===win?(TEAM.length===4?'فريقك فاز! 🏆':'فزت! 🏆'):'خسرت 😅';
@@ -281,10 +297,10 @@ function fail(t){msg(t,false)}
 function closeAll(){for(const k in cs)try{cs[k].close()}catch(e){}cs={};try{gc&&gc.close()}catch(e){}try{peer&&peer.destroy()}catch(e){}peer=gc=null;ph=0}
 function back(){closeAll();history.replaceState(null,'',location.href.split('?')[0]);$('bk').classList.remove('hid');show('m1')}
 $('bk').onclick=back;$('b2').onclick=back;
-$('ag').onclick=()=>{if(role==='host')round()};
-$('go').onclick=()=>{audio();closeAll();role='host';me=0;round()};
+$('ag').onclick=()=>{if(role==='host'){enterPlay();round()}};
+$('go').onclick=()=>{audio();closeAll();role='host';me=0;enterPlay();round()};
 $('iv').onclick=()=>{audio();host()};
-$('st').onclick=()=>{audio();round()};
+$('st').onclick=()=>{audio();enterPlay();round()};
 const upl=()=>{const t='اللاعبين المتصلين: '+Object.keys(cs).length+' / '+(NP-1);$('cn').textContent=t;$('cn2').textContent=t};
 function host(){
   if(typeof Peer==='undefined')return fail('ما قدرنا نحمّل مكتبة الاتصال. تأكد من الإنترنت.');
@@ -448,6 +464,50 @@ function loop(t){
 requestAnimationFrame(loop);
 const rid=new URLSearchParams(location.search).get('r');
 if(rid)join(rid);
+
+// ---- landscape on game start (menu stays free in portrait) ----
+function isPortrait(){return window.matchMedia('(orientation: portrait)').matches && Math.min(innerWidth,innerHeight)<900}
+function lockLandscape(){
+  try{
+    const o=screen.orientation||screen.mozOrientation||screen.msOrientation;
+    if(o&&typeof o.lock==='function')o.lock('landscape').catch(()=>{});
+    else if(screen.lockOrientation)screen.lockOrientation('landscape');
+    else if(screen.mozLockOrientation)screen.mozLockOrientation('landscape');
+    else if(screen.msLockOrientation)screen.msLockOrientation('landscape');
+  }catch(e){}
+}
+function enterFS(){
+  const el=document.documentElement;
+  try{
+    if(el.requestFullscreen)el.requestFullscreen().catch(()=>{});
+    else if(el.webkitRequestFullscreen)el.webkitRequestFullscreen();
+    else if(el.msRequestFullscreen)el.msRequestFullscreen();
+  }catch(e){}
+}
+function exitFS(){
+  try{
+    if(document.fullscreenElement||document.webkitFullscreenElement){
+      if(document.exitFullscreen)document.exitFullscreen().catch(()=>{});
+      else if(document.webkitExitFullscreen)document.webkitExitFullscreen();
+    }
+  }catch(e){}
+}
+function enterPlay(){
+  audio();
+  enterFS();
+  lockLandscape();
+  // حاول تاني بعد شوية (بعد ما الفول سكرين يشتغل)
+  setTimeout(lockLandscape,300);
+  setTimeout(lockLandscape,800);
+}
+function updateRotHint(){
+  const need=document.body.classList.contains('play')&&isPortrait();
+  $('rot').classList.toggle('show',need);
+}
+addEventListener('orientationchange',()=>{setTimeout(()=>{if(document.body.classList.contains('play'))lockLandscape();updateRotHint()},250)});
+addEventListener('resize',updateRotHint);
+// حدّث التلميح كل فريم تقريباً أثناء اللعب
+setInterval(updateRotHint,400);
 </script>
 </body>
 </html>
