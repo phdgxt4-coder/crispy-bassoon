@@ -502,9 +502,17 @@ async function startSession(u){
         if(ok)addDoc(collection(db,"students",u.uid,"logins"),{ip:ip||"",device:device(),screen:screen.width+"×"+screen.height,lang:navigator.language||"",tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||""),createdAt:serverTimestamp()}).catch(()=>{});
       });
       const iv2=setInterval(()=>{if(S.user&&!S.isAdmin&&(S.view==="home"||S.view==="subject"))render()},60000);subs.push(()=>clearInterval(iv2));
-      subs.push(onSnapshot(collection(db,"exams"),s=>{S.examsLoaded=true;S.exams=s.docs.map(d=>({id:d.id,...d.data()})).filter(e=>e.published).sort((a,b)=>tms(b)-tms(a));render()}));
+      let __resumeTried=false;
+      const maybeResume=()=>{
+        if(__resumeTried||!S.examsLoaded||!S.user)return;
+        // wait until attempts map has been set at least once
+        if(typeof S._resultsReady==="undefined")return;
+        __resumeTried=true;
+        tryResumeExam();
+      };
+      subs.push(onSnapshot(collection(db,"exams"),s=>{S.examsLoaded=true;S.exams=s.docs.map(d=>({id:d.id,...d.data()})).filter(e=>e.published).sort((a,b)=>tms(b)-tms(a));render();maybeResume()}));
       subs.push(onSnapshot(query(collection(db,"results"),where("uid","==",u.uid)),s=>{
-        S.myList=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(a)-tms(b));S.attempts=groupAttempts(S.myList);render();
+        S.myList=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(a)-tms(b));S.attempts=groupAttempts(S.myList);S._resultsReady=true;render();maybeResume();
       }));
     }
   }catch(e){S.site={maintenance:true,message:"في مشكلة مؤقتة في التحميل. جرّب بعد شوية."}}
@@ -1251,6 +1259,7 @@ const A={
     }catch(err){toast("مقدرتش أبدأ الامتحان. اتأكد من النت وجرّب تاني.");return}
     const endAt=e.minutes?st.t+e.minutes*60000:0;
     S.cur={exam:e,n,sid,st,endAt,done:false,busy:false,away:false,tabs:0,answered:0,order:buildOrder(e,st.seed)};
+    persistExamSession(S.cur);
     S.view="exam";render(true);
     setTimeout(loadExamDraft, 50);
     clearInterval(timer);clearInterval(hb);
@@ -1593,6 +1602,50 @@ function tick(){
   if(left<=0){clearInterval(timer);submitExam(true)}
 }
 function examDraftKey(c){return c?("draft_"+c.sid):null}
+function examSessionKey(uid){return "exam_session_"+uid}
+function persistExamSession(c){
+  if(!c||!S.user||c.done)return;
+  try{
+    localStorage.setItem(examSessionKey(S.user.uid), JSON.stringify({
+      sid:c.sid, examId:c.exam.id, n:c.n, endAt:c.endAt||0, seed:c.st.seed, t:c.st.t, tabs:c.tabs||0
+    }));
+  }catch(_){}
+}
+function clearExamSession(){
+  try{if(S.user)localStorage.removeItem(examSessionKey(S.user.uid))}catch(_){}
+}
+async function tryResumeExam(){
+  if(!S.user||S.isAdmin||S.cur)return;
+  let raw;try{raw=localStorage.getItem(examSessionKey(S.user.uid))}catch(_){return}
+  if(!raw)return;
+  let meta;try{meta=JSON.parse(raw)}catch(_){clearExamSession();return}
+  if(!meta||!meta.sid||!meta.examId){clearExamSession();return}
+  // already submitted?
+  if((S.attempts[meta.examId]||[]).some(r=>(r.attempt||1)===meta.n||r.id===meta.sid)){
+    clearExamSession();clearExamDraft({sid:meta.sid});return;
+  }
+  const e=S.exams.find(x=>x.id===meta.examId);
+  if(!e||!vis(e)){clearExamSession();return}
+  try{
+    const g=await getDoc(doc(db,"starts",meta.sid));
+    if(!g.exists()){clearExamSession();clearExamDraft({sid:meta.sid});return}
+    const st=g.data();
+    const endAt=e.minutes?st.t+e.minutes*60000:(meta.endAt||0);
+    if(endAt&&Date.now()>=endAt+60000){ // grace 1 min
+      // expired — leave session; user can still open if attempts left via normal flow
+      clearExamSession();return;
+    }
+    S.cur={exam:e,n:meta.n,sid:meta.sid,st,endAt,done:false,busy:false,away:false,tabs:meta.tabs||0,answered:st.answered||0,order:buildOrder(e,st.seed||meta.seed)};
+    S.view="exam";render(true);
+    setTimeout(loadExamDraft, 80);
+    clearInterval(timer);clearInterval(hb);
+    hb=setInterval(()=>liveUpdate({answered:S.cur?S.cur.answered:0,away:S.cur?S.cur.away:false}),60000);
+    liveUpdate({away:false});
+    if(endAt){tick();timer=setInterval(tick,1000)}
+    toast("كمّلنا الامتحان من حيث وقفت ✓");
+    persistExamSession(S.cur);
+  }catch(err){console.error(err)}
+}
 function saveExamDraft(){
   const c=S.cur;if(!c||c.done)return;
   try{
@@ -1664,6 +1717,7 @@ async function submitExam(auto){
   }catch(err){c.done=false;if(btn)btn.disabled=false;toast("مقدرتش أسجّل النتيجة. اتأكد من النت ودوس تسليم تاني.");return}
   deleteDoc(doc(db,"starts",c.sid)).catch(()=>{});
   clearExamDraft(c);
+  clearExamSession();
   S.attempts[e.id]=(S.attempts[e.id]||[]).concat([{...rec,id:c.sid}]);
   S.last={...rec,id:c.sid};S.cur=null;S.view="result";render(true);
 }
@@ -1686,7 +1740,7 @@ function confetti(){
 function leave(){
   const c=S.cur;if(S.view!=="exam"||!c||c.done||c.busy)return;
   const n=Date.now();if(n-lastLeave<1500)return;lastLeave=n;
-  c.tabs++;c.away=true;liveUpdate({away:true,awayAt:Date.now()});
+  c.tabs++;c.away=true;liveUpdate({away:true,awayAt:Date.now()});persistExamSession(c);
   const w=$("#warn");if(w){w.style.display="block";w.textContent=`⚠ تم تسجيل خروجك من الامتحان (${c.tabs}) وإبلاغ المدرس.`}
   if(c.tabs<=10)addDoc(collection(db,"alerts"),{uid:S.user.uid,name:S.profile.name,phone:S.profile.phone,examId:c.exam.id,examTitle:c.exam.title,attempt:c.n,count:c.tabs,createdAt:serverTimestamp()}).catch(()=>{});
 }
