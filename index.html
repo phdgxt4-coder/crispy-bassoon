@@ -523,7 +523,7 @@ async function startSession(u){
         S.examsLoaded=true;S.exams=list;render();maybeResume();
       }));
       subs.push(onSnapshot(query(collection(db,"results"),where("uid","==",u.uid)),s=>{
-        S.myList=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(a)-tms(b));S.attempts=groupAttempts(S.myList);S._resultsReady=true;render();maybeResume();
+        S.myList=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(a)-tms(b));S.attempts=groupAttempts(S.myList);S._resultsReady=true;render();maybeResume();syncMyLeaderboard();
       }));
       subs.push(onSnapshot(query(collection(db,"leaderboard"),orderBy("examsDone","desc"),limit(20)),s=>{
         S.board=s.docs.map(d=>({id:d.id,...d.data()}));
@@ -1050,7 +1050,7 @@ function adminSettings(){
   return `<div class="card"><h3>وضع الصيانة</h3>
 <p class="mut">لما تشغّله، الطلاب بيشوفوا "المنصة تحت التعديل". وإنت تدخل بحساب الأدمن بالضغط 3 مرات على كلمة "التفوق" اللي في نص الشاشة.</p>
 <label class="f" for="mmsg">الرسالة اللي هتظهر للطلاب</label><textarea id="mmsg" style="min-height:90px">${esc(S.site.message||"بنحدّث المنصة دلوقتي. ارجع بعد شوية.")}</textarea>
-<div class="row" style="margin-top:14px"><button class="btn ${S.site.maintenance?"gold":"danger"}" data-act="toggleMaint">${S.site.maintenance?"إيقاف وضع الصيانة":"تشغيل وضع الصيانة"}</button><button class="btn ghost" data-act="saveMsg">حفظ الرسالة بس</button></div></div>
+<div class="row" style="margin-top:14px"><button class="btn ghost" data-act="rebuildBoard">🏆 بناء لوحة الشرف</button><button class="btn ${S.site.maintenance?"gold":"danger"}" data-act="toggleMaint">${S.site.maintenance?"إيقاف وضع الصيانة":"تشغيل وضع الصيانة"}</button><button class="btn ghost" data-act="saveMsg">حفظ الرسالة بس</button></div></div>
 <div class="card" style="border-color:var(--bad)"><h3 style="color:var(--bad)">⚠ ابدأ من الصفر</h3>
 <p class="mut">بيمسح <b>كل الامتحانات</b> و<b>كل نتايج الطلاب وتقدمهم</b> وسجل التنبيهات والمتابعة المباشرة. حسابات الطلاب نفسها (الاسم والرقم وكلمة السر) بتفضل زي ما هي. مفيش رجوع بعد المسح.</p>
 <button class="btn danger" data-act="wipe">مسح الامتحانات والنتايج</button></div>
@@ -1123,6 +1123,32 @@ const A={
   studentLink(){S.adminLogin=false;S.error="";render(true)},
   async logout(){await signOut(auth)},
   home(){S.view="home";render(true)},
+  async rebuildBoard(){
+    if(!S.isAdmin)return;
+    if(!confirm("هبني لوحة الشرف من كل النتائج القديمة. متابعة؟"))return;
+    try{
+      const byUid={};
+      (S.results||[]).forEach(r=>{
+        if(!r.uid||!r.examId)return;
+        if(!byUid[r.uid]) byUid[r.uid]={name:r.name,phone:r.phone,exams:{}};
+        const prev=byUid[r.uid].exams[r.examId];
+        if(!prev||(r.score/Math.max(r.total,1))>(prev.score/Math.max(prev.total,1)))
+          byUid[r.uid].exams[r.examId]=r;
+      });
+      let n=0;
+      for(const uid of Object.keys(byUid)){
+        const u=byUid[uid], list=Object.values(u.exams);
+        const examsDone=list.length, totalScore=list.reduce((s,r)=>s+(r.score||0),0), totalQ=list.reduce((s,r)=>s+(r.total||0),0);
+        await setDoc(doc(db,"leaderboard",uid),{
+          uid,name:u.name||"طالب",phone:u.phone||"",
+          examsDone,totalScore,totalQ,pct:totalQ?Math.round(totalScore/totalQ*100):0,
+          updatedAt:serverTimestamp()
+        },{merge:true});
+        n++;
+      }
+      toast("اتبنيت لوحة الشرف لـ "+n+" طالب");
+    }catch(e){toast("فشل البناء: "+(e.message||""))}
+  },
   progress(){S.view="progress";render(true)},
   openSubject(d){S.subject=d.id;S.view="subject";render(true)},
   reviewMine(d){const r=S.myList.find(x=>x.id===d.id);if(!r)return;S.review={r,back:d.back||"subject"};S.view="review";render(true)},
@@ -1655,6 +1681,28 @@ function restoreNavState(){
     if(["home","subject","progress","games","asmList","asm","qbSetup"].includes(st.view)){
       S.view=st.view; if(st.subject) S.subject=st.subject;
     }
+  }catch(_){}
+}
+function syncMyLeaderboard(){
+  if(!S.user||S.isAdmin||!S.profile)return;
+  try{
+    const all=Object.values(S.attempts||{}).flat();
+    if(!all.length)return;
+    const byExam={};
+    all.forEach(r=>{
+      if(!r.examId)return;
+      const prev=byExam[r.examId];
+      if(!prev||(r.score/Math.max(r.total,1))>(prev.score/Math.max(prev.total,1))) byExam[r.examId]=r;
+    });
+    const list=Object.values(byExam);
+    const examsDone=list.length;
+    const totalScore=list.reduce((s,r)=>s+(r.score||0),0);
+    const totalQ=list.reduce((s,r)=>s+(r.total||0),0);
+    setDoc(doc(db,"leaderboard",S.user.uid),{
+      uid:S.user.uid,name:S.profile.name||"طالب",phone:S.profile.phone||"",
+      examsDone,totalScore,totalQ,pct:totalQ?Math.round(totalScore/totalQ*100):0,
+      updatedAt:serverTimestamp()
+    },{merge:true}).catch(()=>{});
   }catch(_){}
 }
 function examDraftKey(c){return c?("draft_"+c.sid):null}
