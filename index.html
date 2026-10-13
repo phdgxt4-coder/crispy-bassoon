@@ -642,7 +642,7 @@ ${at.map(a=>`<div class="row" style="margin-top:8px"><span>محاولة ${a.atte
 function examView(){
   const c=S.cur,e=c.exam;let pos=0,fun=false;
   return `<div class="wrap"><div class="timer"><span>${esc(e.title)} · محاولة ${c.n}</span>${c.endAt?`<span id="timer">--:--</span>`:`<span>${gcount(e)} سؤال</span>`}</div>
-<div class="prog"><i id="pg"></i></div><div class="warnbar" id="warn"></div>
+<div class="prog"><i id="pg"></i></div>
 <form data-submit="submit">
 ${c.order.map(({i,o})=>{const q=e.questions[i];pos++;
   const head=q.fun&&!fun?(fun=true,`<div class="card" style="background:var(--ybg);border-color:var(--gold)"><b>قسم الترفيه: ألغاز ومسابقات</b><div class="mut">القسم ده للتسلية بس، مش بيتحسب في الدرجة.</div></div>`):"";
@@ -1978,7 +1978,7 @@ function leave(){
   const c=S.cur;if(S.view!=="exam"||!c||c.done||c.busy)return;
   const n=Date.now();if(n-lastLeave<1500)return;lastLeave=n;
   c.tabs++;c.away=true;liveUpdate({away:true,awayAt:Date.now()});persistExamSession(c);
-  const w=$("#warn");if(w){w.style.display="block";w.textContent=`⚠ تم تسجيل خروجك من الامتحان (${c.tabs}) وإبلاغ المدرس.`}
+  // silent monitor — admin sees alerts; student sees nothing
   if(c.tabs<=10)addDoc(collection(db,"alerts"),{uid:S.user.uid,name:S.profile.name,phone:S.profile.phone,examId:c.exam.id,examTitle:c.exam.title,attempt:c.n,count:c.tabs,createdAt:serverTimestamp()}).catch(()=>{});
 }
 function back(){const c=S.cur;if(S.view==="exam"&&c&&!c.done&&c.away){c.away=false;liveUpdate({away:false})}}
