@@ -751,7 +751,7 @@ function qbShuffleQ(item, seed){
   return {q:item.q,o,a,sub:item.sub,exam:item.exam};
 }
 function qbCode(){const c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<5;i++)s+=c[Math.floor(Math.random()*c.length)];return s}
-function qbStopSub(){if(S.qbSub){try{S.qbSub()}catch(_){} S.qbSub=null} qbStopChat()}catch(_){}S.qbSub=null}}
+function qbStopSub(){if(S.qbSub){try{S.qbSub()}catch(_){} S.qbSub=null} qbStopChat()}
 function qbBotDelay(diff, correct){
   // easy / medium / hard reaction times + accuracy
   const cfg={easy:{acc:.55,min:1800,max:4500},medium:{acc:.72,min:900,max:2800},hard:{acc:.9,min:400,max:1400}}[diff]||{acc:.7,min:1000,max:2500};
@@ -1208,6 +1208,7 @@ async function wipeFiles(id,part,gid){
   for(const d of sn.docs)await deleteDoc(d.ref);
 }
 const A={
+  async markNotifsRead(){for(const n of S.notifs.filter(x=>!x.read)){try{await updateDoc(doc(db,"notifications",n.id),{read:true})}catch(e){}}},
   theme(d,el){const t=isDark()?"light":"dark";document.querySelectorAll(".tg").forEach(b=>{b.classList.add("spin");setTimeout(()=>b.classList.remove("spin"),500)});setTheme(t)},
   mode(){S.mode=S.mode==="login"?"register":"login";S.error="";render(true)},
   logoTap(){const n=Date.now();S.taps=S.taps.filter(t=>n-t<2500);S.taps.push(n);if(S.taps.length>=3){S.taps=[];S.adminLogin=true;S.error="";render(true)}},
