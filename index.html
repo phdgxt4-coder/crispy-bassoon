@@ -46,6 +46,20 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--pri);box
 input.ltr{direction:ltr;text-align:right}
 textarea{min-height:320px;line-height:1.8;font-size:15px}
 .err{background:var(--rbg);color:var(--bad);border-radius:10px;padding:10px 12px;margin-top:12px;font-size:15px}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin:16px 0 8px;min-height:160px}
+.podium .pod{flex:1;max-width:110px;text-align:center;display:flex;flex-direction:column;align-items:center}
+.podium .pod .avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;margin-bottom:6px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.podium .pod.p1 .avatar{width:64px;height:64px;font-size:28px;background:linear-gradient(145deg,#F5D76E,#E3A81C);border:3px solid #fff3}
+.podium .pod.p2 .avatar{background:linear-gradient(145deg,#E8E8E8,#A8A8A8);border:3px solid #fff3}
+.podium .pod.p3 .avatar{background:linear-gradient(145deg,#E8B896,#CD7F32);border:3px solid #fff3}
+.podium .pod .nm{font-weight:700;font-size:13px;margin-bottom:2px}
+.podium .pod .sc{font-size:11px;opacity:.85}
+.podium .pod .bar{width:100%;border-radius:10px 10px 4px 4px;margin-top:8px;display:flex;align-items:flex-start;justify-content:center;padding-top:8px;font-weight:800;font-size:18px;color:#fff}
+.podium .pod.p1 .bar{height:88px;background:linear-gradient(180deg,#E3A81C,#B8860B)}
+.podium .pod.p2 .bar{height:64px;background:linear-gradient(180deg,#C0C0C0,#8a8a8a)}
+.podium .pod.p3 .bar{height:48px;background:linear-gradient(180deg,#CD7F32,#8B4513)}
+.lb-rest{margin-top:8px}
+.lb-rest .row{padding:10px 0;border-bottom:1px solid var(--line)}
 .warnbar{display:none;background:var(--rbg);color:var(--bad);border:1.5px solid var(--bad);border-radius:10px;padding:8px 12px;margin-bottom:10px;font-weight:600;animation:shake .45s}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
 .tab{font:inherit;font-weight:600;border:1.5px solid var(--line);background:var(--card);border-radius:10px;padding:8px 14px;cursor:pointer;color:var(--ink);transition:background-color .2s,color .2s}
@@ -875,28 +889,47 @@ function progressView(){
   const bySub=SUBJECTS.map(s=>{const rs=L.filter(r=>r.subject===s.id);return {s,n:rs.length,avg:rs.length?Math.round(rs.reduce((a,r)=>a+pctOf(r),0)/rs.length):0}}).filter(x=>x.n);
   const weak=bySub.length>1?bySub.slice().sort((a,b)=>a.avg-b.avg)[0]:null;
   const last=L.slice(-10);
-  const board=(S.board||[]).slice().sort((a,b)=>(b.examsDone-a.examsDone)||(b.pct-a.pct)).slice(0,15);
+  // ترتيب الأشطر: نسبة أعلى → مجموع أعلى → أكتر امتحانات
+  const board=(S.board||[]).slice().sort((a,b)=>
+    (b.pct-a.pct) || (b.totalScore-a.totalScore) || (b.examsDone-a.examsDone)
+  ).slice(0,10);
+  const top3=board.slice(0,3);
+  const rest=board.slice(3);
   const notifs=S.notifs||[];
-  const medals=["🥇","🥈","🥉"];
+  // ترتيب المنصة: فضي | ذهبي | برونز (شكل التتويج)
+  const podiumOrder=[];
+  if(top3[1]) podiumOrder.push({b:top3[1],rank:2,cls:"p2",medal:"🥈"});
+  if(top3[0]) podiumOrder.push({b:top3[0],rank:1,cls:"p1",medal:"🥇"});
+  if(top3[2]) podiumOrder.push({b:top3[2],rank:3,cls:"p3",medal:"🥉"});
+  const boardCard=`<div class="card" style="overflow:hidden">
+<h3 style="text-align:center;margin:0 0 4px">🏆 لوحة الشرف</h3>
+<p class="mut" style="text-align:center;margin:0 0 4px">الأشطر والأنشط · حسب النسبة ثم الدرجات</p>
+${top3.length?`<div class="podium">${podiumOrder.map(({b,rank,cls,medal})=>`<div class="pod ${cls}">
+  <div class="avatar">${medal}</div>
+  <div class="nm">${esc((b.name||"طالب").split(" ")[0])}${b.uid===S.user.uid?" · أنت":""}</div>
+  <div class="sc">${b.pct||0}% · ${b.examsDone||0} امتحان</div>
+  <div class="bar">${rank}</div>
+</div>`).join("")}</div>`:""}
+${rest.length?`<div class="lb-rest">${rest.map((b,i)=>`<div class="row">
+<span style="min-width:28px;font-weight:700;color:var(--mut)">${i+4}</span>
+<span style="flex:1"><b>${esc((b.name||"طالب").split(" ")[0])}</b>${b.uid===S.user.uid?` <span class="pill">أنت</span>`:""}
+<div class="mut">${b.examsDone||0} امتحان · ${b.totalScore||0}/${b.totalQ||0} · <b style="color:var(--pri)">${b.pct||0}%</b></div></span>
+</div>`).join("")}</div>`:""}
+${!board.length?`<div class="mut" style="text-align:center;padding:12px">لسه مفيش ترتيب. أول ما الطلاب يمتحنوا هتظهر المنصة هنا.</div>`:""}
+</div>`;
+
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="logout">خروج</button>`)}
 <h2>تقدمي</h2>
+${boardCard}
 ${(S.unreadNotif||0)>0||notifs.length?`<div class="card"><div class="row"><h3 style="margin:0">الإشعارات ${(S.unreadNotif||0)?pill(String(S.unreadNotif),"y"):""}</h3>
 ${notifs.some(n=>!n.read)?`<button class="btn ghost sm" data-act="markNotifsRead">تعليم تحديد الكل كمقروء</button>`:""}</div>
-${notifs.length?notifs.slice(0,8).map(n=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line);opacity:${n.read?.6:1}"><span>${n.read?"":"🔵 "}${esc(n.title||n.text||"إشعار")}<div class="mut">${esc(n.body||"")} · ${fmt(n.createdAt)}</div></span></div>`).join(""):`<div class="mut">مفيش إشعارات حالياً. هتظهر هنا لما ينزل امتحان جديد.</div>`}
+${notifs.length?notifs.slice(0,8).map(n=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line);opacity:${n.read?.6:1}"><span>${n.read?"":"🔵 "}${esc(n.title||n.text||"إشعار")}<div class="mut">${esc(n.body||"")} · ${fmt(n.createdAt)}</div></span></div>`).join(""):`<div class="mut">مفيش إشعارات حالياً.</div>`}
 </div>`:""}
 ${L.length?`<div class="stats"><div class="card stat"><b>${L.length}</b><span class="mut">محاولة</span></div><div class="card stat"><b>${exams}</b><span class="mut">امتحان</span></div><div class="card stat"><b>${avgP}%</b><span class="mut">المتوسط</span></div><div class="card stat"><b>${best}%</b><span class="mut">أعلى نتيجة</span></div></div>
 <div class="card"><h3>تطور درجاتك (آخر ${last.length})</h3><div class="bars">${last.map(r=>`<div>${pctOf(r)}<i class="${r.passMark>0&&!r.passed?"f":""}" style="height:${Math.max(3,pctOf(r))*0.9}%"></i></div>`).join("")}</div></div>
 <div class="card"><h3>مستواك في كل مادة</h3>${bySub.map(x=>`<div style="margin-top:8px"><div class="row"><span>${x.s.name}</span><span class="mut">${x.avg}% · ${x.n} محاولة</span></div><div class="hb"><i style="width:${x.avg}%;background:${x.s.c}"></i></div></div>`).join("")}
 ${weak&&weak.avg<75?`<p class="mut" style="margin-top:12px">محتاج تركّز أكتر على <b>${weak.s.name}</b>. راجع أسئلتك الغلط فيها.</p>`:""}</div>`
 :`<div class="card mut">لسه ما امتحنتش أي امتحان. أول ما تخلص امتحان هتلاقي تقدمك هنا.</div>`}
-<div class="card"><h3>🏆 لوحة الشرف</h3>
-<p class="mut" style="margin:0 0 8px">أكتر الطلاب حلّوا امتحانات · حسب عدد الامتحانات ثم النسبة</p>
-${board.length?board.map((b,i)=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)">
-<span style="min-width:28px">${medals[i]||(i+1)}</span>
-<span style="flex:1"><b>${esc((b.name||"طالب").split(" ")[0])}</b>${b.uid===S.user.uid?` <span class="pill">أنت</span>`:""}
-<div class="mut">${b.examsDone||0} امتحان · مجموع ${b.totalScore||0}/${b.totalQ||0} · ${b.pct||0}%</div></span>
-</div>`).join(""):`<div class="mut">لسه مفيش بيانات. أول ما الطلاب يمتحنوا هتظهر الترتيب هنا.</div>`}
-</div>
 ${L.length?`<div class="card"><h3>كل محاولاتك</h3>${L.slice().reverse().map(r=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><span>${esc(r.examTitle)} <span class="mut">· محاولة ${r.attempt||1} · ${subName(r.subject)}</span></span><span>${r.score}/${r.total} ${passPill(r)} <button class="btn ghost sm" data-act="reviewMine" data-id="${r.id}" data-back="progress">شوف حلّك</button></span></div>`).join("")}</div>`:""}
 </div>${studentNav()}`}
 
