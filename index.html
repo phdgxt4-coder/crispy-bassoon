@@ -269,7 +269,7 @@ const passPill = r => r.passMark>0 ? (r.passed?pill("ناجح","g"):pill("راس
 const S = {asms:[],asm:null,editingAsm:null,logins:{},sq:"",starts:[],examsLoaded:false,user:null,isAdmin:false,profile:null,site:{maintenance:false,message:""},exams:[],results:[],students:[],alerts:[],
   myList:[],attempts:{},view:"loading",tab:"dash",subject:null,cur:null,last:null,review:null,studentId:null,editing:null,
   adminLogin:false,mode:"login",error:"",filter:"",unread:0,unreadAlerts:0,registering:false,taps:[],
-  qb:null,qbSub:null,board:[],notifs:[],unreadNotif:0};
+  qb:null,qbSub:null,board:[],notifs:[],unreadNotif:0,activity:[],activityLoaded:false};
 const __seenSplash=(()=>{try{return sessionStorage.getItem("splash_ok")==="1"}catch(_){return false}})();
 const splashUntil=__seenSplash?Date.now():Date.now()+1100;
 try{if(!__seenSplash)sessionStorage.setItem("splash_ok","1")}catch(_){}
@@ -491,6 +491,10 @@ async function startSession(u){
         if(!f3)s.docChanges().forEach(c=>{if(c.type==="added"){const a=c.doc.data();toast(`🟢 ${a.name||"طالب"} بدأ امتحان ${a.examTitle||""}`,true)}});
         f3=false;S.starts=s.docs.map(d=>({id:d.id,...d.data()}));render();
       }));
+      subs.push(onSnapshot(query(collection(db,"activity"),orderBy("createdAt","desc"),limit(150)),s=>{
+        S.activity=s.docs.map(d=>({id:d.id,...d.data()}));S.activityLoaded=true;
+        if(S.view==="admin"&&S.tab==="activity")render();
+      },err=>console.warn("activity",err)));
       const iv=setInterval(()=>{if(S.view==="admin"&&S.tab==="live")render()},20000);subs.push(()=>clearInterval(iv));
     }else{
       const p=await getDoc(doc(db,"students",u.uid));
@@ -617,8 +621,10 @@ ${S.adminLogin?"":`<p class="mut" style="text-align:center;margin:14px 0 0">${re
 function homeView(){
   const ex=S.exams.filter(vis);
   const an=S.site.announceOn&&S.site.announce?`<div class="card ann"><b>📢 إعلان</b><div style="white-space:pre-wrap;margin-top:4px">${esc(S.site.announce)}</div></div>`:"";
+  const sess=peekExamSession();
+  const resume=sess?`<div class="card" style="border-color:var(--gold);background:var(--ybg)"><b>▶ عندك امتحان متوقف</b><div class="mut" style="margin:4px 0">تقدر تكمّل من حيث وقفت — الإجابات محفوظة</div><button class="btn sm gold" data-act="resumeExam">استئناف الامتحان</button></div>`:"";
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="logout">خروج</button>`)}
-<h2>أهلاً يا ${esc(S.profile.name.split(" ")[0])}</h2><p class="mut">اختار المادة اللي عايز تمتحن فيها.</p>${an}
+<h2>أهلاً يا ${esc(S.profile.name.split(" ")[0])}</h2><p class="mut">اختار المادة اللي عايز تمتحن فيها.</p>${an}${resume}
 <div class="grid">${S.examsLoaded?SUBJECTS.map(s=>{const l=ex.filter(e=>e.subject===s.id),done=l.filter(e=>(S.attempts[e.id]||[]).length).length,p=l.length?Math.round(done/l.length*100):0;
   return `<button class="subj" style="background:linear-gradient(135deg,${s.c},${s.c2})" data-act="openSubject" data-id="${s.id}"><span class="g">${s.g}</span><b>${s.name}</b><small>${l.length?l.length+" امتحان · خلصت "+done:"مفيش امتحانات لسه"}</small><div class="sp"><i style="--w:${p}%"></i></div></button>`}).join("")+`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#0B5D57)" data-act="openAsms"><span class="g">A+</span><div><b>التقييمات</b><br><small>${S.asms.length?S.asms.length+" تقييم · حلول ونماذج":"مفيش تقييمات لسه"}</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#166534,#B45309)" data-act="openGames"><span class="g">🎮</span><div><b>الألعاب</b><br><small>العب ضد الروبوت أو ضد صاحبك</small></div></button>`:SUBJECTS.map(()=>`<div class="sk"></div>`).join("")}</div>
 </div>${studentNav()}`}
@@ -631,7 +637,7 @@ ${ex.length?ex.map(e=>{
   return `<div class="card lift"><b>${esc(e.title)}</b>
 <div class="mut">${gcount(e)} سؤال${e.questions.length>gcount(e)?" + ألغاز":""} · ${e.minutes?e.minutes+" دقيقة":"من غير وقت محدد"}${e.passMark>0?" · النجاح من "+e.passMark:""} · عندك ${MAX_ATTEMPTS} محاولات</div>
 ${at.map(a=>`<div class="row" style="margin-top:8px"><span>محاولة ${a.attempt||1}: <b>${a.score}/${a.total}</b> ${passPill(a)}</span><button class="btn ghost sm" data-act="reviewMine" data-id="${a.id}">شوف حلّك</button></div>`).join("")}
-<div style="margin-top:10px">${at.length<MAX_ATTEMPTS?`<button class="btn sm" data-act="start" data-id="${e.id}">${at.length?"محاولة تانية":"ابدأ"}</button>`:`<span class="mut">خلصت محاولتيك على الامتحان ده.</span>`}</div></div>`}).join(""):`<div class="card mut">مفيش امتحانات في المادة دي دلوقتي. ارجع تاني بعدين.</div>`}
+<div style="margin-top:10px">${(()=>{const sess=peekExamSession();if(sess&&sess.examId===e.id)return `<button class="btn sm gold" data-act="resumeExam">▶ استئناف الامتحان</button>`;return at.length<MAX_ATTEMPTS?`<button class="btn sm" data-act="start" data-id="${e.id}">${at.length?"محاولة تانية":"ابدأ"}</button>`:`<span class="mut">خلصت محاولتيك على الامتحان ده.</span>`;})()}</div></div>`}).join(""):`<div class="card mut">مفيش امتحانات في المادة دي دلوقتي. ارجع تاني بعدين.</div>`}
 </div>${studentNav()}`}
 function examView(){
   const c=S.cur,e=c.exam;let pos=0,fun=false;
@@ -899,14 +905,33 @@ const NOW=()=>Date.now();
 const liveActive=()=>S.starts.filter(x=>NOW()-(x.seen||x.t)<150000);
 function adminView(){
   const t=S.tab;
-  const tabs=[["dash","الرئيسية"],["live","مباشر"],["exams","الامتحانات"],["asm","التقييمات"],["students","الطلاب"],["results","النتايج"],["alerts","التنبيهات"],["settings","الإعدادات"]];
+  const tabs=[["dash","الرئيسية"],["live","مباشر"],["activity","نشاط المنصة"],["exams","الامتحانات"],["asm","التقييمات"],["students","الطلاب"],["results","النتايج"],["alerts","التنبيهات"],["settings","الإعدادات"]];
   const bd={results:S.unread,alerts:S.unreadAlerts,live:liveActive().length};
   return `<div class="wrap wide">${header(`${pill("أدمن","i")}<button class="btn ghost sm" data-act="logout">خروج</button>`)}
 ${S.site.maintenance?`<div class="err" style="margin:0 0 12px">وضع الصيانة شغّال. الطلاب شايفين "المنصة تحت التعديل".</div>`:""}
 <div class="tabs">${tabs.map(([k,v])=>`<button class="tab ${t===k?"on":""}" data-act="tab" data-id="${k}">${v}${bd[k]?`<span class="badge">${bd[k]}</span>`:""}</button>`).join("")}</div>
-${({dash:adminDash,live:adminLive,exams:adminExams,asm:adminAsm,students:adminStudents,results:adminResults,alerts:adminAlerts,settings:adminSettings}[t])()}
+${({dash:adminDash,live:adminLive,activity:adminActivity,exams:adminExams,asm:adminAsm,students:adminStudents,results:adminResults,alerts:adminAlerts,settings:adminSettings}[t])()}
 ${t==="exams"?`<button class="fab" data-act="newExam" aria-label="امتحان جديد">+</button>`:""}</div>`}
 const chart=(days,vals,cls)=>{const mx=Math.max(1,...vals);return `<div class="bars">${vals.map((v,i)=>`<div>${v||""}<i class="${cls||""}" style="height:${Math.max(3,v/mx*68)}%"></i><span>${days[i].l}</span></div>`).join("")}</div>`};
+
+function adminActivity(){
+  const labels={
+    login:"دخول للمنصة", exam_start:"بدأ امتحان", exam_submit:"سلّم امتحان",
+    open_games:"فتح الألعاب", qb_create:"أنشأ غرفة", qb_join:"دخل غرفة",
+    qb_leave:"خرج من غرفة", open_asm:"فتح تقييم", resume_exam:"استئناف امتحان"
+  };
+  const list=S.activity||[];
+  return `<div class="card"><h3>📋 نشاط المنصة</h3>
+  <p class="mut">كل حركة مهمة للطلاب بالتفصيل (دخول · امتحانات · ألعاب · …)</p>
+  ${!S.activityLoaded?`<div class="mut">جاري التحميل…</div>`:
+    list.length?`<div style="max-height:70vh;overflow:auto">${list.map(a=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line);align-items:flex-start">
+      <span style="flex:1"><b>${esc(a.name||"طالب")}</b> <span class="mut">${esc(a.phone||"")}</span>
+      <div><span class="pill i">${esc(labels[a.action]||a.action||"—")}</span> ${a.detail?`<span dir="auto">${esc(a.detail)}</span>`:""}</div>
+      <div class="mut" style="font-size:11px">${fmt(a.createdAt)}${a.device?" · "+esc(String(a.device).slice(0,40)):""}</div>
+      </span></div>`).join("")}</div>`
+    :`<div class="mut">لسه مفيش نشاط مسجّل. هيظهر هنا أول ما الطلاب يتحركوا على المنصة.</div>`}
+  </div>`;
+}
 function adminDash(){
   const st=stats(),days=lastDays(14),tk=todayKey();
   const regs=days.map(d=>S.students.filter(x=>x.createdAt&&x.createdAt.seconds&&dkey(x.createdAt.seconds)===d.k).length);
@@ -1154,6 +1179,13 @@ const A={
     }catch(e){toast("فشل البناء: "+(e.message||""))}
   },
   progress(){S.view="progress";render(true)},
+  async resumeExam(){
+    const meta=peekExamSession();
+    if(!meta){toast("مفيش امتحان معلّق");return}
+    await tryResumeExam();
+    if(S.cur) logActivity("resume_exam", S.cur.exam.title||"");
+    else toast("مقدرتش أستأنف — ممكن الوقت خلص أو اتسجّل");
+  },
   openSubject(d){S.subject=d.id;S.view="subject";render(true)},
   reviewMine(d){const r=S.myList.find(x=>x.id===d.id);if(!r)return;S.review={r,back:d.back||"subject"};S.view="review";render(true)},
   reviewLast(){S.review={r:S.last,back:"result"};S.view="review";render(true)},
@@ -1168,7 +1200,7 @@ const A={
     if(S.qb&&S.qb.roomCode&&(S.view==="qbPlay"||S.view==="qbLobby"||S.view==="qbResult")){
       A.qbLeaveRoom();return;
     }
-    S.qb=null;S.view="games";render(true);
+    S.qb=null;S.view="games";logActivity("open_games","");render(true);
   },
 
   qbBot(){S.qb={mode:"bot"};S.view="qbSetup";render(true)},
@@ -1198,6 +1230,7 @@ const A={
       await setDoc(doc(db,"qb_rooms",code),room);
       S.qb={mode:"friends",roomCode:code,room};
       qbListenRoom(code);
+      logActivity("qb_create", code);
       S.view="qbLobby";render(true);
     }catch(e){toast("مقدرتش أعمل الغرفة: "+(e.code||e.message||"تأكد من قواعد qb_rooms"))}
   },
@@ -1216,6 +1249,7 @@ const A={
       await updateDoc(doc(db,"qb_rooms",code),{[`players.${S.user.uid}`]:{uid:S.user.uid,name:S.profile.name.split(" ")[0],ready:false,score:0,correct:0,wrong:0,streak:0,bestStreak:0}});
       S.qb={mode:"friends",roomCode:code,room:{...room,id:code}};
       qbListenRoom(code);
+      logActivity("qb_join", code);
       S.view="qbLobby";render(true);
     }catch(e){toast("مقدرتش أدخل: "+(e.code||e.message||"تحقق من الكود والقواعد"))}
   },
@@ -1368,6 +1402,7 @@ const A={
     const endAt=e.minutes?st.t+e.minutes*60000:0;
     S.cur={exam:e,n,sid,st,endAt,done:false,busy:false,away:false,tabs:0,answered:0,order:buildOrder(e,st.seed)};
     persistExamSession(S.cur);
+    logActivity("exam_start", (e.title||"")+" · محاولة "+n);
     S.view="exam";render(true);
     setTimeout(loadExamDraft, 50);
     clearInterval(timer);clearInterval(hb);
@@ -1760,6 +1795,19 @@ function syncMyLeaderboard(){
     },{merge:true}).catch(()=>{});
   }catch(_){}
 }
+function logActivity(action, detail){
+  if(!S.user||S.isAdmin)return;
+  try{
+    addDoc(collection(db,"activity"),{
+      uid:S.user.uid,
+      name:(S.profile&&S.profile.name)||"",
+      phone:(S.profile&&S.profile.phone)||"",
+      action, detail:detail||"",
+      device:device(),
+      createdAt:serverTimestamp()
+    }).catch(()=>{});
+  }catch(_){}
+}
 function examDraftKey(c){return c?("draft_"+c.sid):null}
 function examSessionKey(uid){return "exam_session_"+uid}
 function persistExamSession(c){
@@ -1805,28 +1853,49 @@ async function tryResumeExam(){
     persistExamSession(S.cur);
   }catch(err){console.error(err)}
 }
+function readExamAnsFromDOM(){
+  const c=S.cur;if(!c)return[];
+  return c.exam.questions.map((q,i)=>{
+    if(q.essay){const ta=document.querySelector(`textarea[name=q${i}]`);return ta?ta.value:""}
+    const r=document.querySelector(`input[name=q${i}]:checked`);return r?+r.value:-1;
+  });
+}
 function saveExamDraft(){
   const c=S.cur;if(!c||c.done)return;
   try{
-    const ans=c.exam.questions.map((q,i)=>{
-      if(q.essay){const ta=document.querySelector(`textarea[name=q${i}]`);return ta?ta.value:""}
-      const r=document.querySelector(`input[name=q${i}]:checked`);return r?+r.value:-1;
-    });
-    localStorage.setItem(examDraftKey(c), JSON.stringify({ans,t:Date.now()}));
+    const ans=readExamAnsFromDOM();
+    c.draftAns=ans;
+    localStorage.setItem(examDraftKey(c), JSON.stringify({ans,t:Date.now(),examId:c.exam.id,n:c.n}));
+    persistExamSession(c);
   }catch(_){}
 }
 function loadExamDraft(){
   const c=S.cur;if(!c)return;
   try{
-    const raw=localStorage.getItem(examDraftKey(c));if(!raw)return;
-    const {ans}=JSON.parse(raw);if(!Array.isArray(ans))return;
+    let ans=c.draftAns;
+    if(!ans){
+      const raw=localStorage.getItem(examDraftKey(c));if(!raw)return;
+      const data=JSON.parse(raw);ans=data.ans;
+    }
+    if(!Array.isArray(ans))return;
+    c.draftAns=ans;
     ans.forEach((a,i)=>{
       const q=c.exam.questions[i];if(!q)return;
       if(q.essay){const ta=document.querySelector(`textarea[name=q${i}]`);if(ta&&a)ta.value=a}
       else if(a!=null&&a>=0){const el=document.querySelector(`input[name=q${i}][value="${a}"]`);if(el)el.checked=true}
     });
-    toast("تم استرجاع إجابات محفوظة");
+    updProg();
+    toast("تم استرجاع إجاباتك — كمّل من حيث وقفت ✓");
   }catch(_){}
+}
+function peekExamSession(){
+  if(!S.user)return null;
+  try{
+    const raw=localStorage.getItem(examSessionKey(S.user.uid));if(!raw)return null;
+    const meta=JSON.parse(raw);if(!meta||!meta.examId)return null;
+    if((S.attempts[meta.examId]||[]).some(r=>(r.attempt||1)===meta.n||r.id===meta.sid))return null;
+    return meta;
+  }catch(_){return null}
 }
 function clearExamDraft(c){try{if(c)localStorage.removeItem(examDraftKey(c))}catch(_){}}
 function updProg(){
@@ -1877,6 +1946,7 @@ async function submitExam(auto){
   deleteDoc(doc(db,"starts",c.sid)).catch(()=>{});
   clearExamDraft(c);
   clearExamSession();
+  logActivity("exam_submit", (e.title||"")+" · "+score+"/"+total);
   S.attempts[e.id]=(S.attempts[e.id]||[]).concat([{...rec,id:c.sid}]);
   S.last={...rec,id:c.sid};S.cur=null;S.view="result";render(true);
   try{
@@ -1949,11 +2019,11 @@ document.addEventListener("change",e=>{
       if(bad)toast(bad+" ملف اترفض (لازم صورة أو PDF أقل من 5MB)");
     })();
   }
-  if(e.target.type==="radio"&&S.view==="exam"){updProg();if(navigator.vibrate)navigator.vibrate(8)}
+  if(e.target.type==="radio"&&S.view==="exam"){updProg();saveExamDraft();if(navigator.vibrate)navigator.vibrate(8)}
 });
 document.addEventListener("input",e=>{
   if(e.target.id==="sq"){S.sq=e.target.value;const t=$("#stbl");if(t)t.innerHTML=studentsTable()}
-  if(e.target.tagName==="TEXTAREA"&&S.view==="exam"&&e.target.name&&e.target.name.startsWith("q"))updProg();
+  if(e.target.tagName==="TEXTAREA"&&S.view==="exam"&&e.target.name&&e.target.name.startsWith("q")){updProg();saveExamDraft()}
 });
 document.addEventListener("submit",e=>{e.preventDefault();const f=e.target.dataset.submit;if(f)A[f]?.()});
 
