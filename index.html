@@ -1071,7 +1071,7 @@ const A={
       S.qb={mode:"friends",roomCode:code,room};
       qbListenRoom(code);
       S.view="qbLobby";render(true);
-    }catch(e){toast("مقدرتش أعمل الغرفة. تأكد من قواعد Firebase")}
+    }catch(e){toast("مقدرتش أعمل الغرفة: "+(e.code||e.message||"تأكد من قواعد qb_rooms"))}
   },
   async qbJoinRoom(){
     const code=($("#qbJoinCode").value||"").trim().toUpperCase();
@@ -1086,7 +1086,7 @@ const A={
       S.qb={mode:"friends",roomCode:code,room:{...room,id:code}};
       qbListenRoom(code);
       S.view="qbLobby";render(true);
-    }catch(e){toast("مقدرتش أدخل الغرفة")}
+    }catch(e){toast("مقدرتش أدخل: "+(e.code||e.message||"تحقق من الكود والقواعد"))}
   },
   async qbReady(){
     const code=S.qb.roomCode;if(!code)return;
@@ -1095,7 +1095,7 @@ const A={
   },
   async qbBeginMatch(){
     const code=S.qb.roomCode;if(!code)return;
-    try{await updateDoc(doc(db,"qb_rooms",code),{status:"playing",startedAt:Date.now()})}catch(e){toast("مقدرتش أبدأ")}
+    try{await updateDoc(doc(db,"qb_rooms",code),{status:"playing",startedAt:Date.now(),idx:0})}catch(e){toast("مقدرتش أبدأ")}
   },
   qbCopyCode(){
     const c=S.qb&&S.qb.room&&S.qb.room.code;if(!c)return;
@@ -1294,13 +1294,54 @@ function qbListenRoom(code){
     const room={...snap.data(),code};
     if(!S.qb)S.qb={mode:"friends"};
     S.qb.room=room;S.qb.roomCode=code;
-    if(room.status==="playing"&&S.view!=="qbPlay"&&S.view!=="qbResult"){
+    if(room.status==="lobby"){
+      if(S.view!=="qbLobby"){S.view="qbLobby";render(true)}
+      else render();
+      return;
+    }
+    if(room.status==="done"){
+      if(S.qb.match){
+        // merge final scores
+        const pls=Object.values(room.players||{});
+        S.qb.match.players=pls.map(p=>({...p}));
+      }
+      S.view="qbResult";render(true);qbSaveBattle();
+      return;
+    }
+    if(room.status==="playing"){
       const players=Object.values(room.players||{}).map(p=>({...p}));
-      S.qb.match={qs:room.qs,idx:room.idx||0,sec:room.sec,deadline:room.sec?Date.now()+room.sec*1000:0,players,answered:false,pick:null,seed:room.seed};
-      S.view="qbPlay";render(true);qbStartRound();
-    }else if(room.status==="lobby"){S.view="qbLobby";render()}
-    else if(room.status==="done"){S.view="qbResult";render(true)}
-  },err=>toast("انقطع الاتصال بالغرفة"));
+      const idx=room.idx||0;
+      if(!S.qb.match){
+        S.qb.match={qs:room.qs,idx,sec:room.sec,deadline:room.sec?Date.now()+room.sec*1000:0,players,answered:false,pick:null,seed:room.seed};
+        S.view="qbPlay";render(true);qbStartRound();
+        return;
+      }
+      // sync scores from peers
+      S.qb.match.players=players;
+      // advance question if host bumped idx
+      if(idx!==S.qb.match.idx){
+        S.qb.match.idx=idx;
+        S.qb.match.answered=false;
+        S.qb.match.pick=null;
+        players.forEach(p=>{p.ans=null});
+        if(idx>=(room.qs||[]).length){
+          S.view="qbResult";render(true);qbSaveBattle();return;
+        }
+        S.view="qbPlay";render(true);qbStartRound();
+        return;
+      }
+      // just refresh HUD scores; host advances when all answered
+      if(S.view==="qbPlay"){
+        render();
+        if(S.qb.room&&S.qb.room.host===S.user.uid){
+          const humans=players.filter(p=>p.uid!=="bot");
+          if(humans.length>=2 && humans.every(p=>p.ans!=null)){
+            setTimeout(()=>qbTryAdvance(), 400);
+          }
+        }
+      }
+    }
+  },err=>{console.error(err);toast("انقطع الاتصال بالغرفة — تأكد من قواعد Firebase")});
 }
 function qbStartRound(){
   clearInterval(window.__qbT);
@@ -1334,11 +1375,23 @@ function qbStartRound(){
 function qbOnAnswer(choice){
   const m=S.qb&&S.qb.match;if(!m||m.answered)return;
   const me=m.players.find(p=>p.uid===S.user.uid);if(!me)return;
-  qbApplyAnswer(me, choice, true);
-  // reveal UI
   m.answered=true;m.pick=choice;
+  qbApplyAnswer(me, choice, true);
+  // friends mode: push answer to room so peer sees scores
+  if(S.qb.mode==="friends"&&S.qb.roomCode){
+    const code=S.qb.roomCode;
+    const patch={
+      [`players.${S.user.uid}.score`]:me.score,
+      [`players.${S.user.uid}.correct`]:me.correct,
+      [`players.${S.user.uid}.wrong`]:me.wrong,
+      [`players.${S.user.uid}.streak`]:me.streak,
+      [`players.${S.user.uid}.bestStreak`]:me.bestStreak||0,
+      [`players.${S.user.uid}.ans`]:choice,
+      [`players.${S.user.uid}.ansAt`]:Date.now()
+    };
+    updateDoc(doc(db,"qb_rooms",code),patch).catch(()=>{});
+  }
   render(true);
-  // highlight
   setTimeout(()=>{
     const opts=document.querySelectorAll(".qb-opt");
     const q=m.qs[m.idx];
@@ -1348,8 +1401,30 @@ function qbOnAnswer(choice){
       else if(j===choice&&choice!==q.a)el.classList.add("wrong");
     });
   },30);
-  // next after delay
-  setTimeout(qbNext, choice===m.qs[m.idx].a?900:1200);
+  if(S.qb.mode==="bot"){
+    setTimeout(qbNext, choice===m.qs[m.idx].a?900:1200);
+  } else {
+    // friends: wait for both answers or timer, host advances
+    setTimeout(()=>qbTryAdvance(), 600);
+  }
+}
+function qbTryAdvance(){
+  const g=S.qb;if(!g||!g.match||g.mode!=="friends")return;
+  if(!g.room||g.room.host!==S.user.uid)return;
+  const m=g.match;
+  const humans=m.players.filter(p=>p.uid!=="bot");
+  // need at least 2 players and all have answered this round
+  if(humans.length<2)return;
+  if(!humans.every(p=>p.ans!=null))return;
+  if(m._advancing)return;
+  m._advancing=true;
+  const code=g.roomCode;
+  const clear={idx:(m.idx+1)};
+  humans.forEach(p=>{clear[`players.${p.uid}.ans`]=null});
+  if(m.idx+1>=m.qs.length)clear.status="done";
+  updateDoc(doc(db,"qb_rooms",code),clear)
+    .then(()=>{m._advancing=false})
+    .catch(e=>{m._advancing=false;toast("تعذر الانتقال للسؤال التالي");console.error(e)});
 }
 function qbApplyAnswer(player, choice, isHuman){
   const m=S.qb.match,q=m.qs[m.idx];
