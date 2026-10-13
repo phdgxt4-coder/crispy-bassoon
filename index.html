@@ -270,7 +270,9 @@ const S = {asms:[],asm:null,editingAsm:null,logins:{},sq:"",starts:[],examsLoade
   myList:[],attempts:{},view:"loading",tab:"dash",subject:null,cur:null,last:null,review:null,studentId:null,editing:null,
   adminLogin:false,mode:"login",error:"",filter:"",unread:0,unreadAlerts:0,registering:false,taps:[],
   qb:null,qbSub:null,board:[],notifs:[],unreadNotif:0};
-const splashUntil=Date.now()+1100;
+const __seenSplash=(()=>{try{return sessionStorage.getItem("splash_ok")==="1"}catch(_){return false}})();
+const splashUntil=__seenSplash?Date.now():Date.now()+1100;
+try{if(!__seenSplash)sessionStorage.setItem("splash_ok","1")}catch(_){}
 const vis=e=>!e.publishAt||Date.now()>=e.publishAt;
 const todayKey=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
 const dkey=sec=>{const d=new Date(sec*1000);return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
@@ -782,6 +784,7 @@ function qbPlayView(){
   const me=m.players.find(p=>p.uid===S.user.uid)||m.players[0];
   const sorted=[...m.players].sort((a,b)=>b.score-a.score);
   return `<div class="wrap qb-arena">
+<div class="row" style="margin-bottom:6px"><span class="mut">تحدي الأوائل</span><button class="btn ghost sm" data-act="qbLeaveRoom">خروج</button></div>
 <div class="qb-hud">${sorted.map(p=>`<div class="qb-player ${p.uid===S.user.uid?"me":""} ${sorted[0]&&sorted[0].uid===p.uid?"lead":""}">
   <div class="name">${esc(p.name)}${sorted[0]&&sorted[0].uid===p.uid?" 👑":""}</div>
   <div class="score">${p.score}</div>
@@ -821,8 +824,9 @@ function qbResultView(){
   <div class="stat card"><b>${me.bestStreak||0}</b><span class="mut">أفضل ستريك</span></div>
 </div>
 </div>
-<button class="btn block gold" data-act="${g.mode==="bot"?"qbBot":"qbFriends"}">إعادة اللعب ↺</button>
-<button class="btn block ghost" style="margin-top:8px" data-act="openGames">رجوع للألعاب</button>
+${g.mode==="friends"&&g.roomCode?`<button class="btn block gold" data-act="qbRematchRoom">إعادة في نفس الغرفة ↺</button>
+<button class="btn block ghost" style="margin-top:8px" data-act="qbLeaveRoom">خروج من الغرفة</button>`:`<button class="btn block gold" data-act="${g.mode==="bot"?"qbBot":"qbFriends"}">إعادة اللعب ↺</button>
+<button class="btn block ghost" style="margin-top:8px" data-act="openGames">رجوع للألعاب</button>`}
 </div>${studentNav()}`;
 }
 
@@ -1160,7 +1164,12 @@ const A={
     try{const sn=await getDocs(query(collection(db,"students",d.id,"logins"),orderBy("createdAt","desc"),limit(30)));S.logins[d.id]=sn.docs.map(x=>({id:x.id,...x.data()}))}catch(e){S.logins[d.id]=[]}
     if(S.view==="studentDetail"&&S.studentId===d.id)render();
   },
-  openGames(){S.view="games";render(true)},
+  openGames(){
+    if(S.qb&&S.qb.roomCode&&(S.view==="qbPlay"||S.view==="qbLobby"||S.view==="qbResult")){
+      A.qbLeaveRoom();return;
+    }
+    S.qb=null;S.view="games";render(true);
+  },
 
   qbBot(){S.qb={mode:"bot"};S.view="qbSetup";render(true)},
   qbFriends(){S.qb={mode:"friends"};S.view="qbSetup";render(true)},
@@ -1199,7 +1208,10 @@ const A={
       const snap=await getDoc(doc(db,"qb_rooms",code));
       if(!snap.exists()){toast("الكود غلط أو الغرفة اتقفلت");return}
       const room=snap.data();
-      if(room.status!=="lobby"){toast("المباراة بدأت أو خلصت");return}
+      if(room.status==="playing"){toast("المباراة شغالة دلوقتي — استنى تخلص أو اطلب كود جديد");return}
+      if(room.status==="done"){
+        // allow rejoin for rematch lobby conversion - treat as lobby join
+      } else if(room.status!=="lobby"){toast("الغرفة مش متاحة");return}
       if(Object.keys(room.players||{}).length>=(room.maxPlayers||2) && !room.players[S.user.uid]){toast("الغرفة ممتلئة");return}
       await updateDoc(doc(db,"qb_rooms",code),{[`players.${S.user.uid}`]:{uid:S.user.uid,name:S.profile.name.split(" ")[0],ready:false,score:0,correct:0,wrong:0,streak:0,bestStreak:0}});
       S.qb={mode:"friends",roomCode:code,room:{...room,id:code}};
@@ -1221,16 +1233,48 @@ const A={
     navigator.clipboard.writeText(c).then(()=>toast("اتنسخ الكود ✓")).catch(()=>toast(c));
   },
   async qbLeaveRoom(){
+    const inPlay=S.view==="qbPlay"||S.view==="qbResult"||(S.qb&&S.qb.match);
+    if(inPlay||(S.qb&&S.qb.roomCode)){
+      if(!confirm("متأكد عايز تخرج من التحدي؟\nلو خرجت هتسيب الغرفة.")) return;
+    }
     const code=S.qb&&S.qb.roomCode;
     qbStopSub();
     if(code&&S.user){
       try{
         const room=S.qb.room||{};
-        if(room.host===S.user.uid)await deleteDoc(doc(db,"qb_rooms",code));
-        else await updateDoc(doc(db,"qb_rooms",code),{[`players.${S.user.uid}`]:deleteField()});
+        const players={...(room.players||{})};
+        delete players[S.user.uid];
+        const left=Object.keys(players).filter(k=>k!=="bot");
+        if(left.length===0 || room.host===S.user.uid){
+          // last player or host leaving → close room
+          await deleteDoc(doc(db,"qb_rooms",code));
+        } else {
+          await updateDoc(doc(db,"qb_rooms",code),{[`players.${S.user.uid}`]:deleteField()});
+        }
       }catch(_){}
     }
     S.qb=null;S.view="games";render(true);
+  },
+  async qbRematchRoom(){
+    const code=S.qb&&S.qb.roomCode;if(!code||!S.qb.room)return;
+    if(S.qb.room.host!==S.user.uid){toast("المضيف بس يقدر يعيد اللعب في نفس الغرفة");return}
+    try{
+      const players=S.qb.room.players||{};
+      const reset={};
+      Object.keys(players).forEach(uid=>{
+        const p=players[uid];
+        reset[uid]={uid:p.uid,name:p.name,ready:uid===S.user.uid,score:0,correct:0,wrong:0,streak:0,bestStreak:0,ans:null};
+      });
+      // new questions same settings
+      const subject=S.qb.room.subject, n=S.qb.room.qCount||10, sec=S.qb.room.sec||0;
+      const raw=qbPool(subject,n);
+      if(raw.length<3){toast("مفيش أسئلة كفاية");return}
+      const seed=Date.now()^(Math.random()*1e9|0);
+      const qs=raw.map((it,i)=>qbShuffleQ(it, seed+i*9973));
+      await updateDoc(doc(db,"qb_rooms",code),{status:"lobby",players:reset,qs,seed,idx:0,startedAt:null});
+      S.qb.match=null;
+      toast("الغرفة جاهزة للجولة الجاية — استنوا الجاهزية");
+    }catch(e){toast("مقدرتش أعيد: "+(e.message||""))}
   },
   qbAnswer(d){qbOnAnswer(+d.i)},
 
@@ -1669,7 +1713,12 @@ function saveNavState(){
   if(!S.user||S.isAdmin)return;
   try{
     const st={view:S.view,subject:S.subject};
-    if(["exam","result","review","editExam","editAsm","loading","auth","qbPlay","qbResult"].includes(st.view)) return;
+    // exam has own session; skip ephemeral edit screens
+    if(["editExam","editAsm","loading","auth"].includes(st.view)) return;
+    if(S.view==="exam"&&S.cur) return; // handled by exam session
+    if(S.qb&&S.qb.roomCode){
+      st.qbRoom=S.qb.roomCode; st.qbMode=S.qb.mode||"friends";
+    }
     localStorage.setItem("nav_"+S.user.uid, JSON.stringify(st));
   }catch(_){}
 }
@@ -1678,6 +1727,12 @@ function restoreNavState(){
   try{
     const raw=localStorage.getItem("nav_"+S.user.uid);if(!raw)return;
     const st=JSON.parse(raw);if(!st||!st.view)return;
+    if(st.qbRoom){
+      S.qb={mode:st.qbMode||"friends",roomCode:st.qbRoom};
+      qbListenRoom(st.qbRoom);
+      // view will be set by room listener
+      return;
+    }
     if(["home","subject","progress","games","asmList","asm","qbSetup"].includes(st.view)){
       S.view=st.view; if(st.subject) S.subject=st.subject;
     }
