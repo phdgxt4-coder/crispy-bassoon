@@ -621,9 +621,11 @@ function reviewBody(r,e,showAns){
     const a=(r.ans||[])[i];
     const head=q.fun&&!fun?(fun=true,`<div class="card" style="background:var(--ybg);border-color:var(--gold)"><b>الألغاز</b> <span class="mut">(مش في الدرجة)</span></div>`):"";
     if(q.essay){
-      const sc=essayScore(a,q.model);
+      const ov=(r.essayOverrides||{})[i];
+      const sc=ov!=null?ov:essayScore(a,q.model);
       const label=(!a||!String(a).trim())?pill("لم تُجب","y"):sc>=0.85?pill("ممتاز "+Math.round(sc*100)+"%","g"):sc>=0.5?pill("جزئي "+Math.round(sc*100)+"%","y"):pill("ضعيف "+Math.round(sc*100)+"%","r");
-      return head+`<div class="q"><p dir="auto"><span class="n">${i+1}</span>${esc(q.q)} ${q.fun?"":label}</p>
+      const adj=S.isAdmin?` <button type="button" class="btn ghost sm" data-act="setEssayScore" data-i="${i}" data-cur="${sc}">تعديل الدرجة</button>`:"";
+      return head+`<div class="q"><p dir="auto"><span class="n">${i+1}</span>${esc(q.q)} ${q.fun?"":label}${adj}</p>
         <div style="background:var(--bg);border-radius:10px;padding:10px;margin:6px 0"><b>إجابة الطالب:</b><div dir="auto" style="white-space:pre-wrap;margin-top:4px">${esc(a||"—")}</div></div>
         ${showAns?`<div style="background:var(--gbg);border-radius:10px;padding:10px;margin:6px 0;border:1px solid var(--ok)"><b>الحل النموذجي:</b><div dir="auto" style="white-space:pre-wrap;margin-top:4px">${esc(q.model)}</div></div>`:""}
       </div>`
@@ -1026,11 +1028,17 @@ ${has?`<div class="err" style="margin:0 0 8px">الامتحان ده فيه مح
 <label class="f" style="margin-top:4px"><input id="epub" type="checkbox" ${e.published?"checked":""}> يظهر للطلاب</label>
 <label class="f" style="margin-top:4px"><input id="eshow" type="checkbox" ${e.showAnswers!==false?"checked":""}> يشوف الطالب الإجابات الصحيحة بعد التسليم</label>
 <label class="f" for="qtext">الأسئلة</label>
-<p class="mut" style="margin:0 0 6px">اكتب كل سؤال وتحته الاختيارات (أ ب ج د) وبعدين سطر "الإجابة: ب". سيب سطر فاضي بين كل سؤال والتاني.<br>
-<b>للمقالي:</b> اكتب السؤال ثم سطر <b>[مقالي]</b> ثم سطر <b>الحل: ...</b> (الحل النموذجي). النظام هيدي درجة جزئية لو إجابة الطالب قريبة.<br>
-لو سؤال للتسلية (مش في الدرجة) ضيف تحته سطر <b>[ترفيه]</b>.</p>
+<div class="row" style="gap:6px;margin-bottom:8px;flex-wrap:wrap">
+<button type="button" class="btn ghost sm" data-act="insMcq">+ اختياري</button>
+<button type="button" class="btn ghost sm" data-act="insEssay">+ مقالي</button>
+<button type="button" class="btn ghost sm" data-act="insMath">+ رياضي (حلول متعددة)</button>
+<button type="button" class="btn ghost sm" data-act="sample">مثال كامل</button>
+<button type="button" class="btn ghost sm" data-act="previewQs">معاينة</button>
+</div>
+<p class="mut" style="margin:0 0 6px">اختياري: سؤال + أ ب ج د + <b>الإجابة: ب</b>. مقالي: سؤال + <b>[مقالي]</b> + <b>الحل: ...</b>. للرياضة حط أكتر من حل وافصل بـ <b>|||</b>. سيب سطر فاضي بين الأسئلة.</p>
 <textarea id="qtext" dir="auto">${esc(serialize(e.questions))}</textarea>
 <div id="qinfo" class="mut" style="margin:6px 0"></div>
+<div id="qpreview" style="display:none;margin-top:10px"></div>
 <div class="row" style="margin-top:12px"><button class="btn" id="sv">حفظ الامتحان</button><button type="button" class="btn ghost" data-act="sample">حط مثال</button></div></form></div>`}
 
 /* ---------- الأفعال ---------- */
@@ -1244,6 +1252,7 @@ const A={
     const endAt=e.minutes?st.t+e.minutes*60000:0;
     S.cur={exam:e,n,sid,st,endAt,done:false,busy:false,away:false,tabs:0,answered:0,order:buildOrder(e,st.seed)};
     S.view="exam";render(true);
+    setTimeout(loadExamDraft, 50);
     clearInterval(timer);clearInterval(hb);
     hb=setInterval(()=>liveUpdate({answered:S.cur?S.cur.answered:0,away:S.cur?S.cur.away:false}),60000);
     liveUpdate({away:false});
@@ -1257,6 +1266,62 @@ const A={
   editExam(d){S.editing={id:d.id,exam:S.exams.find(e=>e.id===d.id)};S.view="editExam";render(true)},
   cancelEdit(){S.view="admin";render(true)},
   sample(){$("#qtext").value=SAMPLE;checkQs()},
+  insMcq(){
+    const t=$("#qtext");if(!t)return;
+    const block="\n\nالسؤال هنا؟\nأ) اختيار 1\nب) اختيار 2\nج) اختيار 3\nد) اختيار 4\nالإجابة: ب";
+    t.value=(t.value.trim()?t.value.trim()+"\n":"")+block.trim()+"\n";
+    t.focus();checkQs();toast("اتضاف قالب اختياري");
+  },
+  insEssay(){
+    const t=$("#qtext");if(!t)return;
+    const block="\n\nاكتب السؤال المقالي هنا\n[مقالي]\nالحل: اكتب الحل النموذجي هنا";
+    t.value=(t.value.trim()?t.value.trim()+"\n":"")+block.trim()+"\n";
+    t.focus();checkQs();toast("اتضاف قالب مقالي");
+  },
+  insMath(){
+    const t=$("#qtext");if(!t)return;
+    const block="\n\nأوجد قيمة س إذا كان 2س + 6 = 14\n[مقالي]\nالحل: 2س + 6 = 14\n2س = 8\nس = 4\n|||\nس = (14 - 6) / 2 = 4\n|||\nالناتج: 4";
+    t.value=(t.value.trim()?t.value.trim()+"\n":"")+block.trim()+"\n";
+    t.focus();checkQs();toast("اتضاف قالب رياضي بحلول متعددة");
+  },
+  previewQs(){
+    const box=$("#qpreview");if(!box)return;
+    const {qs,errors}=parseQs($("#qtext").value);
+    if(!qs.length){box.style.display="block";box.innerHTML=`<div class="err">مفيش أسئلة للمعاينة${errors[0]?" · "+esc(errors[0]):""}</div>`;return}
+    box.style.display="block";
+    box.innerHTML=`<div class="card" style="background:var(--sel)"><b>معاينة (${qs.length} سؤال)</b>${errors.length?`<div class="err" style="margin-top:6px">${esc(errors[0])}</div>`:""}</div>`+
+      qs.map((q,i)=>{
+        if(q.essay) return `<div class="q"><p dir="auto"><span class="n">${i+1}</span>${esc(q.q)} ${pill("مقالي","i")}</p><textarea disabled placeholder="مكان إجابة الطالب" style="min-height:70px"></textarea><div class="mut" style="margin-top:4px">الحل: ${esc((q.model||"").slice(0,120))}${(q.model||"").length>120?"…":""}</div></div>`;
+        return `<div class="q"><p dir="auto"><span class="n">${i+1}</span>${esc(q.q)}</p>${(q.o||[]).map((t,j)=>`<div class="opt"><span dir="auto">${LETTERS[j]}) ${esc(t)}${j===q.a?` <b class="tk">✓</b>`:""}</span></div>`).join("")}</div>`;
+      }).join("");
+    toast("المعاينة جاهزة");
+  },
+  async setEssayScore(d){
+    if(!S.isAdmin||!S.review||!S.review.r)return;
+    const r=S.review.r, idx=+d.i, raw=prompt("درجة السؤال من 0 إلى 1 (مثال 0.75):", d.cur||"1");
+    if(raw==null)return;
+    const v=Math.max(0,Math.min(1,parseFloat(raw)));
+    if(isNaN(v)){toast("رقم غير صالح");return}
+    try{
+      const e=S.exams.find(x=>x.id===r.examId);
+      if(!e){toast("الامتحان مش موجود");return}
+      // recompute total with override
+      const overrides={...(r.essayOverrides||{}),[idx]:v};
+      let scoreRaw=0;
+      e.questions.forEach((q,i)=>{
+        if(q.fun)return;
+        if(q.essay){
+          if(overrides[i]!=null) scoreRaw+=overrides[i];
+          else scoreRaw+=essayScore((r.ans||[])[i], q.model);
+        } else if((r.ans||[])[i]===q.a) scoreRaw+=1;
+      });
+      const score=Math.round(scoreRaw*100)/100;
+      const passed=r.passMark>0?score>=r.passMark:null;
+      await updateDoc(doc(db,"results",r.id),{score,passed,essayOverrides:overrides});
+      r.score=score;r.passed=passed;r.essayOverrides=overrides;
+      render(true);toast("اتعدّلت الدرجة → "+score+"/"+r.total);
+    }catch(err){toast("مقدرتش أعدّل: "+(err.code||err.message||""))}
+  },
   async saveExam(){
     const {qs,errors}=parseQs($("#qtext").value);
     if(errors.length||!qs.length){toast(errors[0]||"اكتب سؤال واحد على الأقل");return}
@@ -1527,6 +1592,31 @@ function tick(){
   el.textContent=dur(left);
   if(left<=0){clearInterval(timer);submitExam(true)}
 }
+function examDraftKey(c){return c?("draft_"+c.sid):null}
+function saveExamDraft(){
+  const c=S.cur;if(!c||c.done)return;
+  try{
+    const ans=c.exam.questions.map((q,i)=>{
+      if(q.essay){const ta=document.querySelector(`textarea[name=q${i}]`);return ta?ta.value:""}
+      const r=document.querySelector(`input[name=q${i}]:checked`);return r?+r.value:-1;
+    });
+    localStorage.setItem(examDraftKey(c), JSON.stringify({ans,t:Date.now()}));
+  }catch(_){}
+}
+function loadExamDraft(){
+  const c=S.cur;if(!c)return;
+  try{
+    const raw=localStorage.getItem(examDraftKey(c));if(!raw)return;
+    const {ans}=JSON.parse(raw);if(!Array.isArray(ans))return;
+    ans.forEach((a,i)=>{
+      const q=c.exam.questions[i];if(!q)return;
+      if(q.essay){const ta=document.querySelector(`textarea[name=q${i}]`);if(ta&&a)ta.value=a}
+      else if(a!=null&&a>=0){const el=document.querySelector(`input[name=q${i}][value="${a}"]`);if(el)el.checked=true}
+    });
+    toast("تم استرجاع إجابات محفوظة");
+  }catch(_){}
+}
+function clearExamDraft(c){try{if(c)localStorage.removeItem(examDraftKey(c))}catch(_){}}
 function updProg(){
   const c=S.cur;if(!c)return;
   const g=c.exam.questions.map((q,i)=>q.fun?null:i).filter(i=>i!==null);
@@ -1536,7 +1626,8 @@ function updProg(){
     return !!document.querySelector(`input[name=q${i}]:checked`);
   }).length;
   const el=$("#pg");if(el)el.style.width=(g.length?done/g.length*100:0)+"%";
-  c.answered=done;clearTimeout(ansT);ansT=setTimeout(()=>liveUpdate({answered:done}),6000);
+  c.answered=done;clearTimeout(ansT);ansT=setTimeout(()=>{liveUpdate({answered:done});saveExamDraft()},4000);
+  clearTimeout(window.__draftT);window.__draftT=setTimeout(saveExamDraft,1500);
 }
 function liveUpdate(extra){
   const c=S.cur;if(!c||c.done)return;
@@ -1572,6 +1663,7 @@ async function submitExam(auto){
     await setDoc(doc(db,"results",c.sid),{...rec,createdAt:serverTimestamp()});
   }catch(err){c.done=false;if(btn)btn.disabled=false;toast("مقدرتش أسجّل النتيجة. اتأكد من النت ودوس تسليم تاني.");return}
   deleteDoc(doc(db,"starts",c.sid)).catch(()=>{});
+  clearExamDraft(c);
   S.attempts[e.id]=(S.attempts[e.id]||[]).concat([{...rec,id:c.sid}]);
   S.last={...rec,id:c.sid};S.cur=null;S.view="result";render(true);
 }
