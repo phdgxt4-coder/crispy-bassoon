@@ -46,6 +46,19 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--pri);box
 input.ltr{direction:ltr;text-align:right}
 textarea{min-height:320px;line-height:1.8;font-size:15px}
 .err{background:var(--rbg);color:var(--bad);border-radius:10px;padding:10px 12px;margin-top:12px;font-size:15px}
+.qb-chat{margin-top:12px;border:1.5px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
+.qb-chat-log{max-height:180px;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px}
+.qb-chat-msg{font-size:13px;line-height:1.35}
+.qb-chat-msg .who{font-weight:700;color:var(--pri);margin-left:4px}
+.qb-chat-msg .when{font-size:10px;opacity:.55;margin-right:4px}
+.qb-chat-form{display:flex;gap:6px;padding:8px;border-top:1px solid var(--line)}
+.qb-chat-form input{flex:1;border-radius:10px;border:1.5px solid var(--line);padding:8px 10px;font:inherit;background:var(--bg);color:var(--ink)}
+.qb-room-theme{border-radius:16px;padding:2px}
+.qb-room-theme.t-teal .qb-hero{background:linear-gradient(135deg,#0B5D57,#2FB5A8)}
+.qb-room-theme.t-purple .qb-hero{background:linear-gradient(135deg,#4338CA,#7C3AED)}
+.qb-room-theme.t-gold .qb-hero{background:linear-gradient(135deg,#B45309,#E3A81C)}
+.qb-room-theme.t-rose .qb-hero{background:linear-gradient(135deg,#9F1239,#F43F5E)}
+.qb-room-theme.t-blue .qb-hero{background:linear-gradient(135deg,#1D4ED8,#38BDF8)}
 .podium{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin:16px 0 8px;min-height:160px}
 .podium .pod{flex:1;max-width:110px;text-align:center;display:flex;flex-direction:column;align-items:center}
 .podium .pod .avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;margin-bottom:6px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
@@ -283,7 +296,7 @@ const passPill = r => r.passMark>0 ? (r.passed?pill("ناجح","g"):pill("راس
 const S = {asms:[],asm:null,editingAsm:null,logins:{},sq:"",starts:[],examsLoaded:false,user:null,isAdmin:false,profile:null,site:{maintenance:false,message:""},exams:[],results:[],students:[],alerts:[],
   myList:[],attempts:{},view:"loading",tab:"dash",subject:null,cur:null,last:null,review:null,studentId:null,editing:null,
   adminLogin:false,mode:"login",error:"",filter:"",unread:0,unreadAlerts:0,registering:false,taps:[],
-  qb:null,qbSub:null,board:[],notifs:[],unreadNotif:0,activity:[],activityLoaded:false};
+  qb:null,qbSub:null,qbChatSub:null,qbChat:[],board:[],notifs:[],unreadNotif:0,activity:[],activityLoaded:false};
 const __seenSplash=(()=>{try{return sessionStorage.getItem("splash_ok")==="1"}catch(_){return false}})();
 const splashUntil=__seenSplash?Date.now():Date.now()+1100;
 try{if(!__seenSplash)sessionStorage.setItem("splash_ok","1")}catch(_){}
@@ -738,7 +751,7 @@ function qbShuffleQ(item, seed){
   return {q:item.q,o,a,sub:item.sub,exam:item.exam};
 }
 function qbCode(){const c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<5;i++)s+=c[Math.floor(Math.random()*c.length)];return s}
-function qbStopSub(){if(S.qbSub){try{S.qbSub()}catch(_){}S.qbSub=null}}
+function qbStopSub(){if(S.qbSub){try{S.qbSub()}catch(_){} S.qbSub=null} qbStopChat()}catch(_){}S.qbSub=null}}
 function qbBotDelay(diff, correct){
   // easy / medium / hard reaction times + accuracy
   const cfg={easy:{acc:.55,min:1800,max:4500},medium:{acc:.72,min:900,max:2800},hard:{acc:.9,min:400,max:1400}}[diff]||{acc:.7,min:1000,max:2500};
@@ -763,7 +776,8 @@ function qbSetupView(){
 <label class="f">وقت كل سؤال (ث)</label>
 <select id="qbT">${[10,15,20,30,0].map(n=>`<option value="${n}" ${n===15?"selected":""}>${n?n:"بدون حد"}</option>`).join("")}</select>
 ${m==="bot"?`<label class="f">مستوى الروبوت</label>
-<select id="qbDiff"><option value="easy">سهل</option><option value="medium" selected>متوسط</option><option value="hard">صعب</option></select>`:""}
+<select id="qbDiff"><option value="easy">سهل</option><option value="medium" selected>متوسط</option><option value="hard">صعب</option></select>`:`<label class="f">عدد اللاعبين (حد أقصى)</label>
+<select id="qbMax">${[1,2,3,4,5,6,7,8,10,12,16].map(n=>`<option value="${n}" ${n===8?"selected":""}>${n} لاعب</option>`).join("")}</select>`}
 </div>
 <button class="btn block gold" data-act="${m==="bot"?"qbStartBot":"qbCreateRoom"}">${m==="bot"?"ابدأ المباراة ⚡":"إنشاء غرفة 🔗"}</button>
 ${m==="friends"?`<div class="qb-card" style="margin-top:14px"><h3>أو انضم بكود</h3>
@@ -776,22 +790,33 @@ function qbLobbyView(){
   const r=S.qb&&S.qb.room;if(!r)return gamesView();
   const isHost=r.host===S.user.uid;
   const players=Object.values(r.players||{});
-  const need=r.maxPlayers||2;
-  const allReady=players.length>=need && players.every(p=>p.ready);
-  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="qbLeaveRoom">خروج</button>`)}
-<div class="qb-hero" style="padding:18px">
-  <div class="qb-title" style="font-size:22px">غرفة الانتظار</div>
-  <div class="qb-code" style="margin:10px 0">${esc(r.code)}</div>
-  <div style="opacity:.85;font-size:13px">${subName(r.subject)} · ${r.qCount} سؤال · ${r.sec?r.sec+"ث":"بدون وقت"}</div>
+  const maxP=r.maxPlayers||16;
+  const canStart=players.length>=1 && players.every(p=>p.ready);
+  const gameId=r.game||"qb";
+  const color=r.color||"teal";
+  return `<div class="wrap qb-room-theme t-${color}">${header(`<button class="btn ghost sm" data-act="qbLeaveRoom">خروج</button>`)}
+<div class="qb-hero" style="padding:18px;color:#fff;border-radius:16px">
+  <div style="font-size:13px;opacity:.9">اللعبة الحالية</div>
+  <div class="qb-title" style="font-size:22px;margin:4px 0">${qbGameLabel(gameId)}</div>
+  <div class="qb-code" style="margin:10px 0;background:rgba(0,0,0,.2)">${esc(r.code)}</div>
+  <div style="opacity:.9;font-size:13px">${subName(r.subject)} · ${r.qCount} سؤال · ${r.sec?r.sec+"ث":"بدون وقت"} · حد ${maxP} لاعب</div>
 </div>
+${isHost?`<div class="qb-card"><b>إعدادات المضيف 👑</b>
+<label class="f">اللعبة</label>
+<select id="qbGameSel">${Object.entries(QB_GAMES).map(([k,v])=>`<option value="${k}" ${k===gameId?"selected":""}>${v}</option>`).join("")}</select>
+<label class="f">لون الغرفة</label>
+<select id="qbColorSel">${Object.entries(QB_COLORS).map(([k,v])=>`<option value="${k}" ${k===color?"selected":""}>${v}</option>`).join("")}</select>
+<button class="btn sm" style="margin-top:8px" data-act="qbRoomSettings">حفظ الإعدادات</button>
+</div>`:""}
 <div class="qb-card">
-<div class="row"><b>اللاعبون (${players.length}/${need})</b>
+<div class="row"><b>اللاعبون (${players.length}/${maxP})</b>
 <button class="btn ghost sm" data-act="qbCopyCode">نسخ الكود</button></div>
 <div class="qb-lobby-players">${players.map(p=>`<span class="qb-chip ${p.uid===r.host?"host":""} ${p.ready?"ready":""}">${esc(p.name)}${p.uid===r.host?" 👑":""}${p.ready?" ✓":""}</span>`).join("")}</div>
 ${!isHost?`<button class="btn block ${ (r.players[S.user.uid]||{}).ready?"ghost":"gold"}" data-act="qbReady">${(r.players[S.user.uid]||{}).ready?"إلغاء الاستعداد":"أنا جاهز ✓"}</button>`:
-  `<button class="btn block gold" data-act="qbBeginMatch" ${allReady?"":"disabled"}>${allReady?"ابدأ المباراة ⚡":"استنى الكل يكون جاهز"}</button>`}
+  `<button class="btn block gold" data-act="qbBeginMatch" ${canStart?"":"disabled"}>${canStart?"ابدأ المباراة ⚡ ("+players.length+" لاعب)":"استنى الكل يكون جاهز"}</button>`}
 </div>
-<p class="mut" style="text-align:center">ابعت الكود لصحابك يدخلوا · الأسئلة هتتخلط تلقائي</p>
+${qbChatHtml()}
+<p class="mut" style="text-align:center">الغرفة مفتوحة لحد ما الكل يخرج</p>
 </div>${studentNav()}`;
 }
 
@@ -803,18 +828,22 @@ function qbPlayView(){
   const pct=m.sec?Math.max(0,(m.deadline-Date.now())/(m.sec*1000)*100):100;
   const me=m.players.find(p=>p.uid===S.user.uid)||m.players[0];
   const sorted=[...m.players].sort((a,b)=>b.score-a.score);
-  return `<div class="wrap qb-arena">
-<div class="row" style="margin-bottom:6px"><span class="mut">تحدي الأوائل</span><button class="btn ghost sm" data-act="qbLeaveRoom">خروج</button></div>
-<div class="qb-hud">${sorted.map(p=>`<div class="qb-player ${p.uid===S.user.uid?"me":""} ${sorted[0]&&sorted[0].uid===p.uid?"lead":""}">
-  <div class="name">${esc(p.name)}${sorted[0]&&sorted[0].uid===p.uid?" 👑":""}</div>
-  <div class="score">${p.score}</div>
-  ${p.streak>=3?`<span class="qb-streak">🔥 ×${p.streak}</span>`:""}
+  const room=g.room||{};
+  const gameName=qbGameLabel(room.game||"qb");
+  const color=room.color||"teal";
+  return `<div class="wrap qb-arena qb-room-theme t-${color}">
+<div class="row" style="margin-bottom:6px"><span class="mut"><b>${gameName}</b></span><button class="btn ghost sm" data-act="qbLeaveRoom">خروج</button></div>
+<div class="qb-hud" style="flex-wrap:wrap;max-height:120px;overflow:auto">${sorted.map(p=>`<div class="qb-player ${p.uid===S.user.uid?"me":""} ${sorted[0]&&sorted[0].uid===p.uid?"lead":""}" style="min-width:70px;padding:4px 6px">
+  <div class="name" style="font-size:11px">${esc(p.name)}${sorted[0]&&sorted[0].uid===p.uid?" 👑":""}</div>
+  <div class="score" style="font-size:14px">${p.score}</div>
+  ${p.streak>=3?`<span class="qb-streak">🔥${p.streak}</span>`:""}
 </div>`).join("")}</div>
 <div class="row mut" style="margin-bottom:4px"><span>سؤال ${m.idx+1} / ${m.qs.length}</span>${m.sec?`<span id="qbSec">${left}ث</span>`:""}</div>
 <div class="qb-timer-bar ${left<=5&&m.sec?"low":""}"><i id="qbBar" style="width:${pct}%"></i></div>
 <div class="prog" style="height:6px;margin-bottom:8px"><i style="width:${(m.idx/m.qs.length)*100}%"></i></div>
 <div class="qb-qbox"><p dir="auto" style="margin:0;font-weight:600;font-size:17px">${esc(q.q)}</p></div>
 <div class="qb-opts" id="qbOpts">${q.o.map((t,j)=>`<button class="qb-opt" data-act="qbAnswer" data-i="${j}" ${m.answered?"disabled":""} dir="auto">${LETTERS[j]||(j+1)}) ${esc(t)}</button>`).join("")}</div>
+${g.roomCode?qbChatHtml():""}
 </div>`;
 }
 
@@ -1262,12 +1291,14 @@ const A={
   },
   async qbCreateRoom(){
     const subject=$("#qbSub").value, n=+$("#qbN").value||10, sec=+$("#qbT").value||0;
+    let maxPlayers=+$("#qbMax")?.value||8;
+    if(maxPlayers<1)maxPlayers=1;if(maxPlayers>16)maxPlayers=16;
     const raw=qbPool(subject,n);
     if(raw.length<3){toast("مفيش أسئلة كفاية. انشر امتحانات أول");return}
     const code=qbCode();
     const seed=Date.now()^(Math.random()*1e9|0);
     const qs=raw.map((it,i)=>qbShuffleQ(it, seed+i*9973));
-    const room={code,host:S.user.uid,subject,qCount:n,sec,maxPlayers:2,status:"lobby",seed,qs,
+    const room={code,host:S.user.uid,subject,qCount:n,sec,maxPlayers,status:"lobby",seed,qs,game:"qb",color:"teal",
       players:{[S.user.uid]:{uid:S.user.uid,name:S.profile.name.split(" ")[0],ready:true,score:0,correct:0,wrong:0,streak:0,bestStreak:0}},
       createdAt:serverTimestamp()};
     try{
@@ -1304,16 +1335,41 @@ const A={
   },
   async qbBeginMatch(){
     const code=S.qb.roomCode;if(!code)return;
+    const game=(S.qb.room&&S.qb.room.game)||"qb";
+    if(game==="los"){toast("آخر واحد واقف — قريب داخل الغرف. اختار تحدي الأوائل دلوقتي");return}
     try{await updateDoc(doc(db,"qb_rooms",code),{status:"playing",startedAt:Date.now(),idx:0})}catch(e){toast("مقدرتش أبدأ")}
   },
   qbCopyCode(){
     const c=S.qb&&S.qb.room&&S.qb.room.code;if(!c)return;
     navigator.clipboard.writeText(c).then(()=>toast("اتنسخ الكود ✓")).catch(()=>toast(c));
   },
+  async qbRoomSettings(){
+    const code=S.qb&&S.qb.roomCode;if(!code||!S.qb.room)return;
+    if(S.qb.room.host!==S.user.uid){toast("المضيف بس يقدر يغيّر");return}
+    const game=$("#qbGameSel")?.value||"qb";
+    const color=$("#qbColorSel")?.value||"teal";
+    try{
+      await updateDoc(doc(db,"qb_rooms",code),{game,color});
+      toast("اتحدّثت إعدادات الغرفة");
+    }catch(e){toast("فشل الحفظ")}
+  },
+  async qbChatSend(){
+    const code=S.qb&&S.qb.roomCode;if(!code)return;
+    const inp=$("#qbChatIn");const text=(inp&&inp.value||"").trim();
+    if(!text)return;
+    if(text.length>300){toast("الرسالة طويلة");return}
+    try{
+      await addDoc(collection(db,"qb_rooms",code,"chat"),{
+        uid:S.user.uid,name:(S.profile.name||"طالب").split(" ")[0],
+        text,createdAt:serverTimestamp()
+      });
+      if(inp)inp.value="";
+    }catch(e){toast("مقدرتش أبعت الرسالة")}
+  },
   async qbLeaveRoom(){
     const inPlay=S.view==="qbPlay"||S.view==="qbResult"||(S.qb&&S.qb.match);
     if(inPlay||(S.qb&&S.qb.roomCode)){
-      if(!confirm("متأكد عايز تخرج من التحدي؟\nلو خرجت هتسيب الغرفة.")) return;
+      if(!confirm("متأكد عايز تخرج من التحدي؟\nالغرفة هتفضل شغالة لو في ناس تانية.")) return;
     }
     const code=S.qb&&S.qb.roomCode;
     qbStopSub();
@@ -1323,14 +1379,20 @@ const A={
         const players={...(room.players||{})};
         delete players[S.user.uid];
         const left=Object.keys(players).filter(k=>k!=="bot");
-        if(left.length===0 || room.host===S.user.uid){
-          // last player or host leaving → close room
+        if(left.length===0){
+          // آخر واحد خرج → اقفل الغرفة
           await deleteDoc(doc(db,"qb_rooms",code));
         } else {
-          await updateDoc(doc(db,"qb_rooms",code),{[`players.${S.user.uid}`]:deleteField()});
+          const patch={[`players.${S.user.uid}`]:deleteField()};
+          // لو المضيف خرج → حوّل الملكية لأول لاعب باقي
+          if(room.host===S.user.uid){
+            patch.host=left[0];
+          }
+          await updateDoc(doc(db,"qb_rooms",code),patch);
         }
       }catch(_){}
     }
+    logActivity("qb_leave", code||"");
     S.qb=null;S.view="games";render(true);
   },
   async qbRematchRoom(){
@@ -1587,8 +1649,53 @@ function fail(m){S.error=m;render(true)}
 
 
 /* ---- QB runtime ---- */
+const QB_GAMES={qb:"تحدي الأوائل 👑",los:"آخر واحد واقف 🧍"};
+const QB_COLORS={teal:"تركواز",purple:"بنفسجي",gold:"ذهبي",rose:"وردي",blue:"أزرق"};
+function qbGameLabel(id){return QB_GAMES[id]||QB_GAMES.qb}
+function qbStopChat(){if(S.qbChatSub){try{S.qbChatSub()}catch(_){} S.qbChatSub=null} S.qbChat=[]}
+function qbListenChat(code){
+  qbStopChat();
+  S.qbChatSub=onSnapshot(query(collection(db,"qb_rooms",code,"chat"),orderBy("createdAt","asc"),limit(80)),s=>{
+    S.qbChat=s.docs.map(d=>({id:d.id,...d.data()}));
+    if(S.view==="qbLobby"||S.view==="qbPlay"||S.view==="qbResult"){
+      const box=$("#qbChatLog");
+      if(box){
+        const wasBottom=box.scrollHeight-box.scrollTop-box.clientHeight<40;
+        box.innerHTML=S.qbChat.map(m=>`<div class="qb-chat-msg"><span class="who">${esc(m.name||"?")}</span><span dir="auto">${esc(m.text||"")}</span>${m.img?`<div><img src="${m.img}" alt="" style="max-width:160px;border-radius:8px;margin-top:4px"></div>`:""}<span class="when">${m.createdAt?fmt(m.createdAt):""}</span></div>`).join("")||`<div class="mut">اكتب رسالة للغرفة…</div>`;
+        if(wasBottom||!box.dataset.ready){box.scrollTop=box.scrollHeight;box.dataset.ready="1"}
+      } else render();
+    }
+  },err=>console.warn("chat",err));
+}
+function packImage(file){
+  return new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onerror=reject;
+    r.onload=()=>{
+      const img=new Image();
+      img.onload=()=>{
+        const max=800;let w=img.width,h=img.height;
+        if(w>max||h>max){const s=Math.min(max/w,max/h);w=Math.round(w*s);h=Math.round(h*s)}
+        const c=document.createElement("canvas");c.width=w;c.height=h;
+        c.getContext("2d").drawImage(img,0,0,w,h);
+        resolve(c.toDataURL("image/jpeg",0.7));
+      };
+      img.onerror=reject;
+      img.src=r.result;
+    };
+    r.readAsDataURL(file);
+  });
+}
+function qbChatHtml(){
+  const msgs=S.qbChat||[];
+  return `<div class="qb-chat"><div class="qb-chat-log" id="qbChatLog">${msgs.length?msgs.map(m=>`<div class="qb-chat-msg"><span class="who">${esc(m.name||"?")}</span><span dir="auto">${esc(m.text||"")}</span>${m.img?`<div><img src="${m.img}" alt="" style="max-width:160px;border-radius:8px;margin-top:4px"></div>`:""}</div>`).join(""):`<div class="mut">الشات فوري — اكتب ورسالتك توصل للجميع حالاً</div>`}</div>
+<form class="qb-chat-form" data-submit="qbChatSend"><input id="qbChatIn" type="text" maxlength="300" placeholder="اكتب رسالة…" autocomplete="off"><button class="btn sm" type="submit">إرسال</button>
+<label class="btn ghost sm" style="margin:0;cursor:pointer">📷<input type="file" id="qbChatImg" accept="image/*" hidden></label>
+</form></div>`;
+}
 function qbListenRoom(code){
   qbStopSub();
+  qbListenChat(code);
   S.qbSub=onSnapshot(doc(db,"qb_rooms",code),snap=>{
     if(!snap.exists()){toast("الغرفة اتقفلت");S.qb=null;S.view="games";render(true);return}
     const room={...snap.data(),code};
@@ -2064,6 +2171,22 @@ document.addEventListener("change",e=>{
     })();
   }
   if(e.target.type==="radio"&&S.view==="exam"){updProg();saveExamDraft();if(navigator.vibrate)navigator.vibrate(8)}
+  if(e.target.id==="qbChatImg"&&e.target.files&&e.target.files[0]&&S.qb&&S.qb.roomCode){
+    const f=e.target.files[0];e.target.value="";
+    (async()=>{
+      try{
+        if(!/^image\//.test(f.type)||f.size>2*1024*1024){toast("صورة فقط وأقل من 2MB");return}
+        const data=await packImage(f);
+        // packImage may return large - clamp by re-encoding if needed
+        if(data.length>700000){toast("الصورة كبيرة — صغّرها");return}
+        await addDoc(collection(db,"qb_rooms",S.qb.roomCode,"chat"),{
+          uid:S.user.uid,name:(S.profile.name||"طالب").split(" ")[0],
+          text:"📷 صورة",img:data,createdAt:serverTimestamp()
+        });
+        toast("اتبعتت الصورة");
+      }catch(err){toast("فشل رفع الصورة")}
+    })();
+  }
 });
 document.addEventListener("input",e=>{
   if(e.target.id==="sq"){S.sq=e.target.value;const t=$("#stbl");if(t)t.innerHTML=studentsTable()}
