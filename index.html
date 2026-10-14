@@ -59,6 +59,21 @@ textarea{min-height:320px;line-height:1.8;font-size:15px}
 .qb-room-theme.t-gold .qb-hero{background:linear-gradient(135deg,#B45309,#E3A81C)}
 .qb-room-theme.t-rose .qb-hero{background:linear-gradient(135deg,#9F1239,#F43F5E)}
 .qb-room-theme.t-blue .qb-hero{background:linear-gradient(135deg,#1D4ED8,#38BDF8)}
+/* لون الغرفة يطبّق على عناصر أكتر */
+.qb-room-theme.t-teal{--room-accent:#0B5D57;--room-accent2:#2FB5A8}
+.qb-room-theme.t-purple{--room-accent:#4338CA;--room-accent2:#7C3AED}
+.qb-room-theme.t-gold{--room-accent:#B45309;--room-accent2:#E3A81C}
+.qb-room-theme.t-rose{--room-accent:#9F1239;--room-accent2:#F43F5E}
+.qb-room-theme.t-blue{--room-accent:#1D4ED8;--room-accent2:#38BDF8}
+.qb-room-theme .qb-card{border-color:color-mix(in srgb,var(--room-accent,#0B5D57) 35%,var(--line))}
+.qb-room-theme .qb-chip.host,.qb-room-theme .qb-chip.ready{border-color:var(--room-accent2,#2FB5A8)}
+.qb-room-theme .btn.gold{background:var(--room-accent2,#E3A81C)}
+.qb-room-theme .qb-chat{border-color:color-mix(in srgb,var(--room-accent,#0B5D57) 40%,var(--line))}
+.qb-room-theme .qb-hud .qb-player.lead{box-shadow:0 0 0 2px var(--room-accent2)}
+.qb-viewers{display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.25);color:#fff;border-radius:99px;padding:4px 12px;font-size:13px;font-weight:700;cursor:pointer}
+.qb-viewers-panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0;max-height:180px;overflow:auto}
+.qb-chip .kick{margin-right:4px;font-size:11px;opacity:.85;cursor:pointer}
+.qb-away-badge{font-size:10px;opacity:.75;margin-right:4px}
 .podium{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin:16px 0 8px;min-height:160px}
 .podium .pod{flex:1;max-width:110px;text-align:center;display:flex;flex-direction:column;align-items:center}
 .podium .pod .avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;margin-bottom:6px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
@@ -253,7 +268,7 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,updatePassword} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,deleteField,collection,onSnapshot,query,where,orderBy,limit,getDocs,writeBatch,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ============ إعدادات Firebase ============ */
@@ -527,6 +542,12 @@ async function startSession(u){
       const p=await getDoc(doc(db,"students",u.uid));
       S.profile=p.exists()?p.data():{name:"طالب",phone:""};
       S.view="home";S.examsLoaded=false;
+      // رابط مباشر للغرفة: #room=CODE
+      try{
+        const h=(location.hash||"").replace(/^#/,"");
+        const m=h.match(/^room=([A-Za-z0-9]+)/i);
+        if(m){S._pendingRoom=m[1].toUpperCase();history.replaceState(null,"",location.pathname+location.search)}
+      }catch(_){}
       subs.push(onSnapshot(doc(db,"students",u.uid),s=>{if(s.exists()){S.profile=s.data();render()}}));
       subs.push(onSnapshot(collection(db,"assessments"),s=>{S.asms=s.docs.map(d=>({id:d.id,...d.data()})).filter(a=>a.published).sort((a,b)=>tms(b)-tms(a));render()}));
       getIp().then(ip=>{
@@ -541,6 +562,30 @@ async function startSession(u){
         if(typeof S._resultsReady==="undefined")return;
         __resumeTried=true;
         tryResumeExam();
+        // بعد التحميل: لو في رابط غرفة
+        if(S._pendingRoom){
+          const code=S._pendingRoom;S._pendingRoom=null;
+          setTimeout(async()=>{
+            try{
+              const snap=await getDoc(doc(db,"qb_rooms",code));
+              if(!snap.exists()){toast("الغرفة مش موجودة");return}
+              const room=snap.data();
+              if(room.players&&room.players[S.user.uid]){
+                S.qb={mode:"friends",roomCode:code};qbListenRoom(code);return;
+              }
+              if(room.public&&room.status==="lobby"){
+                await updateDoc(doc(db,"qb_rooms",code),{[`joinRequests.${S.user.uid}`]:{uid:S.user.uid,name:(S.profile.name||"طالب").split(" ")[0],at:Date.now()}});
+                toast("اتبعت طلب دخول للغرفة");
+                S.qb={mode:"friends",roomCode:code,waitingJoin:true};qbListenRoom(code);
+              }else if(room.status==="lobby"){
+                await updateDoc(doc(db,"qb_rooms",code),{[`players.${S.user.uid}`]:{uid:S.user.uid,name:S.profile.name.split(" ")[0],ready:false,score:0,correct:0,wrong:0,streak:0,bestStreak:0,away:false,seen:Date.now()}});
+                S.qb={mode:"friends",roomCode:code};qbListenRoom(code);
+              }else toast("الغرفة مش متاحة دلوقتي");
+            }catch(e){toast("فشل دخول الغرفة من الرابط")}
+          },400);
+        }else{
+          try{restoreNavState()}catch(_){}
+        }
       };
       subs.push(onSnapshot(collection(db,"exams"),s=>{
         const list=s.docs.map(d=>({id:d.id,...d.data()})).filter(e=>e.published).sort((a,b)=>tms(b)-tms(a));
@@ -607,7 +652,7 @@ function render(force){
     h=S.view==="editExam"?editor():S.view==="editAsm"?asmEditor():S.view==="studentDetail"?studentDetail():S.view==="review"?reviewView():adminView();
   }else if(S.profile&&S.profile.blocked){h=blockedView()}
   else{
-    const m={games:gamesView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView};
+    const m={games:gamesView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView};
     h=(m[S.view]||homeView)();
   }
   app.innerHTML=h;
@@ -620,7 +665,7 @@ const splash=()=>`<div class="splash"><div><div class="logo">التفوق</div><
 const blockedView=()=>`<div class="wrap"><div class="center"><div class="logo" style="display:inline-block">التفوق</div><h1 style="margin-top:28px">حسابك موقوف</h1><p class="mut" style="max-width:360px;margin:8px auto 24px">تواصل مع المدرس لإعادة تفعيل الحساب.</p><button class="btn ghost" data-act="logout">تسجيل خروج</button></div></div>`;
 const logo=`<div class="logo">التفوق</div>`;
 const header=(extra)=>`<div class="top">${logo}<div class="row">${extra||""}${themeBtn()}</div></div>`;
-const studentNav=()=>`<nav class="bot"><button class="${S.view==="progress"?"":"on"}" data-act="home">المواد</button><button class="${S.view==="progress"?"on":""}" data-act="progress">تقدمي${(S.unreadNotif||0)?` <span class="badge">${S.unreadNotif}</span>`:""}</button></nav>`;
+const studentNav=()=>`<nav class="bot"><button class="${S.view==="home"||S.view==="subject"||S.view==="exam"||S.view==="result"?"on":""}" data-act="home">المواد</button><button class="${S.view==="progress"?"on":""}" data-act="progress">تقدمي${(S.unreadNotif||0)?` <span class="badge">${S.unreadNotif}</span>`:""}</button><button class="${S.view==="games"||S.view&&String(S.view).startsWith("qb")?"on":""}" data-act="openGames">الألعاب</button><button class="${S.view==="me"?"on":""}" data-act="openMe">أنا</button></nav>`;
 
 function maintenance(){return `<div class="wrap"><div class="center"><div class="logo" data-act="logoTap" style="display:inline-block;font-size:40px">التفوق</div>
 <h1 style="margin-top:28px">المنصة تحت التعديل</h1>
@@ -763,10 +808,12 @@ function qbBotDelay(diff, correct){
 function qbSetupView(){
   const m=S.qb&&S.qb.mode;
   const subjects=[{id:"random",name:"عشوائي 🎲"},...SUBJECTS];
-  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openGames">رجوع</button>`)}
+  if(m==="bot"){
+    return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openGames">رجوع</button>`)}
 <div class="qb-hero" style="padding:18px">
-  <div class="qb-crown" style="font-size:36px">👑</div>
-  <div class="qb-title" style="font-size:22px">${m==="bot"?"ضد الروبوت":"غرفة الأصدقاء"}</div>
+  <div class="qb-crown" style="font-size:36px">🤖</div>
+  <div class="qb-title" style="font-size:22px">تحدي الأوائل · ضد الروبوت</div>
+  <div style="opacity:.9;font-size:13px;margin-top:4px">إعدادات المباراة الفردية</div>
 </div>
 <div class="qb-card">
 <label class="f">المادة</label>
@@ -775,14 +822,35 @@ function qbSetupView(){
 <select id="qbN">${[5,10,15,20,25].map(n=>`<option value="${n}" ${n===10?"selected":""}>${n}</option>`).join("")}</select>
 <label class="f">وقت كل سؤال (ث)</label>
 <select id="qbT">${[10,15,20,30,0].map(n=>`<option value="${n}" ${n===15?"selected":""}>${n?n:"بدون حد"}</option>`).join("")}</select>
-${m==="bot"?`<label class="f">مستوى الروبوت</label>
-<select id="qbDiff"><option value="easy">سهل</option><option value="medium" selected>متوسط</option><option value="hard">صعب</option></select>`:`<label class="f">عدد اللاعبين (حد أقصى)</label>
-<select id="qbMax">${[1,2,3,4,5,6,7,8,10,12,16].map(n=>`<option value="${n}" ${n===8?"selected":""}>${n} لاعب</option>`).join("")}</select>`}
+<label class="f">مستوى الروبوت</label>
+<select id="qbDiff"><option value="easy">سهل</option><option value="medium" selected>متوسط</option><option value="hard">صعب</option></select>
 </div>
-<button class="btn block gold" data-act="${m==="bot"?"qbStartBot":"qbCreateRoom"}">${m==="bot"?"ابدأ المباراة ⚡":"إنشاء غرفة 🔗"}</button>
-${m==="friends"?`<div class="qb-card" style="margin-top:14px"><h3>أو انضم بكود</h3>
+<button class="btn block gold" data-act="qbStartBot">ابدأ المباراة ⚡</button>
+</div>${studentNav()}`;
+  }
+  // غرف الأصدقاء — منفصلة عن اختيار اللعبة (اللعبة تتحدد جوّه اللوبي)
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openGames">رجوع</button>`)}
+<div class="qb-hero" style="padding:18px">
+  <div class="qb-crown" style="font-size:36px">👥</div>
+  <div class="qb-title" style="font-size:22px">غرفة الأصدقاء</div>
+  <div style="opacity:.9;font-size:13px;margin-top:4px">بعد ما تدخل الغرفة، المضيف يختار اللعبة واللون من الإعدادات</div>
+</div>
+<div class="qb-card">
+<label class="f">المادة (لأسئلة التحدي)</label>
+<select id="qbSub">${subjects.map(s=>`<option value="${s.id}">${s.name}</option>`).join("")}</select>
+<label class="f">عدد الأسئلة</label>
+<select id="qbN">${[5,10,15,20,25].map(n=>`<option value="${n}" ${n===10?"selected":""}>${n}</option>`).join("")}</select>
+<label class="f">وقت كل سؤال (ث)</label>
+<select id="qbT">${[10,15,20,30,0].map(n=>`<option value="${n}" ${n===15?"selected":""}>${n?n:"بدون حد"}</option>`).join("")}</select>
+<label class="f">عدد اللاعبين (حد أقصى)</label>
+<select id="qbMax">${[2,3,4,5,6,7,8,10,12,16].map(n=>`<option value="${n}" ${n===6?"selected":""}>${n} لاعب</option>`).join("")}</select>
+<label class="f">نوع الغرفة</label>
+<select id="qbPublicCreate"><option value="0" selected>خاص (كود / رابط فقط)</option><option value="1">عام (تظهر في الغرف المفتوحة)</option></select>
+</div>
+<button class="btn block gold" data-act="qbCreateRoom">إنشاء غرفة 🔗</button>
+<div class="qb-card" style="margin-top:14px"><h3>أو انضم بكود</h3>
 <input id="qbJoinCode" class="ltr" type="text" maxlength="6" placeholder="ABX72" style="text-transform:uppercase;letter-spacing:.15em;font-size:20px;text-align:center">
-<button class="btn block" style="margin-top:10px" data-act="qbJoinRoom">انضم للغرفة</button></div>`:""}
+<button class="btn block" style="margin-top:10px" data-act="qbJoinRoom">انضم للغرفة</button></div>
 </div>${studentNav()}`;
 }
 
@@ -791,32 +859,45 @@ function qbLobbyView(){
   const isHost=r.host===S.user.uid;
   const players=Object.values(r.players||{});
   const maxP=r.maxPlayers||16;
-  const canStart=players.length>=1 && players.every(p=>p.ready);
+  const canStart=players.length>=1 && players.every(p=>p.ready||p.away);
   const gameId=r.game||"qb";
   const color=r.color||"teal";
+  const isPublic=!!r.public;
+  const showList=S.qb.showViewers;
+  const pending=Object.values(r.joinRequests||{});
   return `<div class="wrap qb-room-theme t-${color}">${header(`<button class="btn ghost sm" data-act="qbLeaveRoom">خروج</button>`)}
 <div class="qb-hero" style="padding:18px;color:#fff;border-radius:16px">
-  <div style="font-size:13px;opacity:.9">اللعبة الحالية</div>
-  <div class="qb-title" style="font-size:22px;margin:4px 0">${qbGameLabel(gameId)}</div>
+  <div class="row" style="justify-content:space-between;align-items:flex-start">
+    <div>
+      <div style="font-size:13px;opacity:.9">اللعبة الحالية</div>
+      <div class="qb-title" style="font-size:22px;margin:4px 0">${qbGameLabel(gameId)}</div>
+    </div>
+    <button type="button" class="qb-viewers" data-act="qbToggleViewers" title="مَن في الغرفة">👁 ${players.length}</button>
+  </div>
   <div class="qb-code" style="margin:10px 0;background:rgba(0,0,0,.2)">${esc(r.code)}</div>
-  <div style="opacity:.9;font-size:13px">${subName(r.subject)} · ${r.qCount} سؤال · ${r.sec?r.sec+"ث":"بدون وقت"} · حد ${maxP} لاعب</div>
+  <div style="opacity:.9;font-size:13px">${subName(r.subject)} · ${r.qCount} سؤال · ${r.sec?r.sec+"ث":"بدون وقت"} · حد ${maxP} لاعب · ${isPublic?"عام 🌐":"خاص 🔒"}</div>
 </div>
+${showList?`<div class="qb-viewers-panel"><b>في الغرفة دلوقتي</b>${players.map(p=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><span>${esc(p.name)}${p.uid===r.host?" 👑":""}${p.away?' <span class="qb-away-badge">(برا الغرفة)</span>':""}${p.ready?" ✓":""}</span>${isHost&&p.uid!==S.user.uid?`<button class="btn danger sm" data-act="qbKick" data-uid="${p.uid}">طرد</button>`:""}</div>`).join("")||`<div class="mut">فاضي</div>`}</div>`:""}
 ${isHost?`<div class="qb-card"><b>إعدادات المضيف 👑</b>
 <label class="f">اللعبة</label>
 <select id="qbGameSel">${Object.entries(QB_GAMES).map(([k,v])=>`<option value="${k}" ${k===gameId?"selected":""}>${v}</option>`).join("")}</select>
 <label class="f">لون الغرفة</label>
 <select id="qbColorSel">${Object.entries(QB_COLORS).map(([k,v])=>`<option value="${k}" ${k===color?"selected":""}>${v}</option>`).join("")}</select>
+<label class="f">نوع الغرفة</label>
+<select id="qbPublicSel"><option value="0" ${!isPublic?"selected":""}>خاص (بالكود/الرابط فقط)</option><option value="1" ${isPublic?"selected":""}>عام (تظهر في الغرف المفتوحة)</option></select>
 <button class="btn sm" style="margin-top:8px" data-act="qbRoomSettings">حفظ الإعدادات</button>
 </div>`:""}
+${isHost&&pending.length?`<div class="qb-card" style="border-color:var(--gold)"><b>طلبات دخول 🔔</b>${pending.map(j=>`<div class="row" style="margin-top:8px"><span>${esc(j.name||"طالب")}</span><span><button class="btn sm" data-act="qbAcceptJoin" data-uid="${j.uid}">موافق</button> <button class="btn ghost sm" data-act="qbRejectJoin" data-uid="${j.uid}">رفض</button></span></div>`).join("")}</div>`:""}
 <div class="qb-card">
 <div class="row"><b>اللاعبون (${players.length}/${maxP})</b>
-<button class="btn ghost sm" data-act="qbCopyCode">نسخ الكود</button></div>
-<div class="qb-lobby-players">${players.map(p=>`<span class="qb-chip ${p.uid===r.host?"host":""} ${p.ready?"ready":""}">${esc(p.name)}${p.uid===r.host?" 👑":""}${p.ready?" ✓":""}</span>`).join("")}</div>
+<button class="btn ghost sm" data-act="qbCopyCode">نسخ الكود</button>
+<button class="btn ghost sm" data-act="qbCopyLink">رابط مباشر</button></div>
+<div class="qb-lobby-players">${players.map(p=>`<span class="qb-chip ${p.uid===r.host?"host":""} ${p.ready?"ready":""}">${esc(p.name)}${p.uid===r.host?" 👑":""}${p.ready?" ✓":""}${p.away?' <span class="qb-away-badge">برا</span>':""}${isHost&&p.uid!==S.user.uid?` <span class="kick" data-act="qbKick" data-uid="${p.uid}" title="طرد">✕</span>`:""}</span>`).join("")}</div>
 ${!isHost?`<button class="btn block ${ (r.players[S.user.uid]||{}).ready?"ghost":"gold"}" data-act="qbReady">${(r.players[S.user.uid]||{}).ready?"إلغاء الاستعداد":"أنا جاهز ✓"}</button>`:
   `<button class="btn block gold" data-act="qbBeginMatch" ${canStart?"":"disabled"}>${canStart?"ابدأ المباراة ⚡ ("+players.length+" لاعب)":"استنى الكل يكون جاهز"}</button>`}
 </div>
 ${qbChatHtml()}
-<p class="mut" style="text-align:center">الغرفة مفتوحة لحد ما الكل يخرج</p>
+<p class="mut" style="text-align:center">الغرفة مفتوحة لحد ما الكل يخرج · لو قفلت التبويب بس هتظهر «برا» للمضيف</p>
 </div>${studentNav()}`;
 }
 
@@ -881,19 +962,73 @@ ${g.mode==="friends"&&g.roomCode?`<button class="btn block gold" data-act="qbRem
 
 
 function gamesView(){
+  const openRooms=(S.openRooms||[]).filter(r=>r.public&&r.status==="lobby");
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
-<h2>الألعاب</h2><p class="mut">راجع المنهج بطريقة تنافسية وممتعة.</p>
-<div class="qb-hero">
-  <div class="qb-crown">👑</div>
-  <div class="qb-title">تحدي الأوائل</div>
-  <div style="opacity:.85;font-size:14px">مسابقة مباشرة من أسئلة الامتحانات والتقييمات · ترتيب جديد كل مرة</div>
-  <div class="qb-modes">
-    <button class="qb-mode" data-act="qbBot"><span>🤖</span><b>ضد الروبوت</b><small style="opacity:.8">1 ضد 1</small></button>
-    <button class="qb-mode" data-act="qbFriends"><span>👥</span><b>مع الأصدقاء</b><small style="opacity:.8">غرف · أكواد</small></button>
+<h2>الألعاب</h2><p class="mut">اختار لعبة والعب ضد الروبوت، أو اعمل غرفة مع أصحابك من قسم الغرف.</p>
+
+<div class="card lift" style="border-color:color-mix(in srgb,var(--gold) 40%,var(--line))">
+  <div class="row" style="flex-wrap:nowrap;gap:14px;align-items:flex-start">
+    <div class="av" style="border-radius:16px;font-size:28px;background:linear-gradient(135deg,#E3A81C,#B45309)">👑</div>
+    <div style="flex:1">
+      <b style="font-size:17px">تحدي الأوائل</b>
+      <div class="mut">أسئلة من الامتحانات · ترتيب حي · ستريك</div>
+      <button class="btn sm gold" style="margin-top:10px" data-act="qbBot">🤖 العب ضد الروبوت</button>
+    </div>
   </div>
 </div>
-<div class="card lift"><div class="row" style="flex-wrap:nowrap;gap:14px"><div class="av" style="border-radius:16px;font-size:28px">🔫</div><div style="flex:1"><b>آخر واحد واقف</b><div class="mut">مواجهة ١ ضد ١. اجمع السلاح، وخلي بالك من المنطقة اللي بتضيق.</div></div></div>
-<a class="btn block ghost" href="last-one-standing.html" style="margin-top:12px;justify-content:center">العب</a></div>
+
+<div class="card lift">
+  <div class="row" style="flex-wrap:nowrap;gap:14px;align-items:flex-start">
+    <div class="av" style="border-radius:16px;font-size:28px">🔫</div>
+    <div style="flex:1">
+      <b style="font-size:17px">آخر واحد واقف</b>
+      <div class="mut">مواجهة ١ ضد ١ · اجمع السلاح · المنطقة بتضيق</div>
+      <a class="btn sm ghost" href="last-one-standing.html" style="margin-top:10px;display:inline-flex;align-items:center">العب الآن</a>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="background:linear-gradient(135deg,color-mix(in srgb,var(--pri) 12%,var(--card)),var(--card));border-color:var(--pri)">
+  <h3 style="margin:0 0 6px">👥 غرف الأصدقاء</h3>
+  <p class="mut" style="margin:0 0 12px">اعمل غرفة أو انضم بكود — ومن جوّه الغرفة المضيف يختار اللعبة والإعدادات.</p>
+  <div class="row" style="gap:8px">
+    <button class="btn" data-act="qbFriends">إنشاء / انضمام لغرفة</button>
+  </div>
+</div>
+
+${openRooms.length?`<div class="card"><b>الغرف المفتوحة 🌐</b><div class="mut" style="margin:4px 0 8px">انضم → المضيف يوافق أو يرفض · اللعبة تتحدد جوّه الغرفة</div>${openRooms.map(r=>{
+  const n=Object.keys(r.players||{}).length;
+  return `<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><div><b dir="ltr">${esc(r.code)}</b> · ${esc(qbGameLabel(r.game||"qb"))}<div class="mut">${subName(r.subject)} · ${n}/${r.maxPlayers||8} لاعب · ${r.public?"عام":"خاص"}</div></div><button class="btn sm" data-act="qbRequestJoin" data-code="${esc(r.code)}">انضم</button></div>`;
+}).join("")}</div>`:`<div class="card mut">مفيش غرف عامة مفتوحة — اعمل غرفة من الزر فوق.</div>`}
+
+</div>${studentNav()}`}
+
+function meView(){
+  const p=S.profile||{};
+  const av=p.avatar?`<img src="${p.avatar}" alt="" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--pri)">`:`<div class="av" style="width:72px;height:72px;font-size:28px">${esc((p.name||"؟")[0]||"?")}</div>`;
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
+<h2>حسابي</h2>
+<div class="card" style="text-align:center">${av}
+<div style="margin-top:8px"><b>${esc(p.name||"طالب")}</b></div>
+<div class="mut">${esc(p.phone||"")}</div>
+<label class="btn ghost sm" style="margin-top:10px;cursor:pointer">📷 صورة شخصية<input type="file" id="meAvatar" accept="image/*" hidden></label>
+</div>
+<div class="card"><b>تغيير الاسم</b>
+<label class="f">الاسم</label>
+<input id="meName" type="text" value="${esc(p.name||"")}" maxlength="40">
+<button class="btn sm" style="margin-top:10px" data-act="meSaveName">حفظ الاسم</button>
+</div>
+<div class="card"><b>تغيير كلمة السر</b>
+<p class="mut" style="margin:4px 0 8px">يُسمح مرة كل أسبوع، ومن جهاز سبق دخول الحساب منه. لو معاك كود استعادة من المدرس اكتبُه تحت.</p>
+<label class="f">كلمة السر الجديدة</label>
+<input id="mePw" class="ltr" type="password" autocomplete="new-password" minlength="6">
+<label class="f">تأكيد</label>
+<input id="mePw2" class="ltr" type="password" autocomplete="new-password" minlength="6">
+<label class="f">كود الاستعادة (اختياري)</label>
+<input id="meResetCode" class="ltr" type="text" maxlength="8" placeholder="من المدرس إن وُجد">
+<button class="btn sm" style="margin-top:10px" data-act="meChangePw">تغيير كلمة السر</button>
+</div>
+<button class="btn ghost block" data-act="logout">تسجيل خروج</button>
 </div>${studentNav()}`}
 
 function asmListView(){
@@ -1119,6 +1254,13 @@ function studentDetail(){
 ${shared.length?`<div class="err" style="margin-top:10px">نفس الـ IP اتستخدم في حسابات تانية: ${shared.map(x=>`<a href="#" data-act="student" data-id="${x.id}" style="color:inherit;font-weight:700">${esc(x.name)}</a>`).join("، ")}</div>`:""}</div>
 <div class="stats"><div class="card stat"><b>${rs.length}</b><span class="mut">محاولة</span></div><div class="card stat"><b>${avg==null?"-":avg+"%"}</b><span class="mut">المتوسط</span></div><div class="card stat"><b>${w.length?w.filter(r=>r.passed).length+"/"+w.length:"-"}</b><span class="mut">نجاح</span></div><div class="card stat"><b>${rs.reduce((a,r)=>a+(r.tabs||0),0)}</b><span class="mut">مرات خروج</span></div></div>
 <div class="card"><h3>ملاحظاتك الخاصة (مش بتظهر للطالب)</h3><textarea id="note" style="min-height:80px" placeholder="مثال: بيذاكر بالليل، محتاج متابعة في الرياضيات">${esc(s.note||"")}</textarea><div style="margin-top:10px"><button class="btn sm" data-act="saveNote" data-id="${s.id}">حفظ الملاحظة</button></div></div>
+<div class="card" style="border-color:var(--gold)"><h3>🔒 الأمان — إعادة تعيين كلمة السر</h3>
+<p class="mut">لو الطالب نسي كلمة السر ومش عارف يدخل: افتح <b>Firebase Console → Authentication → Users</b> وابحث عن <span dir="ltr">${esc(s.phone||"")}@eltafawoq.app</span> واضغط Reset password أو غيّرها يدوياً.</p>
+<p class="mut">أو أنشئ <b>كود استعادة</b> للطالب وهو داخل حسابه (من صفحة «أنا») عشان يتجاوز قيود الـ IP والأسبوع:</p>
+${s.pwResetCode?`<div class="err" style="background:var(--ybg);color:var(--yfg)">كود حالي: <b dir="ltr">${esc(s.pwResetCode)}</b> ${s.pwResetUntil?`· صالح لحد ${fmt(s.pwResetUntil)}`:""}</div>`:""}
+<button class="btn sm gold" data-act="adminGenReset" data-id="${s.id}">توليد كود استعادة</button>
+<button class="btn ghost sm" data-act="adminClearReset" data-id="${s.id}">مسح الكود</button>
+</div>
 <div class="card"><h3>كل نشاط الطالب</h3>${ev.length?ev.slice(0,60).map(e=>`<div class="tl"><span>${e.i}</span><span style="flex:1">${esc(e.x)}</span><span class="mut" style="white-space:nowrap">${new Date(e.t*1000).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"})}</span></div>`).join(""):`<div class="mut">لسه مفيش نشاط.</div>`}</div>
 <div class="card"><h3>سجل الدخول (آخر 30 مرة)</h3>${lg===null||lg===undefined?`<div class="sk" style="min-height:60px"></div>`:lg.length?`<div class="tw"><table><tr><th>الوقت</th><th>IP</th><th>الجهاز والمتصفح</th><th>الشاشة</th><th>المنطقة</th></tr>${lg.map(x=>`<tr><td>${fmt(x.createdAt)}</td><td dir="ltr">${esc(x.ip||"-")}</td><td>${esc(x.device||"-")}</td><td dir="ltr">${esc(x.screen||"-")}</td><td dir="ltr">${esc(x.tz||"-")}</td></tr>`).join("")}</table></div>`:`<div class="mut">مفيش سجل دخول لسه (بيتسجل من الإصدار ده).</div>`}</div>
 <div class="card"><h3>المحاولات</h3>${rs.length?`<div class="tw"><table><tr><th>الامتحان</th><th>المادة</th><th>م</th><th>الدرجة</th><th>%</th><th>النتيجة</th><th>الوقت</th><th>خروج</th><th>التاريخ</th><th></th></tr>
@@ -1243,22 +1385,29 @@ const A={
   },
   progress(){S.view="progress";render(true)},
   pauseExam(){
-    const c=S.cur;if(!c||c.done)return;
+    const c=S.cur;if(!c||c.done||c.pausing)return;
     if(!confirm("هتحفظ إجاباتك وتخرج.\nتقدر ترجع تكمل من «استئناف الامتحان» بعدين.\nالمؤقت هيفضل شغّال لو في وقت محدد.")) return;
     c.pausing=true;
-    saveExamDraft();
-    persistExamSession(c);
+    try{saveExamDraft()}catch(_){}
+    try{persistExamSession(c)}catch(_){}
     logActivity("exam_pause", c.exam.title||"");
-    clearInterval(timer);clearInterval(hb);
-    S.cur=null;S.view="home";render(true);
-    toast("اتحفظت إجاباتك — تقدر تستأنف في أي وقت");
+    clearInterval(timer);clearInterval(hb);timer=null;hb=null;
+    const sid=c.sid;
+    S.cur=null;S.view="home";
+    render(true);
+    toast("اتحفظت إجاباتك — تقدر تستأنف من صفحة المادة");
+    // keep starts doc alive so resume works
   },
   async resumeExam(){
     const meta=peekExamSession();
     if(!meta){toast("مفيش امتحان معلّق");return}
     await tryResumeExam();
     if(S.cur) logActivity("resume_exam", S.cur.exam.title||"");
-    else toast("مقدرتش أستأنف — ممكن الوقت خلص أو اتسجّل");
+    else {
+      // try once more after exams load
+      if(!S.examsLoaded){toast("استنى التحميل…");return}
+      toast("مقدرتش أستأنف — ممكن الوقت خلص أو الامتحان اتسجّل بالفعل");
+    }
   },
   openSubject(d){S.subject=d.id;S.view="subject";render(true)},
   reviewMine(d){const r=S.myList.find(x=>x.id===d.id);if(!r)return;S.review={r,back:d.back||"subject"};S.view="review";render(true)},
@@ -1274,7 +1423,81 @@ const A={
     if(S.qb&&S.qb.roomCode&&(S.view==="qbPlay"||S.view==="qbLobby"||S.view==="qbResult")){
       A.qbLeaveRoom();return;
     }
-    S.qb=null;S.view="games";logActivity("open_games","");render(true);
+    S.qb=null;S.view="games";logActivity("open_games","");
+    loadOpenRooms();
+    render(true);
+  },
+  openMe(){S.view="me";render(true)},
+  async meSaveName(){
+    const name=($("#meName")?.value||"").trim();
+    if(name.length<2){toast("الاسم قصير");return}
+    try{
+      await updateDoc(doc(db,"students",S.user.uid),{name,chatName:name.split(" ")[0]});
+      S.profile={...S.profile,name};
+      toast("اتحفظ الاسم ✓");
+      render();
+    }catch(e){toast("مقدرتش أحفظ الاسم")}
+  },
+  async meChangePw(){
+    const pw=$("#mePw")?.value||"",pw2=$("#mePw2")?.value||"";
+    const code=($("#meResetCode")?.value||"").trim();
+    if(pw.length<6){toast("كلمة السر لازم 6 على الأقل");return}
+    if(pw!==pw2){toast("التأكيد مش مطابق");return}
+    let bypass=false;
+    if(code){
+      const p=S.profile||{};
+      const until=p.pwResetUntil&&p.pwResetUntil.toMillis?p.pwResetUntil.toMillis():(typeof p.pwResetUntil==="number"?p.pwResetUntil:0);
+      if(p.pwResetCode&&String(p.pwResetCode)===code&&(!until||Date.now()<until))bypass=true;
+      else{toast("كود الاستعادة غلط أو منتهي");return}
+    }
+    if(!bypass){
+      const last=S.profile&&S.profile.pwChangedAt;
+      const lastMs=last&&last.toMillis?last.toMillis():(typeof last==="number"?last:0);
+      if(lastMs&&Date.now()-lastMs<7*24*3600*1000){
+        toast("تقدر تغيّر كلمة السر مرة كل أسبوع بس — أو اطلب كود من المدرس");return;
+      }
+      try{
+        const sn=await getDocs(query(collection(db,"students",S.user.uid,"logins"),orderBy("createdAt","desc"),limit(40)));
+        const ips=new Set(sn.docs.map(d=>(d.data().ip||"").trim()).filter(Boolean));
+        const cur=(myIp||"").trim();
+        if(cur&&ips.size&&![...ips].some(ip=>ip===cur||ip.startsWith(cur.split(".").slice(0,3).join(".")))){
+          toast("الجهاز ده مش معروف للحساب — غيّر من جهاز سبق دخوله، أو اطلب كود من المدرس");
+          return;
+        }
+      }catch(_){}
+    }
+    try{
+      await updatePassword(auth.currentUser,pw);
+      const patch={pwChangedAt:serverTimestamp()};
+      if(bypass){patch.pwResetCode=deleteField();patch.pwResetUntil=deleteField()}
+      await updateDoc(doc(db,"students",S.user.uid),patch).catch(()=>{});
+      toast("اتغيّرت كلمة السر ✓");
+      if($("#mePw"))$("#mePw").value="";
+      if($("#mePw2"))$("#mePw2").value="";
+      if($("#meResetCode"))$("#meResetCode").value="";
+    }catch(e){
+      const msg=(e&&e.code)||"";
+      if(msg.includes("requires-recent-login"))toast("سجّل خروج وادخل تاني عشان تغيّر كلمة السر");
+      else toast("فشل التغيير: "+(e.message||""));
+    }
+  },
+  async qbRequestJoin(d){
+    const code=(d.code||"").toUpperCase();
+    if(!code)return;
+    try{
+      const snap=await getDoc(doc(db,"qb_rooms",code));
+      if(!snap.exists()){toast("الغرفة مش موجودة");return}
+      const room=snap.data();
+      if(room.players&&room.players[S.user.uid]){S.qb={mode:"friends",roomCode:code};qbListenRoom(code);return}
+      if(room.status!=="lobby"){toast("المباراة شغالة — استنى تخلص");return}
+      // طلب دخول للغرف العامة
+      await updateDoc(doc(db,"qb_rooms",code),{
+        [`joinRequests.${S.user.uid}`]:{uid:S.user.uid,name:(S.profile.name||"طالب").split(" ")[0],at:Date.now()}
+      });
+      toast("اتبعت طلب الدخول — استنى موافقة المضيف");
+      S.qb={mode:"friends",roomCode:code,waitingJoin:true};
+      qbListenRoom(code);
+    }catch(e){toast("فشل الطلب")}
   },
 
   qbBot(){S.qb={mode:"bot"};S.view="qbSetup";render(true)},
@@ -1292,15 +1515,16 @@ const A={
   },
   async qbCreateRoom(){
     const subject=$("#qbSub").value, n=+$("#qbN").value||10, sec=+$("#qbT").value||0;
-    let maxPlayers=+$("#qbMax")?.value||8;
+    let maxPlayers=+$("#qbMax")?.value||6;
     if(maxPlayers<1)maxPlayers=1;if(maxPlayers>16)maxPlayers=16;
+    const isPublic=($("#qbPublicCreate")?.value==="1");
     const raw=qbPool(subject,n);
     if(raw.length<3){toast("مفيش أسئلة كفاية. انشر امتحانات أول");return}
     const code=qbCode();
     const seed=Date.now()^(Math.random()*1e9|0);
     const qs=raw.map((it,i)=>qbShuffleQ(it, seed+i*9973));
-    const room={code,host:S.user.uid,subject,qCount:n,sec,maxPlayers,status:"lobby",seed,qs,game:"qb",color:"teal",
-      players:{[S.user.uid]:{uid:S.user.uid,name:S.profile.name.split(" ")[0],ready:true,score:0,correct:0,wrong:0,streak:0,bestStreak:0}},
+    const room={code,host:S.user.uid,subject,qCount:n,sec,maxPlayers,status:"lobby",seed,qs,game:"qb",color:"teal",public:isPublic,
+      players:{[S.user.uid]:{uid:S.user.uid,name:S.profile.name.split(" ")[0],ready:true,score:0,correct:0,wrong:0,streak:0,bestStreak:0,away:false,seen:Date.now()}},
       createdAt:serverTimestamp()};
     try{
       await setDoc(doc(db,"qb_rooms",code),room);
@@ -1349,10 +1573,49 @@ const A={
     if(S.qb.room.host!==S.user.uid){toast("المضيف بس يقدر يغيّر");return}
     const game=$("#qbGameSel")?.value||"qb";
     const color=$("#qbColorSel")?.value||"teal";
+    const isPublic=($("#qbPublicSel")?.value==="1");
     try{
-      await updateDoc(doc(db,"qb_rooms",code),{game,color});
+      await updateDoc(doc(db,"qb_rooms",code),{game,color,public:isPublic});
       toast("اتحدّثت إعدادات الغرفة");
     }catch(e){toast("فشل الحفظ")}
+  },
+  qbToggleViewers(){
+    if(!S.qb)return;
+    S.qb.showViewers=!S.qb.showViewers;
+    render();
+  },
+  async qbKick(d){
+    const code=S.qb&&S.qb.roomCode;if(!code||!S.qb.room)return;
+    if(S.qb.room.host!==S.user.uid){toast("المضيف بس يقدر يطرد");return}
+    const uid=d.uid;if(!uid||uid===S.user.uid)return;
+    if(!confirm("تطرد اللاعب ده من الغرفة؟"))return;
+    try{
+      await updateDoc(doc(db,"qb_rooms",code),{[`players.${uid}`]:deleteField()});
+      toast("اتطرد اللاعب");
+    }catch(e){toast("فشل الطرد")}
+  },
+  qbCopyLink(){
+    const c=S.qb&&S.qb.room&&S.qb.room.code;if(!c)return;
+    const url=location.origin+location.pathname+"#room="+c;
+    navigator.clipboard.writeText(url).then(()=>toast("اتنسخ رابط الغرفة ✓")).catch(()=>toast(url));
+  },
+  async qbAcceptJoin(d){
+    const code=S.qb&&S.qb.roomCode;if(!code||!S.qb.room)return;
+    if(S.qb.room.host!==S.user.uid)return;
+    const uid=d.uid;const req=(S.qb.room.joinRequests||{})[uid];
+    if(!req)return;
+    try{
+      await updateDoc(doc(db,"qb_rooms",code),{
+        [`players.${uid}`]:{uid,name:req.name||"طالب",ready:false,score:0,correct:0,wrong:0,streak:0,bestStreak:0,away:false,seen:Date.now()},
+        [`joinRequests.${uid}`]:deleteField()
+      });
+      toast("وافقت على الدخول");
+    }catch(e){toast("فشل")}
+  },
+  async qbRejectJoin(d){
+    const code=S.qb&&S.qb.roomCode;if(!code||!S.qb.room)return;
+    if(S.qb.room.host!==S.user.uid)return;
+    try{await updateDoc(doc(db,"qb_rooms",code),{[`joinRequests.${d.uid}`]:deleteField()});toast("اترفض الطلب")}catch(e){toast("فشل")}
   },
   async qbChatSend(){
     const code=S.qb&&S.qb.roomCode;if(!code)return;
@@ -1493,6 +1756,24 @@ const A={
     }catch(e){toast("مقدرتش أمسح")}
   },
   async saveNote(d){try{await updateDoc(doc(db,"students",d.id),{note:$("#note").value.trim()});toast("اتحفظت الملاحظة")}catch(e){toast("مقدرتش أحفظ")}},
+  async adminGenReset(d){
+    const code=String(Math.floor(100000+Math.random()*900000));
+    const until=Date.now()+24*3600*1000;
+    try{
+      await updateDoc(doc(db,"students",d.id),{pwResetCode:code,pwResetUntil:until});
+      toast("الكود: "+code+" (صالح 24 ساعة)");
+      // refresh local
+      const st=S.students.find(x=>x.id===d.id);if(st){st.pwResetCode=code;st.pwResetUntil=until}
+      if(S.view==="studentDetail")render(true);
+    }catch(e){toast("فشل توليد الكود")}
+  },
+  async adminClearReset(d){
+    try{
+      await updateDoc(doc(db,"students",d.id),{pwResetCode:deleteField(),pwResetUntil:deleteField()});
+      const st=S.students.find(x=>x.id===d.id);if(st){delete st.pwResetCode;delete st.pwResetUntil}
+      toast("اتمسح الكود");if(S.view==="studentDetail")render(true);
+    }catch(e){toast("فشل")}
+  },
   backAdmin(){S.view="admin";render(true)},
   async start(d){
     const e=S.exams.find(x=>x.id===d.id),at=S.attempts[d.id]||[];
@@ -1653,6 +1934,24 @@ function fail(m){S.error=m;render(true)}
 const QB_GAMES={qb:"تحدي الأوائل 👑",los:"آخر واحد واقف 🧍"};
 const QB_COLORS={teal:"تركواز",purple:"بنفسجي",gold:"ذهبي",rose:"وردي",blue:"أزرق"};
 function qbGameLabel(id){return QB_GAMES[id]||QB_GAMES.qb}
+function loadOpenRooms(){
+  if(!db||S.isAdmin)return;
+  try{
+    if(window.__openRoomsUnsub){try{window.__openRoomsUnsub()}catch(_){}}
+    // بدون composite index: نجيب الغرف ونفلتر محلياً
+    window.__openRoomsUnsub=onSnapshot(query(collection(db,"qb_rooms"),limit(40)),snap=>{
+      S.openRooms=snap.docs.map(d=>({id:d.id,code:d.id,...d.data()})).filter(r=>r.public&&r.status==="lobby");
+      if(S.view==="games")render();
+    },err=>console.warn("openRooms",err));
+  }catch(e){console.warn(e)}
+}
+function qbPresence(away){
+  const code=S.qb&&S.qb.roomCode;if(!code||!S.user)return;
+  updateDoc(doc(db,"qb_rooms",code),{
+    [`players.${S.user.uid}.away`]:!!away,
+    [`players.${S.user.uid}.seen`]:Date.now()
+  }).catch(()=>{});
+}
 function qbStopChat(){if(S.qbChatSub){try{S.qbChatSub()}catch(_){} S.qbChatSub=null} S.qbChat=[]}
 function qbListenChat(code){
   qbStopChat();
@@ -1661,9 +1960,9 @@ function qbListenChat(code){
     if(S.view==="qbLobby"||S.view==="qbPlay"||S.view==="qbResult"){
       const box=$("#qbChatLog");
       if(box){
-        const wasBottom=box.scrollHeight-box.scrollTop-box.clientHeight<40;
         box.innerHTML=S.qbChat.map(m=>`<div class="qb-chat-msg"><span class="who">${esc(m.name||"?")}</span><span dir="auto">${esc(m.text||"")}</span>${m.img?`<div><img src="${m.img}" alt="" style="max-width:160px;border-radius:8px;margin-top:4px"></div>`:""}<span class="when">${m.createdAt?fmt(m.createdAt):""}</span></div>`).join("")||`<div class="mut">اكتب رسالة للغرفة…</div>`;
-        if(wasBottom||!box.dataset.ready){box.scrollTop=box.scrollHeight;box.dataset.ready="1"}
+        // دايماً انزل لآخر رسالة (زي ما طلبت)
+        requestAnimationFrame(()=>{box.scrollTop=box.scrollHeight});
       } else render();
     }
   },err=>console.warn("chat",err));
@@ -1702,6 +2001,27 @@ function qbListenRoom(code){
     const room={...snap.data(),code};
     if(!S.qb)S.qb={mode:"friends"};
     S.qb.room=room;S.qb.roomCode=code;
+    // لو مستني موافقة دخول
+    if(S.qb.waitingJoin){
+      if(room.players&&room.players[S.user.uid]){
+        S.qb.waitingJoin=false;
+        toast("اتقبلت في الغرفة ✓");
+        S.view="qbLobby";render(true);return;
+      }
+      if(!(room.joinRequests&&room.joinRequests[S.user.uid])){
+        S.qb.waitingJoin=false;S.qb=null;S.view="games";
+        toast("اترفض طلب الدخول أو الغرفة اتقفلت");
+        render(true);return;
+      }
+      // لسه مستني
+      if(S.view!=="games"){S.view="games";render()}
+      return;
+    }
+    // اتعملت طرد؟
+    if(room.players&&!room.players[S.user.uid]&&!S.qb.waitingJoin){
+      toast("اتطردت من الغرفة أو خرجت");
+      qbStopSub();S.qb=null;S.view="games";render(true);return;
+    }
     if(room.status==="lobby"){
       if(S.view!=="qbLobby"){S.view="qbLobby";render(true)}
       else render();
@@ -1894,7 +2214,14 @@ function tick(){
   const el=$("#timer");if(!el||!S.cur||!S.cur.endAt)return;
   const left=Math.max(0,Math.round((S.cur.endAt-Date.now())/1000));
   el.textContent=dur(left);
-  if(left<=0){clearInterval(timer);submitExam(true)}
+  if(left<=0){
+    clearInterval(timer);
+    // avoid double-submit / flash
+    if(S.cur&&!S.cur.done&&!S.cur.busy){
+      toast("خلص الوقت — بنسلّم الإجابات…");
+      submitExam(true);
+    }
+  }
 }
 function saveNavState(){
   if(!S.user||S.isAdmin)return;
@@ -1989,21 +2316,30 @@ async function tryResumeExam(){
     const g=await getDoc(doc(db,"starts",meta.sid));
     if(!g.exists()){clearExamSession();clearExamDraft({sid:meta.sid});return}
     const st=g.data();
-    const endAt=e.minutes?st.t+e.minutes*60000:(meta.endAt||0);
-    if(endAt&&Date.now()>=endAt+60000){ // grace 1 min
-      // expired — leave session; user can still open if attempts left via normal flow
-      clearExamSession();return;
+    // always recompute endAt from original start time so pause doesn't freeze the clock
+    const endAt=e.minutes?(st.t+e.minutes*60000):0;
+    if(endAt&&Date.now()>=endAt+90000){ // grace 90 sec after official end
+      clearExamSession();
+      toast("وقت الامتحان خلص وما عادش ينفع استئناف");
+      return;
     }
-    S.cur={exam:e,n:meta.n,sid:meta.sid,st,endAt,done:false,busy:false,away:false,tabs:meta.tabs||0,answered:st.answered||0,order:buildOrder(e,st.seed||meta.seed)};
+    S.cur={exam:e,n:meta.n,sid:meta.sid,st,endAt,done:false,busy:false,away:false,pausing:false,tabs:meta.tabs||0,answered:st.answered||0,order:buildOrder(e,st.seed||meta.seed)};
     S.view="exam";render(true);
-    setTimeout(loadExamDraft, 80);
-    clearInterval(timer);clearInterval(hb);
+    setTimeout(loadExamDraft, 100);
+    clearInterval(timer);clearInterval(hb);timer=null;hb=null;
     hb=setInterval(()=>liveUpdate({answered:S.cur?S.cur.answered:0,away:S.cur?S.cur.away:false}),60000);
     liveUpdate({away:false});
-    if(endAt){tick();timer=setInterval(tick,1000)}
+    if(endAt){
+      if(Date.now()>=endAt){
+        // time already over — auto submit after short moment so draft loads first
+        setTimeout(()=>{if(S.cur&&!S.cur.done){toast("خلص الوقت — بنسلّم…");submitExam(true)}},600);
+      }else{
+        tick();timer=setInterval(tick,1000);
+      }
+    }
     toast("كمّلنا الامتحان من حيث وقفت ✓");
     persistExamSession(S.cur);
-  }catch(err){console.error(err)}
+  }catch(err){console.error(err);toast("فشل الاستئناف — جرّب تاني")}
 }
 function readExamAnsFromDOM(){
   const c=S.cur;if(!c)return[];
@@ -2094,7 +2430,15 @@ async function submitExam(auto){
     score,total,passMark:e.passMark||0,passed:e.passMark>0?score>=e.passMark:null,ans,secs:Math.round((Date.now()-c.st.t)/1000),tabs:c.tabs};
   try{
     await setDoc(doc(db,"results",c.sid),{...rec,createdAt:serverTimestamp()});
-  }catch(err){c.done=false;if(btn)btn.disabled=false;toast("مقدرتش أسجّل النتيجة. اتأكد من النت ودوس تسليم تاني.");return}
+  }catch(err){
+    c.done=false;if(btn)btn.disabled=false;
+    console.error("submitExam",err);
+    const code=(err&&err.code)||"";
+    if(code.includes("permission-denied"))toast("مفيش صلاحية لتسجيل النتيجة — تأكد إن قواعد Firestore محدّثة وإن المحاولة 1 أو 2");
+    else if(code.includes("unavailable")||code.includes("network"))toast("مفيش نت كويس — دوس تسليم تاني");
+    else toast("مقدرتش أسجّل النتيجة. اتأكد من النت ودوس تسليم تاني.");
+    return;
+  }
   deleteDoc(doc(db,"starts",c.sid)).catch(()=>{});
   clearExamDraft(c);
   clearExamSession();
@@ -2134,8 +2478,27 @@ function leave(){
   if(c.tabs<=10)addDoc(collection(db,"alerts"),{uid:S.user.uid,name:S.profile.name,phone:S.profile.phone,examId:c.exam.id,examTitle:c.exam.title,attempt:c.n,count:c.tabs,createdAt:serverTimestamp()}).catch(()=>{});
 }
 function back(){const c=S.cur;if(S.view==="exam"&&c&&!c.done&&c.away){c.away=false;liveUpdate({away:false})}}
-document.addEventListener("visibilitychange",()=>{if(document.hidden)leave();else back()});
-window.addEventListener("blur",leave);window.addEventListener("focus",back);
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden){
+    leave();
+    if(S.qb&&S.qb.roomCode) qbPresence(true);
+  }else{
+    back();
+    if(S.qb&&S.qb.roomCode) qbPresence(false);
+  }
+});
+window.addEventListener("blur",()=>{leave();if(S.qb&&S.qb.roomCode)qbPresence(true)});
+window.addEventListener("focus",()=>{back();if(S.qb&&S.qb.roomCode)qbPresence(false)});
+// خروج كامل من المتصفح → حاول تطلع من الغرفة
+window.addEventListener("pagehide",()=>{
+  if(S.qb&&S.qb.roomCode&&S.user){
+    try{
+      const code=S.qb.roomCode;
+      // best-effort; may not complete on mobile
+      updateDoc(doc(db,"qb_rooms",code),{[`players.${S.user.uid}`]:deleteField()}).catch(()=>{});
+    }catch(_){}
+  }
+});
 
 /* ---------- المحرر ---------- */
 function checkQs(){
@@ -2185,6 +2548,20 @@ document.addEventListener("change",e=>{
           text:"📷 صورة",img:data,createdAt:serverTimestamp()
         });
         toast("اتبعتت الصورة");
+      }catch(err){toast("فشل رفع الصورة")}
+    })();
+  }
+  if(e.target.id==="meAvatar"&&e.target.files&&e.target.files[0]&&S.user){
+    const f=e.target.files[0];e.target.value="";
+    (async()=>{
+      try{
+        if(!/^image\//.test(f.type)||f.size>3*1024*1024){toast("صورة فقط وأقل من 3MB");return}
+        const data=await packImage(f);
+        if(data.length>500000){toast("الصورة كبيرة — صغّرها");return}
+        await updateDoc(doc(db,"students",S.user.uid),{avatar:data});
+        S.profile={...S.profile,avatar:data};
+        toast("اتحفظت الصورة ✓");
+        if(S.view==="me")render(true);
       }catch(err){toast("فشل رفع الصورة")}
     })();
   }
