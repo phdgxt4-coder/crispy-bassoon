@@ -275,14 +275,16 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 .tk-meta .preview{color:var(--mut);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tk-time{font-size:11px;color:var(--mut);flex-shrink:0}
 .tk-badge{background:var(--bad);color:#fff;border-radius:99px;min-width:20px;height:20px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0 6px}
-.tk-thread{display:flex;flex-direction:column;height:calc(100vh - 140px);min-height:420px}
-.tk-log{flex:1;overflow-y:auto;padding:8px 0;display:flex;flex-direction:column;gap:8px}
+.tk-thread{display:flex;flex-direction:column;min-height:40vh;padding-bottom:8px}
+.tk-log{flex:1;overflow-y:auto;padding:8px 0 16px;display:flex;flex-direction:column;gap:8px;max-height:calc(100vh - 280px);min-height:200px}
 .tk-bubble{max-width:78%;padding:10px 12px;border-radius:16px;font-size:15px;line-height:1.45;word-break:break-word}
 .tk-bubble.me{align-self:flex-start;background:var(--pri);color:var(--onpri);border-bottom-right-radius:4px}
 .tk-bubble.them{align-self:flex-end;background:var(--sel);border-bottom-left-radius:4px}
 .tk-bubble .when{display:block;font-size:10px;opacity:.7;margin-top:4px}
-.tk-compose{display:flex;gap:6px;align-items:center;padding:8px 0;border-top:1px solid var(--line);background:var(--bg);position:sticky;bottom:0}
-.tk-compose input{flex:1}
+.tk-compose{display:flex;gap:8px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:16px;background:var(--card);box-shadow:var(--sh);position:fixed;bottom:72px;left:12px;right:12px;z-index:45;max-width:696px;margin:0 auto}
+.tk-compose input{flex:1;border:0;background:transparent;padding:8px 4px}
+.tk-compose input:focus{outline:none;box-shadow:none}
+.chat-wrap{padding-bottom:150px !important}
 .voice-bar{position:fixed;inset-inline:16px;bottom:90px;z-index:80;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--sh);text-align:center}
 .voice-bar .rec-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--bad);animation:pulse 1s infinite;margin-left:6px}
 @keyframes pulse{50%{opacity:.35}}
@@ -562,9 +564,30 @@ function groupAttempts(list){
   Object.values(m).forEach(a=>a.sort((x,y)=>(x.attempt||1)-(y.attempt||1)));
   return m;
 }
+
+function detectClientType(){
+  try{
+    if(window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone)return "app";
+  }catch(_){}
+  return "web";
+}
+async function pingClientPresence(){
+  if(!S.user||S.isAdmin)return;
+  try{
+    const t=detectClientType();
+    await setDoc(doc(db,"students",S.user.uid),{
+      clientType:t,
+      lastSeenAt:serverTimestamp(),
+      lastClientAt:serverTimestamp()
+    },{merge:true});
+  }catch(e){console.warn("presence",e)}
+}
+
 async function startSession(u){
   stopSubs();
-  S.user=u;S.isAdmin=u.email===ADMIN_EMAIL;S.adminLogin=false;S.error="";
+  S.user=u;
+  pingClientPresence();
+S.isAdmin=u.email===ADMIN_EMAIL;S.adminLogin=false;S.error="";
   try{
     if(S.isAdmin){
       S.view="admin";S.tab="dash";
@@ -1148,8 +1171,8 @@ function installBanner(){
   if(standalone)return `<div class="install-banner"><span>✓</span><div style="flex:1"><b>تطبيق التفوق</b><div class="mut">شغّال كتطبيق — تحديثاتك توصل تلقائي</div></div></div>`;
   return `<div class="install-banner">
     <span style="font-size:28px">📲</span>
-    <div style="flex:1"><b>ثبّت تطبيق التفوق</b><div class="mut">تثبيت على الشاشة أو تحميل APK لأندرويد</div></div>
-    <button class="btn sm gold" data-act="installApp">تثبيت / APK</button>
+    <div style="flex:1"><b>حمّل تطبيق التفوق</b><div class="mut">أندرويد — ملف APK للتثبيت المباشر</div></div>
+    <button class="btn sm gold" data-act="installApp">⬇ تحميل APK</button>
   </div>`;
 }
 
@@ -1188,7 +1211,7 @@ ${tab==="dms"?`
 function chatThreadView(){
   const t=S.chatThread;if(!t)return chatListView();
   const msgs=S.chatMsgs||[];
-  return `<div class="wrap" style="padding-bottom:12px">${header(`<button class="btn ghost sm" data-act="openChats">رجوع</button>`)}
+  return `<div class="wrap chat-wrap">${header(`<button class="btn ghost sm" data-act="openChats">رجوع</button>`)}
 <div class="row" style="margin-bottom:8px;gap:10px;align-items:center">
   <button type="button" data-act="openProfile" data-uid="${t.uid}" style="background:none;border:0;padding:0;cursor:pointer">
     ${t.avatar?`<img class="tk-av" src="${t.avatar}" alt="" style="width:44px;height:44px">`:`<div class="tk-av letter" style="width:44px;height:44px;font-size:16px">${esc((t.name||"?")[0])}</div>`}
@@ -1208,13 +1231,13 @@ function chatThreadView(){
       <span class="when">${m.createdAt?fmt(m.createdAt):""}</span>
     </div>`;
   }).join(""):`<div class="mut" style="text-align:center;margin:auto">قول سلام 👋</div>`}</div>
-  <form class="tk-compose" data-submit="dmSend">
-    <button type="button" class="btn ghost sm" data-act="dmVoice" title="تسجيل">🎙</button>
-    <label class="btn ghost sm" style="margin:0;cursor:pointer">🖼<input type="file" id="dmImg" accept="image/*" hidden></label>
-    <input id="dmIn" type="text" maxlength="2000" placeholder="رسالة…" autocomplete="off">
-    <button class="btn sm" type="submit">➤</button>
-  </form>
 </div>
+<form class="tk-compose" data-submit="dmSend">
+  <button type="button" class="btn ghost sm" data-act="dmVoice" title="تسجيل صوت">🎙</button>
+  <label class="btn ghost sm" style="margin:0;cursor:pointer" title="صورة">🖼<input type="file" id="dmImg" accept="image/*" hidden></label>
+  <input id="dmIn" type="text" maxlength="2000" placeholder="اكتب رسالة…" autocomplete="off">
+  <button class="btn sm" type="submit">➤</button>
+</form>
 </div>${studentNav()}`;
 }
 
@@ -1348,12 +1371,12 @@ const NOW=()=>Date.now();
 const liveActive=()=>S.starts.filter(x=>NOW()-(x.seen||x.t)<150000);
 function adminView(){
   const t=S.tab;
-  const tabs=[["dash","الرئيسية"],["live","مباشر"],["activity","نشاط المنصة"],["exams","الامتحانات"],["asm","التقييمات"],["fadaye7","فضايح 😂"],["students","الطلاب"],["results","النتايج"],["alerts","التنبيهات"],["settings","الإعدادات"]];
+  const tabs=[["dash","الرئيسية"],["live","مباشر"],["status","حالة المنصة"],["activity","نشاط المنصة"],["exams","الامتحانات"],["asm","التقييمات"],["fadaye7","فضايح 😂"],["students","الطلاب"],["results","النتايج"],["alerts","التنبيهات"],["settings","الإعدادات"]];
   const bd={results:S.unread,alerts:S.unreadAlerts,live:liveActive().length};
   return `<div class="wrap wide">${header(`${pill("أدمن","i")}<button class="btn ghost sm" data-act="logout">خروج</button>`)}
 ${S.site.maintenance?`<div class="err" style="margin:0 0 12px">وضع الصيانة شغّال. الطلاب شايفين "المنصة تحت التعديل".</div>`:""}
 <div class="tabs">${tabs.map(([k,v])=>`<button class="tab ${t===k?"on":""}" data-act="tab" data-id="${k}">${v}${bd[k]?`<span class="badge">${bd[k]}</span>`:""}</button>`).join("")}</div>
-${({dash:adminDash,live:adminLive,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,students:adminStudents,results:adminResults,alerts:adminAlerts,settings:adminSettings}[t])()}
+${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,students:adminStudents,results:adminResults,alerts:adminAlerts,settings:adminSettings}[t])()}
 ${t==="exams"?`<button class="fab" data-act="newExam" aria-label="امتحان جديد">+</button>`:""}</div>`}
 const chart=(days,vals,cls)=>{const mx=Math.max(1,...vals);return `<div class="bars">${vals.map((v,i)=>`<div>${v||""}<i class="${cls||""}" style="height:${Math.max(3,v/mx*68)}%"></i><span>${days[i].l}</span></div>`).join("")}</div>`};
 
@@ -1387,6 +1410,32 @@ function adminActivity(){
     :`<div class="mut">لسه مفيش نشاط مسجّل. هيظهر هنا أول ما الطلاب يتحركوا على المنصة.</div>`}
   </div>`;
 }
+
+function adminPlatformStatus(){
+  const st=S.students||[];
+  const app=st.filter(s=>s.clientType==="app");
+  const web=st.filter(s=>s.clientType==="web");
+  const unk=st.filter(s=>!s.clientType);
+  const row=(s)=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)">
+    <span style="flex:1"><b>${esc(s.name||"?")}</b><div class="mut" dir="ltr">${esc(s.phone||"")}</div></span>
+    <span>${s.clientType==="app"?pill("📱 تطبيق","g"):s.clientType==="web"?pill("🌐 موقع","i"):pill("؟","y")}</span>
+    <span class="mut" style="font-size:11px">${s.lastClientAt||s.lastSeenAt?fmt(s.lastClientAt||s.lastSeenAt):"—"}</span>
+  </div>`;
+  return `<div class="card"><h3 style="margin-top:0">حالة المنصة</h3>
+  <p class="mut">مين فاتح من التطبيق المثبت ومين من المتصفح/الموقع</p>
+  <div class="stats" style="margin-top:12px">
+    <div class="stat card"><b>${app.length}</b><span class="mut">من التطبيق 📱</span></div>
+    <div class="stat card"><b>${web.length}</b><span class="mut">من الموقع 🌐</span></div>
+    <div class="stat card"><b>${unk.length}</b><span class="mut">غير محدد</span></div>
+    <div class="stat card"><b>${st.length}</b><span class="mut">كل الطلاب</span></div>
+  </div></div>
+  <div class="card"><h3>من التطبيق</h3>${app.length?app.map(row).join(""):`<div class="mut">لسه محدش فتح من التطبيق</div>`}</div>
+  <div class="card"><h3>من الموقع</h3>${web.length?web.map(row).join(""):`<div class="mut">مفيش</div>`}</div>
+  <div class="card"><h3>كل الطلاب (آخر ظهور)</h3>
+  ${[...st].sort((a,b)=>tsMs(b.lastClientAt||b.lastSeenAt)-tsMs(a.lastClientAt||a.lastSeenAt)).map(row).join("")||`<div class="mut">مفيش طلاب</div>`}
+  </div>`;
+}
+
 function adminDash(){
   const st=stats(),days=lastDays(14),tk=todayKey();
   const regs=days.map(d=>S.students.filter(x=>x.createdAt&&x.createdAt.seconds&&dkey(x.createdAt.seconds)===d.k).length);
@@ -1761,30 +1810,31 @@ const A={
     render(true);
   },
   chatTab(d){S.chatTab=d.id||"dms";if(S.chatTab==="groups")loadMyGroups();render(true)},
-  async installApp(){
-    // 1) تثبيت PWA فوري لو المتصفح يدعم
-    if(window.__deferredPrompt){
-      window.__deferredPrompt.prompt();
-      const r=await window.__deferredPrompt.userChoice;
-      window.__deferredPrompt=null;
-      toast(r&&r.outcome==="accepted"?"تم التثبيت ✓ — افتح أيقونة التفوق من شاشتك":"تم الإلغاء");
-      return;
-    }
+    async installApp(){
     if(window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone){
-      toast("التطبيق شغال بالفعل كتطبيق ✓");return;
+      toast("التطبيق شغال بالفعل ✓");return;
     }
     const ua=navigator.userAgent||"";
     if(/iPad|iPhone|iPod/.test(ua)){
-      toast("آيفون: زر مشاركة ⬆ ← «إضافة إلى الشاشة الرئيسية»",true);return;
+      toast("آيفون مفيش APK — مشاركة ⬆ ثم «إضافة إلى الشاشة الرئيسية»",true);return;
     }
-    // 2) أندرويد بدون beforeinstallprompt: تعليمات + رابط بناء APK
-    const site=location.origin+location.pathname.replace(/index\.html.?$/,"");
-    const ok=confirm("تثبيت سريع من المتصفح:\nمن القائمة ⋮ اختار «تثبيت التطبيق» أو «Add to Home screen».\n\nلو عايز ملف APK حقيقي:\nموافق = فتح موقع بناء APK (PWA Builder)\nإلغاء = أكتفي بتعليمات المتصفح");
-    if(ok){
+    // تنزيل APK من مجلد الموقع app/eltafawoq.apk (زي المواقع العادية)
+    const base=location.href.split("#")[0].replace(/index\.html$/i,"");
+    const apkUrl=new URL("app/eltafawoq.apk", base.endsWith("/")?base:base.replace(/\/[^/]*$/,"/") ).href;
+    try{
+      const head=await fetch(apkUrl,{method:"HEAD",cache:"no-store"});
+      if(head.ok){
+        const a=document.createElement("a");
+        a.href=apkUrl;a.download="eltafawoq.apk";a.rel="noopener";
+        document.body.appendChild(a);a.click();a.remove();
+        toast("جاري تنزيل APK… افتح الملف من التنزيلات وثبّته",true);
+        return;
+      }
+    }catch(_){}
+    const build=confirm("ملف APK لسه مش مرفوع على السيرفر.\n\nموافق = فتح أداة بناء APK مجانًا\nبعد التحميل ارفع الملف على GitHub: app/eltafawoq.apk");
+    if(build){
       window.open("https://www.pwabuilder.com/reportcard?site="+encodeURIComponent(location.href.split("#")[0]),"_blank","noopener");
-      toast("من PWA Builder: Package → Android → Generate",true);
-    }else{
-      toast("كروم: ⋮ ← «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية»",true);
+      toast("PWA Builder → Package → Android → Download → ارفع app/eltafawoq.apk",true);
     }
   },
   async startChat(d){
@@ -2799,7 +2849,7 @@ ${list.length?list.map(g=>`<button type="button" class="card row" data-act="open
 }
 function groupThreadView(){
   const msgs=S.groupMsgs||[];
-  return `<div class="wrap" style="padding-bottom:12px">${header(`<button class="btn ghost sm" data-act="openChats">رجوع</button>`)}
+  return `<div class="wrap chat-wrap">${header(`<button class="btn ghost sm" data-act="openChats">رجوع</button>`)}
 <div class="row" style="margin-bottom:8px">
   <div style="flex:1"><b style="font-size:18px">${esc(S.groupName||"جروب")}</b></div>
   <button class="btn ghost sm" data-act="addToGroup">＋ عضو</button>
@@ -2809,17 +2859,19 @@ function groupThreadView(){
     const mine=m.fromUid===S.user.uid;
     return `<div class="tk-bubble ${mine?"me":"them"}">
       ${!mine?`<div style="font-size:11px;opacity:.8">${esc(m.fromName||"?")}</div>`:""}
-      ${m.text&&m.kind!=="audio"?`<div dir="auto">${esc(m.text)}</div>`:""}
+      ${m.text&&m.kind!=="audio"&&m.kind!=="image"?`<div dir="auto">${esc(m.text)}</div>`:""}
       ${m.img?mediaEmbed(m.img,m.kind):""}
       <span class="when">${m.createdAt?fmt(m.createdAt):""}</span>
     </div>`;
-  }).join(""):`<div class="mut" style="text-align:center;margin:auto">اول رسالة في الجروب…</div>`}</div>
-  <form class="tk-compose" data-submit="groupSend">
-    <button type="button" class="btn ghost sm" data-act="groupVoice">🎙</button>
-    <input id="grpIn" type="text" maxlength="2000" placeholder="رسالة للجروب…">
-    <button class="btn sm" type="submit">➤</button>
-  </form>
-</div></div>${studentNav()}`;
+  }).join(""):`<div class="mut" style="text-align:center;margin:auto">اول رسالة في الجروب… اكتب تحت 👇</div>`}</div>
+</div>
+<form class="tk-compose" data-submit="groupSend">
+  <button type="button" class="btn ghost sm" data-act="groupVoice" title="تسجيل صوت">🎙</button>
+  <label class="btn ghost sm" style="margin:0;cursor:pointer" title="صورة">🖼<input type="file" id="grpImg" accept="image/*" hidden></label>
+  <input id="grpIn" type="text" maxlength="2000" placeholder="اكتب رسالة…" autocomplete="off">
+  <button class="btn sm" type="submit">➤</button>
+</form>
+</div>${studentNav()}`;
 }
 
 async function uploadMedia(file, path){
@@ -3566,6 +3618,22 @@ document.addEventListener("change",e=>{
           uid:S.user.uid,name:(S.profile.name||"طالب").split(" ")[0],
           text:"🖼 صورة",img:data,kind:"image",createdAt:serverTimestamp()
         });
+        toast("اتبعتت ✓");
+      }catch(err){console.error(err);toast("فشل رفع الصورة")}
+    })();
+  }
+  if(e.target.id==="grpImg"&&e.target.files&&e.target.files[0]&&S.groupId){
+    const f=e.target.files[0];e.target.value="";
+    (async()=>{
+      try{
+        if(!/^image\//.test(f.type)){toast("صورة فقط");return}
+        toast("جاري رفع الصورة…");
+        const data=await packImage(f,900,0.82,750000);
+        await addDoc(collection(db,"groups",S.groupId,"msgs"),{
+          fromUid:S.user.uid,fromName:(S.profile.name||"طالب").split(" ")[0],
+          text:"🖼 صورة",img:data,kind:"image",createdAt:serverTimestamp()
+        });
+        await updateDoc(doc(db,"groups",S.groupId),{lastText:"🖼 صورة",updatedAt:serverTimestamp()});
         toast("اتبعتت ✓");
       }catch(err){console.error(err);toast("فشل رفع الصورة")}
     })();
