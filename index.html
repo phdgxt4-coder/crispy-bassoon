@@ -543,9 +543,13 @@ async function startSession(u){
       },err=>console.warn("activity",err)));
       subs.push(onSnapshot(collection(db,"qb_rooms"),s=>{
         S.adminRooms=s.docs.map(d=>({id:d.id,code:d.id,...d.data()}));
-        if(S.view==="admin"&&S.tab==="activity")render();
+        if(S.view==="admin"&&(S.tab==="activity"||S.tab==="live"))render();
       },err=>console.warn("adminRooms",err)));
-      const iv=setInterval(()=>{if(S.view==="admin"&&S.tab==="live")render()},20000);subs.push(()=>clearInterval(iv));
+      subs.push(onSnapshot(query(collection(db,"conversations"),limit(50)),s=>{
+        S.adminConvs=s.docs.map(d=>({id:d.id,...d.data()}));
+        if(S.view==="admin"&&S.tab==="live")render();
+      },err=>console.warn("adminConvs",err)));
+      const iv=setInterval(()=>{if(S.view==="admin"&&S.tab==="live")render()},15000);subs.push(()=>clearInterval(iv));
     }else{
       const p=await getDoc(doc(db,"students",u.uid));
       S.profile=p.exists()?p.data():{name:"طالب",phone:""};
@@ -1346,9 +1350,25 @@ function adminLive(){
 <div class="mut">${esc(r.examTitle||"")} · محاولة ${r.n}${r.left!=null?" · باقي "+dur(r.left):""}</div>
 <div class="hb" style="margin:6px 0"><i style="width:${r.total?Math.round((r.answered||0)/r.total*100):0}%;background:var(--pri)"></i></div>
 <div class="mut">جاوب ${r.answered||0} من ${r.total||"؟"} · 📱 ${esc(r.device||"؟")} · IP ${esc(r.ip||"؟")} · آخر ظهور ${Math.max(0,Math.round((n-(r.seen||r.t))/1000))} ث</div></div>`;
-  return `<p class="mut">بيتحدّث لحظيًا. الطالب بيظهر هنا من أول ما يبدأ الامتحان لحد ما يسلّم.</p>
-<h3>شغالين دلوقتي (${act.length})</h3>${act.length?act.map(row).join(""):`<div class="card mut">مفيش حد بيمتحن دلوقتي.</div>`}
-${old.length?`<h3 style="margin-top:18px">اتقطع اتصالهم (${old.length})</h3>${old.map(row).join("")}`:""}`}
+  const rooms=(S.adminRooms||[]).filter(r=>r.status==="lobby"||r.status==="playing");
+  const chats=(S.adminConvs||[]).filter(c=>n-tms(c.updatedAt||c.lastAt)*1000<10*60000);
+  return `<p class="mut">صورة حية للمنصة: امتحانات · غرف · محادثات.</p>
+<h3>🟢 بيمتحنوا دلوقتي (${act.length})</h3>${act.length?act.map(row).join(""):`<div class="card mut">مفيش حد بيمتحن دلوقتي.</div>`}
+<h3 style="margin-top:18px">🎮 غرف شغالة (${rooms.length})</h3>
+${rooms.length?rooms.map(r=>{
+  const pl=Object.values(r.players||{});
+  return `<div class="card"><div class="row"><div><b dir="ltr">${esc(r.code||r.id)}</b> · ${esc(qbGameLabel(r.game||"qb"))} ${r.public?"🌐 عام":"🔒 خاص"}
+  <div class="mut">${r.status==="playing"?"▶ المباراة شغالة":"لوبي"} · مضيف: ${esc(r.hostName||"—")}</div>
+  <div class="mut" style="font-size:12px">${pl.map(p=>esc(p.name)+(p.away?" (برا)":"")).join(" · ")||"فاضي"}</div></div>
+  <button class="btn danger sm" data-act="adminCloseRoom" data-code="${esc(r.code||r.id)}">اقفل الغرفة</button></div></div>`;
+}).join(""):`<div class="card mut">مفيش غرف مفتوحة.</div>`}
+<h3 style="margin-top:18px">💬 بيتكلموا دلوقتي (${chats.length})</h3>
+${chats.length?chats.map(c=>{
+  const names=c.names||{};
+  const ps=(c.participants||[]).map(u=>names[u]||u.slice(0,6)).join(" ↔ ");
+  return `<div class="card"><b>${esc(ps)}</b><div class="mut">${esc(c.lastText||"…")} · ${fmt(c.lastAt||c.updatedAt)}</div></div>`;
+}).join(""):`<div class="card mut">مفيش محادثات نشطة في آخر 10 دقايق.</div>`}
+${old.length?`<h3 style="margin-top:18px">⚪ امتحان — انقطع الاتصال (${old.length})</h3>${old.map(row).join("")}`:""}`}
 function adminExams(){
   return `<div class="row" style="margin-bottom:12px"><div class="mut">${S.exams.length} امتحان</div><button class="btn" data-act="newExam">امتحان جديد</button></div>
 ${S.exams.length?S.exams.map(e=>{const n=S.results.filter(r=>r.examId===e.id).length;return `<div class="card"><div class="row"><div><b>${esc(e.title)}</b> ${pill(subName(e.subject))} ${pill(e.published?(e.publishAt&&!vis(e)?"مجدول":"ظاهر للطلاب"):"مخفي",e.published?(e.publishAt&&!vis(e)?"i":"g"):"y")}
@@ -1846,6 +1866,14 @@ const A={
     S.qb.showViewers=!S.qb.showViewers;
     render();
   },
+  async adminCloseRoom(d){
+    const code=d.code;if(!code||!S.isAdmin)return;
+    if(!confirm("تقفل الغرفة "+code+" وتطرد الكل؟"))return;
+    try{
+      await deleteDoc(doc(db,"qb_rooms",code));
+      toast("اتقفلت الغرفة "+code);
+    }catch(e){toast("فشل القفل: "+(e.code||e.message||""))}
+  },
   async qbKick(d){
     const code=S.qb&&S.qb.roomCode;if(!code||!S.qb.room)return;
     if(S.qb.room.host!==S.user.uid){toast("المضيف بس يقدر يطرد");return}
@@ -2224,32 +2252,43 @@ async function openDmThread(uid,name){
       names:{[S.user.uid]:(S.profile.name||"طالب").split(" ")[0],[uid]:(name||"زميل").split(" ")[0]},
       updatedAt:serverTimestamp()
     },{merge:true});
-  }catch(_){}
+  }catch(e){console.warn("conv",e);toast("تأكد من نشر قواعد Firestore الجديدة")}
   S.chatThread={uid,name:name||"زميل",avatar,convId:cid};
+  S.chatMsgs=S.chatMsgs||[];
   S.view="chatThread";
   listenDmThread(cid,uid);
   render(true);
+  logActivity("dm_open",(name||"")+" · "+uid.slice(0,6));
 }
 async function sendDm(toUid,text,img){
   const cid=convIdFor(S.user.uid,toUid);
   const payload={
     fromUid:S.user.uid,
     fromName:(S.profile.name||"طالب").split(" ")[0],
-    realName:S.profile.name||"طالب",
     toUid,
-    text:text||(img?"🖼":""),
+    text:text||(img?"🖼 صورة":""),
     createdAt:serverTimestamp(),
-    convId:cid,
     read:false
   };
   if(img)payload.img=img;
-  await addDoc(collection(db,"messages"),payload);
+  // رسالة فورية على الشاشة قبل ما توصل السيرفر
+  const local={...payload,id:"local_"+Date.now(),createdAt:{seconds:Date.now()/1000},_local:true};
+  S.chatMsgs=(S.chatMsgs||[]).concat([local]);
+  if(S.view==="chatThread"){
+    render();
+    requestAnimationFrame(()=>{const b=$("#dmChatLog");if(b)b.scrollTop=b.scrollHeight});
+  }
+  // الرسائل جوّه المحادثة (subcollection) عشان الـ rules والـ realtime يشتغلوا صح
+  await addDoc(collection(db,"conversations",cid,"msgs"),payload);
   await setDoc(doc(db,"conversations",cid),{
     participants:[S.user.uid,toUid],
     lastText:img?"🖼 صورة":(text||"").slice(0,80),
     lastAt:serverTimestamp(),
     lastFrom:S.user.uid,
-    names:{[S.user.uid]:(S.profile.name||"طالب").split(" ")[0]},
+    names:{
+      [S.user.uid]:(S.profile.name||"طالب").split(" ")[0],
+      [toUid]:(S.chatThread&&S.chatThread.uid===toUid?S.chatThread.name:"زميل")
+    },
     updatedAt:serverTimestamp()
   },{merge:true});
 }
@@ -2258,7 +2297,6 @@ function listenMyChats(){
   if(window.__chatsUnsub){try{window.__chatsUnsub()}catch(_){}}
   window.__chatsUnsub=onSnapshot(query(collection(db,"conversations"),where("participants","array-contains",S.user.uid),limit(40)),async snap=>{
     const rows=snap.docs.map(d=>({id:d.id,...d.data()}));
-    // رتّب محلياً
     rows.sort((a,b)=>tms(b.updatedAt||b.lastAt)-tms(a.updatedAt||a.lastAt));
     S.chats=await Promise.all(rows.map(async c=>{
       const otherUid=(c.participants||[]).find(u=>u!==S.user.uid);
@@ -2270,27 +2308,30 @@ function listenMyChats(){
       return {id:c.id,otherUid,otherName,otherAvatar,lastText:c.lastText,lastAt:c.lastAt||c.updatedAt,unread:0};
     }));
     if(S.view==="chatList")render();
-  },err=>console.warn("chats",err));
+  },err=>{console.warn("chats",err);toast("الشات محتاج قواعد Firestore محدّثة")});
 }
 function listenDmThread(cid,otherUid){
   if(window.__dmUnsub){try{window.__dmUnsub()}catch(_){}}
-  window.__dmUnsub=onSnapshot(query(collection(db,"messages"),where("convId","==",cid),limit(80)),snap=>{
-    let msgs=snap.docs.map(d=>({id:d.id,...d.data()}));
-    msgs.sort((a,b)=>tms(a.createdAt)-tms(b.createdAt));
+  window.__dmUnsub=onSnapshot(query(collection(db,"conversations",cid,"msgs"),orderBy("createdAt","asc"),limit(100)),snap=>{
+    const msgs=snap.docs.map(d=>({id:d.id,...d.data()}));
     S.chatMsgs=msgs;
     if(S.view==="chatThread"){
-      const box=$("#dmChatLog");
-      if(box){
-        // re-render thread body via full render is simpler
-        render();
-        requestAnimationFrame(()=>{const b=$("#dmChatLog");if(b)b.scrollTop=b.scrollHeight});
-      }else render(true);
+      render();
+      requestAnimationFrame(()=>{const b=$("#dmChatLog");if(b)b.scrollTop=b.scrollHeight});
     }
-    // علّم كمقروء
     msgs.filter(m=>m.toUid===S.user.uid&&!m.read).forEach(m=>{
-      updateDoc(doc(db,"messages",m.id),{read:true}).catch(()=>{});
+      updateDoc(doc(db,"conversations",cid,"msgs",m.id),{read:true}).catch(()=>{});
     });
-  },err=>console.warn("dm",err));
+  },err=>{
+    console.warn("dm",err);
+    // fallback بدون orderBy لو مفيش index
+    window.__dmUnsub=onSnapshot(collection(db,"conversations",cid,"msgs"),snap=>{
+      let msgs=snap.docs.map(d=>({id:d.id,...d.data()}));
+      msgs.sort((a,b)=>tms(a.createdAt)-tms(b.createdAt));
+      S.chatMsgs=msgs;
+      if(S.view==="chatThread"){render();requestAnimationFrame(()=>{const b=$("#dmChatLog");if(b)b.scrollTop=b.scrollHeight})}
+    },e2=>console.warn("dm2",e2));
+  });
 }
 function loadOpenRooms(){
   if(!db||S.isAdmin)return;
@@ -2331,8 +2372,8 @@ function qbListenChat(code){
     }
   },err=>console.warn("chat",err));
 }
-function packImage(file,maxSide,quality){
-  maxSide=maxSide||400;quality=quality==null?0.55:quality;
+function packImage(file,maxSide,quality,maxBytes){
+  maxSide=maxSide||1200;quality=quality==null?0.85:quality;maxBytes=maxBytes||900000;
   return new Promise((resolve,reject)=>{
     const r=new FileReader();
     r.onerror=()=>reject(new Error("read"));
@@ -2344,7 +2385,15 @@ function packImage(file,maxSide,quality){
         const c=document.createElement("canvas");c.width=Math.max(1,w);c.height=Math.max(1,h);
         c.getContext("2d").drawImage(img,0,0,w,h);
         let q=quality,data=c.toDataURL("image/jpeg",q);
-        while(data.length>400000&&q>0.22){q-=0.08;data=c.toDataURL("image/jpeg",q)}
+        // نقلّل الجودة تدريجي بس لو عدّينا الحد (Firestore ~1MB)
+        while(data.length>maxBytes&&q>0.4){q-=0.05;data=c.toDataURL("image/jpeg",q)}
+        if(data.length>maxBytes){
+          // صغّر الأبعاد شوية كمان
+          const c2=document.createElement("canvas");
+          c2.width=Math.round(w*0.75);c2.height=Math.round(h*0.75);
+          c2.getContext("2d").drawImage(c,0,0,c2.width,c2.height);
+          data=c2.toDataURL("image/jpeg",Math.max(0.45,q));
+        }
         resolve(data);
       };
       img.onerror=()=>reject(new Error("img"));
@@ -2916,7 +2965,7 @@ document.addEventListener("change",e=>{
       for(const f of files){
         try{
           const id="t"+Date.now()+Math.random().toString(36).slice(2,6);
-          if(/^image\//.test(f.type))ed[part].push({id,pend:true,kind:"image",name:f.name,data:await packImage(f,1600,0.88)});
+          if(/^image\//.test(f.type))ed[part].push({id,pend:true,kind:"image",name:f.name,data:await packImage(f,2000,0.92,950000)});
           else if(f.type==="application/pdf"&&f.size<=5*1024*1024)ed[part].push({id,pend:true,kind:"pdf",name:f.name,gid:id,b64:await readB64(f)});
           else bad++;
         }catch(err){bad++}
@@ -2933,9 +2982,12 @@ document.addEventListener("change",e=>{
         if(!/^image\//.test(f.type)){toast("اختار صورة من الملفات");return}
         if(f.size>15*1024*1024){toast("الصورة كبيرة أوي");return}
         toast("جاري رفع الصورة من جهازك…");
-        let data=await packImage(f,320,0.45);
-        if(data.length>650000) data=await packImage(f,220,0.35);
-        if(data.length>800000){toast("الصورة لسه كبيرة بعد الضغط");return}
+        const data=await packImage(f,900,0.82,750000);
+        if(data.length>900000){toast("الصورة كبيرة بعد الضغط");return}
+        const local={id:"local_"+Date.now(),uid:S.user.uid,name:(S.profile.name||"طالب").split(" ")[0],text:"🖼 صورة",img:data,createdAt:{seconds:Date.now()/1000}};
+        S.qbChat=(S.qbChat||[]).concat([local]);
+        const box=$("#qbChatLog");
+        if(box){box.innerHTML=(S.qbChat||[]).map(m=>`<div class="qb-chat-msg"><div class="qb-chat-head">${qbChatAvatar(m)}<span class="who">${esc(m.name||"?")}</span></div><div class="qb-chat-body">${esc(m.text||"")}</div>${m.img?`<div><img src="${m.img}" style="max-width:min(220px,70vw);border-radius:10px;margin-top:6px"></div>`:""}</div>`).join("");box.scrollTop=box.scrollHeight}
         await addDoc(collection(db,"qb_rooms",S.qb.roomCode,"chat"),{
           uid:S.user.uid,
           name:(S.profile.name||"طالب").split(" ")[0],
@@ -2954,23 +3006,22 @@ document.addEventListener("change",e=>{
     const f=e.target.files[0];e.target.value="";
     (async()=>{
       try{
-        if(!/^image\//.test(f.type)){toast("صورة فقط");return}
+        if(!/^image\//.test(f.type)){toast("صورة فقط من الملفات");return}
         toast("جاري رفع الصورة…");
-        let data=await packImage(f,320,0.45);
-        if(data.length>650000) data=await packImage(f,220,0.35);
-        if(data.length>800000){toast("الصورة كبيرة");return}
+        const data=await packImage(f,900,0.82,750000);
+        if(data.length>900000){toast("الصورة كبيرة");return}
         await sendDm(S.chatThread.uid,"🖼 صورة",data);
         toast("اتبعتت ✓");
-      }catch(err){console.error(err);toast("فشل إرسال الصورة")}
+      }catch(err){console.error(err);toast("فشل إرسال الصورة — انشر الـ rules الجديدة")}
     })();
   }
   if(e.target.id==="meAvatar"&&e.target.files&&e.target.files[0]&&S.user){
     const f=e.target.files[0];e.target.value="";
     (async()=>{
       try{
-        if(!/^image\//.test(f.type)||f.size>3*1024*1024){toast("صورة فقط وأقل من 3MB");return}
-        const data=await packImage(f,700,0.78);
-        if(data.length>550000){toast("الصورة كبيرة — اختار أوضح أصغر");return}
+        if(!/^image\//.test(f.type)||f.size>8*1024*1024){toast("صورة فقط");return}
+        const data=await packImage(f,1000,0.88,900000);
+        if(data.length>950000){toast("الصورة كبيرة — اختار أوضح أصغر");return}
         await updateDoc(doc(db,"students",S.user.uid),{avatar:data});
         S.profile={...S.profile,avatar:data};
         toast("اتحفظت الصورة ✓");
