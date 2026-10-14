@@ -1148,8 +1148,8 @@ function installBanner(){
   if(standalone)return `<div class="install-banner"><span>✓</span><div style="flex:1"><b>تطبيق التفوق</b><div class="mut">شغّال كتطبيق — تحديثاتك توصل تلقائي</div></div></div>`;
   return `<div class="install-banner">
     <span style="font-size:28px">📲</span>
-    <div style="flex:1"><b>ثبّت تطبيق التفوق</b><div class="mut">يفتح لوحده زي البرامج — حسابك يفضل مفتوح</div></div>
-    <button class="btn sm gold" data-act="installApp">تثبيت</button>
+    <div style="flex:1"><b>ثبّت تطبيق التفوق</b><div class="mut">تثبيت على الشاشة أو تحميل APK لأندرويد</div></div>
+    <button class="btn sm gold" data-act="installApp">تثبيت / APK</button>
   </div>`;
 }
 
@@ -1762,22 +1762,29 @@ const A={
   },
   chatTab(d){S.chatTab=d.id||"dms";if(S.chatTab==="groups")loadMyGroups();render(true)},
   async installApp(){
+    // 1) تثبيت PWA فوري لو المتصفح يدعم
     if(window.__deferredPrompt){
       window.__deferredPrompt.prompt();
       const r=await window.__deferredPrompt.userChoice;
-      window.__deferredPrompt=null;S.canInstall=false;
-      toast(r&&r.outcome==="accepted"?"تم التثبيت ✓ — افتحه من شاشتك الرئيسية":"تم الإلغاء");
-      render();
+      window.__deferredPrompt=null;
+      toast(r&&r.outcome==="accepted"?"تم التثبيت ✓ — افتح أيقونة التفوق من شاشتك":"تم الإلغاء");
       return;
     }
+    if(window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone){
+      toast("التطبيق شغال بالفعل كتطبيق ✓");return;
+    }
     const ua=navigator.userAgent||"";
-    const ios=/iPad|iPhone|iPod/.test(ua);
-    if(ios){
-      toast("آيفون: دوس مشاركة ⬆ ثم «إضافة إلى الشاشة الرئيسية»",true);
-    }else if(window.matchMedia("(display-mode: standalone)").matches){
-      toast("التطبيق مثبت بالفعل ✓");
+    if(/iPad|iPhone|iPod/.test(ua)){
+      toast("آيفون: زر مشاركة ⬆ ← «إضافة إلى الشاشة الرئيسية»",true);return;
+    }
+    // 2) أندرويد بدون beforeinstallprompt: تعليمات + رابط بناء APK
+    const site=location.origin+location.pathname.replace(/index\.html.?$/,"");
+    const ok=confirm("تثبيت سريع من المتصفح:\nمن القائمة ⋮ اختار «تثبيت التطبيق» أو «Add to Home screen».\n\nلو عايز ملف APK حقيقي:\nموافق = فتح موقع بناء APK (PWA Builder)\nإلغاء = أكتفي بتعليمات المتصفح");
+    if(ok){
+      window.open("https://www.pwabuilder.com/reportcard?site="+encodeURIComponent(location.href.split("#")[0]),"_blank","noopener");
+      toast("من PWA Builder: Package → Android → Generate",true);
     }else{
-      toast("من قائمة المتصفح ⋮ اختار «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية»",true);
+      toast("كروم: ⋮ ← «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية»",true);
     }
   },
   async startChat(d){
@@ -2298,7 +2305,7 @@ const A={
       toast("اتعمل الجروب ✓");
       S.view="groupThread";S.groupId=ref.id;S.groupName=name.trim();
       listenGroup(ref.id);render(true);
-    }catch(e){toast("فشل إنشاء الجروب — انشر الـ rules")}
+    }catch(e){console.error(e);toast("فشل الجروب: "+(e.code||e.message||"انشر rules الجديدة"))}
   },
   async addToGroup(){
     if(!S.groupId)return;
@@ -2824,6 +2831,7 @@ async function uploadMedia(file, path){
 function listenMyChats(){
   if(!S.user||S.isAdmin)return;
   if(window.__chatsUnsub){try{window.__chatsUnsub()}catch(_){}}
+  S.chats=S.chats||[];
   window.__chatsUnsub=onSnapshot(query(collection(db,"conversations"),where("participants","array-contains",S.user.uid),limit(40)),async snap=>{
     const rows=snap.docs.map(d=>({id:d.id,...d.data()}));
     rows.sort((a,b)=>tms(b.updatedAt||b.lastAt)-tms(a.updatedAt||a.lastAt));
@@ -2844,7 +2852,16 @@ function listenMyChats(){
       const nav=document.querySelector('nav.bot');
       if(nav) {/* re-render nav via full if badge needed */ if(S.unreadChat)render(); }
     }
-  },err=>{console.warn("chats",err);toast("الشات محتاج قواعد Firestore محدّثة")});
+  },err=>{
+    console.warn("chats",err);
+    const code=(err&&err.code)||"";
+    if(code==="permission-denied")
+      toast("الشات: رفض صلاحيات — انشر firestore.rules الجديدة من Firebase ثم أعد تحميل الصفحة",true);
+    else if(code==="failed-precondition")
+      toast("الشات: محتاج Index — دوس اللينك في Console إن ظهر",true);
+    else
+      toast("الشات: "+(code||err.message||"خطأ اتصال"));
+  });
 }
 function listenDmThread(cid,otherUid){
   if(window.__dmUnsub){try{window.__dmUnsub()}catch(_){}}
