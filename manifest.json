@@ -1,26 +1,42 @@
 {
+  "id": "/crispy-bassoon/",
   "name": "التفوق",
   "short_name": "التفوق",
-  "description": "منصة التفوق التعليمية",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#0C1716",
-  "theme_color": "#0B5D57",
+  "description": "منصة التفوق التعليمية — امتحانات، تقييمات، ألعاب وتواصل للطلاب",
   "lang": "ar",
   "dir": "rtl",
+  "start_url": "/crispy-bassoon/",
+  "scope": "/crispy-bassoon/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0C1716",
+  "theme_color": "#0B5D57",
+  "categories": ["education", "productivity"],
+  "prefer_related_applications": false,
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "/crispy-bassoon/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "/crispy-bassoon/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/crispy-bassoon/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/crispy-bassoon/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
