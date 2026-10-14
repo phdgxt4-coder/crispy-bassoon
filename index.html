@@ -660,7 +660,7 @@ function render(force){
     h=S.view==="editExam"?editor():S.view==="editAsm"?asmEditor():S.view==="studentDetail"?studentDetail():S.view==="review"?reviewView():adminView();
   }else if(S.profile&&S.profile.blocked){h=blockedView()}
   else{
-    const m={games:gamesView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView};
+    const m={games:gamesView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView,profile:profileView};
     h=(m[S.view]||homeView)();
   }
   app.innerHTML=h;
@@ -906,7 +906,7 @@ ${isHost&&pending.length?`<div class="qb-card" style="border-color:var(--gold)">
 <div class="row"><b>اللاعبون (${players.length}/${maxP})</b>
 <button class="btn ghost sm" data-act="qbCopyCode">نسخ الكود</button>
 <button class="btn ghost sm" data-act="qbCopyLink">رابط مباشر</button></div>
-<div class="qb-lobby-players">${players.map(p=>`<span class="qb-chip ${p.uid===r.host?"host":""} ${p.ready?"ready":""}">${esc(p.name)}${p.uid===r.host?" 👑":""}${p.ready?" ✓":""}${p.away?' <span class="qb-away-badge">برا</span>':""}${isHost&&p.uid!==S.user.uid?` <span class="kick" data-act="qbKick" data-uid="${p.uid}" title="طرد">✕</span>`:""}</span>`).join("")}</div>
+<div class="qb-lobby-players">${players.map(p=>`<span class="qb-chip ${p.uid===r.host?"host":""} ${p.ready?"ready":""}" style="cursor:pointer" data-act="openProfile" data-uid="${p.uid}">${p.avatar?`<img src="${p.avatar}" alt="" style="width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-left:4px">`:""}${esc(p.name)}${p.uid===r.host?" 👑":""}${p.ready?" ✓":""}${p.away?' <span class="qb-away-badge">برا</span>':""}${isHost&&p.uid!==S.user.uid?` <span class="kick" data-act="qbKick" data-uid="${p.uid}" title="طرد" onclick="event.stopPropagation()">✕</span>`:""}</span>`).join("")}</div>
 ${!isHost?`<button class="btn block ${ (r.players[S.user.uid]||{}).ready?"ghost":"gold"}" data-act="qbReady">${(r.players[S.user.uid]||{}).ready?"إلغاء الاستعداد":"أنا جاهز ✓"}</button>`:
   `<button class="btn block gold" data-act="qbBeginMatch" ${canStart?"":"disabled"}>${canStart?"ابدأ المباراة ⚡ ("+players.length+" لاعب)":"استنى الكل يكون جاهز"}</button>`}
 </div>
@@ -1017,6 +1017,32 @@ ${openRooms.length?`<div class="card"><b>الغرف المفتوحة 🌐</b><di
 
 </div>${studentNav()}`}
 
+function profileView(){
+  const u=S.viewProfile;
+  if(!u)return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openMe">رجوع</button>`)}<div class="card mut">مفيش ملف</div></div>${studentNav()}`;
+  if(u.loading)return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="backProfile">رجوع</button>`)}<div class="card mut">جاري تحميل الملف الشخصي…</div></div>${studentNav()}`;
+  const av=u.avatar
+    ?`<img src="${u.avatar}" alt="" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid var(--pri);box-shadow:var(--sh)">`
+    :`<div class="av" style="width:96px;height:96px;font-size:36px;margin:0 auto">${esc((u.name||"?")[0])}</div>`;
+  const phoneShow=u.phone?String(u.phone).replace(/(\d{3})\d{4}(\d{4})/,"$1****$2"):"";
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="backProfile">رجوع</button>`)}
+<div class="card" style="text-align:center;padding:24px 16px">
+  ${av}
+  <h2 style="margin:12px 0 4px">${esc(u.name||"طالب")}</h2>
+  ${phoneShow?`<div class="mut" dir="ltr">${esc(phoneShow)}</div>`:""}
+  ${u.blocked?pill("موقوف","r"):""}
+  <div class="stats" style="margin-top:18px">
+    <div class="stat card"><b>${u.rank!=null?"#"+u.rank:"—"}</b><span class="mut">الترتيب</span></div>
+    <div class="stat card"><b>${u.examsDone!=null?u.examsDone:"—"}</b><span class="mut">امتحانات</span></div>
+    <div class="stat card"><b>${u.pct!=null?u.pct+"%":"—"}</b><span class="mut">المتوسط</span></div>
+    <div class="stat card"><b>${u.totalScore!=null?u.totalScore:"—"}</b><span class="mut">نقاط</span></div>
+  </div>
+</div>
+${u.recent&&u.recent.length?`<div class="card"><h3>آخر النتائج</h3>${u.recent.map(r=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><span style="flex:1"><b dir="auto">${esc(r.examTitle||"امتحان")}</b><div class="mut">${esc(subName(r.subject)||"")}</div></span><span><b>${r.score}/${r.total}</b> ${passPill(r)}</span></div>`).join("")}</div>`:`<div class="card mut">لسه مفيش نتائج ظاهرة.</div>`}
+${u.id===S.user.uid?`<button class="btn block ghost" data-act="openMe">تعديل حسابي</button>`:""}
+</div>${studentNav()}`;
+}
+
 function meView(){
   const p=S.profile||{};
   const av=p.avatar?`<img src="${p.avatar}" alt="" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--pri)">`:`<div class="av" style="width:72px;height:72px;font-size:28px">${esc((p.name||"؟")[0]||"?")}</div>`;
@@ -1036,18 +1062,17 @@ function meView(){
 ${S.friendSearching?`<div class="mut" style="margin-top:8px">جاري البحث…</div>`:""}
 ${hits.length?hits.map(h=>{
   const av2=h.avatar?`<img src="${h.avatar}" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover">`:`<div class="av" style="width:48px;height:48px;font-size:18px">${esc((h.name||"?")[0])}</div>`;
-  return `<div class="row" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line);align-items:flex-start;gap:12px">
+  return `<button type="button" class="row" data-act="openProfile" data-uid="${h.id}" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line);align-items:flex-start;gap:12px;width:100%;background:none;border-left:0;border-right:0;border-bottom:0;text-align:start;cursor:pointer;color:inherit;font:inherit">
   ${av2}
-  <div style="flex:1"><b>${esc(h.name||"طالب")}</b>
+  <div style="flex:1"><b style="color:var(--pri)">${esc(h.name||"طالب")}</b>
   <div class="mut">${esc(h.phone||"")}</div>
   <div style="margin-top:6px;font-size:13px">
     ${h.rank?pill("الترتيب #"+h.rank,"i"):""}
     ${h.examsDone!=null?pill(h.examsDone+" امتحان","g"):""}
     ${h.pct!=null?pill(h.pct+"% متوسط","y"):""}
-    ${h.totalScore!=null?`<span class="mut"> · ${h.totalScore} نقطة</span>`:""}
   </div>
-  ${h.topSubject?`<div class="mut" style="margin-top:4px">أقوى مادة: ${esc(h.topSubject)}</div>`:""}
-  </div></div>`;
+  <div class="mut" style="font-size:12px;margin-top:4px">اضغط لفتح الملف الشخصي ←</div>
+  </div></button>`;
 }).join(""):(q&&!S.friendSearching?`<div class="mut" style="margin-top:8px">مفيش نتائج</div>`:"")}
 </div>
 <div class="card"><b>تغيير الاسم</b>
@@ -1477,6 +1502,49 @@ const A={
     render(true);
   },
   openMe(){S.view="me";S.friendHits=S.friendHits||[];render(true)},
+  backProfile(){
+    S.view=S.profileBack||"me";
+    render(true);
+  },
+  async openProfile(d){
+    const uid=d.uid;if(!uid)return;
+    S.profileBack=S.view==="profile"? (S.profileBack||"me") : S.view;
+    S.viewProfile={loading:true,id:uid};
+    S.view="profile";render(true);
+    try{
+      const [stSnap,lbSnap,resSnap]=await Promise.all([
+        getDoc(doc(db,"students",uid)),
+        getDoc(doc(db,"leaderboard",uid)).catch(()=>null),
+        getDocs(query(collection(db,"results"),where("uid","==",uid),limit(12))).catch(()=>null)
+      ]);
+      const st=stSnap.exists()?stSnap.data():{};
+      const lb=(lbSnap&&typeof lbSnap.exists==="function"&&lbSnap.exists())?lbSnap.data():{};
+      let rank=null;
+      try{
+        let board=S.board||[];
+        if(!board.length){
+          const sn=await getDocs(query(collection(db,"leaderboard"),orderBy("examsDone","desc"),limit(80)));
+          board=sn.docs.map(x=>({id:x.id,...x.data()}));S.board=board;
+        }
+        const ranked=[...board].sort((a,b)=>(b.pct||0)-(a.pct||0)||(b.examsDone||0)-(a.examsDone||0));
+        const idx=ranked.findIndex(b=>(b.uid||b.id)===uid);
+        if(idx>=0)rank=idx+1;
+      }catch(_){}
+      let recent=resSnap?resSnap.docs.map(x=>({id:x.id,...x.data()})):[];
+      recent.sort((a,b)=>tms(b)-tms(a));
+      recent=recent.slice(0,8);
+      S.viewProfile={
+        id:uid,name:st.name||lb.name||"طالب",phone:st.phone||lb.phone||"",
+        avatar:st.avatar||null,blocked:!!st.blocked,
+        examsDone:lb.examsDone,totalScore:lb.totalScore,pct:lb.pct,rank,recent
+      };
+    }catch(e){
+      console.error(e);
+      S.viewProfile={id:uid,name:"طالب",loading:false,recent:[]};
+      toast("مقدرتش أحمّل الملف");
+    }
+    if(S.view==="profile")render(true);
+  },
   async searchFriend(){
     const q=($("#friendQ")?.value||"").trim();
     S.friendQ=q;
@@ -1618,7 +1686,7 @@ const A={
       qs=raw.map((it,i)=>qbShuffleQ(it, seed+i*9973));
     }
     const code=qbCode();
-    const av=S.profile&&S.profile.avatar?String(S.profile.avatar).slice(0,120000):"";
+    const av=await packTinyAvatar(S.profile&&S.profile.avatar);
     const room={code,host:S.user.uid,hostName:(S.profile.name||"طالب").split(" ")[0],subject,qCount:n,sec,maxPlayers,status:"lobby",seed,qs,game,color:"teal",public:isPublic,
       players:{[S.user.uid]:{uid:S.user.uid,name:S.profile.name.split(" ")[0],ready:true,score:0,correct:0,wrong:0,streak:0,bestStreak:0,away:false,seen:Date.now(),avatar:av||null}},
       createdAt:serverTimestamp()};
@@ -1642,7 +1710,7 @@ const A={
         // allow rejoin for rematch lobby conversion - treat as lobby join
       } else if(room.status!=="lobby"){toast("الغرفة مش متاحة");return}
       if(Object.keys(room.players||{}).length>=(room.maxPlayers||2) && !room.players[S.user.uid]){toast("الغرفة ممتلئة");return}
-      const av=S.profile&&S.profile.avatar?String(S.profile.avatar).slice(0,120000):"";
+      const av=await packTinyAvatar(S.profile&&S.profile.avatar);
       await updateDoc(doc(db,"qb_rooms",code),{[`players.${S.user.uid}`]:{uid:S.user.uid,name:S.profile.name.split(" ")[0],ready:false,score:0,correct:0,wrong:0,streak:0,bestStreak:0,away:false,seen:Date.now(),avatar:av||null}});
       S.qb={mode:"friends",roomCode:code,room:{...room,id:code}};
       qbListenRoom(code);
@@ -1724,10 +1792,9 @@ const A={
     if(!text)return;
     if(text.length>300){toast("الرسالة طويلة");return}
     try{
-      const av=S.profile&&S.profile.avatar?String(S.profile.avatar).slice(0,80000):"";
+      // من غير avatar في الرسالة — الصورة من players في الغرفة (عشان متكبرش الدوكيومنت)
       await addDoc(collection(db,"qb_rooms",code,"chat"),{
         uid:S.user.uid,name:(S.profile.name||"طالب").split(" ")[0],
-        avatar:av||null,
         text,createdAt:serverTimestamp()
       });
       if(inp)inp.value="";
@@ -2063,7 +2130,7 @@ function qbListenChat(code){
     if(S.view==="qbLobby"||S.view==="qbPlay"||S.view==="qbResult"){
       const box=$("#qbChatLog");
       if(box){
-        box.innerHTML=S.qbChat.map(m=>`<div class="qb-chat-msg"><div class="qb-chat-head">${qbChatAvatar(m)}<span class="who">${esc(m.name||"?")}</span><span class="when">${m.createdAt?fmt(m.createdAt):""}</span></div><div dir="auto" class="qb-chat-body">${esc(m.text||"")}</div>${m.img?`<div><img src="${m.img}" alt="" style="max-width:min(220px,70vw);border-radius:10px;margin-top:6px"></div>`:""}</div>`).join("")||`<div class="mut">اكتب رسالة للغرفة…</div>`;
+        box.innerHTML=S.qbChat.map(m=>`<div class="qb-chat-msg"><div class="qb-chat-head">${qbChatAvatar(m)}<button type="button" class="who" data-act="openProfile" data-uid="${esc(m.uid||"")}" style="background:none;border:0;padding:0;cursor:pointer;font:inherit;color:var(--pri);font-weight:700">${esc(m.name||"?")}</button><span class="when">${m.createdAt?fmt(m.createdAt):""}</span></div><div dir="auto" class="qb-chat-body">${esc(m.text||"")}</div>${m.img?`<div><img src="${m.img}" alt="" style="max-width:min(220px,70vw);border-radius:10px;margin-top:6px" loading="lazy"></div>`:""}</div>`).join("")||`<div class="mut">اكتب رسالة للغرفة…</div>`;
         requestAnimationFrame(()=>{box.scrollTop=box.scrollHeight});
       } else render();
     }
@@ -2079,17 +2146,32 @@ function packImage(file,maxSide,quality){
       img.onload=()=>{
         let w=img.width,h=img.height;
         if(w>maxSide||h>maxSide){const s=Math.min(maxSide/w,maxSide/h);w=Math.round(w*s);h=Math.round(h*s)}
-        const c=document.createElement("canvas");c.width=w;c.height=h;
+        const c=document.createElement("canvas");c.width=Math.max(1,w);c.height=Math.max(1,h);
         c.getContext("2d").drawImage(img,0,0,w,h);
         let q=quality,data=c.toDataURL("image/jpeg",q);
-        // صغّر أكتر لو لسه كبيرة (حد Firestore ~1MB)
-        while(data.length>450000&&q>0.25){q-=0.1;data=c.toDataURL("image/jpeg",q)}
+        while(data.length>400000&&q>0.22){q-=0.08;data=c.toDataURL("image/jpeg",q)}
         resolve(data);
       };
       img.onerror=()=>reject(new Error("img"));
       img.src=r.result;
     };
     r.readAsDataURL(file);
+  });
+}
+/** صورة بروفايل مصغّرة للغرف (مش بنحط الأصلية عشان متتفخّش وثيقة الغرفة) */
+function packTinyAvatar(dataUrl){
+  return new Promise(resolve=>{
+    if(!dataUrl||typeof dataUrl!=="string"||!dataUrl.startsWith("data:")){resolve("");return}
+    const img=new Image();
+    img.onload=()=>{
+      const side=56;const c=document.createElement("canvas");c.width=side;c.height=side;
+      const ctx=c.getContext("2d");
+      const s=Math.min(img.width,img.height);const sx=(img.width-s)/2,sy=(img.height-s)/2;
+      ctx.drawImage(img,sx,sy,s,s,0,0,side,side);
+      resolve(c.toDataURL("image/jpeg",0.55));
+    };
+    img.onerror=()=>resolve("");
+    img.src=dataUrl;
   });
 }
 function qbChatAvatar(m){
@@ -2102,7 +2184,7 @@ function qbChatAvatar(m){
 }
 function qbChatHtml(){
   const msgs=S.qbChat||[];
-  return `<div class="qb-chat"><div class="qb-chat-log" id="qbChatLog">${msgs.length?msgs.map(m=>`<div class="qb-chat-msg"><div class="qb-chat-head">${qbChatAvatar(m)}<span class="who">${esc(m.name||"?")}</span><span class="when">${m.createdAt?fmt(m.createdAt):""}</span></div><div dir="auto" class="qb-chat-body">${esc(m.text||"")}</div>${m.img?`<div><img src="${m.img}" alt="" style="max-width:min(220px,70vw);border-radius:10px;margin-top:6px"></div>`:""}</div>`).join(""):`<div class="mut">الشات فوري — اكتب ورسالتك توصل للجميع حالاً</div>`}</div>
+  return `<div class="qb-chat"><div class="qb-chat-log" id="qbChatLog">${msgs.length?msgs.map(m=>`<div class="qb-chat-msg"><div class="qb-chat-head">${qbChatAvatar(m)}<button type="button" class="who" data-act="openProfile" data-uid="${esc(m.uid||"")}" style="background:none;border:0;padding:0;cursor:pointer;font:inherit;color:var(--pri);font-weight:700">${esc(m.name||"?")}</button><span class="when">${m.createdAt?fmt(m.createdAt):""}</span></div><div dir="auto" class="qb-chat-body">${esc(m.text||"")}</div>${m.img?`<div><img src="${m.img}" alt="" style="max-width:min(220px,70vw);border-radius:10px;margin-top:6px" loading="lazy"></div>`:""}</div>`).join(""):`<div class="mut">الشات فوري — اكتب ورسالتك توصل للجميع حالاً</div>`}</div>
 <form class="qb-chat-form" data-submit="qbChatSend"><input id="qbChatIn" type="text" maxlength="300" placeholder="اكتب رسالة…" autocomplete="off"><button class="btn sm" type="submit">إرسال</button>
 <label class="btn ghost sm" style="margin:0;cursor:pointer;flex-shrink:0">📷<input type="file" id="qbChatImg" accept="image/*" capture="environment" hidden></label>
 </form></div>`;
@@ -2654,18 +2736,26 @@ document.addEventListener("change",e=>{
     (async()=>{
       try{
         if(!/^image\//.test(f.type)){toast("اختار صورة فقط");return}
-        if(f.size>8*1024*1024){toast("الصورة كبيرة أوي — اختار أصغر من 8MB");return}
-        toast("جاري رفع الصورة…");
-        const data=await packImage(f,360,0.5);
-        if(data.length>900000){toast("الصورة لسه كبيرة بعد التصغير — جرّب صورة أوضح أصغر");return}
-        const av=S.profile&&S.profile.avatar?String(S.profile.avatar).slice(0,60000):"";
+        if(f.size>12*1024*1024){toast("الصورة كبيرة أوي");return}
+        toast("جاري تصغير ورفع الصورة…");
+        // ضغط قوي: Firestore حدّ 1MB للدوكيومنت — الصورة لوحدها بدون avatar
+        let data=await packImage(f,280,0.42);
+        if(data.length>700000) data=await packImage(f,200,0.35);
+        if(data.length>850000){toast("الصورة لسه كبيرة — اختار صورة أوضح أصغر");return}
         await addDoc(collection(db,"qb_rooms",S.qb.roomCode,"chat"),{
-          uid:S.user.uid,name:(S.profile.name||"طالب").split(" ")[0],
-          avatar:av||null,
-          text:"📷 صورة",img:data,createdAt:serverTimestamp()
+          uid:S.user.uid,
+          name:(S.profile.name||"طالب").split(" ")[0],
+          text:"📷",
+          img:data,
+          createdAt:serverTimestamp()
         });
         toast("اتبعتت الصورة ✓");
-      }catch(err){console.error(err);toast("فشل رفع الصورة — جرّب صورة أصغر")}
+      }catch(err){
+        console.error("chat img",err);
+        const msg=(err&&err.code)||"";
+        if(String(msg).includes("size")||String(err.message||"").includes("longer"))toast("الصورة كبيرة على السيرفر — جرّب أصغر");
+        else toast("فشل رفع الصورة — جرّب تاني أو صورة أصغر");
+      }
     })();
   }
   if(e.target.id==="meAvatar"&&e.target.files&&e.target.files[0]&&S.user){
