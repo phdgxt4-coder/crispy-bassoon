@@ -285,6 +285,11 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 .tk-compose input{flex:1;border:0;background:transparent;padding:8px 4px}
 .tk-compose input:focus{outline:none;box-shadow:none}
 .chat-wrap{padding-bottom:150px !important}
+.chat-jump{position:fixed;bottom:140px;left:50%;transform:translateX(-50%);z-index:46;background:var(--pri);color:var(--onpri);border:0;border-radius:999px;padding:10px 16px;font:inherit;font-weight:700;box-shadow:var(--sh);cursor:pointer;display:flex;align-items:center;gap:6px}
+.chat-jump .n{background:var(--bad);color:#fff;border-radius:99px;min-width:20px;height:20px;font-size:12px;display:inline-flex;align-items:center;justify-content:center;padding:0 6px}
+.grp-add-panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px;box-shadow:var(--sh)}
+.grp-add-panel .hit{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:start;font:inherit;color:inherit;cursor:pointer}
+
 .voice-bar{position:fixed;inset-inline:16px;bottom:90px;z-index:80;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--sh);text-align:center}
 .voice-bar .rec-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--bad);animation:pulse 1s infinite;margin-left:6px}
 @keyframes pulse{50%{opacity:.35}}
@@ -741,6 +746,15 @@ function render(force){
     h=(m[S.view]||homeView)();
   }
   app.innerHTML=h;
+  if(S.view==="chatThread"||S.view==="groupThread"){
+    bindChatScroll();
+    if(S.chatStickBottom!==false)scrollChatBottom(false);
+  }else{
+    const j=document.getElementById("chatJumpBtn");if(j)j.remove();
+  }
+  // live search while typing in group add
+  const gq=$("#grpAddQ");
+  if(gq&&!gq._bound){gq._bound=true;gq.addEventListener("input",()=>{clearTimeout(window.__grpAddT);window.__grpAddT=setTimeout(()=>{if(typeof A!=="undefined"&&A.searchGrpAdd)A.searchGrpAdd()},280)})}
   if(force&&app.firstElementChild)app.firstElementChild.classList.add("screen");
   if(S.view==="result"&&!S.isAdmin&&S.user)runResult();
   if(S.view==="editExam")bindEditor();
@@ -2354,28 +2368,54 @@ const A={
       });
       toast("اتعمل الجروب ✓");
       S.view="groupThread";S.groupId=ref.id;S.groupName=name.trim();
+      S.chatStickBottom=true;S.groupMsgs=[];
       listenGroup(ref.id);render(true);
+      setTimeout(()=>scrollChatBottom(true),100);
     }catch(e){console.error(e);toast("فشل الجروب: "+(e.code||e.message||"انشر rules الجديدة"))}
   },
-  async addToGroup(){
+  addToGroup(){
     if(!S.groupId)return;
-    const q=prompt("اسم أو رقم العضو:");
-    if(!q||q.trim().length<2)return;
+    S.grpAddOpen=true;S.grpAddQ="";S.grpAddHits=[];
+    render(true);
+  },
+  async searchGrpAdd(){
+    const q=($("#grpAddQ")?.value||"").trim();
+    S.grpAddQ=q;
+    if(q.length<2){S.grpAddHits=[];render();return}
     try{
-      const sn=await getDocs(query(collection(db,"students"),limit(100)));
-      const ql=q.trim().toLowerCase();
-      const hit=sn.docs.map(d=>({id:d.id,...d.data()})).find(s=>s.id!==S.user.uid&&((s.name||"").toLowerCase().includes(ql)||(s.phone||"").includes(q.trim())));
-      if(!hit){toast("مش لاقي العضو");return}
+      const sn=await getDocs(query(collection(db,"students"),limit(120)));
+      const ql=q.toLowerCase();
+      const members=new Set((S.groupMembers||[]));
+      // لو مش حافظين الأعضاء نجيب الجروب
+      try{
+        const g=await getDoc(doc(db,"groups",S.groupId));
+        if(g.exists())S.groupMembers=g.data().members||[];
+      }catch(_){}
+      const mem=new Set(S.groupMembers||[]);
+      S.grpAddHits=sn.docs.map(d=>({id:d.id,...d.data()}))
+        .filter(s=>s.id!==S.user.uid && !mem.has(s.id) && (((s.name||"").toLowerCase().includes(ql))||(s.phone||"").includes(q)))
+        .slice(0,20);
+      render();
+    }catch(e){toast("فشل البحث")}
+  },
+  async pickGrpAdd(d){
+    if(!S.groupId||!d.uid)return;
+    try{
       const g=await getDoc(doc(db,"groups",S.groupId));
       if(!g.exists())return;
       const members=[...(g.data().members||[])];
-      if(members.includes(hit.id)){toast("موجود بالفعل");return}
-      members.push(hit.id);
-      const memberNames={...(g.data().memberNames||{}),[hit.id]:hit.name||"طالب"};
+      if(members.includes(d.uid)){toast("موجود بالفعل");return}
+      members.push(d.uid);
+      const memberNames={...(g.data().memberNames||{}),[d.uid]:d.name||"طالب"};
       await updateDoc(doc(db,"groups",S.groupId),{members,memberNames,updatedAt:serverTimestamp()});
-      toast("اتضاف "+(hit.name||""));
+      S.groupMembers=members;
+      S.grpAddHits=(S.grpAddHits||[]).filter(x=>x.id!==d.uid);
+      toast("اتضاف "+(d.name||"")+" ✓",true);
+      render();
     }catch(e){toast("فشل الإضافة")}
   },
+  closeGrpAdd(){S.grpAddOpen=false;S.grpAddHits=[];render()},
+
   async groupSend(){
     const inp=$("#grpIn");const text=(inp&&inp.value||"").trim();
     if(!text||!S.groupId)return;
@@ -2386,6 +2426,7 @@ const A={
       });
       if(inp)inp.value="";
       await updateDoc(doc(db,"groups",S.groupId),{lastText:text.slice(0,80),updatedAt:serverTimestamp()});
+      S.chatStickBottom=true;scrollChatBottom(true);
     }catch(e){toast("فشل الإرسال")}
   },
   async groupVoice(){
@@ -2400,7 +2441,9 @@ const A={
   },
   openGroup(d){
     S.groupId=d.id;S.groupName=d.name||"جروب";
+    S.chatStickBottom=true;S.chatNewBelow=0;S.groupMsgs=[];
     S.view="groupThread";listenGroup(d.id);render(true);
+    setTimeout(()=>scrollChatBottom(true),100);
   },
   qbInviteFromLobby(){
     if(!S.qb)return;
@@ -2722,6 +2765,7 @@ async function openDmThread(uid,name){
   }catch(e){console.warn("conv",e);toast("تأكد من نشر قواعد Firestore الجديدة")}
   S.chatThread={uid,name:name||"زميل",avatar,convId:cid};
   S.chatMsgs=S.chatMsgs||[];
+  S.chatStickBottom=true;S.chatNewBelow=0;
   S.view="chatThread";
   try{await updateDoc(doc(db,"conversations",cid),{[`readBy.${S.user.uid}`]:serverTimestamp()})}catch(_){}
   listenDmThread(cid,uid);
@@ -2742,9 +2786,10 @@ async function sendDm(toUid,text,img,extra){
   if(extra)Object.assign(payload,extra);
   const local={...payload,id:"local_"+Date.now(),createdAt:{seconds:Date.now()/1000},_local:true};
   S.chatMsgs=(S.chatMsgs||[]).concat([local]);
+  S.chatStickBottom=true;
   if(S.view==="chatThread"){
     render();
-    requestAnimationFrame(()=>{const b=$("#dmChatLog");if(b)b.scrollTop=b.scrollHeight});
+    scrollChatBottom(true);
   }
   await addDoc(collection(db,"conversations",cid,"msgs"),payload);
   await setDoc(doc(db,"conversations",cid),{
@@ -2831,10 +2876,15 @@ function loadMyGroups(){
 function listenGroup(gid){
   if(window.__grpUnsub){try{window.__grpUnsub()}catch(_){}}
   window.__grpUnsub=onSnapshot(query(collection(db,"groups",gid,"msgs"),limit(80)),snap=>{
+    const prev=(S.groupMsgs||[]).length;
     let msgs=snap.docs.map(d=>({id:d.id,...d.data()}));
     msgs.sort((a,b)=>tsMs(a.createdAt)-tsMs(b.createdAt));
     S.groupMsgs=msgs;
-    if(S.view==="groupThread")render();
+    if(S.view==="groupThread"){
+      render();
+      bindChatScroll();
+      onChatMsgsUpdate(prev,msgs.length);
+    }
   },err=>console.warn("grp msgs",err));
 }
 function groupsView(){
@@ -2849,11 +2899,21 @@ ${list.length?list.map(g=>`<button type="button" class="card row" data-act="open
 }
 function groupThreadView(){
   const msgs=S.groupMsgs||[];
+  const addPanel=S.grpAddOpen?`<div class="grp-add-panel">
+  <div class="row" style="margin-bottom:8px"><b style="flex:1">إضافة عضو</b><button class="btn ghost sm" data-act="closeGrpAdd">إغلاق</button></div>
+  <input id="grpAddQ" type="text" maxlength="40" placeholder="اكتب حرفين من الاسم أو الرقم…" value="${esc(S.grpAddQ||"")}" autocomplete="off">
+  <button class="btn sm" style="margin-top:8px" data-act="searchGrpAdd">بحث</button>
+  ${(S.grpAddHits||[]).length?(S.grpAddHits.map(s=>{
+    const av=s.avatar?`<img class="tk-av" src="${s.avatar}" style="width:40px;height:40px">`:`<div class="tk-av letter" style="width:40px;height:40px;font-size:14px">${esc((s.name||"?")[0])}</div>`;
+    return `<button type="button" class="hit" data-act="pickGrpAdd" data-uid="${s.id}" data-name="${esc(s.name||"")}">${av}<div style="flex:1;text-align:start"><b>${esc(s.name||"?")}</b><div class="mut" dir="ltr">${esc(s.phone||"")}</div></div><span class="btn sm">إضافة</span></button>`;
+  }).join("")):(S.grpAddQ&&S.grpAddQ.length>=2?`<div class="mut" style="margin-top:8px">مفيش نتائج</div>`:`<div class="mut" style="margin-top:8px">اكتب حرفين على الأقل</div>`)}
+</div>`:"";
   return `<div class="wrap chat-wrap">${header(`<button class="btn ghost sm" data-act="openChats">رجوع</button>`)}
 <div class="row" style="margin-bottom:8px">
   <div style="flex:1"><b style="font-size:18px">${esc(S.groupName||"جروب")}</b></div>
   <button class="btn ghost sm" data-act="addToGroup">＋ عضو</button>
 </div>
+${addPanel}
 <div class="tk-thread">
   <div class="tk-log" id="grpLog">${msgs.length?msgs.map(m=>{
     const mine=m.fromUid===S.user.uid;
@@ -2915,26 +2975,85 @@ function listenMyChats(){
       toast("الشات: "+(code||err.message||"خطأ اتصال"));
   });
 }
+
+function chatLogEl(){
+  if(S.view==="chatThread")return $("#dmChatLog");
+  if(S.view==="groupThread")return $("#grpLog");
+  return null;
+}
+function isNearBottom(el,px){
+  if(!el)return true;
+  return (el.scrollHeight-el.scrollTop-el.clientHeight)<(px||80);
+}
+function scrollChatBottom(force){
+  const el=chatLogEl();
+  if(!el)return;
+  const go=()=>{el.scrollTop=el.scrollHeight};
+  requestAnimationFrame(()=>requestAnimationFrame(go));
+  setTimeout(go,50);
+  setTimeout(go,200);
+  if(force){S.chatStickBottom=true;S.chatNewBelow=0}
+}
+function bindChatScroll(){
+  const el=chatLogEl();
+  if(!el||el._chatBound)return;
+  el._chatBound=true;
+  el.addEventListener("scroll",()=>{
+    S.chatStickBottom=isNearBottom(el,100);
+    if(S.chatStickBottom){S.chatNewBelow=0;const j=$("#chatJumpBtn");if(j)j.remove()}
+  },{passive:true});
+}
+function showChatJump(n){
+  if($("#chatJumpBtn")){
+    const b=$("#chatJumpBtn .n");if(b&&n)b.textContent=String(n);
+    return;
+  }
+  const btn=document.createElement("button");
+  btn.type="button";btn.id="chatJumpBtn";btn.className="chat-jump";
+  btn.innerHTML=`↓ رسائل جديدة${n?` <span class="n">${n}</span>`:""}`;
+  btn.onclick=()=>{scrollChatBottom(true);btn.remove()};
+  document.body.appendChild(btn);
+}
+function onChatMsgsUpdate(prevLen,newLen){
+  const el=chatLogEl();
+  const added=Math.max(0,(newLen||0)-(prevLen||0));
+  // أول فتح أو لازق تحت → انزل
+  if(S.chatStickBottom!==false || !el || (prevLen||0)===0){
+    S.chatStickBottom=true;
+    scrollChatBottom(true);
+    const j=$("#chatJumpBtn");if(j)j.remove();
+    return;
+  }
+  if(added>0 && !isNearBottom(el,100)){
+    S.chatNewBelow=(S.chatNewBelow||0)+added;
+    showChatJump(S.chatNewBelow);
+  }else{
+    scrollChatBottom(false);
+  }
+}
+
 function listenDmThread(cid,otherUid){
   if(window.__dmUnsub){try{window.__dmUnsub()}catch(_){}}
   window.__dmUnsub=onSnapshot(query(collection(db,"conversations",cid,"msgs"),orderBy("createdAt","asc"),limit(100)),snap=>{
+    const prev=(S.chatMsgs||[]).length;
     const msgs=snap.docs.map(d=>({id:d.id,...d.data()}));
     S.chatMsgs=msgs;
     if(S.view==="chatThread"){
       render();
-      requestAnimationFrame(()=>{const b=$("#dmChatLog");if(b)b.scrollTop=b.scrollHeight});
+      bindChatScroll();
+      onChatMsgsUpdate(prev,msgs.length);
     }
     msgs.filter(m=>m.toUid===S.user.uid&&!m.read).forEach(m=>{
       updateDoc(doc(db,"conversations",cid,"msgs",m.id),{read:true}).catch(()=>{});
     });
   },err=>{
     console.warn("dm",err);
-    // fallback بدون orderBy لو مفيش index
     window.__dmUnsub=onSnapshot(collection(db,"conversations",cid,"msgs"),snap=>{
+      const prev=(S.chatMsgs||[]).length;
       let msgs=snap.docs.map(d=>({id:d.id,...d.data()}));
       msgs.sort((a,b)=>tms(a.createdAt)-tms(b.createdAt));
       S.chatMsgs=msgs;
-      if(S.view==="chatThread"){render();requestAnimationFrame(()=>{const b=$("#dmChatLog");if(b)b.scrollTop=b.scrollHeight})}
+      if(S.view==="chatThread"){render();bindChatScroll();onChatMsgsUpdate(prev,msgs.length)}
     },e2=>console.warn("dm2",e2));
   });
 }
