@@ -1148,7 +1148,7 @@ function chatThreadView(){
     return `<div class="qb-chat-msg" style="${mine?"align-self:flex-start;background:var(--sel);border-radius:12px;padding:8px 10px;max-width:85%":"align-self:flex-end;background:color-mix(in srgb,var(--pri) 18%,var(--card));border-radius:12px;padding:8px 10px;max-width:85%"}">
       ${!mine?`<span class="who">${esc(m.fromName||"")}</span>`:""}
       <div dir="auto">${esc(m.text||"")}</div>
-      ${m.img?(`/^https?:\/\//.test(m.img)&&/\.(mp4|webm|mov)(\?|$)/i.test(m.img)||m.kind==="video"?`<div><video src="${m.img}" controls playsinline style="max-width:min(240px,75vw);border-radius:8px;margin-top:4px"></video></div>`:`<div><img src="${m.img}" alt="" style="max-width:min(200px,70vw);border-radius:8px;margin-top:4px" loading="lazy"></div>`):""}
+      ${m.img?mediaEmbed(m.img,m.kind):""}
       ${m.roomCode?`<div style="margin-top:6px"><button class="btn sm gold" data-act="qbJoinInvite" data-code="${esc(m.roomCode)}">دخول الغرفة ${esc(m.roomCode)}</button></div>`:""}
       <span class="when">${m.createdAt?fmt(m.createdAt):""}</span>
     </div>`;
@@ -1156,7 +1156,8 @@ function chatThreadView(){
   <form class="qb-chat-form" data-submit="dmSend">
     <input id="dmIn" type="text" maxlength="2000" placeholder="اكتب رسالة…" autocomplete="off">
     <button class="btn sm" type="submit">إرسال</button>
-    <label class="btn ghost sm" style="margin:0;cursor:pointer;flex-shrink:0" title="صورة أو فيديو">📎<input type="file" id="dmImg" accept="image/*,video/*" hidden></label>
+    <label class="btn ghost sm" style="margin:0;cursor:pointer;flex-shrink:0" title="صورة من الجهاز">🖼<input type="file" id="dmImg" accept="image/*" hidden></label>
+    <button type="button" class="btn ghost sm" style="margin:0;flex-shrink:0" data-act="dmSendLink" title="رابط فيديو">🔗</button>
   </form>
 </div>
 </div>${studentNav()}`;
@@ -1194,12 +1195,12 @@ function fadaye7View(){
   const list=S.fadaye7||[];
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
 <h2>فضايح 😂</h2>
-<p class="mut">لقطات وصور وفيديوهات من الأدمن — بجودة عالية</p>
+<p class="mut">لقطات وصور وفيديوهات من الأدمن</p>
 ${list.length?list.map(f=>`<div class="card">
   <b>${esc(f.title||"فضيحة")}</b>
   <div class="mut" style="margin:4px 0 8px">${fmt(f.createdAt)}</div>
-  ${f.url?(f.kind==="video"?`<video src="${esc(f.url)}" controls playsinline style="width:100%;max-height:420px;border-radius:12px;background:#000"></video>`:`<img src="${esc(f.url)}" alt="" style="width:100%;max-height:480px;object-fit:contain;border-radius:12px" loading="lazy">`):`<div class="mut">مفيش ميديا</div>`}
-</div>`).join(""):`<div class="card mut">لسه مفيش فضايح. الأدمن هيرفع قريب 👀</div>`}
+  ${f.url?mediaEmbed(f.url,f.kind):`<div class="mut">مفيش ميديا</div>`}
+</div>`).join(""):`<div class="card mut">لسه مفيش فضايح. الأدمن هينزل قريب 👀</div>`}
 </div>${studentNav()}`;
 }
 
@@ -1362,18 +1363,20 @@ function adminFadaye7(){
   return `<div class="row" style="margin-bottom:12px"><div class="mut">${list.length} فضيحة 😂</div></div>
 <div class="card">
   <h3 style="margin-top:0">إضافة فضيحة جديدة</h3>
-  <p class="mut">الأدمن بس يقدر يرفع. الصور والفيديوهات بتترفع بجودة عالية على Storage.</p>
+  <p class="mut">صور: ارفع من الجهاز · فيديو: الصق رابط (يوتيوب / Drive / رابط مباشر) — من غير Storage.</p>
   <label class="f">عنوان / تعليق</label>
   <input id="fadTitle" type="text" placeholder="مثال: لما أحمد نسي الكود…" maxlength="120">
-  <label class="f">صورة أو فيديو</label>
-  <input id="fadFile" type="file" accept="image/*,video/*">
-  <button class="btn" style="margin-top:12px" data-act="addFadaye7">رفع ونشر</button>
+  <label class="f">صورة من الجهاز (اختياري)</label>
+  <input id="fadFile" type="file" accept="image/*">
+  <label class="f">أو رابط فيديو / صورة (يوتيوب، Drive، mp4…)</label>
+  <input id="fadLink" class="ltr" type="url" placeholder="https://youtube.com/… أو https://…">
+  <button class="btn" style="margin-top:12px" data-act="addFadaye7">نشر</button>
 </div>
-${list.length?list.map(f=>`<div class="card"><div class="row"><div style="flex:1"><b>${esc(f.title||"فضيحة")}</b>
+${list.length?list.map(f=>`<div class="card"><div class="row" style="align-items:flex-start"><div style="flex:1"><b>${esc(f.title||"فضيحة")}</b>
 <div class="mut">${fmt(f.createdAt)} · ${f.kind==="video"?"🎬 فيديو":"🖼 صورة"}</div>
-${f.url?(f.kind==="video"?`<video src="${esc(f.url)}" controls style="max-width:100%;max-height:280px;border-radius:12px;margin-top:8px"></video>`:`<img src="${esc(f.url)}" alt="" style="max-width:100%;max-height:280px;border-radius:12px;margin-top:8px;object-fit:contain">`):""}
+${mediaEmbed(f.url,f.kind)}
 </div>
-<button class="btn danger sm" data-act="delFadaye7" data-id="${f.id}">حذف</button></div></div>`).join(""):`<div class="card mut">لسه مفيش فضايح — ارفع أول واحدة 😂</div>`}`}
+<button class="btn danger sm" data-act="delFadaye7" data-id="${f.id}">حذف</button></div></div>`).join(""):`<div class="card mut">لسه مفيش فضايح — انشر أول واحدة 😂</div>`}`}
 
 const fileList=(arr,part)=>arr.length?arr.map(f=>`<span class="thumb">${f.kind==="image"?`<img src="${f.data}" alt="">`:"📄"} ${esc((f.name||"").slice(0,22))} <button type="button" class="btn danger sm" style="min-height:28px;padding:0 8px" data-act="delFile" data-part="${part}" data-id="${f.id}" data-gid="${f.gid}" data-kind="${f.kind}">✕</button></span>`).join(""):`<span class="mut">مفيش ملفات مرفوعة.</span>`;
 function asmEditor(){
@@ -2066,20 +2069,59 @@ const A={
   async addFadaye7(){
     if(!S.isAdmin)return;
     const title=($("#fadTitle")?.value||"").trim()||"فضيحة";
+    const link=($("#fadLink")?.value||"").trim();
     const file=$("#fadFile")?.files?.[0];
-    if(!file){toast("اختار صورة أو فيديو");return}
+    if(!file&&!link){toast("ارفع صورة أو الصق رابط فيديو/صورة");return}
     try{
-      toast("جاري الرفع بجودة عالية…");
-      const isVid=/^video\//.test(file.type);
-      const url=await uploadMedia(file, "fadaye7/"+Date.now()+"_"+(file.name||"media").replace(/[^\w.\u0600-\u06FF-]/g,"_"));
+      let url="", kind="image";
+      if(link){
+        if(!/^https?:\/\//i.test(link)){toast("الرابط لازم يبدأ بـ http");return}
+        url=link;
+        kind=(ytId(link)||/\.(mp4|webm|mov)(\?|$)/i.test(link)||/youtube|youtu\.be|vimeo|drive\.google/i.test(link))?"video":"image";
+      }else if(file){
+        if(!/^image\//.test(file.type)){toast("من الجهاز: صور فقط — الفيديو بالرابط");return}
+        toast("جاري تجهيز الصورة…");
+        url=await packImage(file,1600,0.9,900000);
+        kind="image";
+      }
       await addDoc(collection(db,"fadaye7"),{
-        title, url, kind:isVid?"video":"image",
+        title, url, kind,
         createdAt:serverTimestamp(), published:true
       });
       if($("#fadTitle"))$("#fadTitle").value="";
       if($("#fadFile"))$("#fadFile").value="";
+      if($("#fadLink"))$("#fadLink").value="";
       toast("اتنشرت الفضيحة 😂",true);
-    }catch(e){console.error(e);toast("فشل الرفع: "+(e.code||e.message||"فعّل Storage rules"))}
+    }catch(e){console.error(e);toast("فشل النشر: "+(e.code||e.message||""))}
+  },
+  async dmSendLink(){
+    const t=S.chatThread;if(!t)return;
+    const link=prompt("الصق رابط الفيديو أو الصورة (يوتيوب / Drive / رابط مباشر):");
+    if(!link||!link.trim())return;
+    const u=link.trim();
+    if(!/^https?:\/\//i.test(u)){toast("رابط غير صالح");return}
+    try{
+      const kind=(ytId(u)||/\.(mp4|webm|mov)(\?|$)/i.test(u)||/youtube|youtu\.be|vimeo/i.test(u))?"video":"image";
+      await sendDm(t.uid, kind==="video"?"🎬 فيديو":"🔗 رابط", u, {kind, isLink:true});
+      toast("اتبعت الرابط ✓");
+    }catch(e){toast("فشل الإرسال")}
+  },
+  async qbSendLink(){
+    const code=S.qb&&S.qb.roomCode;if(!code)return;
+    const link=prompt("الصق رابط الفيديو أو الصورة:");
+    if(!link||!link.trim())return;
+    const u=link.trim();
+    if(!/^https?:\/\//i.test(u)){toast("رابط غير صالح");return}
+    try{
+      const kind=(ytId(u)||/\.(mp4|webm|mov)(\?|$)/i.test(u)||/youtube|youtu\.be|vimeo/i.test(u))?"video":"image";
+      await addDoc(collection(db,"qb_rooms",code,"chat"),{
+        uid:S.user.uid,name:(S.profile.name||"طالب").split(" ")[0],
+        text:kind==="video"?"🎬 فيديو":"🔗 رابط",
+        img:u, kind, isLink:true,
+        createdAt:serverTimestamp()
+      });
+      toast("اتبعت الرابط ✓");
+    }catch(e){toast("فشل الإرسال")}
   },
   async delFadaye7(d){
     if(!S.isAdmin||!d.id)return;
@@ -2523,12 +2565,35 @@ function qbListenChat(code){
     if(S.view==="qbLobby"||S.view==="qbPlay"||S.view==="qbResult"){
       const box=$("#qbChatLog");
       if(box){
-        box.innerHTML=S.qbChat.map(m=>`<div class="qb-chat-msg"><div class="qb-chat-head">${qbChatAvatar(m)}<button type="button" class="who" data-act="openProfile" data-uid="${esc(m.uid||"")}" style="background:none;border:0;padding:0;cursor:pointer;font:inherit;color:var(--pri);font-weight:700">${esc(m.name||"?")}</button><span class="when">${m.createdAt?fmt(m.createdAt):""}</span></div><div dir="auto" class="qb-chat-body">${esc(m.text||"")}</div>${m.img?((m.kind==="video"||/\.(mp4|webm|mov)(\?|$)/i.test(m.img))?`<div><video src="${m.img}" controls playsinline style="max-width:min(240px,75vw);border-radius:10px;margin-top:6px"></video></div>`:`<div><img src="${m.img}" alt="" style="max-width:min(220px,70vw);border-radius:10px;margin-top:6px" loading="lazy"></div>`):""}</div>`).join("")||`<div class="mut">اكتب رسالة للغرفة…</div>`;
+        box.innerHTML=S.qbChat.map(m=>`<div class="qb-chat-msg"><div class="qb-chat-head">${qbChatAvatar(m)}<button type="button" class="who" data-act="openProfile" data-uid="${esc(m.uid||"")}" style="background:none;border:0;padding:0;cursor:pointer;font:inherit;color:var(--pri);font-weight:700">${esc(m.name||"?")}</button><span class="when">${m.createdAt?fmt(m.createdAt):""}</span></div><div dir="auto" class="qb-chat-body">${esc(m.text||"")}</div>${m.img?mediaEmbed(m.img,m.kind):""}</div>`).join("")||`<div class="mut">اكتب رسالة للغرفة…</div>`;
         requestAnimationFrame(()=>{box.scrollTop=box.scrollHeight});
       } else render();
     }
   },err=>console.warn("chat",err));
 }
+
+function ytId(url){
+  const m=String(url||"").match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/))([A-Za-z0-9_-]{6,})/);
+  return m?m[1]:null;
+}
+/** عرض صورة / فيديو يوتيوب / رابط مباشر */
+function mediaEmbed(url, kind){
+  if(!url)return "";
+  const u=String(url);
+  const id=ytId(u);
+  if(id){
+    return `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;margin-top:8px;background:#000"><iframe src="https://www.youtube.com/embed/${id}" title="video" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`;
+  }
+  if(kind==="video"||/\.(mp4|webm|mov)(\?|$)/i.test(u)){
+    return `<video src="${esc(u)}" controls playsinline style="width:100%;max-height:420px;border-radius:12px;margin-top:8px;background:#000"></video>`;
+  }
+  if(u.startsWith("data:image")||kind==="image"||/\.(jpe?g|png|gif|webp|bmp)(\?|$)/i.test(u)){
+    return `<img src="${esc(u)}" alt="" style="width:100%;max-height:480px;object-fit:contain;border-radius:12px;margin-top:8px" loading="lazy">`;
+  }
+  // Drive أو أي رابط
+  return `<p style="margin-top:8px"><a class="btn sm" href="${esc(u)}" target="_blank" rel="noopener">فتح الرابط ↗</a></p>`;
+}
+
 function packImage(file,maxSide,quality,maxBytes){
   maxSide=maxSide||1200;quality=quality==null?0.85:quality;maxBytes=maxBytes||900000;
   return new Promise((resolve,reject)=>{
@@ -2585,9 +2650,10 @@ function qbChatAvatar(m){
 }
 function qbChatHtml(){
   const msgs=S.qbChat||[];
-  return `<div class="qb-chat"><div class="qb-chat-log" id="qbChatLog">${msgs.length?msgs.map(m=>`<div class="qb-chat-msg"><div class="qb-chat-head">${qbChatAvatar(m)}<button type="button" class="who" data-act="openProfile" data-uid="${esc(m.uid||"")}" style="background:none;border:0;padding:0;cursor:pointer;font:inherit;color:var(--pri);font-weight:700">${esc(m.name||"?")}</button><span class="when">${m.createdAt?fmt(m.createdAt):""}</span></div><div dir="auto" class="qb-chat-body">${esc(m.text||"")}</div>${m.img?((m.kind==="video"||/\.(mp4|webm|mov)(\?|$)/i.test(m.img))?`<div><video src="${m.img}" controls playsinline style="max-width:min(240px,75vw);border-radius:10px;margin-top:6px"></video></div>`:`<div><img src="${m.img}" alt="" style="max-width:min(220px,70vw);border-radius:10px;margin-top:6px" loading="lazy"></div>`):""}</div>`).join(""):`<div class="mut">الشات فوري — اكتب ورسالتك توصل للجميع حالاً</div>`}</div>
+  return `<div class="qb-chat"><div class="qb-chat-log" id="qbChatLog">${msgs.length?msgs.map(m=>`<div class="qb-chat-msg"><div class="qb-chat-head">${qbChatAvatar(m)}<button type="button" class="who" data-act="openProfile" data-uid="${esc(m.uid||"")}" style="background:none;border:0;padding:0;cursor:pointer;font:inherit;color:var(--pri);font-weight:700">${esc(m.name||"?")}</button><span class="when">${m.createdAt?fmt(m.createdAt):""}</span></div><div dir="auto" class="qb-chat-body">${esc(m.text||"")}</div>${m.img?mediaEmbed(m.img,m.kind):""}</div>`).join(""):`<div class="mut">الشات فوري — اكتب ورسالتك توصل للجميع حالاً</div>`}</div>
 <form class="qb-chat-form" data-submit="qbChatSend"><input id="qbChatIn" type="text" maxlength="300" placeholder="اكتب رسالة…" autocomplete="off"><button class="btn sm" type="submit">إرسال</button>
-<label class="btn ghost sm" style="margin:0;cursor:pointer;flex-shrink:0" title="صورة أو فيديو من الجهاز">📎<input type="file" id="qbChatImg" accept="image/*,video/*" hidden></label>
+<label class="btn ghost sm" style="margin:0;cursor:pointer;flex-shrink:0" title="صورة من الجهاز">🖼<input type="file" id="qbChatImg" accept="image/*" hidden></label>
+<button type="button" class="btn ghost sm" style="margin:0;flex-shrink:0" data-act="qbSendLink" title="رابط فيديو">🔗</button>
 </form></div>`;
 }
 function qbListenRoom(code){
@@ -3136,55 +3202,27 @@ document.addEventListener("change",e=>{
     const f=e.target.files[0];e.target.value="";
     (async()=>{
       try{
-        const isVid=/^video\//.test(f.type);
-        const isImg=/^image\//.test(f.type);
-        if(!isVid&&!isImg){toast("اختار صورة أو فيديو من الجهاز");return}
-        if(f.size>80*1024*1024){toast("الملف كبير أوي");return}
-        toast(isVid?"جاري رفع الفيديو…":"جاري رفع الصورة…");
-        let mediaUrl=null;
-        try{
-          mediaUrl=await uploadMedia(f,"roomchat/"+S.qb.roomCode+"/"+Date.now()+"_"+(f.name||"m").replace(/[^\w.\u0600-\u06FF-]/g,"_"));
-        }catch(stErr){
-          console.warn(stErr);
-          if(isVid){toast("الفيديو محتاج تفعيل Storage");return}
-          mediaUrl=await packImage(f,900,0.82,750000);
-        }
-        const local={id:"local_"+Date.now(),uid:S.user.uid,name:(S.profile.name||"طالب").split(" ")[0],text:isVid?"🎬 فيديو":"🖼 صورة",img:mediaUrl,kind:isVid?"video":"image",createdAt:{seconds:Date.now()/1000}};
-        S.qbChat=(S.qbChat||[]).concat([local]);
-        const box=$("#qbChatLog");
-        if(box){box.scrollTop=box.scrollHeight}
+        if(!/^image\//.test(f.type)){toast("صورة فقط — للفيديو استخدم زر 🔗 رابط");return}
+        toast("جاري رفع الصورة…");
+        const data=await packImage(f,900,0.82,750000);
         await addDoc(collection(db,"qb_rooms",S.qb.roomCode,"chat"),{
           uid:S.user.uid,name:(S.profile.name||"طالب").split(" ")[0],
-          text:isVid?"🎬 فيديو":"🖼 صورة",img:mediaUrl,kind:isVid?"video":"image",
-          createdAt:serverTimestamp()
+          text:"🖼 صورة",img:data,kind:"image",createdAt:serverTimestamp()
         });
         toast("اتبعتت ✓");
-      }catch(err){
-        console.error("chat media",err);
-        toast("فشل الرفع — جرّب ملف أصغر أو فعّل Storage");
-      }
+      }catch(err){console.error(err);toast("فشل رفع الصورة")}
     })();
   }
   if(e.target.id==="dmImg"&&e.target.files&&e.target.files[0]&&S.chatThread){
     const f=e.target.files[0];e.target.value="";
     (async()=>{
       try{
-        const isVid=/^video\//.test(f.type);
-        const isImg=/^image\//.test(f.type);
-        if(!isVid&&!isImg){toast("اختار صورة أو فيديو");return}
-        if(f.size>80*1024*1024){toast("الملف كبير أوي (حد 80MB)");return}
-        toast(isVid?"جاري رفع الفيديو…":"جاري رفع الصورة…");
-        let mediaUrl=null, kind=isVid?"video":"image";
-        try{
-          mediaUrl=await uploadMedia(f,"chat/"+S.user.uid+"/"+Date.now()+"_"+(f.name||"m").replace(/[^\w.\u0600-\u06FF-]/g,"_"));
-        }catch(stErr){
-          console.warn("storage",stErr);
-          if(isVid){toast("الفيديو محتاج Firebase Storage — انشر قواعد التخزين");return}
-          mediaUrl=await packImage(f,900,0.82,750000);
-        }
-        await sendDm(S.chatThread.uid,isVid?"🎬 فيديو":"🖼 صورة",mediaUrl,{kind});
+        if(!/^image\//.test(f.type)){toast("صورة فقط — للفيديو استخدم زر 🔗 رابط");return}
+        toast("جاري رفع الصورة…");
+        const data=await packImage(f,900,0.82,750000);
+        await sendDm(S.chatThread.uid,"🖼 صورة",data,{kind:"image"});
         toast("اتبعتت ✓");
-      }catch(err){console.error(err);toast("فشل الإرسال")}
+      }catch(err){console.error(err);toast("فشل إرسال الصورة")}
     })();
   }
   if(e.target.id==="meAvatar"&&e.target.files&&e.target.files[0]&&S.user){
