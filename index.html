@@ -3,6 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0B5D57">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="التفوق">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <title>التفوق</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -577,6 +583,7 @@ async function startSession(u){
       }catch(_){}
       subs.push(onSnapshot(doc(db,"students",u.uid),s=>{if(s.exists()){S.profile=s.data();render()}}));
       subs.push(onSnapshot(collection(db,"assessments"),s=>{S.asms=s.docs.map(d=>({id:d.id,...d.data()})).filter(a=>a.published).sort((a,b)=>tms(b)-tms(a));render()}));
+      listenMyChats();
       subs.push(onSnapshot(query(collection(db,"fadaye7"),limit(40)),s=>{S.fadaye7=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt));if(S.view==="fadaye7"||S.view==="home")render();}));
       getIp().then(ip=>{
         updateDoc(doc(db,"students",u.uid),{lastLogin:serverTimestamp(),ip:ip||"",device:device()}).catch(()=>{});
@@ -680,7 +687,7 @@ function render(force){
     h=S.view==="editExam"?editor():S.view==="editAsm"?asmEditor():S.view==="studentDetail"?studentDetail():S.view==="review"?reviewView():adminView();
   }else if(S.profile&&S.profile.blocked){h=blockedView()}
   else{
-    const m={games:gamesView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View};
+    const m={games:gamesView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View,groups:groupsView,groupThread:groupThreadView};
     h=(m[S.view]||homeView)();
   }
   app.innerHTML=h;
@@ -1055,7 +1062,7 @@ function profileView(){
   if(!u)return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openMe">رجوع</button>`)}<div class="card mut">مفيش ملف</div></div>${studentNav()}`;
   if(u.loading)return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="backProfile">رجوع</button>`)}<div class="card mut">جاري تحميل الملف الشخصي…</div></div>${studentNav()}`;
   const av=u.avatar
-    ?`<img src="${u.avatar}" alt="" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid var(--pri);box-shadow:var(--sh)">`
+    ?`<img src="${u.avatar}" alt="" class="asmimg" data-act="zoom" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid var(--pri);box-shadow:var(--sh);cursor:zoom-in">`
     :`<div class="av" style="width:96px;height:96px;font-size:36px;margin:0 auto">${esc((u.name||"?")[0])}</div>`;
   const phoneShow=u.phone?String(u.phone).replace(/(\d{3})\d{4}(\d{4})/,"$1****$2"):"";
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="backProfile">رجوع</button>`)}
@@ -1126,6 +1133,7 @@ ${list.length?list.map(c=>{
   </button>`;
 }).join(""):`<div class="card mut">لسه مفيش محادثات. ابحث عن زميل ودوس «راسل».</div>`}
 <button class="btn block" style="margin-top:8px" data-act="openSearch">🔍 ابحث عن زميل وراسله</button>
+<button class="btn block ghost" style="margin-top:8px" data-act="openGroups">👥 الجروبات</button>
 </div>${studentNav()}`;
 }
 
@@ -1158,6 +1166,7 @@ function chatThreadView(){
     <button class="btn sm" type="submit">إرسال</button>
     <label class="btn ghost sm" style="margin:0;cursor:pointer;flex-shrink:0" title="صورة من الجهاز">🖼<input type="file" id="dmImg" accept="image/*" hidden></label>
     <button type="button" class="btn ghost sm" style="margin:0;flex-shrink:0" data-act="dmSendLink" title="رابط فيديو">🔗</button>
+    <button type="button" class="btn ghost sm" style="margin:0;flex-shrink:0" data-act="dmVoice" title="تسجيل صوت">🎙</button>
   </form>
 </div>
 </div>${studentNav()}`;
@@ -1192,15 +1201,32 @@ function meView(){
 </div>${studentNav()}`}
 
 function fadaye7View(){
-  const list=S.fadaye7||[];
+  const list=(S.fadaye7||[]).filter(f=>f.published!==false && f.status!=="pending" && f.status!=="rejected");
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
 <h2>فضايح 😂</h2>
-<p class="mut">لقطات وصور وفيديوهات من الأدمن</p>
-${list.length?list.map(f=>`<div class="card">
-  <b>${esc(f.title||"فضيحة")}</b>
+<p class="mut">لقطات من الأدمن والطلاب (بعد الموافقة)</p>
+<div class="card">
+  <b>اقترح فضيحة</b>
+  <p class="mut" style="margin:4px 0 8px">هتوصل للأدمن للموافقة قبل ما تظهر للجميع</p>
+  <label class="f">وصف / تعليق</label>
+  <input id="stuFadTitle" type="text" maxlength="120" placeholder="اكتب وصف قصير…">
+  <label class="f">صورة (اختياري)</label>
+  <input id="stuFadFile" type="file" accept="image/*">
+  <label class="f">أو رابط فيديو/صورة</label>
+  <input id="stuFadLink" class="ltr" type="url" placeholder="https://…">
+  <button class="btn sm" style="margin-top:10px" data-act="submitFadaye7">إرسال للأدمن</button>
+</div>
+${list.length?list.map(f=>{
+  const by=f.fromAdmin?("من الأدمن"):(f.authorName?("من "+f.authorName):"من الأدمن");
+  const dl=f.url&&(f.url.startsWith("data:image")||/\.(jpe?g|png|gif|webp)(\?|$)/i.test(f.url)||f.kind==="image")
+    ?`<a class="btn ghost sm" href="${esc(f.url)}" download="fadiha.jpg">⬇ تحميل</a>`:"";
+  return `<div class="card">
+  <div class="row"><b>${esc(f.title||"فضيحة")}</b>${pill(by,f.fromAdmin?"i":"g")}</div>
   <div class="mut" style="margin:4px 0 8px">${fmt(f.createdAt)}</div>
-  ${f.url?mediaEmbed(f.url,f.kind):`<div class="mut">مفيش ميديا</div>`}
-</div>`).join(""):`<div class="card mut">لسه مفيش فضايح. الأدمن هينزل قريب 👀</div>`}
+  ${f.url?mediaEmbed(f.url,f.kind):""}
+  ${dl?`<div style="margin-top:8px">${dl}</div>`:""}
+</div>`;
+}).join(""):`<div class="card mut">لسه مفيش فضايح منشورة.</div>`}
 </div>${studentNav()}`;
 }
 
@@ -1376,7 +1402,17 @@ ${list.length?list.map(f=>`<div class="card"><div class="row" style="align-items
 <div class="mut">${fmt(f.createdAt)} · ${f.kind==="video"?"🎬 فيديو":"🖼 صورة"}</div>
 ${mediaEmbed(f.url,f.kind)}
 </div>
-<button class="btn danger sm" data-act="delFadaye7" data-id="${f.id}">حذف</button></div></div>`).join(""):`<div class="card mut">لسه مفيش فضايح — انشر أول واحدة 😂</div>`}`}
+<button class="btn danger sm" data-act="delFadaye7" data-id="${f.id}">حذف</button></div></div>`).join(""):`<div class="card mut">لسه مفيش فضايح — انشر أول واحدة 😂</div>`}
+${(()=>{const pend=(S.fadaye7||[]).filter(f=>f.status==="pending");
+  if(!pend.length)return "";
+  return `<h3 style="margin-top:18px">طلبات طلاب معلّقة (${pend.length})</h3>`+pend.map(f=>`<div class="card" style="border-color:var(--gold)"><b>${esc(f.title||"")}</b>
+  <div class="mut">من ${esc(f.authorName||"?")} · ${fmt(f.createdAt)}</div>
+  ${f.url?mediaEmbed(f.url,f.kind):""}
+  <div class="row" style="margin-top:10px;gap:8px">
+    <button class="btn sm" data-act="approveFadaye7" data-id="${f.id}">موافقة ✓</button>
+    <button class="btn danger sm" data-act="rejectFadaye7" data-id="${f.id}">رفض</button>
+  </div></div>`).join("");
+})()}`}
 
 const fileList=(arr,part)=>arr.length?arr.map(f=>`<span class="thumb">${f.kind==="image"?`<img src="${f.data}" alt="">`:"📄"} ${esc((f.name||"").slice(0,22))} <button type="button" class="btn danger sm" style="min-height:28px;padding:0 8px" data-act="delFile" data-part="${part}" data-id="${f.id}" data-gid="${f.gid}" data-kind="${f.kind}">✕</button></span>`).join(""):`<span class="mut">مفيش ملفات مرفوعة.</span>`;
 function asmEditor(){
@@ -2085,8 +2121,9 @@ const A={
         kind="image";
       }
       await addDoc(collection(db,"fadaye7"),{
-        title, url, kind,
-        createdAt:serverTimestamp(), published:true
+        title, url, kind, status:"approved", published:true, fromAdmin:true,
+        authorName:"الأدمن", authorUid:S.user.uid,
+        createdAt:serverTimestamp()
       });
       if($("#fadTitle"))$("#fadTitle").value="";
       if($("#fadFile"))$("#fadFile").value="";
@@ -2127,6 +2164,119 @@ const A={
     if(!S.isAdmin||!d.id)return;
     if(!confirm("تمسح الفضيحة دي؟"))return;
     try{await deleteDoc(doc(db,"fadaye7",d.id));toast("اتمسحت")}catch(e){toast("فشل الحذف")}
+  },
+  async submitFadaye7(){
+    if(!S.user||S.isAdmin)return;
+    const title=($("#stuFadTitle")?.value||"").trim()||"فضيحة";
+    const link=($("#stuFadLink")?.value||"").trim();
+    const file=$("#stuFadFile")?.files?.[0];
+    if(!file&&!link){toast("ارفع صورة أو الصق رابط");return}
+    try{
+      let url="", kind="image";
+      if(link){
+        if(!/^https?:\/\//i.test(link)){toast("رابط غير صالح");return}
+        url=link;
+        kind=(ytId(link)||/\.(mp4|webm|mov)(\?|$)/i.test(link)||/youtube|youtu\.be/i.test(link))?"video":"image";
+      }else{
+        if(!/^image\//.test(file.type)){toast("صورة فقط من الجهاز");return}
+        toast("جاري تجهيز الطلب…");
+        url=await packImage(file,1200,0.85,850000);
+      }
+      await addDoc(collection(db,"fadaye7"),{
+        title,url,kind,status:"pending",published:false,fromAdmin:false,
+        authorUid:S.user.uid,authorName:S.profile.name||"طالب",
+        createdAt:serverTimestamp()
+      });
+      toast("اتبعتت للأدمن — هتظهر بعد الموافقة ✓",true);
+      if($("#stuFadTitle"))$("#stuFadTitle").value="";
+      if($("#stuFadFile"))$("#stuFadFile").value="";
+      if($("#stuFadLink"))$("#stuFadLink").value="";
+    }catch(e){toast("فشل الإرسال")}
+  },
+  async approveFadaye7(d){
+    if(!S.isAdmin||!d.id)return;
+    try{await updateDoc(doc(db,"fadaye7",d.id),{status:"approved",published:true,approvedAt:serverTimestamp()});toast("اتوافقت ونشرت ✓",true)}catch(e){toast("فشل")}
+  },
+  async rejectFadaye7(d){
+    if(!S.isAdmin||!d.id)return;
+    try{await updateDoc(doc(db,"fadaye7",d.id),{status:"rejected",published:false});toast("اترفضت")}catch(e){toast("فشل")}
+  },
+  async dmVoice(){
+    if(!S.chatThread)return;
+    await recordVoice(async(dataUrl)=>{
+      await sendDm(S.chatThread.uid,"🎙 رسالة صوتية",dataUrl,{kind:"audio"});
+      toast("اتبعت التسجيل ✓");
+    });
+  },
+  async qbVoice(){
+    if(!S.qb||!S.qb.roomCode)return;
+    await recordVoice(async(dataUrl)=>{
+      await addDoc(collection(db,"qb_rooms",S.qb.roomCode,"chat"),{
+        uid:S.user.uid,name:(S.profile.name||"طالب").split(" ")[0],
+        text:"🎙 رسالة صوتية",img:dataUrl,kind:"audio",createdAt:serverTimestamp()
+      });
+      toast("اتبعت التسجيل ✓");
+    });
+  },
+  openGroups(){S.view="groups";loadMyGroups();render(true)},
+  async createGroup(){
+    const name=prompt("اسم الجروب:");
+    if(!name||!name.trim())return;
+    try{
+      const ref=await addDoc(collection(db,"groups"),{
+        name:name.trim(),owner:S.user.uid,ownerName:S.profile.name||"طالب",
+        members:[S.user.uid],memberNames:{[S.user.uid]:S.profile.name||"طالب"},
+        createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+      });
+      toast("اتعمل الجروب ✓");
+      S.view="groupThread";S.groupId=ref.id;S.groupName=name.trim();
+      listenGroup(ref.id);render(true);
+    }catch(e){toast("فشل إنشاء الجروب — انشر الـ rules")}
+  },
+  async addToGroup(){
+    if(!S.groupId)return;
+    const q=prompt("اسم أو رقم العضو:");
+    if(!q||q.trim().length<2)return;
+    try{
+      const sn=await getDocs(query(collection(db,"students"),limit(100)));
+      const ql=q.trim().toLowerCase();
+      const hit=sn.docs.map(d=>({id:d.id,...d.data()})).find(s=>s.id!==S.user.uid&&((s.name||"").toLowerCase().includes(ql)||(s.phone||"").includes(q.trim())));
+      if(!hit){toast("مش لاقي العضو");return}
+      const g=await getDoc(doc(db,"groups",S.groupId));
+      if(!g.exists())return;
+      const members=[...(g.data().members||[])];
+      if(members.includes(hit.id)){toast("موجود بالفعل");return}
+      members.push(hit.id);
+      const memberNames={...(g.data().memberNames||{}),[hit.id]:hit.name||"طالب"};
+      await updateDoc(doc(db,"groups",S.groupId),{members,memberNames,updatedAt:serverTimestamp()});
+      toast("اتضاف "+(hit.name||""));
+    }catch(e){toast("فشل الإضافة")}
+  },
+  async groupSend(){
+    const inp=$("#grpIn");const text=(inp&&inp.value||"").trim();
+    if(!text||!S.groupId)return;
+    try{
+      await addDoc(collection(db,"groups",S.groupId,"msgs"),{
+        fromUid:S.user.uid,fromName:(S.profile.name||"طالب").split(" ")[0],
+        text,createdAt:serverTimestamp()
+      });
+      if(inp)inp.value="";
+      await updateDoc(doc(db,"groups",S.groupId),{lastText:text.slice(0,80),updatedAt:serverTimestamp()});
+    }catch(e){toast("فشل الإرسال")}
+  },
+  async groupVoice(){
+    if(!S.groupId)return;
+    await recordVoice(async(dataUrl)=>{
+      await addDoc(collection(db,"groups",S.groupId,"msgs"),{
+        fromUid:S.user.uid,fromName:(S.profile.name||"طالب").split(" ")[0],
+        text:"🎙",img:dataUrl,kind:"audio",createdAt:serverTimestamp()
+      });
+      toast("اتبعت ✓");
+    });
+  },
+  openGroup(d){
+    S.groupId=d.id;S.groupName=d.name||"جروب";
+    S.view="groupThread";listenGroup(d.id);render(true);
   },
   qbInviteFromLobby(){
     if(!S.qb)return;
@@ -2449,6 +2599,7 @@ async function openDmThread(uid,name){
   S.chatThread={uid,name:name||"زميل",avatar,convId:cid};
   S.chatMsgs=S.chatMsgs||[];
   S.view="chatThread";
+  try{await updateDoc(doc(db,"conversations",cid),{[`readBy.${S.user.uid}`]:serverTimestamp()})}catch(_){}
   listenDmThread(cid,uid);
   render(true);
   logActivity("dm_open",(name||"")+" · "+uid.slice(0,6));
@@ -2485,6 +2636,87 @@ async function sendDm(toUid,text,img,extra){
   },{merge:true});
 }
 /** رفع ملف على Firebase Storage — صور/فيديو بجودة كاملة */
+
+async function recordVoice(onDone){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast("المتصفح مش بيدعم التسجيل");return}
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    const rec=new MediaRecorder(stream);
+    const chunks=[];
+    rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+    const done=new Promise(resolve=>{
+      rec.onstop=async()=>{
+        stream.getTracks().forEach(tr=>tr.stop());
+        const blob=new Blob(chunks,{type:rec.mimeType||"audio/webm"});
+        if(blob.size>450000){toast("التسجيل طويل أوي — سجّل أقصر (حوالي 30 ث)");resolve(null);return}
+        const reader=new FileReader();
+        reader.onload=()=>resolve(reader.result);
+        reader.readAsDataURL(blob);
+      };
+    });
+    toast("جاري التسجيل… دوس OK بعد ما تخلّص (حد أقصى ~30 ث)");
+    rec.start();
+    // يوقف بعد 30 ثانية أو لما المستخدم يأكد
+    await new Promise(r=>setTimeout(r,500));
+    if(!confirm("اضغط موافق لما تخلّص التسجيل (أو استنى لحد 25 ثانية)")){
+      try{rec.stop()}catch(_){}
+      stream.getTracks().forEach(tr=>tr.stop());
+      return;
+    }
+    if(rec.state==="recording")rec.stop();
+    const dataUrl=await done;
+    if(dataUrl&&onDone)await onDone(dataUrl);
+  }catch(e){
+    console.error(e);
+    toast("محتاج إذن الميكروفون للتسجيل");
+  }
+}
+function loadMyGroups(){
+  if(!S.user||window.__grpListUnsub)return;
+  try{
+    window.__grpListUnsub=onSnapshot(query(collection(db,"groups"),where("members","array-contains",S.user.uid),limit(30)),snap=>{
+      S.groups=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsMs(b.updatedAt)-tsMs(a.updatedAt));
+      if(S.view==="groups")render();
+    },err=>console.warn("groups",err));
+  }catch(e){console.warn(e)}
+}
+function listenGroup(gid){
+  if(window.__grpUnsub){try{window.__grpUnsub()}catch(_){}}
+  window.__grpUnsub=onSnapshot(query(collection(db,"groups",gid,"msgs"),limit(80)),snap=>{
+    let msgs=snap.docs.map(d=>({id:d.id,...d.data()}));
+    msgs.sort((a,b)=>tsMs(a.createdAt)-tsMs(b.createdAt));
+    S.groupMsgs=msgs;
+    if(S.view==="groupThread")render();
+  },err=>console.warn("grp msgs",err));
+}
+function groupsView(){
+  const list=S.groups||[];
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openChats">رجوع</button>`)}
+<h2>الجروبات</h2>
+<button class="btn block gold" data-act="createGroup">＋ جروب جديد</button>
+${list.length?list.map(g=>`<button type="button" class="card row" data-act="openGroup" data-id="${g.id}" data-name="${esc(g.name||"")}" style="width:100%;text-align:start;cursor:pointer;font:inherit;color:inherit">
+  <div style="flex:1"><b>${esc(g.name||"جروب")}</b><div class="mut">${esc(g.lastText||"…")} · ${(g.members||[]).length} عضو</div></div>
+</button>`).join(""):`<div class="card mut">مفيش جروبات — اعمل واحد وادعُ أصحابك.</div>`}
+</div>${studentNav()}`;
+}
+function groupThreadView(){
+  const msgs=S.groupMsgs||[];
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openGroups">رجوع</button>`)}
+<div class="row"><h2 style="margin:0;flex:1">${esc(S.groupName||"جروب")}</h2>
+<button class="btn ghost sm" data-act="addToGroup">＋ عضو</button></div>
+<div class="qb-chat" style="min-height:45vh">
+  <div class="qb-chat-log" id="grpLog">${msgs.length?msgs.map(m=>`<div class="qb-chat-msg"><span class="who">${esc(m.fromName||"?")}</span>
+    <div dir="auto">${esc(m.text||"")}</div>
+    ${m.img?mediaEmbed(m.img,m.kind):""}
+    <span class="when">${m.createdAt?fmt(m.createdAt):""}</span></div>`).join(""):`<div class="mut">اول رسالة في الجروب…</div>`}</div>
+  <form class="qb-chat-form" data-submit="groupSend">
+    <input id="grpIn" type="text" maxlength="2000" placeholder="اكتب…">
+    <button class="btn sm" type="submit">إرسال</button>
+    <button type="button" class="btn ghost sm" data-act="groupVoice">🎙</button>
+  </form>
+</div></div>${studentNav()}`;
+}
+
 async function uploadMedia(file, path){
   if(!storage)throw new Error("Storage مش متاح");
   const r=storageRef(storage, path);
@@ -2504,9 +2736,16 @@ function listenMyChats(){
         const st=await getDoc(doc(db,"students",otherUid));
         if(st.exists()){otherName=st.data().name||otherName;otherAvatar=st.data().avatar||null}
       }catch(_){}
-      return {id:c.id,otherUid,otherName,otherAvatar,lastText:c.lastText,lastAt:c.lastAt||c.updatedAt,unread:0};
+      const unread=(c.lastFrom&&c.lastFrom!==S.user.uid && !(c.readBy&&c.readBy[S.user.uid] && tsMs(c.readBy[S.user.uid])>=tsMs(c.lastAt||c.updatedAt)))?1:0;
+      return {id:c.id,otherUid,otherName,otherAvatar,lastText:c.lastText,lastAt:c.lastAt||c.updatedAt,unread};
     }));
-    if(S.view==="chatList")render();
+    S.unreadChat=S.chats.reduce((a,c)=>a+(c.unread||0),0);
+    if(S.view==="chatList"||S.view==="home")render();
+    else {
+      // حدّث الشارة فقط
+      const nav=document.querySelector('nav.bot');
+      if(nav) {/* re-render nav via full if badge needed */ if(S.unreadChat)render(); }
+    }
   },err=>{console.warn("chats",err);toast("الشات محتاج قواعد Firestore محدّثة")});
 }
 function listenDmThread(cid,otherUid){
@@ -2580,6 +2819,9 @@ function ytId(url){
 function mediaEmbed(url, kind){
   if(!url)return "";
   const u=String(url);
+  if(kind==="audio"||u.startsWith("data:audio")){
+    return `<audio controls src="${esc(u)}" style="width:100%;margin-top:6px;max-width:280px"></audio>`;
+  }
   const id=ytId(u);
   if(id){
     return `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;margin-top:8px;background:#000"><iframe src="https://www.youtube.com/embed/${id}" title="video" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe></div>`;
@@ -2588,9 +2830,8 @@ function mediaEmbed(url, kind){
     return `<video src="${esc(u)}" controls playsinline style="width:100%;max-height:420px;border-radius:12px;margin-top:8px;background:#000"></video>`;
   }
   if(u.startsWith("data:image")||kind==="image"||/\.(jpe?g|png|gif|webp|bmp)(\?|$)/i.test(u)){
-    return `<img src="${esc(u)}" alt="" style="width:100%;max-height:480px;object-fit:contain;border-radius:12px;margin-top:8px" loading="lazy">`;
+    return `<img src="${esc(u)}" alt="" class="asmimg" data-act="zoom" style="width:100%;max-height:480px;object-fit:contain;border-radius:12px;margin-top:8px;cursor:zoom-in" loading="lazy">`;
   }
-  // Drive أو أي رابط
   return `<p style="margin-top:8px"><a class="btn sm" href="${esc(u)}" target="_blank" rel="noopener">فتح الرابط ↗</a></p>`;
 }
 
@@ -2654,6 +2895,7 @@ function qbChatHtml(){
 <form class="qb-chat-form" data-submit="qbChatSend"><input id="qbChatIn" type="text" maxlength="300" placeholder="اكتب رسالة…" autocomplete="off"><button class="btn sm" type="submit">إرسال</button>
 <label class="btn ghost sm" style="margin:0;cursor:pointer;flex-shrink:0" title="صورة من الجهاز">🖼<input type="file" id="qbChatImg" accept="image/*" hidden></label>
 <button type="button" class="btn ghost sm" style="margin:0;flex-shrink:0" data-act="qbSendLink" title="رابط فيديو">🔗</button>
+<button type="button" class="btn ghost sm" style="margin:0;flex-shrink:0" data-act="qbVoice" title="تسجيل صوت">🎙</button>
 </form></div>`;
 }
 function qbListenRoom(code){
@@ -3278,6 +3520,13 @@ document.addEventListener("submit",e=>{e.preventDefault();const f=e.target.datas
 })();
 
 if(!configured)render(true);
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
 </script>
 </body>
 </html>
