@@ -660,7 +660,7 @@ function render(force){
     h=S.view==="editExam"?editor():S.view==="editAsm"?asmEditor():S.view==="studentDetail"?studentDetail():S.view==="review"?reviewView():adminView();
   }else if(S.profile&&S.profile.blocked){h=blockedView()}
   else{
-    const m={games:gamesView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView,profile:profileView};
+    const m={games:gamesView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView};
     h=(m[S.view]||homeView)();
   }
   app.innerHTML=h;
@@ -672,8 +672,15 @@ function render(force){
 const splash=()=>`<div class="splash"><div><div class="logo">التفوق</div><i class="uline"></i><div class="mut" style="margin-top:16px">جاري التحضير…</div></div></div>`;
 const blockedView=()=>`<div class="wrap"><div class="center"><div class="logo" style="display:inline-block">التفوق</div><h1 style="margin-top:28px">حسابك موقوف</h1><p class="mut" style="max-width:360px;margin:8px auto 24px">تواصل مع المدرس لإعادة تفعيل الحساب.</p><button class="btn ghost" data-act="logout">تسجيل خروج</button></div></div>`;
 const logo=`<div class="logo">التفوق</div>`;
-const header=(extra)=>`<div class="top">${logo}<div class="row">${extra||""}${themeBtn()}</div></div>`;
-const studentNav=()=>`<nav class="bot"><button class="${S.view==="home"||S.view==="subject"||S.view==="exam"||S.view==="result"?"on":""}" data-act="home">المواد</button><button class="${S.view==="progress"?"on":""}" data-act="progress">تقدمي${(S.unreadNotif||0)?` <span class="badge">${S.unreadNotif}</span>`:""}</button><button class="${S.view==="games"||S.view&&String(S.view).startsWith("qb")?"on":""}" data-act="openGames">الألعاب</button><button class="${S.view==="me"?"on":""}" data-act="openMe">أنا</button></nav>`;
+const searchBtn=()=>S.user&&!S.isAdmin?`<button type="button" class="tg" data-act="openSearch" aria-label="بحث" title="بحث عن زميل">🔍</button>`:"";
+const header=(extra)=>`<div class="top"><div class="row" style="gap:8px;flex:1;min-width:0">${logo}${searchBtn()}</div><div class="row">${extra||""}${themeBtn()}</div></div>`;
+const studentNav=()=>`<nav class="bot">
+<button class="${S.view==="home"||S.view==="subject"||S.view==="exam"||S.view==="result"?"on":""}" data-act="home">المواد</button>
+<button class="${S.view==="progress"?"on":""}" data-act="progress">تقدمي${(S.unreadNotif||0)?` <span class="badge">${S.unreadNotif}</span>`:""}</button>
+<button class="${S.view==="chatList"||S.view==="chatThread"?"on":""}" data-act="openChats">تواصل${(S.unreadChat||0)?` <span class="badge">${S.unreadChat}</span>`:""}</button>
+<button class="${S.view==="games"||S.view&&String(S.view).startsWith("qb")?"on":""}" data-act="openGames">الألعاب</button>
+<button class="${S.view==="me"||S.view==="profile"||S.view==="search"?"on":""}" data-act="openMe">أنا</button>
+</nav>`;
 
 function maintenance(){return `<div class="wrap"><div class="center"><div class="logo" data-act="logoTap" style="display:inline-block;font-size:40px">التفوق</div>
 <h1 style="margin-top:28px">المنصة تحت التعديل</h1>
@@ -1039,41 +1046,104 @@ function profileView(){
   </div>
 </div>
 ${u.recent&&u.recent.length?`<div class="card"><h3>آخر النتائج</h3>${u.recent.map(r=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><span style="flex:1"><b dir="auto">${esc(r.examTitle||"امتحان")}</b><div class="mut">${esc(subName(r.subject)||"")}</div></span><span><b>${r.score}/${r.total}</b> ${passPill(r)}</span></div>`).join("")}</div>`:`<div class="card mut">لسه مفيش نتائج ظاهرة.</div>`}
-${u.id===S.user.uid?`<button class="btn block ghost" data-act="openMe">تعديل حسابي</button>`:""}
+${u.id===S.user.uid?`<button class="btn block ghost" data-act="openMe">تعديل حسابي</button>`:`<button class="btn block gold" data-act="startChat" data-uid="${u.id}" data-name="${esc(u.name||"طالب")}">💬 راسله دلوقتي</button>`}
+</div>${studentNav()}`;
+}
+
+function searchView(){
+  const q=(S.friendQ||"").trim();
+  const hits=S.friendHits||[];
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
+<h2>🔍 بحث</h2>
+<p class="mut">ابحث عن زميل بالاسم أو رقم التليفون — اضغط على الحساب أو راسله مباشرة</p>
+<div class="card">
+<input id="friendQ" type="search" placeholder="اسم أو رقم…" value="${esc(q)}" autocomplete="off" autofocus>
+<button class="btn block" style="margin-top:10px" data-act="searchFriend">بحث</button>
+</div>
+${S.friendSearching?`<div class="card mut">جاري البحث…</div>`:""}
+${hits.length?hits.map(h=>{
+  const av2=h.avatar?`<img src="${h.avatar}" alt="" style="width:52px;height:52px;border-radius:50%;object-fit:cover">`:`<div class="av" style="width:52px;height:52px;font-size:18px">${esc((h.name||"?")[0])}</div>`;
+  return `<div class="card" style="padding:12px">
+  <div class="row" style="align-items:flex-start;gap:12px">
+  <button type="button" data-act="openProfile" data-uid="${h.id}" style="background:none;border:0;padding:0;cursor:pointer">${av2}</button>
+  <div style="flex:1">
+    <button type="button" data-act="openProfile" data-uid="${h.id}" style="background:none;border:0;padding:0;cursor:pointer;font:inherit;color:var(--pri);font-weight:700;text-align:start">${esc(h.name||"طالب")}</button>
+    <div class="mut">${esc(h.phone||"")}</div>
+    <div style="margin-top:6px;font-size:13px">${h.rank?pill("#"+h.rank,"i"):""} ${h.examsDone!=null?pill(h.examsDone+" امتحان","g"):""} ${h.pct!=null?pill(h.pct+"%","y"):""}</div>
+  </div>
+  </div>
+  <div class="row" style="margin-top:10px;gap:8px">
+    <button class="btn sm" data-act="openProfile" data-uid="${h.id}">الملف</button>
+    <button class="btn sm gold" data-act="startChat" data-uid="${h.id}" data-name="${esc(h.name||"طالب")}">💬 راسل</button>
+  </div>
+  </div>`;
+}).join(""):(q&&!S.friendSearching?`<div class="card mut">مفيش نتائج لـ «${esc(q)}»</div>`:"")}
+</div>${studentNav()}`;
+}
+
+function chatListView(){
+  const list=S.chats||[];
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openSearch">🔍 بحث</button>`)}
+<h2>تواصل</h2>
+<p class="mut">محادثاتك مع الزملاء — فورية زي شات الغرف</p>
+${list.length?list.map(c=>{
+  const other=c.otherName||"زميل";
+  const av=c.otherAvatar?`<img src="${c.otherAvatar}" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover">`:`<div class="av" style="width:48px;height:48px;font-size:18px">${esc(other[0]||"?")}</div>`;
+  const unread=c.unread?`<span class="badge">${c.unread}</span>`:"";
+  return `<button type="button" class="card row" data-act="openChat" data-uid="${c.otherUid}" data-name="${esc(other)}" style="width:100%;text-align:start;cursor:pointer;font:inherit;color:inherit;gap:12px">
+  ${av}
+  <div style="flex:1;min-width:0">
+    <div class="row"><b>${esc(other)}</b>${unread}</div>
+    <div class="mut" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.lastText||"…")}</div>
+  </div>
+  <span class="mut" style="font-size:11px;white-space:nowrap">${c.lastAt?fmt(c.lastAt):""}</span>
+  </button>`;
+}).join(""):`<div class="card mut">لسه مفيش محادثات. ابحث عن زميل ودوس «راسل».</div>`}
+<button class="btn block" style="margin-top:8px" data-act="openSearch">🔍 ابحث عن زميل وراسله</button>
+</div>${studentNav()}`;
+}
+
+function chatThreadView(){
+  const t=S.chatThread;if(!t)return chatListView();
+  const msgs=S.chatMsgs||[];
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openChats">رجوع</button>`)}
+<div class="row" style="margin-bottom:10px;gap:10px">
+  <button type="button" data-act="openProfile" data-uid="${t.uid}" style="background:none;border:0;padding:0;cursor:pointer">
+    ${t.avatar?`<img src="${t.avatar}" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover">`:`<div class="av" style="width:40px;height:40px;font-size:16px">${esc((t.name||"?")[0])}</div>`}
+  </button>
+  <div style="flex:1">
+    <b data-act="openProfile" data-uid="${t.uid}" style="cursor:pointer;color:var(--pri)">${esc(t.name||"زميل")}</b>
+    <div class="mut" style="font-size:12px">محادثة فورية</div>
+  </div>
+</div>
+<div class="qb-chat" style="min-height:50vh;display:flex;flex-direction:column">
+  <div class="qb-chat-log" id="dmChatLog" style="flex:1;max-height:none;min-height:40vh">${msgs.length?msgs.map(m=>{
+    const mine=m.fromUid===S.user.uid;
+    return `<div class="qb-chat-msg" style="${mine?"align-self:flex-start;background:var(--sel);border-radius:12px;padding:8px 10px;max-width:85%":"align-self:flex-end;background:color-mix(in srgb,var(--pri) 18%,var(--card));border-radius:12px;padding:8px 10px;max-width:85%"}">
+      ${!mine?`<span class="who">${esc(m.fromName||"")}</span>`:""}
+      <div dir="auto">${esc(m.text||"")}</div>
+      ${m.img?`<div><img src="${m.img}" alt="" style="max-width:min(200px,70vw);border-radius:8px;margin-top:4px" loading="lazy"></div>`:""}
+      <span class="when">${m.createdAt?fmt(m.createdAt):""}</span>
+    </div>`;
+  }).join(""):`<div class="mut">اول رسالة… قول سلام 👋</div>`}</div>
+  <form class="qb-chat-form" data-submit="dmSend">
+    <input id="dmIn" type="text" maxlength="2000" placeholder="اكتب رسالة…" autocomplete="off">
+    <button class="btn sm" type="submit">إرسال</button>
+    <label class="btn ghost sm" style="margin:0;cursor:pointer;flex-shrink:0">🖼<input type="file" id="dmImg" accept="image/*" hidden></label>
+  </form>
+</div>
 </div>${studentNav()}`;
 }
 
 function meView(){
   const p=S.profile||{};
   const av=p.avatar?`<img src="${p.avatar}" alt="" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--pri)">`:`<div class="av" style="width:72px;height:72px;font-size:28px">${esc((p.name||"؟")[0]||"?")}</div>`;
-  const q=(S.friendQ||"").trim();
-  const hits=S.friendHits||[];
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
 <h2>حسابي</h2>
 <div class="card" style="text-align:center">${av}
 <div style="margin-top:8px"><b>${esc(p.name||"طالب")}</b></div>
 <div class="mut">${esc(p.phone||"")}</div>
 <label class="btn ghost sm" style="margin-top:10px;cursor:pointer">📷 صورة شخصية<input type="file" id="meAvatar" accept="image/*" hidden></label>
-</div>
-<div class="card"><b>🔍 بحث عن صديق</b>
-<p class="mut" style="margin:4px 0 8px">ابحث بالاسم أو رقم التليفون</p>
-<input id="friendQ" type="text" placeholder="اسم أو رقم…" value="${esc(q)}" autocomplete="off">
-<button class="btn sm" style="margin-top:8px" data-act="searchFriend">بحث</button>
-${S.friendSearching?`<div class="mut" style="margin-top:8px">جاري البحث…</div>`:""}
-${hits.length?hits.map(h=>{
-  const av2=h.avatar?`<img src="${h.avatar}" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover">`:`<div class="av" style="width:48px;height:48px;font-size:18px">${esc((h.name||"?")[0])}</div>`;
-  return `<button type="button" class="row" data-act="openProfile" data-uid="${h.id}" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line);align-items:flex-start;gap:12px;width:100%;background:none;border-left:0;border-right:0;border-bottom:0;text-align:start;cursor:pointer;color:inherit;font:inherit">
-  ${av2}
-  <div style="flex:1"><b style="color:var(--pri)">${esc(h.name||"طالب")}</b>
-  <div class="mut">${esc(h.phone||"")}</div>
-  <div style="margin-top:6px;font-size:13px">
-    ${h.rank?pill("الترتيب #"+h.rank,"i"):""}
-    ${h.examsDone!=null?pill(h.examsDone+" امتحان","g"):""}
-    ${h.pct!=null?pill(h.pct+"% متوسط","y"):""}
-  </div>
-  <div class="mut" style="font-size:12px;margin-top:4px">اضغط لفتح الملف الشخصي ←</div>
-  </div></button>`;
-}).join(""):(q&&!S.friendSearching?`<div class="mut" style="margin-top:8px">مفيش نتائج</div>`:"")}
 </div>
 <div class="card"><b>تغيير الاسم</b>
 <label class="f">الاسم</label>
@@ -1501,7 +1571,30 @@ const A={
     loadOpenRooms();
     render(true);
   },
-  openMe(){S.view="me";S.friendHits=S.friendHits||[];render(true)},
+  openMe(){S.view="me";render(true)},
+  openSearch(){S.view="search";S.friendHits=S.friendHits||[];render(true);setTimeout(()=>{const i=$("#friendQ");if(i)i.focus()},100)},
+  openChats(){
+    S.view="chatList";
+    listenMyChats();
+    render(true);
+  },
+  async startChat(d){
+    const uid=d.uid;if(!uid||uid===S.user.uid){toast("مش هتكلم نفسك");return}
+    const name=d.name||"زميل";
+    await openDmThread(uid,name);
+  },
+  async openChat(d){
+    await openDmThread(d.uid,d.name||"زميل");
+  },
+  async dmSend(){
+    const t=S.chatThread;if(!t||!S.user)return;
+    const inp=$("#dmIn");const text=(inp&&inp.value||"").trim();
+    if(!text)return;
+    try{
+      await sendDm(t.uid,text,null);
+      if(inp)inp.value="";
+    }catch(e){toast("مقدرتش أبعت")}
+  },
   backProfile(){
     S.view=S.profileBack||"me";
     render(true);
@@ -1759,8 +1852,19 @@ const A={
     const uid=d.uid;if(!uid||uid===S.user.uid)return;
     if(!confirm("تطرد اللاعب ده من الغرفة؟"))return;
     try{
-      await updateDoc(doc(db,"qb_rooms",code),{[`players.${uid}`]:deleteField()});
-      toast("اتطرد اللاعب");
+      const snap=await getDoc(doc(db,"qb_rooms",code));
+      if(!snap.exists())return;
+      const players={...(snap.data().players||{})};
+      delete players[uid];
+      const left=Object.keys(players).filter(k=>k!=="bot");
+      if(left.length===0){
+        await deleteDoc(doc(db,"qb_rooms",code));
+        toast("اتطرد واتلقت الغرفة");
+        qbStopSub();S.qb=null;S.view="games";render(true);
+      }else{
+        await updateDoc(doc(db,"qb_rooms",code),{[`players.${uid}`]:deleteField()});
+        toast("اتطرد اللاعب");
+      }
     }catch(e){toast("فشل الطرد")}
   },
   qbCopyLink(){
@@ -1803,28 +1907,29 @@ const A={
   async qbLeaveRoom(){
     const inPlay=S.view==="qbPlay"||S.view==="qbResult"||(S.qb&&S.qb.match);
     if(inPlay||(S.qb&&S.qb.roomCode)){
-      if(!confirm("متأكد عايز تخرج من التحدي؟\nالغرفة هتفضل شغالة لو في ناس تانية.")) return;
+      if(!confirm("متأكد عايز تخرج من الغرفة؟\nلو انت آخر واحد الغرفة هتتقفل.")) return;
     }
     const code=S.qb&&S.qb.roomCode;
     qbStopSub();
     if(code&&S.user){
       try{
-        const room=S.qb.room||{};
-        const players={...(room.players||{})};
-        delete players[S.user.uid];
-        const left=Object.keys(players).filter(k=>k!=="bot");
-        if(left.length===0){
-          // آخر واحد خرج → اقفل الغرفة
-          await deleteDoc(doc(db,"qb_rooms",code));
-        } else {
-          const patch={[`players.${S.user.uid}`]:deleteField()};
-          // لو المضيف خرج → حوّل الملكية لأول لاعب باقي
-          if(room.host===S.user.uid){
-            patch.host=left[0];
+        // اقرأ أحدث نسخة من الغرفة
+        const snap=await getDoc(doc(db,"qb_rooms",code));
+        if(snap.exists()){
+          const room=snap.data();
+          const players={...(room.players||{})};
+          delete players[S.user.uid];
+          const left=Object.keys(players).filter(k=>k!=="bot");
+          if(left.length===0){
+            await deleteDoc(doc(db,"qb_rooms",code));
+          } else {
+            const patch={[`players.${S.user.uid}`]:deleteField()};
+            if(room.host===S.user.uid) patch.host=left[0];
+            // لو المباراة شغالة ومفيش حد جاهز — رجّع للوبي لو بقي لاعب واحد بس اختياري
+            await updateDoc(doc(db,"qb_rooms",code),patch);
           }
-          await updateDoc(doc(db,"qb_rooms",code),patch);
         }
-      }catch(_){}
+      }catch(e){console.warn("leave room",e)}
     }
     logActivity("qb_leave", code||"");
     S.qb=null;S.view="games";render(true);
@@ -2104,13 +2209,103 @@ function fail(m){S.error=m;render(true)}
 const QB_GAMES={qb:"تحدي الأوائل 👑",los:"آخر واحد واقف 🧍"};
 const QB_COLORS={teal:"تركواز",purple:"بنفسجي",gold:"ذهبي",rose:"وردي",blue:"أزرق"};
 function qbGameLabel(id){return QB_GAMES[id]||QB_GAMES.qb}
+function convIdFor(a,b){return [a,b].sort().join("_")}
+async function openDmThread(uid,name){
+  if(!S.user||!uid)return;
+  let avatar=null;
+  try{
+    const st=await getDoc(doc(db,"students",uid));
+    if(st.exists()){const d=st.data();name=d.name||name;avatar=d.avatar||null}
+  }catch(_){}
+  const cid=convIdFor(S.user.uid,uid);
+  try{
+    await setDoc(doc(db,"conversations",cid),{
+      participants:[S.user.uid,uid],
+      names:{[S.user.uid]:(S.profile.name||"طالب").split(" ")[0],[uid]:(name||"زميل").split(" ")[0]},
+      updatedAt:serverTimestamp()
+    },{merge:true});
+  }catch(_){}
+  S.chatThread={uid,name:name||"زميل",avatar,convId:cid};
+  S.view="chatThread";
+  listenDmThread(cid,uid);
+  render(true);
+}
+async function sendDm(toUid,text,img){
+  const cid=convIdFor(S.user.uid,toUid);
+  const payload={
+    fromUid:S.user.uid,
+    fromName:(S.profile.name||"طالب").split(" ")[0],
+    realName:S.profile.name||"طالب",
+    toUid,
+    text:text||(img?"🖼":""),
+    createdAt:serverTimestamp(),
+    convId:cid,
+    read:false
+  };
+  if(img)payload.img=img;
+  await addDoc(collection(db,"messages"),payload);
+  await setDoc(doc(db,"conversations",cid),{
+    participants:[S.user.uid,toUid],
+    lastText:img?"🖼 صورة":(text||"").slice(0,80),
+    lastAt:serverTimestamp(),
+    lastFrom:S.user.uid,
+    names:{[S.user.uid]:(S.profile.name||"طالب").split(" ")[0]},
+    updatedAt:serverTimestamp()
+  },{merge:true});
+}
+function listenMyChats(){
+  if(!S.user||S.isAdmin)return;
+  if(window.__chatsUnsub){try{window.__chatsUnsub()}catch(_){}}
+  window.__chatsUnsub=onSnapshot(query(collection(db,"conversations"),where("participants","array-contains",S.user.uid),limit(40)),async snap=>{
+    const rows=snap.docs.map(d=>({id:d.id,...d.data()}));
+    // رتّب محلياً
+    rows.sort((a,b)=>tms(b.updatedAt||b.lastAt)-tms(a.updatedAt||a.lastAt));
+    S.chats=await Promise.all(rows.map(async c=>{
+      const otherUid=(c.participants||[]).find(u=>u!==S.user.uid);
+      let otherName=(c.names&&c.names[otherUid])||"زميل",otherAvatar=null;
+      try{
+        const st=await getDoc(doc(db,"students",otherUid));
+        if(st.exists()){otherName=st.data().name||otherName;otherAvatar=st.data().avatar||null}
+      }catch(_){}
+      return {id:c.id,otherUid,otherName,otherAvatar,lastText:c.lastText,lastAt:c.lastAt||c.updatedAt,unread:0};
+    }));
+    if(S.view==="chatList")render();
+  },err=>console.warn("chats",err));
+}
+function listenDmThread(cid,otherUid){
+  if(window.__dmUnsub){try{window.__dmUnsub()}catch(_){}}
+  window.__dmUnsub=onSnapshot(query(collection(db,"messages"),where("convId","==",cid),limit(80)),snap=>{
+    let msgs=snap.docs.map(d=>({id:d.id,...d.data()}));
+    msgs.sort((a,b)=>tms(a.createdAt)-tms(b.createdAt));
+    S.chatMsgs=msgs;
+    if(S.view==="chatThread"){
+      const box=$("#dmChatLog");
+      if(box){
+        // re-render thread body via full render is simpler
+        render();
+        requestAnimationFrame(()=>{const b=$("#dmChatLog");if(b)b.scrollTop=b.scrollHeight});
+      }else render(true);
+    }
+    // علّم كمقروء
+    msgs.filter(m=>m.toUid===S.user.uid&&!m.read).forEach(m=>{
+      updateDoc(doc(db,"messages",m.id),{read:true}).catch(()=>{});
+    });
+  },err=>console.warn("dm",err));
+}
 function loadOpenRooms(){
   if(!db||S.isAdmin)return;
   try{
     if(window.__openRoomsUnsub){try{window.__openRoomsUnsub()}catch(_){}}
     // بدون composite index: نجيب الغرف ونفلتر محلياً
     window.__openRoomsUnsub=onSnapshot(query(collection(db,"qb_rooms"),limit(40)),snap=>{
-      S.openRooms=snap.docs.map(d=>({id:d.id,code:d.id,...d.data()})).filter(r=>r.public&&r.status==="lobby");
+      S.openRooms=snap.docs.map(d=>({id:d.id,code:d.id,...d.data()})).filter(r=>{
+        const n=Object.keys(r.players||{}).filter(k=>k!=="bot").length;
+        if(n===0&&r.status!=="playing"){
+          try{deleteDoc(doc(db,"qb_rooms",r.id||r.code)).catch(()=>{})}catch(_){}
+          return false;
+        }
+        return r.public&&r.status==="lobby"&&n>0;
+      });
       if(S.view==="games")render();
     },err=>console.warn("openRooms",err));
   }catch(e){console.warn(e)}
@@ -2186,7 +2381,7 @@ function qbChatHtml(){
   const msgs=S.qbChat||[];
   return `<div class="qb-chat"><div class="qb-chat-log" id="qbChatLog">${msgs.length?msgs.map(m=>`<div class="qb-chat-msg"><div class="qb-chat-head">${qbChatAvatar(m)}<button type="button" class="who" data-act="openProfile" data-uid="${esc(m.uid||"")}" style="background:none;border:0;padding:0;cursor:pointer;font:inherit;color:var(--pri);font-weight:700">${esc(m.name||"?")}</button><span class="when">${m.createdAt?fmt(m.createdAt):""}</span></div><div dir="auto" class="qb-chat-body">${esc(m.text||"")}</div>${m.img?`<div><img src="${m.img}" alt="" style="max-width:min(220px,70vw);border-radius:10px;margin-top:6px" loading="lazy"></div>`:""}</div>`).join(""):`<div class="mut">الشات فوري — اكتب ورسالتك توصل للجميع حالاً</div>`}</div>
 <form class="qb-chat-form" data-submit="qbChatSend"><input id="qbChatIn" type="text" maxlength="300" placeholder="اكتب رسالة…" autocomplete="off"><button class="btn sm" type="submit">إرسال</button>
-<label class="btn ghost sm" style="margin:0;cursor:pointer;flex-shrink:0">📷<input type="file" id="qbChatImg" accept="image/*" capture="environment" hidden></label>
+<label class="btn ghost sm" style="margin:0;cursor:pointer;flex-shrink:0" title="رفع صورة من الجهاز">🖼<input type="file" id="qbChatImg" accept="image/*" hidden></label>
 </form></div>`;
 }
 function qbListenRoom(code){
@@ -2721,7 +2916,7 @@ document.addEventListener("change",e=>{
       for(const f of files){
         try{
           const id="t"+Date.now()+Math.random().toString(36).slice(2,6);
-          if(/^image\//.test(f.type))ed[part].push({id,pend:true,kind:"image",name:f.name,data:await packImage(f)});
+          if(/^image\//.test(f.type))ed[part].push({id,pend:true,kind:"image",name:f.name,data:await packImage(f,1600,0.88)});
           else if(f.type==="application/pdf"&&f.size<=5*1024*1024)ed[part].push({id,pend:true,kind:"pdf",name:f.name,gid:id,b64:await readB64(f)});
           else bad++;
         }catch(err){bad++}
@@ -2735,27 +2930,38 @@ document.addEventListener("change",e=>{
     const f=e.target.files[0];e.target.value="";
     (async()=>{
       try{
-        if(!/^image\//.test(f.type)){toast("اختار صورة فقط");return}
-        if(f.size>12*1024*1024){toast("الصورة كبيرة أوي");return}
-        toast("جاري تصغير ورفع الصورة…");
-        // ضغط قوي: Firestore حدّ 1MB للدوكيومنت — الصورة لوحدها بدون avatar
-        let data=await packImage(f,280,0.42);
-        if(data.length>700000) data=await packImage(f,200,0.35);
-        if(data.length>850000){toast("الصورة لسه كبيرة — اختار صورة أوضح أصغر");return}
+        if(!/^image\//.test(f.type)){toast("اختار صورة من الملفات");return}
+        if(f.size>15*1024*1024){toast("الصورة كبيرة أوي");return}
+        toast("جاري رفع الصورة من جهازك…");
+        let data=await packImage(f,320,0.45);
+        if(data.length>650000) data=await packImage(f,220,0.35);
+        if(data.length>800000){toast("الصورة لسه كبيرة بعد الضغط");return}
         await addDoc(collection(db,"qb_rooms",S.qb.roomCode,"chat"),{
           uid:S.user.uid,
           name:(S.profile.name||"طالب").split(" ")[0],
-          text:"📷",
+          text:"🖼 صورة",
           img:data,
           createdAt:serverTimestamp()
         });
         toast("اتبعتت الصورة ✓");
       }catch(err){
         console.error("chat img",err);
-        const msg=(err&&err.code)||"";
-        if(String(msg).includes("size")||String(err.message||"").includes("longer"))toast("الصورة كبيرة على السيرفر — جرّب أصغر");
-        else toast("فشل رفع الصورة — جرّب تاني أو صورة أصغر");
+        toast("فشل رفع الصورة — جرّب صورة أصغر من المعرض");
       }
+    })();
+  }
+  if(e.target.id==="dmImg"&&e.target.files&&e.target.files[0]&&S.chatThread){
+    const f=e.target.files[0];e.target.value="";
+    (async()=>{
+      try{
+        if(!/^image\//.test(f.type)){toast("صورة فقط");return}
+        toast("جاري رفع الصورة…");
+        let data=await packImage(f,320,0.45);
+        if(data.length>650000) data=await packImage(f,220,0.35);
+        if(data.length>800000){toast("الصورة كبيرة");return}
+        await sendDm(S.chatThread.uid,"🖼 صورة",data);
+        toast("اتبعتت ✓");
+      }catch(err){console.error(err);toast("فشل إرسال الصورة")}
     })();
   }
   if(e.target.id==="meAvatar"&&e.target.files&&e.target.files[0]&&S.user){
@@ -2763,8 +2969,8 @@ document.addEventListener("change",e=>{
     (async()=>{
       try{
         if(!/^image\//.test(f.type)||f.size>3*1024*1024){toast("صورة فقط وأقل من 3MB");return}
-        const data=await packImage(f);
-        if(data.length>500000){toast("الصورة كبيرة — صغّرها");return}
+        const data=await packImage(f,700,0.78);
+        if(data.length>550000){toast("الصورة كبيرة — اختار أوضح أصغر");return}
         await updateDoc(doc(db,"students",S.user.uid),{avatar:data});
         S.profile={...S.profile,avatar:data};
         toast("اتحفظت الصورة ✓");
