@@ -1,5 +1,5 @@
 /* Service Worker — تحديث تلقائي عند فتح التطبيق */
-const CACHE = "eltafawoq-v3";
+const CACHE = "eltafawoq-v4";
 const ASSETS = ["./", "./index.html", "./manifest.json"];
 
 self.addEventListener("install", (e) => {
@@ -16,7 +16,6 @@ self.addEventListener("activate", (e) => {
 
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
-  // شبكة أولاً للـ HTML عشان التحديثات توصل فوراً
   if (e.request.mode === "navigate" || url.pathname.endsWith(".html")) {
     e.respondWith(
       fetch(e.request)
@@ -29,7 +28,6 @@ self.addEventListener("fetch", (e) => {
     );
     return;
   }
-  // باقي الملفات: كاش مع تحديث في الخلفية
   e.respondWith(
     caches.match(e.request).then((cached) => {
       const net = fetch(e.request)

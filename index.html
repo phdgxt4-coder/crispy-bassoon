@@ -261,6 +261,33 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 .qb-chip.ready{box-shadow:0 0 0 2px var(--ok)}
 .qb-code{font-family:ui-monospace,monospace;font-size:28px;letter-spacing:.2em;font-weight:700;color:var(--pri);direction:ltr}
 
+
+/* تواصل ستايل قريب من تيك توك */
+.tk-tabs{display:flex;gap:0;border-bottom:1px solid var(--line);margin:0 -16px 12px;padding:0 16px}
+.tk-tabs button{flex:1;background:none;border:0;border-bottom:2px solid transparent;padding:12px;font:inherit;font-weight:600;color:var(--mut);cursor:pointer}
+.tk-tabs button.on{color:var(--pri);border-bottom-color:var(--pri)}
+.tk-row{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line);width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:start;font:inherit;color:inherit;cursor:pointer}
+.tk-row:active{background:var(--sel)}
+.tk-av{width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.tk-av.letter{display:flex;align-items:center;justify-content:center;background:var(--sel);font-weight:700;font-size:20px}
+.tk-meta{flex:1;min-width:0}
+.tk-meta b{display:block;font-size:15px}
+.tk-meta .preview{color:var(--mut);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tk-time{font-size:11px;color:var(--mut);flex-shrink:0}
+.tk-badge{background:var(--bad);color:#fff;border-radius:99px;min-width:20px;height:20px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0 6px}
+.tk-thread{display:flex;flex-direction:column;height:calc(100vh - 140px);min-height:420px}
+.tk-log{flex:1;overflow-y:auto;padding:8px 0;display:flex;flex-direction:column;gap:8px}
+.tk-bubble{max-width:78%;padding:10px 12px;border-radius:16px;font-size:15px;line-height:1.45;word-break:break-word}
+.tk-bubble.me{align-self:flex-start;background:var(--pri);color:var(--onpri);border-bottom-right-radius:4px}
+.tk-bubble.them{align-self:flex-end;background:var(--sel);border-bottom-left-radius:4px}
+.tk-bubble .when{display:block;font-size:10px;opacity:.7;margin-top:4px}
+.tk-compose{display:flex;gap:6px;align-items:center;padding:8px 0;border-top:1px solid var(--line);background:var(--bg);position:sticky;bottom:0}
+.tk-compose input{flex:1}
+.voice-bar{position:fixed;inset-inline:16px;bottom:90px;z-index:80;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--sh);text-align:center}
+.voice-bar .rec-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--bad);animation:pulse 1s infinite;margin-left:6px}
+@keyframes pulse{50%{opacity:.35}}
+.install-banner{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:linear-gradient(135deg,color-mix(in srgb,var(--pri) 18%,var(--card)),var(--card));border:1px solid var(--pri);margin-bottom:12px}
+
 </style>
 </head>
 <body>
@@ -735,10 +762,11 @@ ${S.adminLogin?"":`<p class="mut" style="text-align:center;margin:14px 0 0">${re
 function homeView(){
   const ex=S.exams.filter(vis);
   const an=S.site.announceOn&&S.site.announce?`<div class="card ann"><b>📢 إعلان</b><div style="white-space:pre-wrap;margin-top:4px">${esc(S.site.announce)}</div></div>`:"";
+  const inst=installBanner();
   const sess=peekExamSession();
   const resume=sess?`<div class="card" style="border-color:var(--gold);background:var(--ybg)"><b>▶ عندك امتحان متوقف</b><div class="mut" style="margin:4px 0">تقدر تكمّل من حيث وقفت — الإجابات محفوظة</div><button class="btn sm gold" data-act="resumeExam">استئناف الامتحان</button></div>`:"";
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="logout">خروج</button>`)}
-<h2>أهلاً يا ${esc(S.profile.name.split(" ")[0])}</h2><p class="mut">اختار المادة اللي عايز تمتحن فيها.</p>${an}${resume}
+<h2>أهلاً يا ${esc(S.profile.name.split(" ")[0])}</h2><p class="mut">اختار المادة اللي عايز تمتحن فيها.</p>${inst||""}${an}${resume}
 <div class="grid">${S.examsLoaded?SUBJECTS.map(s=>{const l=ex.filter(e=>e.subject===s.id),done=l.filter(e=>(S.attempts[e.id]||[]).length).length,p=l.length?Math.round(done/l.length*100):0;
   return `<button class="subj" style="background:linear-gradient(135deg,${s.c},${s.c2})" data-act="openSubject" data-id="${s.id}"><span class="g">${s.g}</span><b>${s.name}</b><small>${l.length?l.length+" امتحان · خلصت "+done:"مفيش امتحانات لسه"}</small><div class="sp"><i style="--w:${p}%"></i></div></button>`}).join("")+`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#0B5D57)" data-act="openAsms"><span class="g">A+</span><div><b>التقييمات</b><br><small>${S.asms.length?S.asms.length+" تقييم · حلول ونماذج":"مفيش تقييمات لسه"}</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#166534,#B45309)" data-act="openGames"><span class="g">🎮</span><div><b>الألعاب</b><br><small>العب ضد الروبوت أو ضد صاحبك</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#9D174D,#BE185D)" data-act="openFadaye7"><span class="g">😂</span><div><b>فضايح</b><br><small>${(S.fadaye7||[]).length?(S.fadaye7.length)+" لقطة":"صور وفيديوهات من الأدمن"}</small></div></button>`:SUBJECTS.map(()=>`<div class="sk"></div>`).join("")}</div>
 </div>${studentNav()}`}
@@ -1114,59 +1142,77 @@ ${hits.length?hits.map(h=>{
 </div>${studentNav()}`;
 }
 
+
+function installBanner(){
+  const standalone=window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone;
+  if(standalone)return `<div class="install-banner"><span>✓</span><div style="flex:1"><b>تطبيق التفوق</b><div class="mut">شغّال كتطبيق — تحديثاتك توصل تلقائي</div></div></div>`;
+  return `<div class="install-banner">
+    <span style="font-size:28px">📲</span>
+    <div style="flex:1"><b>ثبّت تطبيق التفوق</b><div class="mut">يفتح لوحده زي البرامج — حسابك يفضل مفتوح</div></div>
+    <button class="btn sm gold" data-act="installApp">تثبيت</button>
+  </div>`;
+}
+
 function chatListView(){
+  const tab=S.chatTab||"dms";
   const list=S.chats||[];
-  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openSearch">🔍 بحث</button>`)}
-<h2>تواصل</h2>
-<p class="mut">محادثاتك مع الزملاء — فورية زي شات الغرف</p>
-${list.length?list.map(c=>{
-  const other=c.otherName||"زميل";
-  const av=c.otherAvatar?`<img src="${c.otherAvatar}" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover">`:`<div class="av" style="width:48px;height:48px;font-size:18px">${esc(other[0]||"?")}</div>`;
-  const unread=c.unread?`<span class="badge">${c.unread}</span>`:"";
-  return `<button type="button" class="card row" data-act="openChat" data-uid="${c.otherUid}" data-name="${esc(other)}" style="width:100%;text-align:start;cursor:pointer;font:inherit;color:inherit;gap:12px">
-  ${av}
-  <div style="flex:1;min-width:0">
-    <div class="row"><b>${esc(other)}</b>${unread}</div>
-    <div class="mut" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.lastText||"…")}</div>
-  </div>
-  <span class="mut" style="font-size:11px;white-space:nowrap">${c.lastAt?fmt(c.lastAt):""}</span>
-  </button>`;
-}).join(""):`<div class="card mut">لسه مفيش محادثات. ابحث عن زميل ودوس «راسل».</div>`}
-<button class="btn block" style="margin-top:8px" data-act="openSearch">🔍 ابحث عن زميل وراسله</button>
-<button class="btn block ghost" style="margin-top:8px" data-act="openGroups">👥 الجروبات</button>
+  const groups=S.groups||[];
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openSearch">🔍</button>`)}
+<h2 style="margin-bottom:4px">صندوق الوارد</h2>
+<div class="tk-tabs">
+  <button type="button" class="${tab==="dms"?"on":""}" data-act="chatTab" data-id="dms">الرسائل ${(S.unreadChat||0)?`<span class="tk-badge">${S.unreadChat}</span>`:""}</button>
+  <button type="button" class="${tab==="groups"?"on":""}" data-act="chatTab" data-id="groups">الجروبات</button>
+</div>
+${tab==="dms"?`
+  ${list.length?list.map(c=>{
+    const other=c.otherName||"زميل";
+    const av=c.otherAvatar?`<img class="tk-av" src="${c.otherAvatar}" alt="">`:`<div class="tk-av letter">${esc((other[0]||"?"))}</div>`;
+    return `<button type="button" class="tk-row" data-act="openChat" data-uid="${c.otherUid}" data-name="${esc(other)}">
+      ${av}
+      <div class="tk-meta"><b>${esc(other)}</b><div class="preview">${esc(c.lastText||"ابدأ المحادثة…")}</div></div>
+      <div style="text-align:end"><div class="tk-time">${c.lastAt?fmt(c.lastAt):""}</div>${c.unread?`<span class="tk-badge">${c.unread}</span>`:""}</div>
+    </button>`;
+  }).join(""):`<div class="card mut" style="text-align:center">مفيش رسائل لسه<br><button class="btn sm" style="margin-top:10px" data-act="openSearch">ابحث عن حد وراسله</button></div>`}
+  <button class="btn block ghost" style="margin-top:12px" data-act="openSearch">🔍 رسالة جديدة</button>
+`:`
+  <button class="btn block gold" data-act="createGroup">＋ إنشاء جروب</button>
+  ${groups.length?groups.map(g=>`<button type="button" class="tk-row" data-act="openGroup" data-id="${g.id}" data-name="${esc(g.name||"")}">
+    <div class="tk-av letter">👥</div>
+    <div class="tk-meta"><b>${esc(g.name||"جروب")}</b><div class="preview">${esc(g.lastText||(g.members||[]).length+" عضو")}</div></div>
+    <div class="tk-time">${g.updatedAt?fmt(g.updatedAt):""}</div>
+  </button>`).join(""):`<div class="card mut" style="text-align:center">مفيش جروبات — أنشئ واحد وادعُ أصحابك</div>`}
+`}
 </div>${studentNav()}`;
 }
 
 function chatThreadView(){
   const t=S.chatThread;if(!t)return chatListView();
   const msgs=S.chatMsgs||[];
-  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openChats">رجوع</button>`)}
-<div class="row" style="margin-bottom:10px;gap:10px">
+  return `<div class="wrap" style="padding-bottom:12px">${header(`<button class="btn ghost sm" data-act="openChats">رجوع</button>`)}
+<div class="row" style="margin-bottom:8px;gap:10px;align-items:center">
   <button type="button" data-act="openProfile" data-uid="${t.uid}" style="background:none;border:0;padding:0;cursor:pointer">
-    ${t.avatar?`<img src="${t.avatar}" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover">`:`<div class="av" style="width:40px;height:40px;font-size:16px">${esc((t.name||"?")[0])}</div>`}
+    ${t.avatar?`<img class="tk-av" src="${t.avatar}" alt="" style="width:44px;height:44px">`:`<div class="tk-av letter" style="width:44px;height:44px;font-size:16px">${esc((t.name||"?")[0])}</div>`}
   </button>
-  <div style="flex:1">
-    <b data-act="openProfile" data-uid="${t.uid}" style="cursor:pointer;color:var(--pri)">${esc(t.name||"زميل")}</b>
-    <div class="mut" style="font-size:12px">محادثة فورية</div>
+  <div style="flex:1;min-width:0">
+    <b data-act="openProfile" data-uid="${t.uid}" style="cursor:pointer">${esc(t.name||"زميل")}</b>
   </div>
 </div>
-<div class="qb-chat" style="min-height:50vh;display:flex;flex-direction:column">
-  <div class="qb-chat-log" id="dmChatLog" style="flex:1;max-height:none;min-height:40vh">${msgs.length?msgs.map(m=>{
+<div class="tk-thread">
+  <div class="tk-log" id="dmChatLog">${msgs.length?msgs.map(m=>{
     const mine=m.fromUid===S.user.uid;
-    return `<div class="qb-chat-msg" style="${mine?"align-self:flex-start;background:var(--sel);border-radius:12px;padding:8px 10px;max-width:85%":"align-self:flex-end;background:color-mix(in srgb,var(--pri) 18%,var(--card));border-radius:12px;padding:8px 10px;max-width:85%"}">
-      ${!mine?`<span class="who">${esc(m.fromName||"")}</span>`:""}
-      <div dir="auto">${esc(m.text||"")}</div>
+    return `<div class="tk-bubble ${mine?"me":"them"}">
+      ${!mine&&m.fromName?`<div style="font-size:11px;opacity:.8;margin-bottom:2px">${esc(m.fromName)}</div>`:""}
+      ${m.text&&m.kind!=="audio"?`<div dir="auto">${esc(m.text)}</div>`:""}
       ${m.img?mediaEmbed(m.img,m.kind):""}
-      ${m.roomCode?`<div style="margin-top:6px"><button class="btn sm gold" data-act="qbJoinInvite" data-code="${esc(m.roomCode)}">دخول الغرفة ${esc(m.roomCode)}</button></div>`:""}
+      ${m.roomCode?`<button class="btn sm gold" style="margin-top:6px" data-act="qbJoinInvite" data-code="${esc(m.roomCode)}">دخول الغرفة</button>`:""}
       <span class="when">${m.createdAt?fmt(m.createdAt):""}</span>
     </div>`;
-  }).join(""):`<div class="mut">اول رسالة… قول سلام 👋</div>`}</div>
-  <form class="qb-chat-form" data-submit="dmSend">
-    <input id="dmIn" type="text" maxlength="2000" placeholder="اكتب رسالة…" autocomplete="off">
-    <button class="btn sm" type="submit">إرسال</button>
-    <label class="btn ghost sm" style="margin:0;cursor:pointer;flex-shrink:0" title="صورة من الجهاز">🖼<input type="file" id="dmImg" accept="image/*" hidden></label>
-    <button type="button" class="btn ghost sm" style="margin:0;flex-shrink:0" data-act="dmSendLink" title="رابط فيديو">🔗</button>
-    <button type="button" class="btn ghost sm" style="margin:0;flex-shrink:0" data-act="dmVoice" title="تسجيل صوت">🎙</button>
+  }).join(""):`<div class="mut" style="text-align:center;margin:auto">قول سلام 👋</div>`}</div>
+  <form class="tk-compose" data-submit="dmSend">
+    <button type="button" class="btn ghost sm" data-act="dmVoice" title="تسجيل">🎙</button>
+    <label class="btn ghost sm" style="margin:0;cursor:pointer">🖼<input type="file" id="dmImg" accept="image/*" hidden></label>
+    <input id="dmIn" type="text" maxlength="2000" placeholder="رسالة…" autocomplete="off">
+    <button class="btn sm" type="submit">➤</button>
   </form>
 </div>
 </div>${studentNav()}`;
@@ -1177,6 +1223,7 @@ function meView(){
   const av=p.avatar?`<img src="${p.avatar}" alt="" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--pri)">`:`<div class="av" style="width:72px;height:72px;font-size:28px">${esc((p.name||"؟")[0]||"?")}</div>`;
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
 <h2>حسابي</h2>
+${installBanner()}
 <div class="card" style="text-align:center">${av}
 <div style="margin-top:8px"><b>${esc(p.name||"طالب")}</b></div>
 <div class="mut">${esc(p.phone||"")}</div>
@@ -1709,9 +1756,29 @@ const A={
   openMe(){S.view="me";render(true)},
   openSearch(){S.view="search";S.friendHits=S.friendHits||[];render(true);setTimeout(()=>{const i=$("#friendQ");if(i)i.focus()},100)},
   openChats(){
-    S.view="chatList";
-    listenMyChats();
+    S.view="chatList";S.chatTab=S.chatTab||"dms";
+    listenMyChats();loadMyGroups();
     render(true);
+  },
+  chatTab(d){S.chatTab=d.id||"dms";if(S.chatTab==="groups")loadMyGroups();render(true)},
+  async installApp(){
+    if(window.__deferredPrompt){
+      window.__deferredPrompt.prompt();
+      const r=await window.__deferredPrompt.userChoice;
+      window.__deferredPrompt=null;S.canInstall=false;
+      toast(r&&r.outcome==="accepted"?"تم التثبيت ✓ — افتحه من شاشتك الرئيسية":"تم الإلغاء");
+      render();
+      return;
+    }
+    const ua=navigator.userAgent||"";
+    const ios=/iPad|iPhone|iPod/.test(ua);
+    if(ios){
+      toast("آيفون: دوس مشاركة ⬆ ثم «إضافة إلى الشاشة الرئيسية»",true);
+    }else if(window.matchMedia("(display-mode: standalone)").matches){
+      toast("التطبيق مثبت بالفعل ✓");
+    }else{
+      toast("من قائمة المتصفح ⋮ اختار «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية»",true);
+    }
   },
   async startChat(d){
     const uid=d.uid;if(!uid||uid===S.user.uid){toast("مش هتكلم نفسك");return}
@@ -2218,7 +2285,7 @@ const A={
       toast("اتبعت التسجيل ✓");
     });
   },
-  openGroups(){S.view="groups";loadMyGroups();render(true)},
+  openGroups(){S.view="chatList";S.chatTab="groups";loadMyGroups();render(true)},
   async createGroup(){
     const name=prompt("اسم الجروب:");
     if(!name||!name.trim())return;
@@ -2638,45 +2705,69 @@ async function sendDm(toUid,text,img,extra){
 /** رفع ملف على Firebase Storage — صور/فيديو بجودة كاملة */
 
 async function recordVoice(onDone){
+  if(window.__voiceBusy){toast("في تسجيل شغّال");return}
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast("المتصفح مش بيدعم التسجيل");return}
+  let stream,rec,chunks=[],timer,sec=0;
+  const mime=MediaRecorder.isTypeSupported("audio/webm;codecs=opus")?"audio/webm;codecs=opus"
+    :(MediaRecorder.isTypeSupported("audio/webm")?"audio/webm"
+    :(MediaRecorder.isTypeSupported("audio/mp4")?"audio/mp4":""));
   try{
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-    const rec=new MediaRecorder(stream);
-    const chunks=[];
-    rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
-    const done=new Promise(resolve=>{
-      rec.onstop=async()=>{
-        stream.getTracks().forEach(tr=>tr.stop());
-        const blob=new Blob(chunks,{type:rec.mimeType||"audio/webm"});
-        if(blob.size>450000){toast("التسجيل طويل أوي — سجّل أقصر (حوالي 30 ث)");resolve(null);return}
-        const reader=new FileReader();
-        reader.onload=()=>resolve(reader.result);
-        reader.readAsDataURL(blob);
-      };
-    });
-    toast("جاري التسجيل… دوس OK بعد ما تخلّص (حد أقصى ~30 ث)");
-    rec.start();
-    // يوقف بعد 30 ثانية أو لما المستخدم يأكد
-    await new Promise(r=>setTimeout(r,500));
-    if(!confirm("اضغط موافق لما تخلّص التسجيل (أو استنى لحد 25 ثانية)")){
-      try{rec.stop()}catch(_){}
-      stream.getTracks().forEach(tr=>tr.stop());
-      return;
-    }
-    if(rec.state==="recording")rec.stop();
-    const dataUrl=await done;
-    if(dataUrl&&onDone)await onDone(dataUrl);
-  }catch(e){
-    console.error(e);
-    toast("محتاج إذن الميكروفون للتسجيل");
+    stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});
+  }catch(e){toast("اسمح بالميكروفون من إعدادات المتصفح");return}
+  window.__voiceBusy=true;
+  const bar=document.createElement("div");
+  bar.className="voice-bar";
+  bar.innerHTML=`<div><span class="rec-dot"></span><b id="voiceSec">جاري التسجيل 0 ث</b></div>
+    <p class="mut" style="margin:8px 0">اتكلم بوضوح — بعدين دوس إرسال</p>
+    <div class="row" style="justify-content:center;gap:10px">
+      <button type="button" class="btn danger sm" id="voiceCancel">إلغاء</button>
+      <button type="button" class="btn gold sm" id="voiceSend">⏹ إيقاف وإرسال</button>
+    </div>`;
+  document.body.appendChild(bar);
+  const tick=()=>{sec++;const el=document.getElementById("voiceSec");if(el)el.textContent="جاري التسجيل "+sec+" ث";if(sec>=45)stop(true)};
+  timer=setInterval(tick,1000);
+  try{
+    rec=mime?new MediaRecorder(stream,{mimeType:mime,audioBitsPerSecond:32000}):new MediaRecorder(stream);
+  }catch(_){rec=new MediaRecorder(stream)}
+  chunks=[];
+  rec.ondataavailable=e=>{if(e.data&&e.data.size>0)chunks.push(e.data)};
+  const finished=new Promise(resolve=>{
+    rec.onstop=()=>{
+      try{stream.getTracks().forEach(tr=>tr.stop())}catch(_){}
+      clearInterval(timer);
+      const type=(rec.mimeType||mime||"audio/webm").split(";")[0];
+      const blob=new Blob(chunks,{type:type});
+      resolve(blob);
+    };
+  });
+  rec.start(200); // timeslice عشان في بيانات فعلًا
+  function cleanup(){
+    window.__voiceBusy=false;
+    try{bar.remove()}catch(_){}
+    clearInterval(timer);
   }
+  async function stop(send){
+    if(rec.state==="inactive"){cleanup();return}
+    try{rec.requestData()}catch(_){}
+    rec.stop();
+    const blob=await finished;
+    cleanup();
+    if(!send)return;
+    if(!blob||blob.size<800){toast("التسجيل فاضي أو قصير أوي — حاول تاني");return}
+    if(blob.size>500000){toast("التسجيل طويل — سجّل أقل من 40 ثانية");return}
+    const dataUrl=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(blob)});
+    if(onDone)await onDone(dataUrl);
+  }
+  document.getElementById("voiceCancel").onclick=()=>stop(false);
+  document.getElementById("voiceSend").onclick=()=>stop(true);
 }
 function loadMyGroups(){
-  if(!S.user||window.__grpListUnsub)return;
+  if(!S.user)return;
+  if(window.__grpListUnsub)return; // once
   try{
     window.__grpListUnsub=onSnapshot(query(collection(db,"groups"),where("members","array-contains",S.user.uid),limit(30)),snap=>{
       S.groups=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsMs(b.updatedAt)-tsMs(a.updatedAt));
-      if(S.view==="groups")render();
+      if(S.view==="chatList"||S.view==="groups")render();
     },err=>console.warn("groups",err));
   }catch(e){console.warn(e)}
 }
@@ -2701,18 +2792,25 @@ ${list.length?list.map(g=>`<button type="button" class="card row" data-act="open
 }
 function groupThreadView(){
   const msgs=S.groupMsgs||[];
-  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openGroups">رجوع</button>`)}
-<div class="row"><h2 style="margin:0;flex:1">${esc(S.groupName||"جروب")}</h2>
-<button class="btn ghost sm" data-act="addToGroup">＋ عضو</button></div>
-<div class="qb-chat" style="min-height:45vh">
-  <div class="qb-chat-log" id="grpLog">${msgs.length?msgs.map(m=>`<div class="qb-chat-msg"><span class="who">${esc(m.fromName||"?")}</span>
-    <div dir="auto">${esc(m.text||"")}</div>
-    ${m.img?mediaEmbed(m.img,m.kind):""}
-    <span class="when">${m.createdAt?fmt(m.createdAt):""}</span></div>`).join(""):`<div class="mut">اول رسالة في الجروب…</div>`}</div>
-  <form class="qb-chat-form" data-submit="groupSend">
-    <input id="grpIn" type="text" maxlength="2000" placeholder="اكتب…">
-    <button class="btn sm" type="submit">إرسال</button>
+  return `<div class="wrap" style="padding-bottom:12px">${header(`<button class="btn ghost sm" data-act="openChats">رجوع</button>`)}
+<div class="row" style="margin-bottom:8px">
+  <div style="flex:1"><b style="font-size:18px">${esc(S.groupName||"جروب")}</b></div>
+  <button class="btn ghost sm" data-act="addToGroup">＋ عضو</button>
+</div>
+<div class="tk-thread">
+  <div class="tk-log" id="grpLog">${msgs.length?msgs.map(m=>{
+    const mine=m.fromUid===S.user.uid;
+    return `<div class="tk-bubble ${mine?"me":"them"}">
+      ${!mine?`<div style="font-size:11px;opacity:.8">${esc(m.fromName||"?")}</div>`:""}
+      ${m.text&&m.kind!=="audio"?`<div dir="auto">${esc(m.text)}</div>`:""}
+      ${m.img?mediaEmbed(m.img,m.kind):""}
+      <span class="when">${m.createdAt?fmt(m.createdAt):""}</span>
+    </div>`;
+  }).join(""):`<div class="mut" style="text-align:center;margin:auto">اول رسالة في الجروب…</div>`}</div>
+  <form class="tk-compose" data-submit="groupSend">
     <button type="button" class="btn ghost sm" data-act="groupVoice">🎙</button>
+    <input id="grpIn" type="text" maxlength="2000" placeholder="رسالة للجروب…">
+    <button class="btn sm" type="submit">➤</button>
   </form>
 </div></div>${studentNav()}`;
 }
@@ -3524,9 +3622,22 @@ if(!configured)render(true);
 <script>
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    navigator.serviceWorker.register('./sw.js').then(reg=>{
+      // تحديث تلقائي
+      try{reg.update()}catch(_){}
+      setInterval(()=>{try{reg.update()}catch(_){}},60*60*1000);
+    }).catch(()=>{});
   });
 }
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  window.__deferredPrompt=e;
+  window.__canInstall=true;
+});
+window.addEventListener('appinstalled',()=>{
+  window.__deferredPrompt=null;
+  toast('تم تثبيت تطبيق التفوق ✓',true);
+});
 </script>
 </body>
 </html>
