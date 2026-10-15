@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v23">
+<meta name="sw-build" content="v24">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <meta name="mobile-web-app-capable" content="yes">
@@ -295,6 +295,22 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 .tk-compose input:focus{outline:none;box-shadow:none}
 .chat-wrap{padding-bottom:150px !important}
 .chat-jump{position:fixed;bottom:140px;left:50%;transform:translateX(-50%);z-index:46;background:var(--pri);color:var(--onpri);border:0;border-radius:999px;padding:10px 16px;font:inherit;font-weight:700;box-shadow:var(--sh);cursor:pointer;display:flex;align-items:center;gap:6px}
+
+/* شات أوضح */
+.tk-thread{background:color-mix(in srgb,var(--bg) 85%,var(--pri));border-radius:16px;padding:10px;border:1px solid var(--line)}
+.tk-log{gap:8px}
+.tk-bubble{box-shadow:0 2px 8px color-mix(in srgb,var(--ink) 6%,transparent);max-width:82%}
+.tk-bubble.me{background:linear-gradient(145deg,var(--pri),color-mix(in srgb,var(--pri) 75%,#000))}
+.tk-bubble.them{background:var(--card);border:1px solid var(--line)}
+.tk-compose{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:8px;gap:6px;box-shadow:var(--sh)}
+.tk-compose input{border-radius:12px!important;border:1px solid var(--line)!important}
+.react-picker{display:flex;flex-wrap:wrap;gap:6px;padding:8px;background:var(--card);border:1px solid var(--line);border-radius:14px;margin:6px 0;box-shadow:var(--sh)}
+.react-picker button{font-size:22px;border:0;background:var(--sel);border-radius:10px;padding:6px 10px;cursor:pointer;line-height:1}
+.react-picker button:active{transform:scale(.92)}
+.call-box{background:var(--card);border-radius:20px;padding:28px 22px;text-align:center;min-width:260px;max-width:92vw;box-shadow:var(--sh);border:1px solid var(--line)}
+.call-box .pulse{width:72px;height:72px;margin:0 auto 12px;border-radius:50%;background:color-mix(in srgb,var(--ok) 35%,var(--card));animation:callPulse 1.2s ease infinite}
+@keyframes callPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.08);opacity:.85}}
+
 .chat-jump .n{background:var(--bad);color:#fff;border-radius:99px;min-width:20px;height:20px;font-size:12px;display:inline-flex;align-items:center;justify-content:center;padding:0 6px}
 .grp-add-panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px;box-shadow:var(--sh)}
 .grp-add-panel .hit{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:start;font:inherit;color:inherit;cursor:pointer}
@@ -989,7 +1005,7 @@ if(configured){
   onSnapshot(doc(db,"config","site"),s=>{
     const d=s.exists()?s.data():{};
     const was=S.site.maintenance;
-    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",vapidKey:d.vapidKey||""};
+    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",vapidKey:d.vapidKey||""};
     if(S.view==="loading")return;
     if(S.view==="auth"&&was===S.site.maintenance)return;
     render();
@@ -1628,7 +1644,7 @@ ${tab==="dms"?`
 }
 
 
-const REACT_EMOJI=["❤️","😂","🔥","👍","👏","😮"];
+const REACT_EMOJI=["❤️","😂","🔥","👍","👏","😮","😢","🙏","⭐","🎉","💯","🤔"];
 function reactsHtml(col, id, reacts, mine){
   const r=reacts||{};
   const chips=Object.keys(r).filter(k=>(r[k]||[]).length).map(k=>{
@@ -2369,10 +2385,20 @@ function adminSettings(){
   const extra=`<div class="card"><h3 style="margin-top:0">إشعار لكل الطلاب</h3>
   <p class="mut">يبعت إشعار يظهر في «تقدمي»</p>
   <button class="btn gold" data-act="broadcastNotif">📢 إرسال إشعار جماعي</button></div>
-<div class="card"><h3 style="margin-top:0">رابط مساعد ذكي (اختياري)</h3>
-<p class="mut">Webhook يرد JSON: {"reply":"..."} ويستقبل message + books. لو فاضي = المساعد المحلي.</p>
-<input id="aiUrlIn" class="ltr" type="url" placeholder="https://…/webhook" value="${esc(S.site.aiUrl||"")}">
-<button class="btn sm" style="margin-top:8px" data-act="saveAiUrl">حفظ الرابط</button></div>
+<div class="card" style="border-color:var(--pri)"><h3 style="margin-top:0">🤖 ربط الذكاء الاصطناعي (么)</h3>
+<p class="mut">اربط أي سيرفر يرد JSON: <code dir="ltr">{"reply":"..."}</code><br>
+المنصة تبعت: message, system, history, books, exams, name, view</p>
+<label class="f">رابط الـ API / Webhook</label>
+<input id="aiUrlIn" class="ltr" type="url" placeholder="https://your-server.com/ai" value="${esc(S.site.aiUrl||"")}">
+<label class="f">مفتاح API (اختياري — لو سيرفرك يحتاجه في الهيدر)</label>
+<input id="aiKeyIn" class="ltr" type="password" placeholder="sk-… أو Bearer token" value="${esc(S.site.aiKey||"")}">
+<div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap">
+<button class="btn sm" data-act="saveAiUrl">💾 حفظ الربط</button>
+<button class="btn sm gold" data-act="testAiUrl">اختبار الاتصال</button>
+</div>
+<p class="mut" style="margin-top:10px;font-size:12px">أمثلة للربط: n8n / Make / Cloud Function / سيرفر Node يستدعي OpenAI أو Gemini أو Claude.<br>
+لو الرابط فاضي → المساعد المحلي (么) يشتغل من غير إنترنت خارجي.</p>
+</div>
 <div class="card"><h3 style="margin-top:0">إشعارات المكالمات (FCM)</h3>
 <p class="mut">Firebase → Project settings → Cloud Messaging → Web Push certificates</p>
 <input id="vapidIn" class="ltr" type="text" placeholder="VAPID key" value="${esc(S.site.vapidKey||"")}">
@@ -2451,6 +2477,34 @@ async function wipeFiles(id,part,gid){
 const A={
   async markNotifsRead(){for(const n of (Array.isArray(S.notifs)?S.notifs:[]).filter(x=>!x.read)){try{await updateDoc(doc(db,"notifications",n.id),{read:true})}catch(e){}}},
   adminRefreshPerf(){render(true);toast("اتحدّثت أرقام الأداء")},
+  async saveAiUrl(){
+    const url=($("#aiUrlIn")&&$("#aiUrlIn").value||"").trim();
+    const key=($("#aiKeyIn")&&$("#aiKeyIn").value||"").trim();
+    try{
+      await setDoc(doc(db,"config","site"),{aiUrl:url,aiKey:key},{merge:true});
+      if(S.site){S.site.aiUrl=url;S.site.aiKey=key}
+      toast(url?"اتربط المساعد ✓":"اتشال الرابط — المحلي شغال",true);
+    }catch(e){toast("فشل الحفظ")}
+  },
+  async testAiUrl(){
+    const url=(S.site&&S.site.aiUrl)||($("#aiUrlIn")&&$("#aiUrlIn").value||"").trim();
+    if(!url){toast("حط رابط الأول");return}
+    toast("جاري اختبار 么…");
+    try{
+      const headers={"Content-Type":"application/json"};
+      const key=(S.site&&S.site.aiKey)||($("#aiKeyIn")&&$("#aiKeyIn").value||"");
+      if(key)headers["Authorization"]="Bearer "+key;
+      const r=await fetch(url,{method:"POST",headers,body:JSON.stringify({
+        message:"قل مرحبا في جملة قصيرة",
+        system:"اختبار اتصال. رد بجملة عربية قصيرة.",
+        history:[],books:[],exams:[]
+      })});
+      const j=await r.json().catch(()=>({}));
+      const reply=j.reply||j.text||j.message||"";
+      if(r.ok&&reply)toast("نجح ✓: "+String(reply).slice(0,80),true);
+      else toast("الرد: "+r.status+" "+String(reply||j.error||"مفيش reply"),true);
+    }catch(e){toast("فشل الاتصال: تحقق من الرابط والـ CORS")}
+  },
   theme(d,el){const t=isDark()?"light":"dark";document.querySelectorAll('.tg[data-act="theme"]').forEach(b=>{b.classList.add("spin");setTimeout(()=>b.classList.remove("spin"),500)});setTheme(t)},
   mode(){S.mode=S.mode==="login"?"register":"login";S.error="";render(true)},
   logoTap(){const n=Date.now();S.taps=S.taps.filter(t=>n-t<2500);S.taps.push(n);if(S.taps.length>=3){S.taps=[];S.adminLogin=true;S.error="";render(true)}},
@@ -2531,9 +2585,25 @@ const A={
   async startCall(d){if(!d.uid)return;await startVoiceCall(d.uid,d.name||"زميل")},
   
   pickReact(d){
-    const emoji=prompt("اختار أو اكتب إيموجي:\n"+REACT_EMOJI.join(" "),"❤️");
-    if(!emoji)return;
-    A.toggleReact({col:d.col,id:d.id,emoji:emoji.trim().slice(0,8)});
+    const old=document.getElementById("reactPicker");
+    if(old)old.remove();
+    const box=document.createElement("div");
+    box.id="reactPicker";box.className="react-picker";
+    box.innerHTML=REACT_EMOJI.map(e=>`<button type="button" data-e="${e}">${e}</button>`).join("")+
+      `<button type="button" data-e="__more" style="font-size:13px;padding:6px 8px">+ غيره</button>`;
+    const host=document.querySelector(`[data-mid="${d.id}"]`)||document.getElementById("dmChatLog")||document.body;
+    host.appendChild(box);
+    box.onclick=ev=>{
+      const b=ev.target.closest("button");if(!b)return;
+      let emoji=b.getAttribute("data-e");
+      if(emoji==="__more"){emoji=prompt("اكتب إيموجي");if(!emoji)return}
+      box.remove();
+      A.toggleReact({col:d.col,id:d.id,emoji:String(emoji).trim().slice(0,8)});
+    };
+    setTimeout(()=>{
+      const close=e=>{if(!box.contains(e.target)){box.remove();document.removeEventListener("click",close,true)}};
+      document.addEventListener("click",close,true);
+    },0);
   },
   async toggleReact(d){
     if(!S.user||!d.id||!d.emoji)return;
@@ -2620,7 +2690,7 @@ const A={
     const inp=$("#aiIn");const q=(inp&&inp.value||"").trim();
     if(!q)return;
     if(inp)inp.value="";
-    S.aiMsgs=(S.aiMsgs||[]).concat([{role:"me",text:q},{role:"bot",text:"جاري التفكير…"}]);
+    S.aiMsgs=(S.aiMsgs||[]).concat([{role:"me",text:q},{role:"bot",text:"么 بيفكر… 🧠"}]);
     render();
     let reply=null;
     try{
@@ -2647,9 +2717,11 @@ const A={
           "الطالب الحالي: "+((S.profile&&S.profile.name)||"طالب")+" · الشاشة: "+(S.view||""),
           "لو السؤال عن امتحان أو كتاب: اعتمد على exams/books المرفقة أولاً."
         ].join("\n");
+        const headers={"Content-Type":"application/json"};
+        if(S.site.aiKey)headers["Authorization"]="Bearer "+S.site.aiKey;
         const r=await fetch(S.site.aiUrl,{
           method:"POST",
-          headers:{"Content-Type":"application/json"},
+          headers,
           body:JSON.stringify({
             message:q,
             uid:S.user&&S.user.uid,
