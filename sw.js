@@ -1,6 +1,6 @@
 /* التفوق SW — تحديث تلقائي إجباري */
-const CACHE = "eltafawoq-v9";
-const BUILD = "20261015-v9";
+const CACHE = "eltafawoq-v11";
+const BUILD = "20261015-v11";
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
@@ -51,11 +51,7 @@ self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
-    ).then(() => self.clients.claim()).then(() =>
-      self.clients.matchAll({ type: "window" }).then((list) => {
-        list.forEach((c) => c.postMessage({ type: "SW_UPDATED", build: BUILD }));
-      })
-    )
+    ).then(() => self.clients.claim())
   );
 });
 

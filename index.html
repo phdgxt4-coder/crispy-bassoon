@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v8">
+<meta name="sw-build" content="v10">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <meta name="mobile-web-app-capable" content="yes">
@@ -401,7 +401,7 @@ const S = {asms:[],asm:null,editingAsm:null,logins:{},sq:"",starts:[],examsLoade
   qb:null,qbSub:null,qbChatSub:null,qbChat:[],board:[],notifs:[],unreadNotif:0,activity:[],activityLoaded:false,
   fadaye7:[],adminRooms:[],adminConvs:[]};
 const __seenSplash=(()=>{try{return sessionStorage.getItem("splash_ok")==="1"}catch(_){return false}})();
-const splashUntil=__seenSplash?Date.now():Date.now()+1100;
+const splashUntil=__seenSplash?Date.now():Date.now()+400;
 try{if(!__seenSplash)sessionStorage.setItem("splash_ok","1")}catch(_){}
 const vis=e=>!e.publishAt||Date.now()>=e.publishAt;
 const todayKey=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
@@ -780,7 +780,7 @@ async function startSession(u){
     }else{
       const p=await getDoc(doc(db,"students",u.uid));
       S.profile=p.exists()?{name:"طالب",phone:"",...p.data()}:{name:"طالب",phone:""};if(!S.profile.name)S.profile.name="طالب";
-      S.view="home";S.examsLoaded=false;
+      S.view="home";S.examsLoaded=false;render(true);
       // رابط مباشر للغرفة: #room=CODE
       try{
         const h=(location.hash||"").replace(/^#/,"");
@@ -888,8 +888,16 @@ if(configured){
         render(true);
       }
     };
-    const w=splashUntil-Date.now();w>0?setTimeout(run,w):run();
+    const w=Math.min(Math.max(0,splashUntil-Date.now()),800);
+    w>0?setTimeout(run,w):run();
   });
+  // لو Firebase اتأخر: أظهر شاشة الدخول بعد ثانيتين
+  setTimeout(function(){
+    if(S.view==="loading"){
+      S.view="auth";
+      render(true);
+    }
+  },1200);
 }else{S.site={maintenance:true,message:"المنصة تحت التعديل."};S.view="auth"}
 
 /* ---------- العرض ---------- */
@@ -1435,7 +1443,7 @@ function reactsHtml(col, id, reacts, mine){
   const r=reacts||{};
   const chips=Object.keys(r).filter(k=>(r[k]||[]).length).map(k=>{
     const n=(r[k]||[]).length, on=(r[k]||[]).includes(S.user&&S.user.uid);
-    return `<button type="button" class="${on?"on":""}" data-act="toggleReact" data-col="${col}" data-id="${id}" data-emoji="${k}">${k} ${n}</button>`;
+    return `<button type="button" class="${on?"on":""}" data-act="toggleReact" data-col="${col}" data-id="${id}" data-emoji="${encodeURIComponent(k)}">${k} ${n}</button>`;
   }).join("");
   const add=`<button type="button" class="react-add" data-act="pickReact" data-col="${col}" data-id="${id}">+</button>`;
   return `<div class="msg-reacts">${chips}${add}</div>`;
@@ -2265,12 +2273,13 @@ const A={
   async startCall(d){if(!d.uid)return;await startVoiceCall(d.uid,d.name||"زميل")},
   
   pickReact(d){
-    const emoji=prompt("اكتب إيموجي للتفاعل:\n"+REACT_EMOJI.join(" "),"❤️");
+    const emoji=prompt("اختار أو اكتب إيموجي:\n"+REACT_EMOJI.join(" "),"❤️");
     if(!emoji)return;
-    this.toggleReact({...d,emoji:emoji.trim().slice(0,4)});
+    A.toggleReact({col:d.col,id:d.id,emoji:emoji.trim().slice(0,8)});
   },
   async toggleReact(d){
     if(!S.user||!d.id||!d.emoji)return;
+    try{d.emoji=decodeURIComponent(d.emoji)}catch(_){}
     try{
       let ref;
       if(d.col==="dm"&&S.chatThread){
@@ -4643,7 +4652,14 @@ document.addEventListener("pointerdown",e=>{
   x.className="rip";x.style.cssText=`width:${z}px;height:${z}px;left:${e.clientX-r.left-z/2}px;top:${e.clientY-r.top-z/2}px`;
   b.appendChild(x);setTimeout(()=>x.remove(),600);
 });
-document.addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(!b)return;e.preventDefault();A[b.dataset.act]?.(b.dataset,b)});
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]");
+  if(!b)return;
+  const act=b.dataset.act;
+  if(!act||typeof A[act]!=="function")return;
+  e.preventDefault();
+  try{A[act](b.dataset,b)}catch(err){console.error("act",act,err);toast("خطأ: "+act)}
+});
 document.addEventListener("change",e=>{
   const c=e.target.dataset&&e.target.dataset.change;if(c)A[c]?.(e.target.dataset,e.target);
   if(e.target.type==="file"&&(e.target.id==="qf"||e.target.id==="sf")&&S.editingAsm){
@@ -4730,7 +4746,7 @@ document.addEventListener("submit",e=>{e.preventDefault();const f=e.target.datas
 
 /* ---------- شاشة الافتتاح ---------- */
 (function(){
-  const SPLASH_MS = 2400;
+  const SPLASH_MS = 900;
   const el = document.getElementById("splash");
   if(!el) return;
   const start = performance.now();
@@ -4762,67 +4778,39 @@ if(!configured)render(true);
 </script>
 <script>
 
-// إخفاء السبلاش + إنقاذ الشاشة الفاضية
+// إخفاء شاشة البداية فقط (من غير ما نمسح محتوى المنصة)
 (function(){
   function hideSplash(){
     var el=document.getElementById("splash");
     if(!el)return;
     el.classList.add("hide");
-    setTimeout(function(){try{el.remove()}catch(e){}},700);
+    setTimeout(function(){try{el.remove()}catch(e){}},600);
   }
-  function rescue(){
-    hideSplash();
-    var app=document.getElementById("app");
-    if(!app)return;
-    var txt=(app.innerText||"").replace(/\s+/g," ").trim();
-    if(txt.length>20)return;
-    app.innerHTML='<div class="wrap" style="padding:24px 16px 80px"><div class="card"><h2 style="margin-top:0">التفوق</h2><p class="mut">المنصة بتحمّل ببطء أو الكاش قديم.</p><ol class="mut" style="padding-right:18px"><li>امسح بيانات الموقع من إعدادات المتصفح</li><li>أو افتح من Chrome عادي مش التطبيق القديم</li><li>حدّث الصفحة</li></ol><button class="btn block" onclick="location.reload(true)">تحديث الصفحة</button></div></div>';
-  }
-  setTimeout(hideSplash, 1800);
-  setTimeout(rescue, 3200);
-  window.addEventListener("load", function(){ setTimeout(hideSplash, 1200); setTimeout(rescue, 3500); });
+  setTimeout(hideSplash, 700);
+  window.addEventListener("load", function(){ setTimeout(hideSplash, 400); });
 })();
 
 if('serviceWorker' in navigator){
-  let __reloading=false;
-  function reloadOnce(){
-    if(__reloading)return;
-    __reloading=true;
-    try{sessionStorage.setItem("sw_reload","1")}catch(e){}
-    location.reload();
-  }
-  navigator.serviceWorker.addEventListener("controllerchange",function(){
-    // SW جديد تولّى التحكم → تحديث الصفحة مرة واحدة
-    try{
-      if(sessionStorage.getItem("sw_reload")==="1"){sessionStorage.removeItem("sw_reload");return}
-    }catch(e){}
-    reloadOnce();
-  });
-  navigator.serviceWorker.addEventListener("message",function(ev){
-    if(ev.data&&ev.data.type==="SW_UPDATED")reloadOnce();
-  });
-  window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./sw.js?v=9').then(reg=>{
-      try{reg.update()}catch(_){}
-      // كل دقيقة أثناء فتح الصفحة: دور على نسخة جديدة
-      setInterval(function(){try{reg.update()}catch(_){}},60*1000);
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('./sw.js').then(function(reg){
+      try{reg.update()}catch(e){}
+      setInterval(function(){try{reg.update()}catch(e){}}, 5*60*1000);
       if(reg.waiting){
-        reg.waiting.postMessage({type:"SKIP_WAITING"});
+        try{reg.waiting.postMessage({type:"SKIP_WAITING"})}catch(e){}
       }
-      reg.addEventListener("updatefound",function(){
-        var nw=reg.installing;
-        if(!nw)return;
-        nw.addEventListener("statechange",function(){
-          if(nw.state==="installed"&&navigator.serviceWorker.controller){
-            nw.postMessage({type:"SKIP_WAITING"});
-            // أو إعادة تحميل
-            setTimeout(reloadOnce,400);
-          }
-        });
-      });
     }).catch(function(){});
   });
+  // تحديث هادي: لما SW جديد يمسك، نحدّث مرة واحدة فقط
+  var __swReloaded=false;
+  navigator.serviceWorker.addEventListener('controllerchange',function(){
+    if(__swReloaded)return;
+    try{if(sessionStorage.getItem('sw_ok')==='1'){return}}catch(e){}
+    __swReloaded=true;
+    try{sessionStorage.setItem('sw_ok','1')}catch(e){}
+    location.reload();
+  });
 }
+
 window.addEventListener('beforeinstallprompt',e=>{
   e.preventDefault();
   window.__deferredPrompt=e;
