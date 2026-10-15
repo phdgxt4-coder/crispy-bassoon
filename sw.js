@@ -1,6 +1,6 @@
-/* التفوق SW — تحديث تلقائي إجباري */
-const CACHE = "eltafawoq-v11";
-const BUILD = "20261015-v11";
+/* التفوق SW — v12 — إشعارات مكالمات أقوى + تحديث تلقائي */
+const CACHE = "eltafawoq-v13";
+const BUILD = "20261015-v13";
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
@@ -15,27 +15,64 @@ try {
     appId: "1:892405720236:web:734c19429b8ee8e292eb09"
   });
   firebase.messaging().onBackgroundMessage((payload) => {
-    const title = (payload.notification && payload.notification.title) || "التفوق";
-    const body = (payload.notification && payload.notification.body) || (payload.data && payload.data.body) || "إشعار";
-    self.registration.showNotification(title, {
+    const data = payload.data || {};
+    const isCall = data.type === "call" || data.callId;
+    const title = (payload.notification && payload.notification.title)
+      || (isCall ? "📞 مكالمة واردة" : "التفوق");
+    const body = (payload.notification && payload.notification.body)
+      || data.body
+      || (isCall ? ((data.fromName || "شخص") + " بيرن عليك") : "إشعار");
+
+    const opts = {
       body,
-      icon: "./icons/eKXVc.png",
-      tag: (payload.data && payload.data.callId) || "eltafawoq",
-      data: payload.data || {},
-      requireInteraction: true,
-      vibrate: [300, 100, 300]
-    });
+      icon: "./icons/icon-192.png",
+      badge: "./icons/icon-192.png",
+      tag: isCall ? ("call-" + (data.callId || "incoming")) : ((data.tag) || "eltafawoq"),
+      data: data,
+      requireInteraction: !!isCall,
+      renotify: !!isCall,
+      vibrate: isCall ? [400, 120, 400, 120, 400] : [200, 80, 200],
+      actions: isCall
+        ? [
+            { action: "answer", title: "رد" },
+            { action: "reject", title: "رفض" }
+          ]
+        : []
+    };
+    self.registration.showNotification(title, opts);
   });
 } catch (e) {}
 
 self.addEventListener("notificationclick", (e) => {
   e.notification.close();
+  const data = (e.notification && e.notification.data) || {};
+  const isCall = data.type === "call" || data.callId;
+  const action = e.action || "";
+
   e.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      // لو في تبويب مفتوح → ركّز عليه وابعت الرسالة
       for (const c of list) {
-        if ("focus" in c) return c.focus();
+        if (c.url && "focus" in c) {
+          c.focus();
+          try {
+            c.postMessage({
+              type: isCall ? "INCOMING_CALL" : "NOTIFICATION_CLICK",
+              action,
+              callId: data.callId || null,
+              fromName: data.fromName || "",
+              data
+            });
+          } catch (_) {}
+          return;
+        }
       }
-      if (clients.openWindow) return clients.openWindow("./");
+      // مفيش تبويب → افتح المنصة
+      let url = "./";
+      if (isCall && data.callId) {
+        url = "./?call=" + encodeURIComponent(data.callId);
+      }
+      if (clients.openWindow) return clients.openWindow(url);
     })
   );
 });
@@ -62,7 +99,7 @@ self.addEventListener("message", (e) => {
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
 
-  // Firebase دائماً من الشبكة
+  // Firebase / Google دائماً من الشبكة
   if (
     url.hostname.includes("firestore") ||
     url.hostname.includes("firebase") ||
@@ -73,7 +110,7 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  // الصفحات و index: شبكة أولاً — التحديث يوصل لوحده
+  // الصفحات: شبكة أولاً عشان التحديث يوصل فوراً
   if (
     e.request.mode === "navigate" ||
     url.pathname.endsWith(".html") ||
@@ -92,7 +129,7 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  // باقي الملفات: شبكة مع كاش احتياطي
+  // باقي الملفات: شبكة + كاش احتياطي
   e.respondWith(
     fetch(e.request)
       .then((res) => {

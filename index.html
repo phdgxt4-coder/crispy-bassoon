@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v10">
+<meta name="sw-build" content="v13">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <meta name="mobile-web-app-capable" content="yes">
@@ -737,6 +737,27 @@ async function registerFcmToken(){
 async function startSession(u){
   stopSubs();
   S.user=u;
+  // ضمانات — أي listener فشل مش هيخلي البيانات undefined
+  if(!Array.isArray(S.exams))S.exams=[];
+  if(!Array.isArray(S.books))S.books=[];
+  if(!Array.isArray(S.asms))S.asms=[];
+  if(!Array.isArray(S.fadaye7))S.fadaye7=[];
+  if(!Array.isArray(S.board))S.board=[];
+  if(!Array.isArray(S.notifs))S.notifs=[];
+  if(!S.attempts||typeof S.attempts!=="object")S.attempts={};
+
+  // عرض فوري من الكاش المحلي قبل ما Firestore يرد
+  try{
+    const raw=localStorage.getItem("exams_cache_v1");
+    if(raw&&(!S.exams||!S.exams.length)){
+      const cached=JSON.parse(raw);
+      if(Array.isArray(cached)&&cached.length){
+        S.exams=cached;S.examsLoaded=true;
+      }
+    }
+  }catch(_){}
+
+
   pingClientPresence();
   try{touchStreak()}catch(_){}
   try{listenIncomingCalls()}catch(_){}
@@ -846,17 +867,17 @@ async function startSession(u){
       }));
       subs.push(onSnapshot(query(collection(db,"leaderboard"),orderBy("examsDone","desc"),limit(20)),s=>{
         S.board=s.docs.map(d=>({id:d.id,...d.data()}));
-        if(S.view==="progress")render();
+        if(S.view==="progress")(typeof scheduleRender==="function"?scheduleRender():render());
       },err=>console.warn("leaderboard",err)));
       subs.push(onSnapshot(query(collection(db,"notifications"),where("uid","==",u.uid),orderBy("createdAt","desc"),limit(30)),s=>{
         S.notifs=s.docs.map(d=>({id:d.id,...d.data()}));
         S.unreadNotif=S.notifs.filter(n=>!n.read).length+(S.unreadNotif>0&&!S.notifs.length?S.unreadNotif:0);
         // prefer count from docs when available
         S.unreadNotif=S.notifs.filter(n=>!n.read).length;
-        if(S.view==="progress"||S.view==="home")render();
+        if(S.view==="progress"||S.view==="home")(typeof scheduleRender==="function"?scheduleRender():render());
       },err=>console.warn("notifs",err)));
     }
-  }catch(e){console.error("startSession",e);S.site={maintenance:true,message:"في مشكلة مؤقتة في التحميل. جرّب بعد شوية."};S.view=S.view==="loading"?"auth":S.view}
+  }catch(e){console.error("startSession",e);console.error("startSession partial",e);if(!S.profile)S.profile={name:"طالب",phone:""};if(!S.view||S.view==="loading")S.view=S.isAdmin?"admin":"home";
   render(true);
 }
 
@@ -907,6 +928,13 @@ try{
     app.innerHTML="<div class=\"wrap\" style=\"padding-top:40px\"><div class=\"card\" style=\"text-align:center\"><p class=\"mut\">جاري التحميل…</p></div></div>";
   }
 }catch(_e){}
+
+let __renderT=0;
+function scheduleRender(force){
+  clearTimeout(__renderT);
+  __renderT=setTimeout(()=>render(!!force), force?0:80);
+}
+
 function render(force){
   if(!force&&(S.view==="exam"||S.view==="editExam"||S.view==="editAsm"))return;
   if(S.view!=="exam"){clearInterval(timer);clearInterval(hb)}
@@ -921,7 +949,17 @@ function render(force){
   }else if(S.profile&&S.profile.blocked){h=blockedView()}
   else{
     const m={games:gamesView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View,groups:groupsView,groupThread:groupThreadView,ai:aiView,books:booksView};
-    h=(m[S.view]||homeView)();
+    let fn=m[S.view];
+    if(typeof fn!=="function"){
+      if(S.view&&S.view!=="home")console.warn("Unknown view",S.view);
+      S.view="home";
+      fn=homeView;
+    }
+    try{h=fn()}catch(ve){
+      console.error("view",S.view,ve);
+      h=`<div class="wrap"><div class="card"><b>خطأ في شاشة ${esc(String(S.view||""))}</b><p class="mut">${esc(String(ve&&ve.message||ve))}</p>
+      <button class="btn" data-act="home">الرئيسية</button></div></div>`;
+    }
   }
   }catch(err){
     console.error("render",err);
@@ -982,7 +1020,7 @@ ${S.adminLogin?"":`<p class="mut" style="text-align:center;margin:14px 0 0">${re
 
 /* ---------- الطالب ---------- */
 function homeView(){
-  const ex=S.exams.filter(vis);
+  const ex=(Array.isArray(S.exams)?S.exams:[]).filter(vis);
   const an=S.site.announceOn&&S.site.announce?`<div class="card ann"><b>📢 إعلان</b><div style="white-space:pre-wrap;margin-top:4px">${esc(S.site.announce)}</div></div>`:"";
   const inst=installBanner();
   const sess=peekExamSession();
@@ -993,7 +1031,7 @@ function homeView(){
   return `<button class="subj" style="background:linear-gradient(135deg,${s.c},${s.c2})" data-act="openSubject" data-id="${s.id}"><span class="g">${s.g}</span><b>${s.name}</b><small>${l.length?l.length+" امتحان · خلصت "+done:"مفيش امتحانات لسه"}</small><div class="sp"><i style="--w:${p}%"></i></div></button>`}).join("")+`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#0B5D57)" data-act="openAsms"><span class="g">A+</span><div><b>التقييمات</b><br><small>${S.asms.length?S.asms.length+" تقييم · حلول ونماذج":"مفيش تقييمات لسه"}</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#166534,#B45309)" data-act="openGames"><span class="g">🎮</span><div><b>الألعاب</b><br><small>العب ضد الروبوت أو ضد صاحبك</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#9D174D,#BE185D)" data-act="openFadaye7"><span class="g">😂</span><div><b>فضايح</b><br><small>${(S.fadaye7||[]).length?(S.fadaye7.length)+" لقطة":"صور وفيديوهات من الأدمن"}</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#1e3a5f,#0B5D57)" data-act="openBooks"><span class="g">📚</span><div><b>الكتب</b><br><small>PDF وملفات للتحميل</small></div></button>`:SUBJECTS.map(()=>`<div class="sk"></div>`).join("")}</div>
 </div>${studentNav()}`}
 function subjectView(){
-  const s=SUBJECTS.find(x=>x.id===S.subject),ex=S.exams.filter(e=>e.subject===s.id&&vis(e));
+  const s=SUBJECTS.find(x=>x.id===S.subject),ex=(Array.isArray(S.exams)?S.exams:[]).filter(e=>e&&e.subject===s.id&&vis(e));
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
 <h2 style="color:${s.c2}">امتحانات ${s.name}</h2>
 ${ex.length?ex.map(e=>{
@@ -2298,7 +2336,7 @@ const A={
       if(i>=0)arr.splice(i,1);else arr.push(S.user.uid);
       if(arr.length)reacts[d.emoji]=arr;else delete reacts[d.emoji];
       await updateDoc(ref,{reacts});
-    }catch(e){console.error(e);toast("فشل التفاعل")}
+    }catch(e){console.error("toggleReact",e);toast((e&&e.code==="permission-denied")?"مفيش صلاحية للتفاعل — انشر قواعد Firestore":(e&&e.message)||"فشل التفاعل")}
   },
 
   
@@ -4656,9 +4694,11 @@ document.addEventListener("click",e=>{
   const b=e.target.closest("[data-act]");
   if(!b)return;
   const act=b.dataset.act;
-  if(!act||typeof A[act]!=="function")return;
+  if(!act)return;
+  const fn=A[act];
+  if(typeof fn!=="function"){console.warn("Unknown act",act);return}
   e.preventDefault();
-  try{A[act](b.dataset,b)}catch(err){console.error("act",act,err);toast("خطأ: "+act)}
+  try{fn(b.dataset,b)}catch(err){console.error("act",act,err);try{toast("خطأ: "+act)}catch(_){}}
 });
 document.addEventListener("change",e=>{
   const c=e.target.dataset&&e.target.dataset.change;if(c)A[c]?.(e.target.dataset,e.target);
@@ -4773,6 +4813,10 @@ document.addEventListener("submit",e=>{e.preventDefault();const f=e.target.datas
     mo.observe(appEl, {childList:true, subtree:true});
   }
 })();
+
+
+window.addEventListener("error",function(ev){try{console.error("global",ev&&ev.message,ev&&ev.filename,ev&&ev.lineno)}catch(_){}});
+window.addEventListener("unhandledrejection",function(ev){try{console.error("unhandled",ev&&ev.reason)}catch(_){}});
 
 if(!configured)render(true);
 </script>
