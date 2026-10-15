@@ -1829,26 +1829,45 @@ const A={
       toast("التطبيق شغال بالفعل ✓");return;
     }
     const ua=navigator.userAgent||"";
-    if(/iPad|iPhone|iPod/.test(ua)){
-      toast("آيفون مفيش APK — مشاركة ⬆ ثم «إضافة إلى الشاشة الرئيسية»",true);return;
+    // 1) لو المتصفح عارض تثبيت PWA
+    if(window.__deferredPrompt){
+      try{
+        window.__deferredPrompt.prompt();
+        const r=await window.__deferredPrompt.userChoice;
+        window.__deferredPrompt=null;
+        if(r&&r.outcome==="accepted"){toast("تم تثبيت التطبيق ✓",true);return}
+      }catch(_){}
     }
-    // تنزيل APK من مجلد الموقع app/eltafawoq.apk (زي المواقع العادية)
-    const base=location.href.split("#")[0].replace(/index\.html$/i,"");
-    const apkUrl=new URL("app/eltafawoq.apk", base.endsWith("/")?base:base.replace(/\/[^/]*$/,"/") ).href;
-    try{
-      const head=await fetch(apkUrl,{method:"HEAD",cache:"no-store"});
-      if(head.ok){
-        const a=document.createElement("a");
-        a.href=apkUrl;a.download="eltafawoq.apk";a.rel="noopener";
-        document.body.appendChild(a);a.click();a.remove();
-        toast("جاري تنزيل APK… افتح الملف من التنزيلات وثبّته",true);
-        return;
-      }
-    }catch(_){}
-    const build=confirm("ملف APK لسه مش مرفوع على السيرفر.\n\nموافق = فتح أداة بناء APK مجانًا\nبعد التحميل ارفع الملف على GitHub: app/eltafawoq.apk");
-    if(build){
-      window.open("https://www.pwabuilder.com/reportcard?site="+encodeURIComponent(location.href.split("#")[0]),"_blank","noopener");
-      toast("PWA Builder → Package → Android → Download → ارفع app/eltafawoq.apk",true);
+    if(/iPad|iPhone|iPod/.test(ua)){
+      toast("آيفون: شارك ⬆ ثم «إضافة إلى الشاشة الرئيسية»",true);return;
+    }
+    // 2) تنزيل APK من السيرفر إن وُجد
+    const origin=location.origin+location.pathname.replace(/\/[^/]*$/,"").replace(/\/$/,"");
+    const candidates=[
+      origin+"/app/eltafawoq.apk",
+      origin+"/eltafawoq.apk",
+      location.origin+"/crispy-bassoon/app/eltafawoq.apk",
+      location.origin+"/crispy-bassoon/eltafawoq.apk"
+    ];
+    for(const apkUrl of candidates){
+      try{
+        const head=await fetch(apkUrl,{method:"HEAD",cache:"no-store"});
+        if(head.ok){
+          const a=document.createElement("a");
+          a.href=apkUrl;a.download="eltafawoq.apk";a.rel="noopener";
+          document.body.appendChild(a);a.click();a.remove();
+          toast("جاري تنزيل APK… افتحه من التنزيلات وثبّته",true);
+          return;
+        }
+      }catch(_){}
+    }
+    // 3) بدائل
+    const choice=confirm("ملف APK مش موجود على السيرفر حاليًا.\n\nموافق = فتح PWA Builder لتحميل APK\nإلغاء = تعليمات التثبيت من المتصفح");
+    if(choice){
+      window.open("https://www.pwabuilder.com/?url="+encodeURIComponent(location.origin+"/crispy-bassoon/"),"_blank","noopener");
+      toast("Package → Android → Download APK → ارفع app/eltafawoq.apk على GitHub",true);
+    }else{
+      toast("من قائمة المتصفح ⋮ اختار «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية»",true);
     }
   },
   async startChat(d){
@@ -2419,15 +2438,24 @@ const A={
   async groupSend(){
     const inp=$("#grpIn");const text=(inp&&inp.value||"").trim();
     if(!text||!S.groupId)return;
+    if(inp)inp.value="";
+    // تفاؤل: أظهر الرسالة فورًا
+    const local={id:"local_"+Date.now(),fromUid:S.user.uid,fromName:(S.profile.name||"طالب").split(" ")[0],text,createdAt:{seconds:Date.now()/1000},_local:true};
+    S.groupMsgs=(S.groupMsgs||[]).concat([local]);
+    S.chatStickBottom=true;
+    if(S.view==="groupThread"){render();scrollChatBottom(true)}
     try{
-      await addDoc(collection(db,"groups",S.groupId,"msgs"),{
-        fromUid:S.user.uid,fromName:(S.profile.name||"طالب").split(" ")[0],
-        text,createdAt:serverTimestamp()
-      });
-      if(inp)inp.value="";
-      await updateDoc(doc(db,"groups",S.groupId),{lastText:text.slice(0,80),updatedAt:serverTimestamp()});
-      S.chatStickBottom=true;scrollChatBottom(true);
-    }catch(e){toast("فشل الإرسال")}
+      await Promise.all([
+        addDoc(collection(db,"groups",S.groupId,"msgs"),{
+          fromUid:S.user.uid,fromName:(S.profile.name||"طالب").split(" ")[0],
+          text,createdAt:serverTimestamp()
+        }),
+        updateDoc(doc(db,"groups",S.groupId),{lastText:text.slice(0,80),updatedAt:serverTimestamp()})
+      ]);
+    }catch(e){
+      console.error(e);
+      toast(String(e.code||"").includes("permission")?"صلاحيات الجروب — انشر rules":"فشل الإرسال");
+    }
   },
   async groupVoice(){
     if(!S.groupId)return;
@@ -2773,6 +2801,7 @@ async function openDmThread(uid,name){
   logActivity("dm_open",(name||"")+" · "+uid.slice(0,6));
 }
 async function sendDm(toUid,text,img,extra){
+  if(!S.user||!toUid)return;
   const cid=convIdFor(S.user.uid,toUid);
   const payload={
     fromUid:S.user.uid,
@@ -2787,78 +2816,105 @@ async function sendDm(toUid,text,img,extra){
   const local={...payload,id:"local_"+Date.now(),createdAt:{seconds:Date.now()/1000},_local:true};
   S.chatMsgs=(S.chatMsgs||[]).concat([local]);
   S.chatStickBottom=true;
-  if(S.view==="chatThread"){
-    render();
-    scrollChatBottom(true);
+  if(S.view==="chatThread"){render();scrollChatBottom(true)}
+  try{
+    await Promise.all([
+      addDoc(collection(db,"conversations",cid,"msgs"),payload),
+      setDoc(doc(db,"conversations",cid),{
+        participants:[S.user.uid,toUid],
+        lastText:extra&&extra.roomCode?("🎮 دعوة غرفة "+extra.roomCode):(img?(extra&&extra.kind==="audio"?"🎙 صوت":"🖼 ميديا"):(text||"").slice(0,80)),
+        lastAt:serverTimestamp(),
+        lastFrom:S.user.uid,
+        names:{
+          [S.user.uid]:(S.profile.name||"طالب").split(" ")[0],
+          [toUid]:(S.chatThread&&S.chatThread.uid===toUid?S.chatThread.name:"زميل")
+        },
+        updatedAt:serverTimestamp()
+      },{merge:true})
+    ]);
+  }catch(err){
+    console.error("sendDm",err);
+    const code=(err&&err.code)||"";
+    if(String(code).includes("permission"))toast("الشات: مفيش صلاحية — انشر firestore.rules",true);
+    else toast("فشل إرسال الرسالة — جرب تاني");
+    throw err;
   }
-  await addDoc(collection(db,"conversations",cid,"msgs"),payload);
-  await setDoc(doc(db,"conversations",cid),{
-    participants:[S.user.uid,toUid],
-    lastText:extra&&extra.roomCode?("🎮 دعوة غرفة "+extra.roomCode):(img?"🖼 ميديا":(text||"").slice(0,80)),
-    lastAt:serverTimestamp(),
-    lastFrom:S.user.uid,
-    names:{
-      [S.user.uid]:(S.profile.name||"طالب").split(" ")[0],
-      [toUid]:(S.chatThread&&S.chatThread.uid===toUid?S.chatThread.name:"زميل")
-    },
-    updatedAt:serverTimestamp()
-  },{merge:true});
 }
 /** رفع ملف على Firebase Storage — صور/فيديو بجودة كاملة */
 
 async function recordVoice(onDone){
   if(window.__voiceBusy){toast("في تسجيل شغّال");return}
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast("المتصفح مش بيدعم التسجيل");return}
-  let stream,rec,chunks=[],timer,sec=0;
-  const mime=MediaRecorder.isTypeSupported("audio/webm;codecs=opus")?"audio/webm;codecs=opus"
-    :(MediaRecorder.isTypeSupported("audio/webm")?"audio/webm"
-    :(MediaRecorder.isTypeSupported("audio/mp4")?"audio/mp4":""));
+  if(!window.MediaRecorder){toast("المتصفح مش بيدعم التسجيل");return}
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast("المتصفح مش بيدعم الميكروفون");return}
+  let stream,rec,chunks=[],timer,sec=0,stopping=false;
+  const mimeCandidates=["audio/webm;codecs=opus","audio/webm","audio/mp4","audio/ogg;codecs=opus",""];
+  let mime="";
+  for(const m of mimeCandidates){
+    if(!m||(window.MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(m))){mime=m;break}
+  }
   try{
-    stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}});
-  }catch(e){toast("اسمح بالميكروفون من إعدادات المتصفح");return}
+    stream=await navigator.mediaDevices.getUserMedia({audio:true});
+  }catch(e){
+    toast("اسمح بالميكروفون من إعدادات المتصفح/الموقع");
+    return;
+  }
   window.__voiceBusy=true;
   const bar=document.createElement("div");
   bar.className="voice-bar";
   bar.innerHTML=`<div><span class="rec-dot"></span><b id="voiceSec">جاري التسجيل 0 ث</b></div>
-    <p class="mut" style="margin:8px 0">اتكلم بوضوح — بعدين دوس إرسال</p>
+    <p class="mut" style="margin:8px 0">اتكلم — بعدين دوس «إيقاف وإرسال»</p>
     <div class="row" style="justify-content:center;gap:10px">
       <button type="button" class="btn danger sm" id="voiceCancel">إلغاء</button>
       <button type="button" class="btn gold sm" id="voiceSend">⏹ إيقاف وإرسال</button>
     </div>`;
   document.body.appendChild(bar);
-  const tick=()=>{sec++;const el=document.getElementById("voiceSec");if(el)el.textContent="جاري التسجيل "+sec+" ث";if(sec>=45)stop(true)};
-  timer=setInterval(tick,1000);
-  try{
-    rec=mime?new MediaRecorder(stream,{mimeType:mime,audioBitsPerSecond:32000}):new MediaRecorder(stream);
-  }catch(_){rec=new MediaRecorder(stream)}
-  chunks=[];
-  rec.ondataavailable=e=>{if(e.data&&e.data.size>0)chunks.push(e.data)};
-  const finished=new Promise(resolve=>{
-    rec.onstop=()=>{
-      try{stream.getTracks().forEach(tr=>tr.stop())}catch(_){}
-      clearInterval(timer);
-      const type=(rec.mimeType||mime||"audio/webm").split(";")[0];
-      const blob=new Blob(chunks,{type:type});
-      resolve(blob);
-    };
-  });
-  rec.start(200); // timeslice عشان في بيانات فعلًا
   function cleanup(){
     window.__voiceBusy=false;
     try{bar.remove()}catch(_){}
     clearInterval(timer);
+    try{stream&&stream.getTracks().forEach(tr=>tr.stop())}catch(_){}
   }
+  try{
+    rec=mime?new MediaRecorder(stream,{mimeType:mime}):new MediaRecorder(stream);
+  }catch(_){
+    try{rec=new MediaRecorder(stream)}catch(e2){cleanup();toast("فشل بدء التسجيل");return}
+  }
+  chunks=[];
+  rec.ondataavailable=e=>{if(e.data&&e.data.size>0)chunks.push(e.data)};
+  const finished=new Promise(resolve=>{
+    rec.onstop=()=>{
+      const type=((rec.mimeType||mime)||"audio/webm").split(";")[0]||"audio/webm";
+      resolve(new Blob(chunks,{type}));
+    };
+    rec.onerror=()=>resolve(new Blob([],{type:"audio/webm"}));
+  });
+  try{rec.start(250)}catch(e){cleanup();toast("فشل التسجيل");return}
+  timer=setInterval(()=>{
+    sec++;
+    const el=document.getElementById("voiceSec");
+    if(el)el.textContent="جاري التسجيل "+sec+" ث";
+    if(sec>=40)stop(true);
+  },1000);
   async function stop(send){
-    if(rec.state==="inactive"){cleanup();return}
+    if(stopping)return;
+    stopping=true;
+    if(!rec||rec.state==="inactive"){cleanup();return}
     try{rec.requestData()}catch(_){}
-    rec.stop();
-    const blob=await finished;
+    try{rec.stop()}catch(_){}
+    let blob;
+    try{blob=await finished}catch(_){blob=null}
     cleanup();
     if(!send)return;
-    if(!blob||blob.size<800){toast("التسجيل فاضي أو قصير أوي — حاول تاني");return}
-    if(blob.size>500000){toast("التسجيل طويل — سجّل أقل من 40 ثانية");return}
-    const dataUrl=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(blob)});
-    if(onDone)await onDone(dataUrl);
+    if(!blob||blob.size<200){toast("التسجيل فاضي — اتكلم أقرب للمايك وجرب تاني");return}
+    if(blob.size>700000){toast("التسجيل طويل — سجّل أقل من 30 ثانية");return}
+    toast("جاري إرسال التسجيل…");
+    try{
+      const dataUrl=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(blob)});
+      if(onDone)await onDone(dataUrl);
+    }catch(err){
+      console.error(err);
+      toast("فشل إرسال التسجيل");
+    }
   }
   document.getElementById("voiceCancel").onclick=()=>stop(false);
   document.getElementById("voiceSend").onclick=()=>stop(true);
