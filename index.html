@@ -295,6 +295,25 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 @keyframes pulse{50%{opacity:.35}}
 .install-banner{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:linear-gradient(135deg,color-mix(in srgb,var(--pri) 18%,var(--card)),var(--card));border:1px solid var(--pri);margin-bottom:12px}
 
+
+.xp-bar{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin:8px 0}
+.xp-bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--pri));border-radius:99px;width:0;transition:width .4s}
+.xp-card{text-align:center}
+.xp-lvl{font-size:28px;font-weight:800;color:var(--pri)}
+.title-pill{display:inline-block;padding:4px 12px;border-radius:99px;background:var(--ybg);color:var(--gold);font-weight:700;font-size:13px;margin-top:6px}
+.ai-log{display:flex;flex-direction:column;gap:10px;max-height:55vh;overflow-y:auto;padding:8px 0}
+.ai-bubble{max-width:88%;padding:12px 14px;border-radius:16px;line-height:1.5}
+.ai-bubble.bot{align-self:flex-end;background:var(--sel)}
+.ai-bubble.me{align-self:flex-start;background:var(--pri);color:var(--onpri)}
+.call-bar{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:20px}
+.call-box{background:var(--card);border-radius:20px;padding:24px;text-align:center;max-width:320px;width:100%;box-shadow:var(--sh)}
+.call-box .pulse{width:80px;height:80px;border-radius:50%;background:var(--pri);margin:0 auto 16px;animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.08);opacity:.85}}
+.voice-bar{position:fixed;left:12px;right:12px;bottom:80px;z-index:90;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--sh);max-width:420px;margin:0 auto}
+.rec-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--bad);margin-left:6px;animation:pulse 1s infinite}
+.audio-speed{display:inline-flex;gap:4px;margin-top:4px}
+.audio-speed button{font-size:11px;padding:2px 8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:inherit;cursor:pointer}
+
 </style>
 </head>
 <body>
@@ -588,6 +607,78 @@ async function pingClientPresence(){
   }catch(e){console.warn("presence",e)}
 }
 
+
+const XP_TITLES=[
+  {min:0,name:"المبتدئ",emoji:"🌱"},
+  {min:50,name:"المجتهد",emoji:"📖"},
+  {min:150,name:"المثابر",emoji:"🔥"},
+  {min:300,name:"العبقري",emoji:"🧠"},
+  {min:600,name:"أسطورة التفوق",emoji:"👑"}
+];
+function xpTitle(xp){
+  let t=XP_TITLES[0];
+  for(const x of XP_TITLES){if((xp||0)>=x.min)t=x}
+  return t;
+}
+function xpLevel(xp){
+  // كل 50 نقطة = لفل
+  return Math.floor((xp||0)/50)+1;
+}
+function xpProgress(xp){
+  const v=(xp||0)%50;
+  return Math.round(v/50*100);
+}
+async function addXP(amount, reason){
+  if(!S.user||S.isAdmin||!amount)return;
+  try{
+    const ref=doc(db,"students",S.user.uid);
+    const snap=await getDoc(ref);
+    const cur=snap.exists()?snap.data():{};
+    const xp=(cur.xp||0)+amount;
+    const level=xpLevel(xp);
+    const title=xpTitle(xp).name;
+    const badges=new Set(cur.badges||[]);
+    if(xp>=50)badges.add("المجتهد");
+    if(xp>=150)badges.add("المثابر");
+    if(reason==="exam_full")badges.add("درجة كاملة");
+    if(reason==="first_exam")badges.add("أول امتحان");
+    if(reason==="game_win")badges.add("فوز لعبة");
+    await setDoc(ref,{xp,level,title,badges:[...badges],lastXpAt:serverTimestamp()},{merge:true});
+    if(S.profile){S.profile.xp=xp;S.profile.level=level;S.profile.title=title;S.profile.badges=[...badges]}
+    toast(`+${amount} XP · ${xpTitle(xp).emoji} ${title}`,true);
+  }catch(e){console.warn("xp",e)}
+}
+async function touchStreak(){
+  if(!S.user||S.isAdmin)return;
+  try{
+    const ref=doc(db,"students",S.user.uid);
+    const snap=await getDoc(ref);
+    const cur=snap.exists()?snap.data():{};
+    const today=new Date();today.setHours(0,0,0,0);
+    const key=today.toISOString().slice(0,10);
+    if(cur.lastStreakDay===key)return;
+    let streak=1;
+    if(cur.lastStreakDay){
+      const prev=new Date(cur.lastStreakDay+"T00:00:00");
+      const diff=Math.round((today-prev)/86400000);
+      if(diff===1)streak=(cur.streak||0)+1;
+    }
+    const badges=new Set(cur.badges||[]);
+    if(streak>=7)badges.add("7 أيام متتالية");
+    const dailyXp=cur.lastStreakDay===key?0:5;
+    const xp=(cur.xp||0)+dailyXp;
+    await setDoc(ref,{
+      streak,lastStreakDay:key,xp,level:xpLevel(xp),title:xpTitle(xp).name,
+      badges:[...badges],lastSeenAt:serverTimestamp()
+    },{merge:true});
+    if(S.profile){
+      S.profile.streak=streak;S.profile.xp=xp;S.profile.level=xpLevel(xp);
+      S.profile.title=xpTitle(xp).name;S.profile.badges=[...badges];
+    }
+    if(dailyXp)toast(`🔥 ستريك ${streak} يوم · +${dailyXp} XP`,true);
+  }catch(e){console.warn("streak",e)}
+}
+
 async function startSession(u){
   stopSubs();
   S.user=u;
@@ -713,7 +804,7 @@ if(configured){
   onSnapshot(doc(db,"config","site"),s=>{
     const d=s.exists()?s.data():{};
     const was=S.site.maintenance;
-    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn};
+    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||""};
     if(S.view==="loading")return;
     if(S.view==="auth"&&was===S.site.maintenance)return;
     render();
@@ -742,7 +833,7 @@ function render(force){
     h=S.view==="editExam"?editor():S.view==="editAsm"?asmEditor():S.view==="studentDetail"?studentDetail():S.view==="review"?reviewView():adminView();
   }else if(S.profile&&S.profile.blocked){h=blockedView()}
   else{
-    const m={games:gamesView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View,groups:groupsView,groupThread:groupThreadView};
+    const m={games:gamesView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View,groups:groupsView,groupThread:groupThreadView,ai:aiView};
     h=(m[S.view]||homeView)();
   }
   app.innerHTML=h;
@@ -1233,6 +1324,7 @@ function chatThreadView(){
   <div style="flex:1;min-width:0">
     <b data-act="openProfile" data-uid="${t.uid}" style="cursor:pointer">${esc(t.name||"زميل")}</b>
   </div>
+  <button class="btn ghost sm" data-act="startCall" data-uid="${t.uid}" data-name="${esc(t.name||"")}">📞</button>
 </div>
 <div class="tk-thread">
   <div class="tk-log" id="dmChatLog">${msgs.length?msgs.map(m=>{
@@ -1255,16 +1347,54 @@ function chatThreadView(){
 </div>${studentNav()}`;
 }
 
+
+function aiView(){
+  const msgs=S.aiMsgs||[{role:"bot",text:"أهلاً 👋 أنا مساعد التفوق.\nاسألني عن المذاكرة، الأدب الجاهلي، أو طريقة حل الامتحانات.\n\nمثال: إزاي أذاكر الأدب؟ / ما هي المعلقات؟"}];
+  return `<div class="wrap chat-wrap">${header(`<button class="btn ghost sm" data-act="openMe">رجوع</button>`)}
+<h2>🤖 مساعد التفوق</h2>
+<p class="mut">مكان مخصص للمساعدة الدراسية — مش جوه الشات</p>
+<div class="card">
+  <div class="ai-log" id="aiLog">${msgs.map(m=>`<div class="ai-bubble ${m.role==="me"?"me":"bot"}" dir="auto">${esc(m.text)}</div>`).join("")}</div>
+  <form class="tk-compose" style="position:relative;bottom:auto;left:auto;right:auto;margin-top:12px" data-submit="aiSend">
+    <input id="aiIn" type="text" maxlength="500" placeholder="اكتب سؤالك…" autocomplete="off">
+    <button class="btn sm" type="submit">➤</button>
+  </form>
+</div>
+</div>${studentNav()}`;
+}
+function aiLocalReply(q){
+  const s=normalizeAr(q);
+  if(/معلق/.test(s))return "المعلقات قصائد طوال من أجود الشعر الجاهلي. من أصحابها: امرؤ القيس، زهير بن أبي سلمى، طرفة بن العبد، لبيد، عنترة، الحارث بن حلزة، عمرو بن كلثوم. سُميت بهذا الاسم لأراء منها أنها عُلقت على الكعبة أو لسرعة تعلقها بالأذهان.";
+  if(/جاهل|عصر جاهل/.test(s))return "العصر الجاهلي: الفترة قبل الإسلام بحوالي قرن ونصف. التسمية من «الجهالة» (فعل القبيح بعلم وإرادة) وليس الجهل بالقراءة فقط. الأدب فيه شعر ونثر (خطب، وصايا، حكم، أمثال).";
+  if(/قصيد|اطلال|منهج/.test(s))return "بناء القصيدة الجاهلية غالبًا: غزل وبكاء الأطلال ← وصف الرحلة والناقة ← الغرض الرئيس (مدح/فخر/هجاء) ← وقد تُختم بالحكم. تعددت الأغراض بسبب حياة الترحال والحروب.";
+  if(/نثر|وصي|خطب|مثل/.test(s))return "فنون النثر الجاهلي: الوصايا، الخطب، الحكم، الأمثال. من الوصايا: أمامة بنت الحارث. من الخطباء: قس بن ساعدة. الأمثال موجزة ولها مورد ومضرب.";
+  if(/اذاكر|مذاكر|امتحان|تنظيم/.test(s))return "نصيحة مذاكرة:\n1) اقرأ الملخص مرة\n2) حل 10–20 سؤال على نفس الجزئية\n3) راجع الغلط فورًا\n4) كرر تاني يوم بنفس الأسئلة\n5) امتحن نفسك بوقت محدود زي المنصة.\nلو حابب امتحان تجريبي: روح للمواد وابدأ محاولة.";
+  if(/لعبه|العاب|غرف/.test(s))return "الألعاب من تبويب الألعاب تحت: تقدر تلعب ضد روبوت أو تعمل غرفة وتدعو صاحبك. بعد الماتش هتكسب XP.";
+  if(/xp|نقط|لفل|مستوى|لقب/.test(s))return "نظام النقاط: حل امتحان +XP، درجة عالية زيادة، دخول يومي +5 وسلسلة أيام 🔥. الألقاب: مبتدئ → مجتهد → مثابر → عبقري → أسطورة التفوق.";
+  if(/سلام|اهلا|مرحبا|ازيك/.test(s))return "وعليكم السلام! اسأل عن أي جزئية في الدرس أو طريقة المذاكرة.";
+  return "فهمت سؤالك. جرّب تصيغه أوضح أو اسأل عن: العصر الجاهلي، المعلقات، بناء القصيدة، النثر، أو طريقة المذاكرة.\n(المساعد المحلي بيرد من منهج المنصة — لو المدرس فعّل رابط ذكاء اصطناعي خارجي هتبقى الإجابات أوسع.)";
+}
+
 function meView(){
   const p=S.profile||{};
   const av=p.avatar?`<img src="${p.avatar}" alt="" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--pri)">`:`<div class="av" style="width:72px;height:72px;font-size:28px">${esc((p.name||"؟")[0]||"?")}</div>`;
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
 <h2>حسابي</h2>
 ${installBanner()}
-<div class="card" style="text-align:center">${av}
+<div class="card xp-card">${av}
 <div style="margin-top:8px"><b>${esc(p.name||"طالب")}</b></div>
 <div class="mut">${esc(p.phone||"")}</div>
+<div class="title-pill">${xpTitle(p.xp).emoji} ${esc(p.title||xpTitle(p.xp).name)}</div>
+<div class="xp-lvl">المستوى ${xpLevel(p.xp)}</div>
+<div class="mut">${p.xp||0} XP · 🔥 ${(p.streak||0)} يوم متتالي</div>
+<div class="xp-bar"><i style="width:${xpProgress(p.xp)}%"></i></div>
+<div class="mut" style="font-size:12px">${50-((p.xp||0)%50)} XP للمستوى التالي</div>
+${(p.badges||[]).length?`<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center">${(p.badges||[]).map(b=>pill("🏅 "+b,"g")).join("")}</div>`:""}
 <label class="btn ghost sm" style="margin-top:10px;cursor:pointer">📷 صورة شخصية<input type="file" id="meAvatar" accept="image/*" hidden></label>
+</div>
+<div class="card">
+  <button class="btn block gold" data-act="openAI">🤖 مساعد التفوق</button>
+  <p class="mut" style="margin:8px 0 0;text-align:center">اسأل في الدروس أو طريقة المذاكرة</p>
 </div>
 <div class="card"><b>تغيير الاسم</b>
 <label class="f">الاسم</label>
@@ -1853,7 +1983,30 @@ const A={
     loadOpenRooms();
     render(true);
   },
+  audSpeed(d){const el=document.getElementById(d.id);if(el){el.playbackRate=parseFloat(d.r)||1;toast("السرعة ×"+(d.r||1))}},
+  async startCall(d){if(!d.uid)return;await startVoiceCall(d.uid,d.name||"زميل")},
   openMe(){S.view="me";render(true)},
+  openAI(){S.view="ai";S.aiMsgs=S.aiMsgs||[{role:"bot",text:"أهلاً 👋 أنا مساعد التفوق.\nاسألني عن المذاكرة أو الأدب الجاهلي أو الامتحانات."}];render(true)},
+  async aiSend(){
+    const inp=$("#aiIn");const q=(inp&&inp.value||"").trim();
+    if(!q)return;
+    if(inp)inp.value="";
+    S.aiMsgs=(S.aiMsgs||[]).concat([{role:"me",text:q}]);
+    render();
+    // optional external AI webhook from config
+    let reply=null;
+    try{
+      if(S.site&&S.site.aiUrl){
+        const r=await fetch(S.site.aiUrl,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:q,uid:S.user&&S.user.uid})});
+        if(r.ok){const j=await r.json();reply=j.reply||j.text||null}
+      }
+    }catch(_){}
+    if(!reply)reply=aiLocalReply(q);
+    S.aiMsgs.push({role:"bot",text:reply});
+    render();
+    requestAnimationFrame(()=>{const el=$("#aiLog");if(el)el.scrollTop=el.scrollHeight});
+  },
+
   openSearch(){S.view="search";S.friendHits=S.friendHits||[];render(true);setTimeout(()=>{const i=$("#friendQ");if(i)i.focus()},100)},
   openChats(){
     S.view="chatList";S.chatTab=S.chatTab||"dms";
@@ -2914,6 +3067,95 @@ async function sendDm(toUid,text,img,extra){
 }
 /** رفع ملف على Firebase Storage — صور/فيديو بجودة كاملة */
 
+
+async function startVoiceCall(toUid,toName){
+  if(!S.user||!toUid)return;
+  if(window.__call){toast("في مكالمة شغالة");return}
+  toast("جاري الاتصال…");
+  const callId=[S.user.uid,toUid].sort().join("_")+ "_"+Date.now().toString(36);
+  let stream;
+  try{stream=await navigator.mediaDevices.getUserMedia({audio:true})}
+  catch(e){toast("اسمح بالميكروفون للمكالمة");return}
+  const pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
+  stream.getTracks().forEach(tr=>pc.addTrack(tr,stream));
+  const remoteAudio=new Audio();remoteAudio.autoplay=true;
+  pc.ontrack=ev=>{remoteAudio.srcObject=ev.streams[0]};
+  const callRef=doc(db,"calls",callId);
+  pc.onicecandidate=e=>{
+    if(e.candidate)updateDoc(callRef,{["ice_"+S.user.uid]:e.candidate.toJSON()}).catch(()=>{});
+  };
+  const offer=await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  await setDoc(callRef,{
+    from:S.user.uid,fromName:(S.profile.name||"").split(" ")[0],
+    to:toUid,toName:toName||"زميل",
+    offer:offer,status:"ringing",createdAt:serverTimestamp()
+  });
+  showCallUI(toName||"زميل",true,()=>endVoiceCall());
+  window.__call={pc,stream,callId,remoteAudio,unsub:null};
+  window.__call.unsub=onSnapshot(callRef,async snap=>{
+    if(!snap.exists()){endVoiceCall();return}
+    const d=snap.data();
+    if(d.answer&&pc.signalingState!=="closed"){
+      try{if(!pc.currentRemoteDescription)await pc.setRemoteDescription(d.answer)}catch(_){}
+    }
+    if(d.status==="ended")endVoiceCall();
+    const iceKey="ice_"+toUid;
+    if(d[iceKey]){try{await pc.addIceCandidate(d[iceKey])}catch(_){}}
+  });
+}
+function showCallUI(name,outgoing,onEnd){
+  const old=document.getElementById("callBar");if(old)old.remove();
+  const bar=document.createElement("div");
+  bar.id="callBar";bar.className="call-bar";
+  bar.innerHTML=`<div class="call-box"><div class="pulse"></div><b>${esc(name)}</b>
+    <p class="mut">${outgoing?"جاري الاتصال…":"مكالمة صوتية"}</p>
+    <button class="btn danger" id="callHang">إنهاء</button></div>`;
+  document.body.appendChild(bar);
+  document.getElementById("callHang").onclick=onEnd;
+}
+async function endVoiceCall(){
+  const c=window.__call;
+  if(!c){const b=document.getElementById("callBar");if(b)b.remove();return}
+  try{if(c.unsub)c.unsub()}catch(_){}
+  try{c.pc.close()}catch(_){}
+  try{c.stream.getTracks().forEach(tr=>tr.stop())}catch(_){}
+  try{if(c.callId)updateDoc(doc(db,"calls",c.callId),{status:"ended"}).catch(()=>{})}catch(_){}
+  window.__call=null;
+  const b=document.getElementById("callBar");if(b)b.remove();
+  toast("انتهت المكالمة");
+}
+async function listenIncomingCalls(){
+  if(!S.user||S.isAdmin||window.__callListen)return;
+  window.__callListen=onSnapshot(query(collection(db,"calls"),where("to","==",S.user.uid),limit(5)),snap=>{
+    snap.docChanges().forEach(async ch=>{
+      if(ch.type!=="added")return;
+      const d=ch.doc.data();
+      if(d.status!=="ringing")return;
+      if(window.__call)return;
+      if(!confirm((d.fromName||"شخص")+" بيتصل بيك — ترد؟")){
+        updateDoc(ch.doc.ref,{status:"ended"}).catch(()=>{});return;
+      }
+      let stream;
+      try{stream=await navigator.mediaDevices.getUserMedia({audio:true})}
+      catch(e){toast("الميكروفون مرفوض");updateDoc(ch.doc.ref,{status:"ended"});return}
+      const pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
+      stream.getTracks().forEach(tr=>pc.addTrack(tr,stream));
+      const remoteAudio=new Audio();remoteAudio.autoplay=true;
+      pc.ontrack=ev=>{remoteAudio.srcObject=ev.streams[0]};
+      pc.onicecandidate=e=>{if(e.candidate)updateDoc(ch.doc.ref,{["ice_"+S.user.uid]:e.candidate.toJSON()}).catch(()=>{})};
+      await pc.setRemoteDescription(d.offer);
+      const answer=await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      await updateDoc(ch.doc.ref,{answer,status:"active"});
+      showCallUI(d.fromName||"متصل",false,()=>endVoiceCall());
+      window.__call={pc,stream,callId:ch.doc.id,remoteAudio,unsub:onSnapshot(ch.doc.ref,s=>{
+        if(s.exists()&&s.data().status==="ended")endVoiceCall();
+      })};
+    });
+  },err=>console.warn("calls",err));
+}
+
 async function recordVoice(onDone){
   if(window.__voiceBusy){toast("في تسجيل شغّال");return}
   if(!window.MediaRecorder){toast("المتصفح مش بيدعم التسجيل");return}
@@ -3234,7 +3476,13 @@ function mediaEmbed(url, kind){
   if(!url)return "";
   const u=String(url);
   if(kind==="audio"||u.startsWith("data:audio")){
-    return `<audio controls src="${esc(u)}" style="width:100%;margin-top:6px;max-width:280px"></audio>`;
+    const id="aud_"+Math.random().toString(36).slice(2,8);
+    return `<div style="margin-top:6px;max-width:300px"><audio id="${id}" controls src="${esc(u)}" style="width:100%"></audio>
+    <div class="audio-speed">
+      <button type="button" data-act="audSpeed" data-id="${id}" data-r="1">×1</button>
+      <button type="button" data-act="audSpeed" data-id="${id}" data-r="1.5">×1.5</button>
+      <button type="button" data-act="audSpeed" data-id="${id}" data-r="2">×2</button>
+    </div></div>`;
   }
   const id=ytId(u);
   if(id){
@@ -3762,6 +4010,14 @@ async function submitExam(auto){
   clearExamDraft(c);
   clearExamSession();
   logActivity("exam_submit", (e.title||"")+" · "+score+"/"+total);
+  // XP
+  (async()=>{
+    let amt=20;
+    if(total&&score===total)amt+=15;
+    else if(total&&score/total>=0.8)amt+=8;
+    const first=!(S.attempts[e.id]&&S.attempts[e.id].length);
+    await addXP(amt, score===total?"exam_full":(first?"first_exam":"exam"));
+  })();
   S.attempts[e.id]=(S.attempts[e.id]||[]).concat([{...rec,id:c.sid}]);
   S.last={...rec,id:c.sid};S.cur=null;S.view="result";render(true);
   try{
