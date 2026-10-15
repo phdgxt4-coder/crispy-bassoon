@@ -1829,7 +1829,6 @@ const A={
       toast("التطبيق شغال بالفعل ✓");return;
     }
     const ua=navigator.userAgent||"";
-    // 1) لو المتصفح عارض تثبيت PWA
     if(window.__deferredPrompt){
       try{
         window.__deferredPrompt.prompt();
@@ -1841,34 +1840,34 @@ const A={
     if(/iPad|iPhone|iPod/.test(ua)){
       toast("آيفون: شارك ⬆ ثم «إضافة إلى الشاشة الرئيسية»",true);return;
     }
-    // 2) تنزيل APK من السيرفر إن وُجد
-    const origin=location.origin+location.pathname.replace(/\/[^/]*$/,"").replace(/\/$/,"");
+    // روابط مباشرة مؤكدة (raw GitHub + صفحات الموقع)
     const candidates=[
-      origin+"/app/eltafawoq.apk",
-      origin+"/eltafawoq.apk",
-      location.origin+"/crispy-bassoon/app/eltafawoq.apk",
-      location.origin+"/crispy-bassoon/eltafawoq.apk"
+      "https://raw.githubusercontent.com/phdgxt4-coder/crispy-bassoon/main/"+encodeURIComponent("التفوق.apk"),
+      "https://github.com/phdgxt4-coder/crispy-bassoon/raw/main/"+encodeURIComponent("التفوق.apk"),
+      location.origin+"/crispy-bassoon/"+encodeURIComponent("التفوق.apk"),
+      location.origin+"/crispy-bassoon/eltafawoq.apk",
+      location.origin+"/crispy-bassoon/app/eltafawoq.apk"
     ];
+    toast("جاري تحضير التحميل…");
     for(const apkUrl of candidates){
       try{
         const head=await fetch(apkUrl,{method:"HEAD",cache:"no-store"});
-        if(head.ok){
+        const len=Number(head.headers.get("content-length")||0);
+        if(head.ok && (len>10000 || head.status===200)){
           const a=document.createElement("a");
-          a.href=apkUrl;a.download="eltafawoq.apk";a.rel="noopener";
+          a.href=apkUrl;
+          a.download="التفوق.apk";
+          a.target="_blank";
+          a.rel="noopener";
           document.body.appendChild(a);a.click();a.remove();
-          toast("جاري تنزيل APK… افتحه من التنزيلات وثبّته",true);
+          toast("بدأ التحميل ✓ افتح الملف من التنزيلات وثبّته",true);
           return;
         }
       }catch(_){}
     }
-    // 3) بدائل
-    const choice=confirm("ملف APK مش موجود على السيرفر حاليًا.\n\nموافق = فتح PWA Builder لتحميل APK\nإلغاء = تعليمات التثبيت من المتصفح");
-    if(choice){
-      window.open("https://www.pwabuilder.com/?url="+encodeURIComponent(location.origin+"/crispy-bassoon/"),"_blank","noopener");
-      toast("Package → Android → Download APK → ارفع app/eltafawoq.apk على GitHub",true);
-    }else{
-      toast("من قائمة المتصفح ⋮ اختار «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية»",true);
-    }
+    // فتح مباشر كحل أخير
+    window.open("https://raw.githubusercontent.com/phdgxt4-coder/crispy-bassoon/main/"+encodeURIComponent("التفوق.apk"),"_blank","noopener");
+    toast("اتفتح رابط التحميل — لو مالحملش احفظ الصفحة كملف APK",true);
   },
   async startChat(d){
     const uid=d.uid;if(!uid||uid===S.user.uid){toast("مش هتكلم نفسك");return}
