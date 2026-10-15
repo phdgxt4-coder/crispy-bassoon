@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v25">
+<meta name="sw-build" content="v27">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <meta name="mobile-web-app-capable" content="yes">
@@ -447,7 +447,7 @@ const S = {asms:[],asm:null,editingAsm:null,logins:{},sq:"",starts:[],examsLoade
   myList:[],attempts:{},view:"loading",tab:"dash",subject:null,cur:null,last:null,review:null,studentId:null,editing:null,
   adminLogin:false,mode:"login",error:"",filter:"",unread:0,unreadAlerts:0,registering:false,taps:[],
   qb:null,qbSub:null,qbChatSub:null,qbChat:[],board:[],notifs:[],unreadNotif:0,activity:[],activityLoaded:false,
-  fadaye7:[],adminRooms:[],adminConvs:[]};
+  fadaye7:[],suspicious:[],adminRooms:[],adminConvs:[]};
 const __seenSplash=(()=>{try{return sessionStorage.getItem("splash_ok")==="1"}catch(_){return false}})();
 // زيارة تانية: مفيش انتظار. أول زيارة: 200ms بس
 const splashUntil=__seenSplash?Date.now():Date.now()+200;
@@ -1757,16 +1757,20 @@ ${(p.badges||[]).length?`<div style="margin-top:10px;display:flex;flex-wrap:wrap
 
 
 function aiView(){
-  const msgs=S.aiMsgs||[{role:"bot",text:"你好！أنا 么 🤖\nمساعد منصة التفوق.\nبفتش في الامتحانات والإجابات والكتب المرفوعة وشرح المنصة.\nاسألني أي حاجة مش فاهمها."}];
+  const msgs=S.aiMsgs||[{role:"bot",text:"أهلاً! أنا 么 🤖\nصاحبك على المنصة — اسأل عن أي درس أو امتحان أو خطوة.\nتقدر ترفع ملف ملخص (نص/PDF صغير) من الزر 📎 وأنا أراجعه معاك."}];
   return `<div class="wrap chat-wrap">${header(`<button class="btn ghost sm" data-act="openMe">رجوع</button>`)}
 <h2>🤖 么</h2>
-<p class="mut">يراجع الامتحانات · الكتب · شرح المنصة — ولو في رابط ذكي خارجي بيرد أوسع</p>
+<p class="mut">محادثة طبيعية · رفع ملخصات · مراجعة إجابات · حفظ تلقائي</p>
 <div class="card">
-  <div class="ai-log" id="aiLog">${msgs.map(m=>`<div class="ai-bubble ${m.role==="me"?"me":"bot"}" dir="auto">${esc(m.text)}</div>`).join("")}</div>
-  <form class="tk-compose" style="position:relative;bottom:auto;left:auto;right:auto;margin-top:12px" data-submit="aiSend">
-    <input id="aiIn" type="text" maxlength="500" placeholder="اسأل 么 عن درس، امتحان، أو المنصة…" autocomplete="off">
+  <div class="ai-log" id="aiLog">${msgs.map(m=>`<div class="ai-bubble ${m.role==="me"?"me":"bot"}" dir="auto">${esc(m.text)}${m.fileName?`<div class="mut" style="margin-top:4px">📎 ${esc(m.fileName)}</div>`:""}</div>`).join("")}</div>
+  <form class="tk-compose" style="position:relative;bottom:auto;left:auto;right:auto;margin-top:12px;display:flex;gap:6px;align-items:center" data-submit="aiSend">
+    <label class="btn ghost sm" style="margin:0;cursor:pointer" title="رفع ملخص أو نص">📎
+      <input type="file" id="aiFile" accept=".txt,.pdf,text/plain,application/pdf,image/*" style="display:none">
+    </label>
+    <input id="aiIn" type="text" maxlength="2000" placeholder="اكتب كإنك بتكلم صاحبك…" autocomplete="off" style="flex:1">
     <button class="btn sm" type="submit">➤</button>
   </form>
+  <p class="mut" id="aiFileHint" style="margin:6px 0 0"></p>
 </div>
 </div>${studentNav()}`;
 }
@@ -1784,10 +1788,10 @@ function aiLocalReply(q){
     return hi+"ماينفعش أشارك أسماء أو أرقام حسابات. لو محتاج مساعدة في مذاكرة أو استخدام المنصة، اسأل براحتك.";
 
   if(/مين انت|انت مين|من انت|ايه اسمك|عرف نفسك|who are you|ما اسمك/.test(s)||s.trim()==="么")
-    return "أنا **么** 🤖 مساعد منصة التفوق.\n\nبقدر:\n• أشرح أي جزء في المنصة (امتحانات، شات، ألعاب، تقييمات، XP…)\n• أراجع أسئلة من الامتحانات والكتب المسجّلة\n• أوضّح خطوات الاستخدام\n\n**مش بقدر** أقول أعداد أو أسماء الطلاب أو أرقامهم — خصوصية.\nاسأل بأي صيغة، ولو السؤال ناقص هطلب توضيح.";
+    return "أنا **么** 🤖 صاحبك على منصة التفوق.\nبكلّمك عادي زي أي حد بذاكر معاك.\n\nبقدر:\n• أشرح أي جزء في المنصة (امتحانات، شات، ألعاب، تقييمات، XP…)\n• أراجع أسئلة من الامتحانات والكتب المسجّلة\n• أوضّح خطوات الاستخدام\n\n**مش بقدر** أقول أعداد أو أسماء الطلاب أو أرقامهم — خصوصية.\nاسأل بأي صيغة، ولو السؤال ناقص هطلب توضيح.";
 
   if(/سلام|اهلا|مرحبا|ازيك|صباح|مساء/.test(s))
-    return "وعليكم السلام "+hi+"🙂 أنا 么. تحب نوضح درس، نراجع سؤال امتحان، ولا شرح جزء من المنصة؟";
+    return "وعليكم السلام "+hi+"🙂 عامل إيه؟ تحب نراجع سؤال، نفتح ملخص، ولا أوريك خطوة في المنصة؟";
 
   // —— دليل المنصة الشامل ——
   if(/ازاي|كيف|فين|مش فاهم|ايه هو|يعني ايه|شرح|استخدام|استخدم/.test(s)){
@@ -1795,8 +1799,10 @@ function aiLocalReply(q){
       return hi+"**الامتحانات:**\n1) من الشريط تحت → **المواد**\n2) اختار المادة → اختار امتحان → **ابدأ**\n3) جاوب، والشريط فوق بيحسب الوقت\n4) **تسليم** في الآخر\n\n• غالبًا **محاولتين** لكل امتحان\n• تقدر **حفظ وخرج** وترجع تكمل من نفس الجهاز\n• الخروج من الصفحة أثناء الامتحان بيتسجّل عند المدرس\n• بعد التسليم: درجتك + مراجعة الإجابات";
     if(/تقييم|حل|نموذج/.test(s))
       return hi+"**التقييمات:** من الرئيسية → التقييمات. فيها ملفات/نماذج. الحل يظهر لما الأدمن يفتحه. مش زي الامتحان المتزمن — للتمرين والمراجعة.";
-    if(/لعبه|العاب|غرف|روبوت|كويز|battle|غرفة/.test(s))
-      return hi+"**الألعاب:** تبويب الألعاب تحت.\n• ضد **روبوت** من اللعبة نفسها\n• **غرفة** مع أصحابك: إنشاء → كود → التانيين ينضموا بنفس الكود\n• في الشات داخل الغرفة، وترتيب نقاط في الآخر";
+    if(/افتح غرف|انشئ غرف|اعمل غرف|عايز غرف|دخول غرف|كود الغرف|انضم/.test(s)||(/غرف/.test(s)&&/ازاي|فين|كيف|عايز/.test(s)))
+      return hi+"**فتح غرفة ألعاب:**\n1) من الشريط تحت → **الألعاب**\n2) اختار اللعبة\n3) **إنشاء غرفة** → هياخد كود\n4) ابعت الكود لأصحابك → **انضمام** + الكود\nتقدروا تتكلموا جوّه الغرفة وتتنافسوا.";
+    if(/لعبه|العاب|روبوت|كويز|battle|غرفة/.test(s))
+      return hi+"**الألعاب:** تبويب **الألعاب** تحت.\n• ضد روبوت من اللعبة\n• غرفة مع أصحابك: إنشاء → كود → انضمام\n• عايز تفتح غرفة دلوقتي؟ روح تبويب الألعاب.";
     if(/شات|جروب|تواصل|رسايل|محادث|مكلمه|اتصال/.test(s))
       return hi+"**التواصل:** تبويب تواصل.\n• محادثات **خاصة** مع طالب أو المدرس\n• **جروبات**\n• نص / صورة / صوت\n• **مكالمة صوتية** 📞 من الشات\n• الاسم الظاهر في الشات ممكن يختلف عن اسم الحساب (والمدرس يشوف الاثنين)";
     if(/فضايح|كتب|xp|نقط|لفل|حسابي|ملف|صوره|ستريك|لقب/.test(s))
@@ -1891,16 +1897,19 @@ function booksView(){
   const list=S.books||[];
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
 <h2>📚 الكتب</h2>
-<p class="mut">ملفات وكتب للتحميل أو الفتح على الموبايل</p>
-${list.length?list.map(b=>`<div class="card book-card">
+<p class="mut">ملفات وكتب للتحميل أو الفتح</p>
+${list.length?list.map(b=>{
+  const href=b.b64?("data:application/pdf;base64,"+b.b64):(b.url&&String(b.url).indexOf("data:")!==0?b.url:"");
+  return `<div class="card book-card">
   <div class="ico">${b.kind==="pdf"?"📄":"📘"}</div>
   <div style="flex:1;min-width:0"><b>${esc(b.title||"كتاب")}</b>
-  <div class="mut">${esc(b.subject||"")} ${b.size?("· "+b.size):""}</div></div>
+  <div class="mut">${esc(b.subject||"")} ${b.name?("· "+esc(b.name)):""}</div></div>
   <div style="display:flex;flex-direction:column;gap:6px">
-    <a class="btn sm" href="${esc(b.url)}" target="_blank" rel="noopener">فتح</a>
-    <a class="btn ghost sm" href="${esc(b.url)}" download="${esc(b.title||"book")}.pdf">⬇ تنزيل</a>
+    ${href?`<a class="btn sm" href="${esc(href)}" target="_blank" rel="noopener">فتح</a>
+    <a class="btn ghost sm" href="${esc(href)}" download="${esc(b.title||"book")}.pdf">⬇ تنزيل</a>`:`<span class="mut">مفيش ملف</span>`}
   </div>
-</div>`).join(""):`<div class="card mut">لسه مفيش كتب — الأدمن هيضيف قريب.</div>`}
+</div>`;
+}).join(""):`<div class="card mut">لسه مفيش كتب — الأدمن هيضيف قريب.</div>`}
 </div>${studentNav()}`;
 }
 function adminBooks(){
@@ -1911,11 +1920,14 @@ function adminBooks(){
 <input id="bookTitle" type="text" maxlength="80" placeholder="مثال: ملخص الأدب الجاهلي">
 <label class="f">المادة (اختياري)</label>
 <input id="bookSub" type="text" maxlength="40" placeholder="عربي">
-<label class="f">رابط الملف (Drive / PDF) للتحميل</label>
+<label class="f">رفع PDF من الجهاز (بدون رابط)</label>
+<input id="bookFile" type="file" accept="application/pdf,.pdf">
+<p class="mut">حد أقصى ~700–900 كيلو · الأكبر ارفعه Drive وحط رابط</p>
+<label class="f">أو رابط الملف (Drive / PDF)</label>
 <input id="bookUrl" class="ltr" type="url" placeholder="https://…">
-<label class="f">نص / ملخص الكتاب (مهم للمساعد)</label>
-<textarea id="bookContent" rows="6" placeholder="الصق هنا نص الملخص أو أهم النقاط من الكتاب… المساعد هيبحث فيه لما الطلاب يسألوا"></textarea>
-<p class="mut" style="margin-top:6px">الرابط للتحميل · النص عشان مساعد التفوق يجاوب منه</p>
+<label class="f">نص / ملخص الكتاب (مهم لـ 么)</label>
+<textarea id="bookContent" rows="6" placeholder="الصق الملخص أو أهم النقاط…"></textarea>
+<p class="mut" style="margin-top:6px">عنوان + (ملف أو رابط) · النص يخلّي المساعد يرد من الكتاب</p>
 <button class="btn" style="margin-top:10px" data-act="addBook">إضافة</button>
 </div>
 ${list.map(b=>`<div class="card row"><div style="flex:1"><b>${esc(b.title)}</b><div class="mut">${esc(b.url||"").slice(0,40)}…</div></div>
@@ -2076,12 +2088,12 @@ function adminPerfCard(){
 
 function adminView(){
   const t=S.tab;
-  const tabs=[["dash","الرئيسية"],["live","مباشر"],["status","حالة المنصة"],["activity","نشاط المنصة"],["exams","الامتحانات"],["asm","التقييمات"],["fadaye7","فضايح 😂"],["books","الكتب"],["students","الطلاب"],["results","النتايج"],["alerts","التنبيهات"],["settings","الإعدادات"]];
-  const bd={results:S.unread,alerts:S.unreadAlerts,live:liveActive().length};
+  const tabs=[["dash","الرئيسية"],["live","مباشر"],["status","حالة المنصة"],["activity","نشاط المنصة"],["exams","الامتحانات"],["asm","التقييمات"],["fadaye7","فضايح 😂"],["books","الكتب"],["students","الطلاب"],["results","النتايج"],["alerts","التنبيهات"],["suspicious","احتيالي ⚠"],["settings","الإعدادات"]];
+  const bd={results:S.unread,alerts:S.unreadAlerts,live:liveActive().length,suspicious:(S.suspicious||[]).filter(x=>!x.seen).length};
   return `<div class="wrap wide">${header(`${pill("أدمن","i")}<button class="btn ghost sm" data-act="logout">خروج</button>`)}
 ${S.site.maintenance?`<div class="err" style="margin:0 0 12px">وضع الصيانة شغّال. الطلاب شايفين "المنصة تحت التعديل".</div>`:""}
 <div class="tabs">${tabs.map(([k,v])=>`<button class="tab ${t===k?"on":""}" data-act="tab" data-id="${k}">${v}${bd[k]?`<span class="badge">${bd[k]}</span>`:""}</button>`).join("")}</div>
-${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,settings:adminSettings}[t])()}
+${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,suspicious:adminSuspicious,settings:adminSettings}[t])()}
 ${t==="exams"?`<button class="fab" data-act="newExam" aria-label="امتحان جديد">+</button>`:""}</div>`}
 const chart=(days,vals,cls)=>{const mx=Math.max(1,...vals);return `<div class="bars">${vals.map((v,i)=>`<div>${v||""}<i class="${cls||""}" style="height:${Math.max(3,v/mx*68)}%"></i><span>${days[i].l}</span></div>`).join("")}</div>`};
 
@@ -2189,7 +2201,20 @@ function adminFadaye7(){
   const list=S.fadaye7||[];
   const students=(S.students||[]).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));
   const editId=S.fadHideEdit||null;
-  return `<div class="row" style="margin-bottom:12px"><div class="mut">${list.length} فضيحة 😂 · ${students.length} طالب</div></div>
+  const pend=(S.fadaye7||[]).filter(f=>f.status==="pending");
+  const published=(S.fadaye7||[]).filter(f=>f.status!=="pending"&&f.status!=="rejected");
+  return `<div class="row" style="margin-bottom:12px"><div class="mut">${published.length} منشورة · ${pend.length} معلّق · ${students.length} طالب</div></div>
+${pend.length?`<div class="card" style="border:2px solid var(--gold);margin-bottom:12px">
+  <h3 style="margin-top:0;color:var(--gold)">⬆ طلبات موافقة (${pend.length})</h3>
+  ${pend.map(f=>`<div style="padding:10px 0;border-bottom:1px solid var(--line)">
+  <b>${esc(f.title||"")}</b>
+  <div class="mut">من ${esc(f.authorName||"?")} · ${fmt(f.createdAt)}</div>
+  ${f.url?mediaEmbed(f.url,f.kind):""}
+  <div class="row" style="margin-top:10px;gap:8px">
+    <button class="btn sm" data-act="approveFadaye7" data-id="${f.id}">موافقة ✓</button>
+    <button class="btn danger sm" data-act="rejectFadaye7" data-id="${f.id}">رفض</button>
+  </div></div>`).join("")}
+</div>`:""}
 <div class="card">
   <h3 style="margin-top:0">إضافة فضيحة جديدة</h3>
   <p class="mut">صور: ارفع من الجهاز · فيديو: الصق رابط (يوتيوب / Drive)</p>
@@ -2201,7 +2226,7 @@ function adminFadaye7(){
   <input id="fadLink" class="ltr" type="url" placeholder="https://…">
   <button class="btn" style="margin-top:12px" data-act="addFadaye7">نشر</button>
 </div>
-${list.length?list.map(f=>{
+${published.length?published.map(f=>{
   const hid=new Set(f.hideFrom||[]);
   const isEdit=editId===f.id;
   const panel=isEdit?`<div class="card" style="margin-top:10px;background:var(--sel)">
@@ -2235,16 +2260,7 @@ ${hideLine}
 <button class="btn danger sm" data-act="delFadaye7" data-id="${f.id}">حذف</button>
 </div></div>${panel}</div>`;
 }).join(""):`<div class="card mut">لسه مفيش فضايح — انشر أول واحدة 😂</div>`}
-${(()=>{const pend=(S.fadaye7||[]).filter(f=>f.status==="pending");
-  if(!pend.length)return "";
-  return `<h3 style="margin-top:18px">طلبات طلاب معلّقة (${pend.length})</h3>`+pend.map(f=>`<div class="card" style="border-color:var(--gold)"><b>${esc(f.title||"")}</b>
-  <div class="mut">من ${esc(f.authorName||"?")} · ${fmt(f.createdAt)}</div>
-  ${f.url?mediaEmbed(f.url,f.kind):""}
-  <div class="row" style="margin-top:10px;gap:8px">
-    <button class="btn sm" data-act="approveFadaye7" data-id="${f.id}">موافقة ✓</button>
-    <button class="btn danger sm" data-act="rejectFadaye7" data-id="${f.id}">رفض</button>
-  </div></div>`).join("");
-})()}`;
+`;
 }
 
 const fileList=(arr,part)=>arr.length?arr.map(f=>`<span class="thumb">${f.kind==="image"?`<img src="${f.data}" alt="">`:"📄"} ${esc((f.name||"").slice(0,22))} <button type="button" class="btn danger sm" style="min-height:28px;padding:0 8px" data-act="delFile" data-part="${part}" data-id="${f.id}" data-gid="${f.gid}" data-kind="${f.kind}">✕</button></span>`).join(""):`<span class="mut">مفيش ملفات مرفوعة.</span>`;
@@ -2397,6 +2413,17 @@ ${rows.length?`<div class="tw card" style="padding:0"><table><tr><th>الاسم<
 ${rows.map(r=>`<tr><td><a href="#" data-act="student" data-id="${r.uid}" style="color:var(--pri);font-weight:600">${esc(r.name)}</a></td><td dir="ltr">${esc(r.phone)}</td><td>${esc(r.examTitle)}</td><td>${r.attempt||1}</td><td><b>${r.score}/${r.total}</b></td><td>${pctOf(r)}%</td><td>${passPill(r)||"-"}</td><td>${dur(r.secs)}</td><td>${r.tabs?pill(r.tabs,"r"):0}</td><td>${fmt(r.createdAt)}</td><td><button class="btn ghost sm" data-act="reviewAdmin" data-id="${r.id}" data-back="admin">الحل</button> <button class="btn ghost sm" data-act="delResult" data-id="${r.id}">حذف</button></td></tr>`).join("")}</table></div>
 <p class="mut">زرار "حذف" بيمسح المحاولة دي ويرجّع للطالب محاولة.</p>`:`<div class="card mut">لسه مفيش حد امتحن.</div>`}`}
 
+function adminSuspicious(){
+  const list=S.suspicious||[];
+  return `<div class="card"><h3>⚠ احتيالي</h3>
+<p class="mut">رسائل الطلاب لـ 么 اللي بتحاول تطلب صلاحيات أدمن أو تلاعب (درجات، حظر، مفاتيح…)</p>
+</div>
+${list.length?list.map(a=>`<div class="card">
+<div class="row"><b>${esc(a.name||"؟")}</b> ${pill(a.seen?"اتقرت":"جديد",a.seen?"g":"r")}</div>
+<div class="mut" dir="auto">${esc(a.phone||"")} · ${fmt(a.createdAt)}</div>
+<div style="margin-top:8px;white-space:pre-wrap">${esc(a.text||"")}</div>
+</div>`).join(""):`<div class="card mut">مفيش بلاغات لسه — ده كويس 🙂</div>`}`;
+}
 function adminAlerts(){
   /* إشعار جماعي من الإعدادات أيضًا */
 
@@ -2660,17 +2687,32 @@ const A={
     const url=($("#bookUrl")?.value||"").trim();
     const subject=($("#bookSub")?.value||"").trim();
     const content=($("#bookContent")?.value||"").trim();
-    if(!title||!url){toast("العنوان والرابط مطلوبين");return}
-    if(!/^https?:\/\//i.test(url)){toast("رابط غير صالح");return}
-    if(content.length>900000){toast("النص طويل أوي — اختصر الملخص");return}
+    const fileInput=$("#bookFile");
+    const file=fileInput&&fileInput.files&&fileInput.files[0];
+    if(!title){toast("العنوان مطلوب");return}
+    if(!url&&!file){toast("ارفع PDF أو حط رابط");return}
+    if(url&&!/^https?:\/\//i.test(url)){toast("رابط غير صالح");return}
+    if(content.length>900000){toast("النص طويل أوي");return}
     try{
-      await addDoc(collection(db,"books"),{title,url,subject,content:content.slice(0,100000),kind:"pdf",createdAt:serverTimestamp()});
-      toast(content?"اتضاف الكتاب والمساعد يقدر يبحث فيه ✓":"اتضاف الكتاب (من غير نص — المساعد مش هيقرأ PDF لوحده)",true);
+      toast("جاري الإضافة…");
+      const payload={title,subject,content:content.slice(0,100000),kind:"pdf",createdAt:serverTimestamp()};
+      if(url)payload.url=url;
+      if(file){
+        if(file.type!=="application/pdf"&&!/\.pdf$/i.test(file.name)){toast("PDF فقط");return}
+        if(file.size>900*1024){toast("الملف أكبر من ~900KB — استخدم رابط Drive");return}
+        const b64=await readB64(file);
+        if(b64.length>950000){toast("كبير بعد التحويل — استخدم رابط");return}
+        payload.b64=b64;payload.name=file.name;
+      }
+      await addDoc(collection(db,"books"),payload);
+      toast("اتضاف الكتاب ✓",true);
       if($("#bookTitle"))$("#bookTitle").value="";
       if($("#bookUrl"))$("#bookUrl").value="";
       if($("#bookContent"))$("#bookContent").value="";
-    }catch(e){console.error(e);toast("فشل — انشر rules أو صغّر النص")}
+      if(fileInput)fileInput.value="";
+    }catch(e){console.error(e);toast("فشل الإضافة — جرّب ملف أصغر أو رابط")}
   },
+
   async delBook(d){
     if(!S.isAdmin||!d.id)return;
     if(!confirm("حذف الكتاب؟"))return;
@@ -2742,13 +2784,69 @@ const A={
     const go=confirm("فتح Firebase Console الآن؟\\nUsers → ابحث عن:\\n"+email);
     if(go) window.open("https://console.firebase.google.com/project/eltafawoq-8b700/authentication/users","_blank");
   },
-  openAI(){S.view="ai";S.aiMsgs=S.aiMsgs||[{role:"bot",text:"أهلاً! أنا 么 🤖\nمساعد منصة التفوق.\nأقدر: أشرح دروس، أراجع أسئلة من الامتحانات/الكتب، وأوضّح استخدام المنصة.\nاسأل بأي صيغة — ولو السؤال ناقص هطلب توضيح."}];render(true)},
+  openAI(){
+    S.view="ai";
+    S.aiMsgs=S.aiMsgs||[{role:"bot",text:"أهلاً! أنا 么 🤖\nأقدر أوجّهك لأي جزء في المنصة وأراجع الامتحانات والكتب.\nاسأل بأي صيغة."}];
+    render(true);
+    if(S.user&&db){
+      getDoc(doc(db,"aiChats",S.user.uid)).then(s=>{
+        if(s.exists()){
+          const d=s.data();
+          if(Array.isArray(d.msgs)&&d.msgs.length){S.aiMsgs=d.msgs;if(S.view==="ai")render(true)}
+        }
+      }).catch(()=>{});
+    }
+  },
   async aiSend(){
-    const inp=$("#aiIn");const q=(inp&&inp.value||"").trim();
-    if(!q)return;
+    const inp=$("#aiIn");let q=(inp&&inp.value||"").trim();
+    const fileEl=$("#aiFile");
+    const file=fileEl&&fileEl.files&&fileEl.files[0];
+    let fileNote="", fileName="";
+    if(file){
+      fileName=file.name||"ملف";
+      try{
+        if(/^text\/|\.txt$/i.test(file.type+file.name)){
+          fileNote=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result||"").slice(0,30000));r.onerror=rej;r.readAsText(file)});
+        }else if(/pdf/i.test(file.type+file.name)){
+          // PDF ثنائي: نقرأ كنص للمحاولة + نطلب من الطالب يلصق المهم
+          const raw=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result||"").slice(0,5000));r.onerror=rej;r.readAsText(file)});
+          fileNote=raw.replace(/[^\x20-\x7E\u0600-\u06FF\n\r\t]/g," ").replace(/\s+/g," ").trim().slice(0,8000);
+          if(fileNote.length<40) fileNote="[ملف PDF: "+fileName+" — مش قادر أقرأ النص تلقائي كويس. الصق الجزء المهم من الملخص هنا وأراجعه معاك.]";
+        }else if(/^image\//.test(file.type)){
+          fileNote="[صورة مرفقة: "+fileName+" — وصف اللي فيها أو اكتب السؤال اللي ظاهر فيها.]";
+        }else{
+          fileNote="[ملف: "+fileName+"]";
+        }
+      }catch(e){fileNote="[تعذر قراءة الملف]";}
+      if(fileEl)fileEl.value="";
+      const hint=$("#aiFileHint");if(hint)hint.textContent="";
+    }
+    if(!q&&!fileNote)return;
+    if(!q&&fileNote)q="راجعلي الملف ده";
+    const fullQ=fileNote?(q+"\n\n--- محتوى الملف ("+fileName+") ---\n"+fileNote):q;
     if(inp)inp.value="";
-    S.aiMsgs=(S.aiMsgs||[]).concat([{role:"me",text:q},{role:"bot",text:"么 بيفكر… 🧠"}]);
+    S.aiMsgs=(S.aiMsgs||[]).concat([{role:"me",text:q,fileName:fileName||undefined,at:Date.now()},{role:"bot",text:"بفكر… ثواني 🧠"}]);
     render();
+    requestAnimationFrame(()=>{const el=$("#aiLog");if(el)el.scrollTop=el.scrollHeight});
+    // تأخير بسيط للواقعية
+    await new Promise(r=>setTimeout(r,400+Math.random()*500));
+
+    try{
+      const sn=normalizeAr(fullQ);
+      const adminProbe=/(ادمن|المدرس|لوحة التحكم|غير درجة|زوّد درجة|امسح نتيجة|احذف طالب|فك حظر|كلمة سر ادمن|باسورد الادمن|firebase|قواعد|rules|api key|مفتاح|استولي|اختراق|هاك|hack|admin panel|غيّر نتيجة|مسح نتائج)/.test(sn)
+        && !/(ازاي استخدم|شرح المنصه|امتحان طالب|حسابي|ازاي اكلم المدرس)/.test(sn);
+      if(adminProbe && S.user){
+        await addDoc(collection(db,"suspicious"),{
+          uid:S.user.uid,
+          name:(S.profile&&S.profile.name)||"",
+          phone:(S.profile&&S.profile.phone)||"",
+          text:fullQ.slice(0,1000),
+          source:"ai",
+          createdAt:serverTimestamp(),
+          seen:false
+        });
+      }
+    }catch(e){console.warn("suspicious",e)}
     let reply=null;
     try{
       if(S.site&&S.site.aiUrl){
@@ -2764,39 +2862,42 @@ const A={
           content:String(m.text||"").slice(0,800)
         }));
         const sysPrompt=[
-          "اسمك 么 — مساعد منصة التفوق التعليمية.",
-          "تكلم بالعربية المصرية الواضحة والودودة.",
-          "افهم السؤال كامل قبل ما ترد. لو غامض اطلب توضيح بجملة قصيرة.",
-          "لا تخترع معلومات عن درجات أو امتحانات مش موجودة في البيانات المرفقة.",
-          "لو مش متأكد قل: لا أملك معلومات كافية.",
-          "عند الأسئلة التعليمية: اشرح خطوة بخطوة باختصار ثم مثال لو لزم.",
-          "عند أسئلة المنصة: استخدم دليل المنصة (امتحانات، تقييمات، ألعاب، شات، جروبات، كتب، حسابي).",
-          "الطالب الحالي: "+((S.profile&&S.profile.name)||"طالب")+" · الشاشة: "+(S.view||""),
-          "لو السؤال عن امتحان أو كتاب: اعتمد على exams/books المرفقة أولاً."
+          "اسمك 么 — بتكلم الطالب كصديق بيذاكر معاه، مش روبوت رسمي.",
+          "عربية مصرية طبيعية وودودة، جمل قصيرة.",
+          "وجّه الطالب لخطوات المنصة بدقة (الألعاب→إنشاء غرفة، تواصل→شات، المواد→امتحان).",
+          "لا تكشف أعداد/أسماء/أرقام طلاب أو من المتصل.",
+          "لا تساعد في اختراق أو تغيير درجات أو صلاحيات أدمن.",
+          "الطالب: "+((S.profile&&S.profile.name)||"طالب")
         ].join("\n");
         const headers={"Content-Type":"application/json"};
         if(S.site.aiKey)headers["Authorization"]="Bearer "+S.site.aiKey;
         const r=await fetch(S.site.aiUrl,{
-          method:"POST",
-          headers,
-          body:JSON.stringify({
-            message:q,
-            uid:S.user&&S.user.uid,
-            name:S.profile&&S.profile.name,
-            view:S.view,
-            system:sysPrompt,
-            history,
-            books,
-            exams:examsCtx,
-            platform:"امتحانات، تقييمات، ألعاب غرف، شات، جروبات، كتب، فضائح، XP، حسابي، مكالمات"
-          })
+          method:"POST",headers,
+          body:JSON.stringify({message:fullQ,uid:S.user&&S.user.uid,name:S.profile&&S.profile.name,view:S.view,system:sysPrompt,history,books,exams:examsCtx})
         });
         if(r.ok){const j=await r.json();reply=j.reply||j.text||j.message||null}
       }
     }catch(e){console.warn("aiUrl",e)}
-    if(!reply)reply=aiLocalReply(q);
-    S.aiMsgs=(S.aiMsgs||[]).slice(0,-1); // remove thinking
-    S.aiMsgs.push({role:"bot",text:reply});
+    if(!reply){
+      const sn=normalizeAr(fullQ);
+      if(/(ادمن|لوحة التحكم|غير درجة|امسح نتيجة|كلمة سر ادمن|اختراق|هاك|firebase rules|api key)/.test(sn)
+         && !/(ازاي اكلم المدرس|تواصل مع المدرس)/.test(sn))
+        reply=((S.profile&&S.profile.name)?("يا "+S.profile.name.split(" ")[0]+"، "):"")+"الطلب ده خاص بالمدرس ومش هقدر أنفّذه من هنا.\\nلو محتاج مساعدة كطالب في المذاكرة أو استخدام المنصة، أقدر أساعدك.";
+      else reply=aiLocalReply(fullQ);
+    }
+    S.aiMsgs=(S.aiMsgs||[]).slice(0,-1);
+    S.aiMsgs.push({role:"bot",text:reply,at:Date.now()});
+    try{
+      if(S.user){
+        await setDoc(doc(db,"aiChats",S.user.uid),{
+          uid:S.user.uid,
+          name:(S.profile&&S.profile.name)||"",
+          phone:(S.profile&&S.profile.phone)||"",
+          msgs:(S.aiMsgs||[]).slice(-80),
+          updatedAt:serverTimestamp()
+        },{merge:true});
+      }
+    }catch(e){console.warn("aiChat save",e)}
     render();
     requestAnimationFrame(()=>{const el=$("#aiLog");if(el)el.scrollTop=el.scrollHeight});
   },
@@ -3704,7 +3805,7 @@ const A={
     if(endAt&&Date.now()>=endAt){toast("وقت الامتحان كان خلص.");submitExam(true)}
   },
   submit(){submitExam(false)},
-  tab(d){S.tab=d.id;if(d.id==="results")S.unread=0;if(d.id==="alerts")S.unreadAlerts=0;updTitle();render(true)},
+  tab(d){S.tab=d.id;if(d.id==="results")S.unread=0;if(d.id==="alerts")S.unreadAlerts=0;if(d.id==="suspicious"){S.unreadSuspicious=0;(S.suspicious||[]).forEach(x=>{if(!x.seen&&x.id)updateDoc(doc(db,"suspicious",x.id),{seen:true}).catch(()=>{})});}updTitle();render(true)},
   filter(d,el){S.filter=el.value;render()},
   newExam(){S.editing={id:null,exam:null};S.view="editExam";render(true)},
   editExam(d){S.editing={id:d.id,exam:S.exams.find(e=>e.id===d.id)};S.view="editExam";render(true)},
@@ -4122,6 +4223,13 @@ async function startVoiceCall(toUid,toName){
       toast("مافيش رد");
     }
   },45000);
+  const unsubStatus=onSnapshot(callRef,snap=>{
+    if(!snap.exists()||!window.__call||window.__call.callId!==callId)return;
+    const st=snap.data().status;
+    if(st==="rejected")endVoiceCall("reject");
+    else if(st==="ended"||st==="cancelled")endVoiceCall("remote");
+  });
+  window.__call.unsubStatus=unsubStatus;
 }
 function showCallUI(name,outgoing,onEnd,statusText){
   const old=document.getElementById("callBar");if(old)old.remove();
@@ -4156,18 +4264,19 @@ async function endVoiceCall(reason){
   if(c&&c.timeout)clearTimeout(c.timeout);
   if(!c){const b=document.getElementById("callBar");if(b)b.remove();return}
   try{if(c.unsub)c.unsub()}catch(_){}
+  try{if(c.unsubStatus)c.unsubStatus()}catch(_){}
   try{c.pc&&c.pc.close()}catch(_){}
   try{c.stream&&c.stream.getTracks().forEach(tr=>tr.stop())}catch(_){}
   try{
     if(c.callId){
-      const st=reason==="reject"?"rejected":reason==="missed"?"missed":"ended";
-      await updateDoc(doc(db,"calls",c.callId),{status:st}).catch(()=>{});
+      const st=reason==="reject"?"rejected":reason==="missed"?"missed":(reason==="remote"?"ended":"cancelled");
+      await updateDoc(doc(db,"calls",c.callId),{status:st,endedAt:Date.now()}).catch(()=>{});
     }
   }catch(_){}
   window.__call=null;
   const b=document.getElementById("callBar");if(b)b.remove();
   if(reason==="missed")return;
-  toast(reason==="reject"?"اترفضت المكالمة":"انتهت المكالمة");
+  if(reason==="remote")toast("الطرف التاني أنهى المكالمة");else toast(reason==="reject"?"اترفضت المكالمة":"انتهت المكالمة");
 }
 async function answerVoiceCall(callId,d){
   if(window.__call)return;
@@ -4236,19 +4345,32 @@ async function listenIncomingCalls(){
       snap.docChanges().forEach(ch=>{
         if(ch.type!=="added"&&ch.type!=="modified")return;
         const d=ch.doc.data();
+        const id=ch.doc.id;
+        if(d.status&&d.status!=="ringing"){
+          if(window.__incomingCallId===id){
+            window.__incomingCallId=null;
+            stopRingtone();
+            const b=document.getElementById("callBar");
+            if(b&&!window.__call)b.remove();
+            try{if(navigator.vibrate)navigator.vibrate(0)}catch(_){}
+            if(d.status==="ended"||d.status==="cancelled")toast("المتصل ألغى المكالمة");
+            else if(d.status==="missed")toast("انتهت المكالمة بدون رد");
+          }
+          if(window.__call&&window.__call.callId===id&&d.status!=="answered"&&d.status!=="ringing"){
+            endVoiceCall("remote");
+          }
+          return;
+        }
         if(d.status!=="ringing")return;
         if(window.__call)return;
-        if(window.__incomingCallId===ch.doc.id)return;
-        window.__incomingCallId=ch.doc.id;
+        if(window.__incomingCallId===id)return;
+        window.__incomingCallId=id;
         startRingtone();
         try{
           if("Notification" in window&&Notification.permission==="granted"){
             const n=new Notification("📞 مكالمة من "+(d.fromName||"زميل"),{
               body:"اضغط للرد — افتح التفوق",
-              tag:"call_"+ch.doc.id,
-              renotify:true,
-              requireInteraction:true,
-              silent:false
+              tag:"call_"+id,renotify:true,requireInteraction:true,silent:false
             });
             n.onclick=()=>{try{window.focus();n.close()}catch(_){}};
           }
@@ -4256,7 +4378,7 @@ async function listenIncomingCalls(){
         }catch(_){}
         showIncomingCallUI(d.fromName||"شخص",()=>{
           window.__incomingCallId=null;
-          answerVoiceCall(ch.doc.id,d);
+          answerVoiceCall(id,d);
         },()=>{
           window.__incomingCallId=null;
           stopRingtone();
@@ -5327,6 +5449,10 @@ document.addEventListener("change",e=>{
         toast("اتبعتت ✓");
       }catch(err){console.error(err);toast("فشل إرسال الصورة")}
     })();
+  }
+  if(e.target.id==="aiFile"&&e.target.files&&e.target.files[0]){
+    const hint=$("#aiFileHint");
+    if(hint)hint.textContent="تم اختيار: "+e.target.files[0].name+" — اكتب سؤالك ودوس إرسال";
   }
   if(e.target.id==="meAvatar"&&e.target.files&&e.target.files[0]&&S.user){
     const f=e.target.files[0];e.target.value="";
