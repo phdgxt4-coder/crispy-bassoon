@@ -342,8 +342,9 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,updatePassword} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,deleteField,collection,onSnapshot,query,where,orderBy,limit,getDocs,writeBatch,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,deleteField,collection,onSnapshot,query,where,orderBy,limit,getDocs,writeBatch,serverTimestamp,arrayUnion} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {getStorage,ref as storageRef,uploadBytes,getDownloadURL} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+import {getMessaging,getToken,onMessage,isSupported as messagingIsSupported} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
 /* ============ إعدادات Firebase ============ */
 const firebaseConfig = {
@@ -412,7 +413,23 @@ async function getIp(){if(myIp!==null)return myIp;try{const c=new AbortControlle
 let subs=[],timer=null,hb=null,ansT=null,db,auth,storage,lastLeave=0;
 
 const configured = !firebaseConfig.apiKey.startsWith("PASTE");
-if(configured){const app=initializeApp(firebaseConfig);auth=getAuth(app);db=getFirestore(app);storage=getStorage(app);getIp()}
+let messaging=null;
+if(configured){
+  const app=initializeApp(firebaseConfig);
+  auth=getAuth(app);db=getFirestore(app);storage=getStorage(app);getIp();
+  (async()=>{
+    try{
+      if(!(await messagingIsSupported()))return;
+      messaging=getMessaging(app);
+      onMessage(messaging,payload=>{
+        const tt=payload?.notification?.title||"التفوق";
+        const b=payload?.notification?.body||payload?.data?.body||"";
+        toast(tt+": "+b,true);
+        if(payload?.data?.type==="call"){try{startRingtone()}catch(_){}}
+      });
+    }catch(e){console.warn("messaging",e)}
+  })();
+}
 
 /* ---------- أدوات ---------- */
 function toast(msg,gold){const t=$("#toast");t.textContent=msg;t.className=(gold?"gold ":"")+"show";clearTimeout(toast.h);toast.h=setTimeout(()=>t.className=gold?"gold":"",gold?7000:3500)}
@@ -689,6 +706,23 @@ async function touchStreak(){
   }catch(e){console.warn("streak",e)}
 }
 
+
+async function registerFcmToken(){
+  if(!S.user||!messaging)return;
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=="granted")return;
+    const vapid=(S.site&&S.site.vapidKey)||window.__VAPID_KEY||"";
+    if(!vapid){console.info("FCM: أضف vapidKey في إعدادات الأدمن");return}
+    const reg=await navigator.serviceWorker.ready;
+    const token=await getToken(messaging,{vapidKey:vapid,serviceWorkerRegistration:reg});
+    if(token){
+      await setDoc(doc(db,"students",S.user.uid),{fcmToken:token,fcmUpdatedAt:serverTimestamp()},{merge:true});
+      if(S.profile)S.profile.fcmToken=token;
+    }
+  }catch(e){console.warn("fcm token",e)}
+}
+
 async function startSession(u){
   stopSubs();
   S.user=u;
@@ -816,7 +850,7 @@ if(configured){
   onSnapshot(doc(db,"config","site"),s=>{
     const d=s.exists()?s.data():{};
     const was=S.site.maintenance;
-    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||""};
+    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",vapidKey:d.vapidKey||""};
     if(S.view==="loading")return;
     if(S.view==="auth"&&was===S.site.maintenance)return;
     render();
@@ -1987,7 +2021,11 @@ function adminSettings(){
 <div class="card"><h3 style="margin-top:0">رابط مساعد ذكي (اختياري)</h3>
 <p class="mut">Webhook يرد JSON: {"reply":"..."} ويستقبل message + books. لو فاضي = المساعد المحلي.</p>
 <input id="aiUrlIn" class="ltr" type="url" placeholder="https://…/webhook" value="${esc(S.site.aiUrl||"")}">
-<button class="btn sm" style="margin-top:8px" data-act="saveAiUrl">حفظ الرابط</button></div>`;
+<button class="btn sm" style="margin-top:8px" data-act="saveAiUrl">حفظ الرابط</button></div>
+<div class="card"><h3 style="margin-top:0">إشعارات المكالمات (FCM)</h3>
+<p class="mut">Firebase → Project settings → Cloud Messaging → Web Push certificates</p>
+<input id="vapidIn" class="ltr" type="text" placeholder="VAPID key" value="${esc(S.site.vapidKey||"")}">
+<button class="btn sm" style="margin-top:8px" data-act="saveVapid">حفظ مفتاح الإشعارات</button></div>`;
   // ---
   
   return extra+`<div class="card"><h3>وضع الصيانة</h3>
@@ -3327,92 +3365,261 @@ async function sendDm(toUid,text,img,extra){
 /** رفع ملف على Firebase Storage — صور/فيديو بجودة كاملة */
 
 
+
+let __ringAudio=null,__ringCtx=null,__ringTimer=null;
+function startRingtone(){
+  stopRingtone();
+  try{if(navigator.vibrate)navigator.vibrate([200,100,200,100,200,100,400])}catch(_){}
+  try{
+    const a=new Audio("ringtone.mp3");
+    a.loop=true;a.volume=1;__ringAudio=a;
+    const pr=a.play();
+    if(pr&&pr.catch)pr.catch(()=>{__ringAudio=null;startBeepRing()});
+    return;
+  }catch(_){}
+  startBeepRing();
+}
+function startBeepRing(){
+  try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    __ringCtx=ctx;
+    const playOnce=()=>{
+      if(!__ringCtx)return;
+      const now=ctx.currentTime;
+      [0,0.2].forEach((off,idx)=>{
+        const o=ctx.createOscillator(),g=ctx.createGain();
+        o.type="sine";o.frequency.value=idx?520:440;
+        g.gain.setValueAtTime(0.0001,now+off);
+        g.gain.exponentialRampToValueAtTime(0.12,now+off+0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001,now+off+0.18);
+        o.connect(g);g.connect(ctx.destination);
+        o.start(now+off);o.stop(now+off+0.2);
+      });
+    };
+    playOnce();
+    __ringTimer=setInterval(playOnce,1800);
+    try{if(navigator.vibrate)navigator.vibrate([200,100,200,100,200])}catch(_){}
+  }catch(e){console.warn("ring",e)}
+}
+function stopRingtone(){
+  if(__ringTimer){clearInterval(__ringTimer);__ringTimer=null}
+  try{if(__ringAudio){__ringAudio.pause();__ringAudio.currentTime=0}}catch(_){}
+  __ringAudio=null;
+  try{if(__ringCtx){__ringCtx.close()}}catch(_){}
+  __ringCtx=null;
+}
+function iceServers(){
+  return {iceServers:[
+    {urls:"stun:stun.l.google.com:19302"},
+    {urls:"stun:stun1.l.google.com:19302"}
+  ]};
+}
 async function startVoiceCall(toUid,toName){
   if(!S.user||!toUid)return;
-  if(window.__call){toast("في مكالمة شغالة");return}
+  if(toUid===S.user.uid){toast("مش هتتصل بنفسك");return}
+  if(window.__call){toast("في مكالمة شغّالة");return}
   toast("جاري الاتصال…");
-  const callId=[S.user.uid,toUid].sort().join("_")+ "_"+Date.now().toString(36);
+  const callId="c_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,7);
   let stream;
   try{stream=await navigator.mediaDevices.getUserMedia({audio:true})}
   catch(e){toast("اسمح بالميكروفون للمكالمة");return}
-  const pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
+  const pc=new RTCPeerConnection(iceServers());
   stream.getTracks().forEach(tr=>pc.addTrack(tr,stream));
-  const remoteAudio=new Audio();remoteAudio.autoplay=true;
-  pc.ontrack=ev=>{remoteAudio.srcObject=ev.streams[0]};
+  const remoteAudio=new Audio();remoteAudio.autoplay=true;remoteAudio.playsInline=true;
+  pc.ontrack=ev=>{try{remoteAudio.srcObject=ev.streams[0];remoteAudio.play().catch(()=>{})}catch(_){}};
   const callRef=doc(db,"calls",callId);
+  const pendingIce=[];
   pc.onicecandidate=e=>{
-    if(e.candidate)updateDoc(callRef,{["ice_"+S.user.uid]:e.candidate.toJSON()}).catch(()=>{});
+    if(!e.candidate)return;
+    const c=e.candidate.toJSON();
+    pendingIce.push(c);
+    updateDoc(callRef,{callerIce:arrayUnion(c)}).catch(()=>{});
   };
-  const offer=await pc.createOffer();
+  const offer=await pc.createOffer({offerToReceiveAudio:true});
   await pc.setLocalDescription(offer);
   await setDoc(callRef,{
-    from:S.user.uid,fromName:(S.profile.name||"").split(" ")[0],
-    to:toUid,toName:toName||"زميل",
-    offer:offer,status:"ringing",createdAt:serverTimestamp()
+    from:S.user.uid,
+    fromName:(S.profile&&S.profile.name||"طالب").split(" ")[0],
+    to:toUid,
+    toName:toName||"زميل",
+    offer:{type:offer.type,sdp:offer.sdp},
+    status:"ringing",
+    callerIce:[],
+    calleeIce:[],
+    createdAt:serverTimestamp()
   });
-  showCallUI(toName||"زميل",true,()=>endVoiceCall());
-  window.__call={pc,stream,callId,remoteAudio,unsub:null};
-  window.__call.unsub=onSnapshot(callRef,async snap=>{
+  try{
+    await addDoc(collection(db,"notifications"),{
+      uid:toUid, text:"📞 مكالمة واردة من "+((S.profile&&S.profile.name)||"زميل"),
+      kind:"call", callId, createdAt:serverTimestamp(), read:false
+    });
+  }catch(_){}
+  try{
+    const peer=await getDoc(doc(db,"students",toUid));
+    const token=peer.exists()?(peer.data().fcmToken||null):null;
+    await addDoc(collection(db,"pushRequests"),{
+      toUid, token, callId,
+      title:"مكالمة — التفوق",
+      body:((S.profile&&S.profile.name)||"زميل")+" بيتصل بيك",
+      type:"call", status:"pending",
+      createdAt:serverTimestamp()
+    });
+  }catch(_){}
+  startRingtone();
+  showCallUI(toName||"زميل",true,()=>endVoiceCall("cancel"),null);
+  let answered=false;
+  const unsub=onSnapshot(callRef,async snap=>{
     if(!snap.exists()){endVoiceCall();return}
     const d=snap.data();
-    if(d.answer&&pc.signalingState!=="closed"){
-      try{if(!pc.currentRemoteDescription)await pc.setRemoteDescription(d.answer)}catch(_){}
+    if(d.status==="ended"||d.status==="rejected"||d.status==="missed"){
+      endVoiceCall();return;
     }
-    if(d.status==="ended")endVoiceCall();
-    const iceKey="ice_"+toUid;
-    if(d[iceKey]){try{await pc.addIceCandidate(d[iceKey])}catch(_){}}
+    if(d.status==="active"&&d.answer&&!answered){
+      answered=true;
+      stopRingtone();
+      try{
+        await pc.setRemoteDescription(new RTCSessionDescription(d.answer));
+      }catch(e){console.error(e)}
+      showCallUI(toName||"زميل",false,()=>endVoiceCall("hangup"),"متصل الآن");
+    }
+    if(Array.isArray(d.calleeIce)){
+      for(const c of d.calleeIce){
+        try{await pc.addIceCandidate(c)}catch(_){}
+      }
+    }
   });
+  window.__call={pc,stream,callId,remoteAudio,unsub,role:"caller"};
+  // لو محدش رد خلال 45 ثانية
+  window.__call.timeout=setTimeout(()=>{
+    if(window.__call&&window.__call.callId===callId){
+      updateDoc(callRef,{status:"missed"}).catch(()=>{});
+      endVoiceCall("missed");
+      toast("مافيش رد");
+    }
+  },45000);
 }
-function showCallUI(name,outgoing,onEnd){
+function showCallUI(name,outgoing,onEnd,statusText){
   const old=document.getElementById("callBar");if(old)old.remove();
   const bar=document.createElement("div");
   bar.id="callBar";bar.className="call-bar";
-  bar.innerHTML=`<div class="call-box"><div class="pulse"></div><b>${esc(name)}</b>
-    <p class="mut">${outgoing?"جاري الاتصال…":"مكالمة صوتية"}</p>
-    <button class="btn danger" id="callHang">إنهاء</button></div>`;
+  const st=statusText||(outgoing?"جاري الاتصال… اسمح بالميكروفون عند الطرف التاني":"مكالمة واردة");
+  bar.innerHTML=`<div class="call-box"><div class="pulse"></div><b dir="auto">${esc(name)}</b>
+    <p class="mut" id="callStatus">${esc(st)}</p>
+    <div class="row" style="justify-content:center;gap:10px;margin-top:8px">
+      <button class="btn danger" id="callHang">${outgoing?"إلغاء":"إنهاء"}</button>
+    </div></div>`;
   document.body.appendChild(bar);
   document.getElementById("callHang").onclick=onEnd;
 }
-async function endVoiceCall(){
+function showIncomingCallUI(name,onAccept,onReject){
+  const old=document.getElementById("callBar");if(old)old.remove();
+  const bar=document.createElement("div");
+  bar.id="callBar";bar.className="call-bar";
+  bar.innerHTML=`<div class="call-box"><div class="pulse"></div><b dir="auto">${esc(name)}</b>
+    <p class="mut">مكالمة صوتية واردة…</p>
+    <div class="row" style="justify-content:center;gap:12px;margin-top:12px">
+      <button class="btn danger" id="callReject">رفض</button>
+      <button class="btn gold" id="callAccept">رد</button>
+    </div></div>`;
+  document.body.appendChild(bar);
+  document.getElementById("callAccept").onclick=onAccept;
+  document.getElementById("callReject").onclick=onReject;
+}
+async function endVoiceCall(reason){
+  stopRingtone();
   const c=window.__call;
+  if(c&&c.timeout)clearTimeout(c.timeout);
   if(!c){const b=document.getElementById("callBar");if(b)b.remove();return}
   try{if(c.unsub)c.unsub()}catch(_){}
-  try{c.pc.close()}catch(_){}
-  try{c.stream.getTracks().forEach(tr=>tr.stop())}catch(_){}
-  try{if(c.callId)updateDoc(doc(db,"calls",c.callId),{status:"ended"}).catch(()=>{})}catch(_){}
+  try{c.pc&&c.pc.close()}catch(_){}
+  try{c.stream&&c.stream.getTracks().forEach(tr=>tr.stop())}catch(_){}
+  try{
+    if(c.callId){
+      const st=reason==="reject"?"rejected":reason==="missed"?"missed":"ended";
+      await updateDoc(doc(db,"calls",c.callId),{status:st}).catch(()=>{});
+    }
+  }catch(_){}
   window.__call=null;
   const b=document.getElementById("callBar");if(b)b.remove();
-  toast("انتهت المكالمة");
+  if(reason==="missed")return;
+  toast(reason==="reject"?"اترفضت المكالمة":"انتهت المكالمة");
+}
+async function answerVoiceCall(callId,d){
+  if(window.__call)return;
+  stopRingtone();
+  let stream;
+  try{stream=await navigator.mediaDevices.getUserMedia({audio:true})}
+  catch(e){toast("الميكروفون مرفوض");updateDoc(doc(db,"calls",callId),{status:"rejected"}).catch(()=>{});return}
+  const pc=new RTCPeerConnection(iceServers());
+  stream.getTracks().forEach(tr=>pc.addTrack(tr,stream));
+  const remoteAudio=new Audio();remoteAudio.autoplay=true;remoteAudio.playsInline=true;
+  pc.ontrack=ev=>{try{remoteAudio.srcObject=ev.streams[0];remoteAudio.play().catch(()=>{})}catch(_){}};
+  const callRef=doc(db,"calls",callId);
+  pc.onicecandidate=e=>{
+    if(!e.candidate)return;
+    updateDoc(callRef,{calleeIce:arrayUnion(e.candidate.toJSON())}).catch(()=>{});
+  };
+  try{
+    await pc.setRemoteDescription(new RTCSessionDescription(d.offer));
+    // ICE من المتصل
+    if(Array.isArray(d.callerIce)){
+      for(const c of d.callerIce){try{await pc.addIceCandidate(c)}catch(_){}}
+    }
+    const answer=await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    await updateDoc(callRef,{answer:{type:answer.type,sdp:answer.sdp},status:"active"});
+  }catch(e){
+    console.error(e);toast("فشل الاتصال");stream.getTracks().forEach(tr=>tr.stop());return;
+  }
+  showCallUI(d.fromName||"متصل",false,()=>endVoiceCall("hangup"),"متصل الآن");
+  window.__call={pc,stream,callId,remoteAudio,role:"callee",unsub:onSnapshot(callRef,s=>{
+    if(!s.exists()){endVoiceCall();return}
+    const x=s.data();
+    if(x.status==="ended"||x.status==="rejected")endVoiceCall();
+    if(Array.isArray(x.callerIce)){
+      x.callerIce.forEach(c=>{try{pc.addIceCandidate(c)}catch(_){}});
+    }
+  })};
 }
 async function listenIncomingCalls(){
   if(!S.user||S.isAdmin||window.__callListen)return;
-  window.__callListen=onSnapshot(query(collection(db,"calls"),where("to","==",S.user.uid),limit(5)),snap=>{
-    snap.docChanges().forEach(async ch=>{
-      if(ch.type!=="added")return;
-      const d=ch.doc.data();
-      if(d.status!=="ringing")return;
-      if(window.__call)return;
-      if(!confirm((d.fromName||"شخص")+" بيتصل بيك — ترد؟")){
-        updateDoc(ch.doc.ref,{status:"ended"}).catch(()=>{});return;
-      }
-      let stream;
-      try{stream=await navigator.mediaDevices.getUserMedia({audio:true})}
-      catch(e){toast("الميكروفون مرفوض");updateDoc(ch.doc.ref,{status:"ended"});return}
-      const pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
-      stream.getTracks().forEach(tr=>pc.addTrack(tr,stream));
-      const remoteAudio=new Audio();remoteAudio.autoplay=true;
-      pc.ontrack=ev=>{remoteAudio.srcObject=ev.streams[0]};
-      pc.onicecandidate=e=>{if(e.candidate)updateDoc(ch.doc.ref,{["ice_"+S.user.uid]:e.candidate.toJSON()}).catch(()=>{})};
-      await pc.setRemoteDescription(d.offer);
-      const answer=await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      await updateDoc(ch.doc.ref,{answer,status:"active"});
-      showCallUI(d.fromName||"متصل",false,()=>endVoiceCall());
-      window.__call={pc,stream,callId:ch.doc.id,remoteAudio,unsub:onSnapshot(ch.doc.ref,s=>{
-        if(s.exists()&&s.data().status==="ended")endVoiceCall();
-      })};
-    });
-  },err=>console.warn("calls",err));
+  // طلب إذن إشعارات (لما التطبيق مفتوح في الخلفية)
+  try{
+    if("Notification" in window&&Notification.permission==="default"){
+      Notification.requestPermission().catch(()=>{});
+    }
+  }catch(_){}
+  window.__callListen=onSnapshot(
+    query(collection(db,"calls"),where("to","==",S.user.uid),limit(15)),
+    snap=>{
+      snap.docChanges().forEach(ch=>{
+        if(ch.type!=="added"&&ch.type!=="modified")return;
+        const d=ch.doc.data();
+        if(d.status!=="ringing")return;
+        if(window.__call)return;
+        if(window.__incomingCallId===ch.doc.id)return;
+        window.__incomingCallId=ch.doc.id;
+        startRingtone();
+        try{
+          if("Notification" in window&&Notification.permission==="granted"){
+            const n=new Notification("مكالمة من "+(d.fromName||"زميل"),{body:"دوس على المنصة للرد",tag:"call_"+ch.doc.id});
+            n.onclick=()=>window.focus();
+          }
+        }catch(_){}
+        showIncomingCallUI(d.fromName||"شخص",()=>{
+          window.__incomingCallId=null;
+          answerVoiceCall(ch.doc.id,d);
+        },()=>{
+          window.__incomingCallId=null;
+          stopRingtone();
+          updateDoc(ch.doc.ref,{status:"rejected"}).catch(()=>{});
+          const b=document.getElementById("callBar");if(b)b.remove();
+          toast("رفضت المكالمة");
+        });
+      });
+    },
+    err=>{console.warn("calls listen",err);toast("المكالمات: تأكد من نشر rules وفهرس Firestore إن طُلب")}
+  );
 }
 
 async function recordVoice(onDone){
