@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v21">
+<meta name="sw-build" content="v22">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <meta name="mobile-web-app-capable" content="yes">
@@ -800,6 +800,12 @@ if("serviceWorker" in navigator){
   });
 }
 
+if(!window.__dmTypingDelegated){
+  window.__dmTypingDelegated=true;
+  document.addEventListener("input",e=>{
+    if(e.target&&e.target.id==="dmIn"&&S.view==="chatThread")signalDmTyping();
+  },true);
+}
 async function startSession(u){
   stopSubs();
   S.user=u;
@@ -879,7 +885,7 @@ async function startSession(u){
         S.adminConvs=s.docs.map(d=>({id:d.id,...d.data()}));
         if(S.view==="admin"&&S.tab==="live")render();
       },err=>console.warn("adminConvs",err)));
-      const iv=setInterval(()=>{if(S.view==="admin"&&S.tab==="live")render()},15000);subs.push(()=>clearInterval(iv));
+      const iv=setInterval(()=>{if(S.view==="admin"&&S.tab==="live")(typeof scheduleRender==="function"?scheduleRender():render())},30000);subs.push(()=>clearInterval(iv));
     }else{
       const p=await getDoc(doc(db,"students",u.uid));
       S.profile=p.exists()?{name:"طالب",phone:"",...p.data()}:{name:"طالب",phone:""};if(!S.profile.name)S.profile.name="طالب";
@@ -896,7 +902,7 @@ async function startSession(u){
       subs.push(onSnapshot(doc(db,"students",u.uid),s=>{
         if(s.exists()){
           S.profile=s.data();
-          if(["home","me","profile","progress","chatList","chatThread"].includes(S.view))
+          if(["home","me","profile","progress"].includes(S.view))
             (typeof scheduleRender==="function"?scheduleRender():render());
         }
       }));
@@ -911,7 +917,7 @@ async function startSession(u){
         let ok=true;try{const k="lg_"+u.uid,l=+localStorage.getItem(k)||0;if(Date.now()-l<1800000)ok=false;else localStorage.setItem(k,String(Date.now()))}catch(e){}
         if(ok)addDoc(collection(db,"students",u.uid,"logins"),{ip:ip||"",device:device(),screen:screen.width+"×"+screen.height,lang:navigator.language||"",tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||""),createdAt:serverTimestamp()}).catch(()=>{});
       });
-      const iv2=setInterval(()=>{if(S.user&&!S.isAdmin&&(S.view==="home"||S.view==="subject"))render()},60000);subs.push(()=>clearInterval(iv2));
+      const iv2=setInterval(()=>{if(S.user&&!S.isAdmin&&(S.view==="home"||S.view==="subject"))(typeof scheduleRender==="function"?scheduleRender():null)},180000);subs.push(()=>clearInterval(iv2));
       let __resumeTried=false,__seenExams=null;
       const maybeResume=()=>{
         if(__resumeTried||!S.examsLoaded||!S.user)return;
@@ -2012,6 +2018,34 @@ ${L.length?`<div class="card"><h3>كل محاولاتك</h3>${L.slice().reverse(
 /* ---------- لوحة الأدمن ---------- */
 const NOW=()=>Date.now();
 const liveActive=()=>S.starts.filter(x=>NOW()-(x.seen||x.t)<150000);
+
+function adminPerfCard(){
+  const nSubs=(typeof subs!=="undefined"&&subs)?subs.length:0;
+  const mem=(performance&&performance.memory)?Math.round(performance.memory.usedJSHeapSize/1048576)+" MB":"—";
+  const students=Array.isArray(S.students)?S.students.length:0;
+  const online=Array.isArray(S.students)?S.students.filter(s=>{
+    const ms=tsMs(s.lastSeenAt||s.lastClientAt);
+    return ms&&(Date.now()-ms<120000);
+  }).length:0;
+  const exams=Array.isArray(S.exams)?S.exams.length:0;
+  const results=Array.isArray(S.results)?S.results.length:0;
+  const rooms=Array.isArray(S.rooms)?S.rooms.length:(S.openRooms||[]).length;
+  return `<div class="card"><h3 style="margin-top:0">📊 لوحة الأداء</h3>
+  <div class="row" style="flex-wrap:wrap;gap:8px">
+    <span class="pill">Listeners: ${nSubs}</span>
+    <span class="pill">ذاكرة تقريبية: ${mem}</span>
+    <span class="pill">طلاب: ${students}</span>
+    <span class="pill">متصلون (~2د): ${online}</span>
+    <span class="pill">امتحانات: ${exams}</span>
+    <span class="pill">نتائج محمّلة: ${results}</span>
+    <span class="pill">غرف: ${rooms}</span>
+    <span class="pill">View: ${esc(S.view||"")}/${esc(S.tab||"")}</span>
+  </div>
+  <p class="mut" style="margin-top:8px;font-size:12px">البيانات تقديرية من الجهاز الحالي — مش سيرفر مركزي. قلل الـ Listeners لو الرقم عالي.</p>
+  <button class="btn sm ghost" data-act="adminRefreshPerf">تحديث الأرقام</button>
+  </div>`;
+}
+
 function adminView(){
   const t=S.tab;
   const tabs=[["dash","الرئيسية"],["live","مباشر"],["status","حالة المنصة"],["activity","نشاط المنصة"],["exams","الامتحانات"],["asm","التقييمات"],["fadaye7","فضايح 😂"],["books","الكتب"],["students","الطلاب"],["results","النتايج"],["alerts","التنبيهات"],["settings","الإعدادات"]];
@@ -2095,7 +2129,7 @@ function adminDash(){
   const rec=S.results.slice(0,5);
   const ql=(a,t)=>a.length?a.map(m=>`<div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><span dir="auto" style="white-space:normal;flex:1">${esc(m.q.slice(0,90))}<div class="mut">${esc(m.exam)}</div></span>${pill(m.p+"% صح ("+m.n+")",t)}</div>`).join(""):`<div class="mut">محتاج 3 محاولات على الأقل على السؤال الواحد.</div>`;
   const li=(a,f)=>a.length?a.map((x,i)=>`<div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><span>${["🥇","🥈","🥉"][i]||(i+1)+"."} <a href="#" data-act="student" data-id="${x.uid}" style="color:var(--pri);font-weight:600">${esc(x.name)}</a></span><span>${f(x)}</span></div>`).join(""):`<div class="mut">لسه مفيش بيانات.</div>`;
-  return `<div class="stats">
+  return `${adminPerfCard()}<div class="stats">
 <div class="card stat"><b>${S.students.length}</b><span class="mut">طالب</span></div>
 <div class="card stat"><b>${S.exams.length}</b><span class="mut">امتحان</span></div>
 <div class="card stat"><b>${today.length}</b><span class="mut">اتحل النهاردة</span></div>
@@ -2416,6 +2450,7 @@ async function wipeFiles(id,part,gid){
 }
 const A={
   async markNotifsRead(){for(const n of (Array.isArray(S.notifs)?S.notifs:[]).filter(x=>!x.read)){try{await updateDoc(doc(db,"notifications",n.id),{read:true})}catch(e){}}},
+  adminRefreshPerf(){render(true);toast("اتحدّثت أرقام الأداء")},
   theme(d,el){const t=isDark()?"light":"dark";document.querySelectorAll('.tg[data-act="theme"]').forEach(b=>{b.classList.add("spin");setTimeout(()=>b.classList.remove("spin"),500)});setTheme(t)},
   mode(){S.mode=S.mode==="login"?"register":"login";S.error="";render(true)},
   logoTap(){const n=Date.now();S.taps=S.taps.filter(t=>n-t<2500);S.taps.push(n);if(S.taps.length>=3){S.taps=[];S.adminLogin=true;S.error="";render(true)}},
@@ -3721,7 +3756,10 @@ function clearDmTyping(){
   if(!S.user||!S.chatThread)return;
   try{
     const cid=convIdFor(S.user.uid,S.chatThread.uid);
-    updateDoc(doc(db,"conversations",cid),{typingUid:null,typingAt:null}).catch(()=>{});
+    setDoc(doc(db,"conversations",cid),{
+      typingUid:null,typingAt:null,
+      participants:[S.user.uid,S.chatThread.uid]
+    },{merge:true}).catch(()=>{});
   }catch(_){}
 }
 function signalDmTyping(){
@@ -3730,11 +3768,15 @@ function signalDmTyping(){
   window.__typingT=setTimeout(()=>{
     try{
       const cid=convIdFor(S.user.uid,S.chatThread.uid);
-      updateDoc(doc(db,"conversations",cid),{typingUid:S.user.uid,typingAt:Date.now()}).catch(()=>{});
+      setDoc(doc(db,"conversations",cid),{
+        typingUid:S.user.uid,
+        typingAt:Date.now(),
+        participants:[S.user.uid,S.chatThread.uid]
+      },{merge:true}).catch(e=>console.warn("typing",e));
     }catch(_){}
-  },400);
+  },250);
   clearTimeout(window.__typingClear);
-  window.__typingClear=setTimeout(clearDmTyping,3000);
+  window.__typingClear=setTimeout(clearDmTyping,2500);
 }
 
 async function sendDm(toUid,text,img,extra){
