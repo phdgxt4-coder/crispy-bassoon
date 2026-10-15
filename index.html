@@ -1477,6 +1477,52 @@ function chatThreadView(){
 }
 
 
+
+function meView(){
+  const p=S.profile||{};
+  const av=p.avatar?`<img src="${p.avatar}" alt="" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--pri)">`:`<div class="av" style="width:72px;height:72px;font-size:28px">${esc((p.name||"؟")[0]||"?")}</div>`;
+  const xp=p.xp||0;
+  const title=(typeof xpTitle==="function"?xpTitle(xp):{emoji:"🌱",name:p.title||"المبتدئ"});
+  const lvl=typeof xpLevel==="function"?xpLevel(xp):1;
+  const prog=typeof xpProgress==="function"?xpProgress(xp):0;
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
+<h2>حسابي</h2>
+${typeof installBanner==="function"?installBanner():""}
+<div class="card xp-card" style="text-align:center">${av}
+<div style="margin-top:8px"><b>${esc(p.name||"طالب")}</b></div>
+<div class="mut">${esc(p.phone||"")}</div>
+<div class="title-pill">${title.emoji||"🌱"} ${esc(title.name||p.title||"المبتدئ")}</div>
+<div class="xp-lvl">المستوى ${lvl}</div>
+<div class="mut">${xp} XP · 🔥 ${(p.streak||0)} يوم متتالي</div>
+<div class="xp-bar"><i style="width:${prog}%"></i></div>
+<div class="mut" style="font-size:12px">${50-(xp%50)} XP للمستوى التالي</div>
+${(p.badges||[]).length?`<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center">${(p.badges||[]).map(b=>pill("🏅 "+b,"g")).join("")}</div>`:""}
+<label class="btn ghost sm" style="margin-top:10px;cursor:pointer">📷 صورة شخصية<input type="file" id="meAvatar" accept="image/*" hidden></label>
+</div>
+<div class="card">
+  <button class="btn block gold" data-act="openAI">🤖 么</button>
+  <p class="mut" style="margin:8px 0 0;text-align:center">اسأل 么 عن الدروس والامتحانات والمنصة</p>
+</div>
+<div class="card"><b>تغيير الاسم</b>
+<label class="f">الاسم</label>
+<input id="meName" type="text" value="${esc(p.name||"")}" maxlength="40">
+<button class="btn sm" style="margin-top:10px" data-act="meSaveName">حفظ الاسم</button>
+</div>
+<div class="card"><b>تغيير كلمة السر</b>
+<p class="mut" style="margin:4px 0 8px">يُسمح مرة كل أسبوع، ومن جهاز سبق دخول الحساب منه. لو معاك كود استعادة من المدرس اكتبُه تحت.</p>
+<label class="f">كلمة السر الجديدة</label>
+<input id="mePw" class="ltr" type="password" autocomplete="new-password" minlength="6">
+<label class="f">تأكيد</label>
+<input id="mePw2" class="ltr" type="password" autocomplete="new-password" minlength="6">
+<label class="f">كود الاستعادة (اختياري)</label>
+<input id="meResetCode" class="ltr" type="text" maxlength="8" placeholder="من المدرس إن وُجد">
+<button class="btn sm" style="margin-top:10px" data-act="meChangePw">تغيير كلمة السر</button>
+</div>
+<button class="btn ghost block" data-act="logout">تسجيل خروج</button>
+</div>${studentNav()}`;
+}
+
+
 function aiView(){
   const msgs=S.aiMsgs||[{role:"bot",text:"你好！أنا 么 🤖\nمساعد منصة التفوق.\nبفتش في الامتحانات والإجابات والكتب المرفوعة وشرح المنصة.\nاسألني أي حاجة مش فاهمها."}];
   return `<div class="wrap chat-wrap">${header(`<button class="btn ghost sm" data-act="openMe">رجوع</button>`)}
@@ -4756,7 +4802,7 @@ if('serviceWorker' in navigator){
     if(ev.data&&ev.data.type==="SW_UPDATED")reloadOnce();
   });
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./sw.js?v=8').then(reg=>{
+    navigator.serviceWorker.register('./sw.js?v=9').then(reg=>{
       try{reg.update()}catch(_){}
       // كل دقيقة أثناء فتح الصفحة: دور على نسخة جديدة
       setInterval(function(){try{reg.update()}catch(_){}},60*1000);

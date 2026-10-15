@@ -1,6 +1,6 @@
 /* التفوق SW — تحديث تلقائي إجباري */
-const CACHE = "eltafawoq-v8";
-const BUILD = "20261015-v8";
+const CACHE = "eltafawoq-v9";
+const BUILD = "20261015-v9";
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
