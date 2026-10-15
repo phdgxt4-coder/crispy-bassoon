@@ -871,8 +871,21 @@ if(configured){
   onAuthStateChanged(auth,u=>{
     if(S.registering)return;
     const run=()=>{
-      if(u)startSession(u);
-      else{stopSubs();S.user=null;S.isAdmin=false;S.profile=null;S.myList=[];S.attempts={};S.view="auth";render(true)}
+      try{
+        if(u){
+          Promise.resolve(startSession(u)).catch(e=>{
+            console.error(e);
+            S.user=u;S.profile=S.profile||{name:"طالب",phone:""};S.view="home";render(true);
+          });
+        }else{
+          stopSubs();S.user=null;S.isAdmin=false;S.profile=null;S.myList=[];S.attempts={};S.view="auth";render(true);
+        }
+      }catch(e){
+        console.error("auth run",e);
+        S.view=u?"home":"auth";
+        if(u){S.user=u;S.profile=S.profile||{name:"طالب",phone:""}}
+        render(true);
+      }
     };
     const w=splashUntil-Date.now();w>0?setTimeout(run,w):run();
   });
@@ -880,6 +893,11 @@ if(configured){
 
 /* ---------- العرض ---------- */
 const app=$("#app");
+try{
+  if(app&&!app.innerHTML){
+    app.innerHTML="<div class=\"wrap\" style=\"padding-top:40px\"><div class=\"card\" style=\"text-align:center\"><p class=\"mut\">جاري التحميل…</p></div></div>";
+  }
+}catch(_e){}
 function render(force){
   if(!force&&(S.view==="exam"||S.view==="editExam"||S.view==="editAsm"))return;
   if(S.view!=="exam"){clearInterval(timer);clearInterval(hb)}
@@ -4295,15 +4313,17 @@ function restoreNavState(){
     const raw=localStorage.getItem("nav_"+S.user.uid);if(!raw)return;
     const st=JSON.parse(raw);if(!st||!st.view)return;
     if(st.qbRoom){
-      S.qb={mode:st.qbMode||"friends",roomCode:st.qbRoom};
-      qbListenRoom(st.qbRoom);
-      // view will be set by room listener
+      try{
+        S.qb={mode:st.qbMode||"friends",roomCode:st.qbRoom};
+        if(typeof qbListenRoom==="function")qbListenRoom(st.qbRoom);
+        else S.view="home";
+      }catch(_e){S.view="home"}
       return;
     }
-    if(["home","subject","progress","games","asmList","asm","qbSetup"].includes(st.view)){
-      S.view=st.view; if(st.subject) S.subject=st.subject;
-    }
-  }catch(_){}
+    const ok=["home","subject","progress","games","asmList","me","fadaye7","books","ai"];
+    if(ok.includes(st.view)){S.view=st.view;if(st.subject)S.subject=st.subject}
+    else S.view="home";
+  }catch(_e){S.view="home"}
 }
 function syncMyLeaderboard(){
   if(!S.user||S.isAdmin||!S.profile)return;
@@ -4695,7 +4715,7 @@ if(!configured)render(true);
 </script>
 <script>
 
-// إخفاء السبلاش إجباري لو الموديول اتأخر
+// إخفاء السبلاش + إنقاذ الشاشة الفاضية
 (function(){
   function hideSplash(){
     var el=document.getElementById("splash");
@@ -4703,8 +4723,17 @@ if(!configured)render(true);
     el.classList.add("hide");
     setTimeout(function(){try{el.remove()}catch(e){}},700);
   }
-  setTimeout(hideSplash, 4000);
-  window.addEventListener("load", function(){ setTimeout(hideSplash, 2500); });
+  function rescue(){
+    hideSplash();
+    var app=document.getElementById("app");
+    if(!app)return;
+    var txt=(app.innerText||"").replace(/\s+/g," ").trim();
+    if(txt.length>20)return;
+    app.innerHTML='<div class="wrap" style="padding:24px 16px 80px"><div class="card"><h2 style="margin-top:0">التفوق</h2><p class="mut">المنصة بتحمّل ببطء أو الكاش قديم.</p><ol class="mut" style="padding-right:18px"><li>امسح بيانات الموقع من إعدادات المتصفح</li><li>أو افتح من Chrome عادي مش التطبيق القديم</li><li>حدّث الصفحة</li></ol><button class="btn block" onclick="location.reload(true)">تحديث الصفحة</button></div></div>';
+  }
+  setTimeout(hideSplash, 1800);
+  setTimeout(rescue, 3200);
+  window.addEventListener("load", function(){ setTimeout(hideSplash, 1200); setTimeout(rescue, 3500); });
 })();
 
 if('serviceWorker' in navigator){

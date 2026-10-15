@@ -30,7 +30,7 @@ self.addEventListener("notificationclick",(e)=>{
 });
 
 /* Service Worker — تحديث تلقائي عند فتح التطبيق */
-const CACHE = "eltafawoq-v6";
+const CACHE = "eltafawoq-v7";
 const ASSETS = ["./", "./index.html", "./manifest.json"];
 
 self.addEventListener("install", (e) => {
@@ -47,16 +47,21 @@ self.addEventListener("activate", (e) => {
 
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
-  if (e.request.mode === "navigate" || url.pathname.endsWith(".html")) {
+  // network-first-html — مش نعرض index قديم من الكاش
+  if (e.request.mode === "navigate" || url.pathname.endsWith("index.html") || url.pathname.endsWith("/")) {
     e.respondWith(
-      fetch(e.request)
+      fetch(e.request, { cache: "no-store" })
         .then((res) => {
           const copy = res.clone();
           caches.open(CACHE).then((c) => c.put(e.request, copy));
           return res;
         })
-        .catch(() => caches.match(e.request).then((r) => r || caches.match("./index.html")))
+        .catch(() => caches.match("./index.html"))
     );
+    return;
+  }
+  if (url.hostname.includes("firestore") || url.hostname.includes("firebase") || url.hostname.includes("googleapis")) {
+    e.respondWith(fetch(e.request));
     return;
   }
   e.respondWith(
