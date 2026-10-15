@@ -344,7 +344,6 @@ import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,updatePassword} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,deleteField,collection,onSnapshot,query,where,orderBy,limit,getDocs,writeBatch,serverTimestamp,arrayUnion} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {getStorage,ref as storageRef,uploadBytes,getDownloadURL} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-import {getMessaging,getToken,onMessage,isSupported as messagingIsSupported} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
 /* ============ إعدادات Firebase ============ */
 const firebaseConfig = {
@@ -413,21 +412,23 @@ async function getIp(){if(myIp!==null)return myIp;try{const c=new AbortControlle
 let subs=[],timer=null,hb=null,ansT=null,db,auth,storage,lastLeave=0;
 
 const configured = !firebaseConfig.apiKey.startsWith("PASTE");
-let messaging=null;
+let messaging=null, __msgMod=null;
 if(configured){
   const app=initializeApp(firebaseConfig);
   auth=getAuth(app);db=getFirestore(app);storage=getStorage(app);getIp();
+  // FCM اختياري — لو فشل ميمنعش تشغيل المنصة
   (async()=>{
     try{
-      if(!(await messagingIsSupported()))return;
-      messaging=getMessaging(app);
-      onMessage(messaging,payload=>{
+      __msgMod=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js");
+      if(!(await __msgMod.isSupported()))return;
+      messaging=__msgMod.getMessaging(app);
+      __msgMod.onMessage(messaging,payload=>{
         const tt=payload?.notification?.title||"التفوق";
         const b=payload?.notification?.body||payload?.data?.body||"";
         toast(tt+": "+b,true);
         if(payload?.data?.type==="call"){try{startRingtone()}catch(_){}}
       });
-    }catch(e){console.warn("messaging",e)}
+    }catch(e){console.warn("messaging optional",e)}
   })();
 }
 
@@ -708,14 +709,23 @@ async function touchStreak(){
 
 
 async function registerFcmToken(){
-  if(!S.user||!messaging)return;
+  if(!S.user)return;
   try{
+    if(!messaging){
+      if(!__msgMod){
+        try{__msgMod=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js")}catch(_){return}
+      }
+      if(!(await __msgMod.isSupported()))return;
+      const apps=(await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"));
+      // messaging already inited in boot if possible
+      return;
+    }
     const perm=await Notification.requestPermission();
     if(perm!=="granted")return;
     const vapid=(S.site&&S.site.vapidKey)||window.__VAPID_KEY||"";
     if(!vapid){console.info("FCM: أضف vapidKey في إعدادات الأدمن");return}
     const reg=await navigator.serviceWorker.ready;
-    const token=await getToken(messaging,{vapidKey:vapid,serviceWorkerRegistration:reg});
+    const token=await __msgMod.getToken(messaging,{vapidKey:vapid,serviceWorkerRegistration:reg});
     if(token){
       await setDoc(doc(db,"students",S.user.uid),{fcmToken:token,fcmUpdatedAt:serverTimestamp()},{merge:true});
       if(S.profile)S.profile.fcmToken=token;
@@ -2262,8 +2272,7 @@ const A={
     }catch(e){toast("فشل الحظر")}
   },
   openMe(){S.view="me";render(true)},
-  openAI(){S.view="ai";S.aiMsgs=S.aiMsgs||[{role:"bot",text:"你好！أنا 么 🤖
-مساعد التفوق: امتحانات، كتب، وشرح المنصة."}];render(true)},
+  openAI(){S.view="ai";S.aiMsgs=S.aiMsgs||[{role:"bot",text:"你好！أنا 么 🤖\nمساعد التفوق: امتحانات، كتب، وشرح المنصة."}];render(true)},
   async aiSend(){
     const inp=$("#aiIn");const q=(inp&&inp.value||"").trim();
     if(!q)return;
@@ -4674,6 +4683,19 @@ document.addEventListener("submit",e=>{e.preventDefault();const f=e.target.datas
 if(!configured)render(true);
 </script>
 <script>
+
+// إخفاء السبلاش إجباري لو الموديول اتأخر
+(function(){
+  function hideSplash(){
+    var el=document.getElementById("splash");
+    if(!el)return;
+    el.classList.add("hide");
+    setTimeout(function(){try{el.remove()}catch(e){}},700);
+  }
+  setTimeout(hideSplash, 4000);
+  window.addEventListener("load", function(){ setTimeout(hideSplash, 2500); });
+})();
+
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('./sw.js').then(reg=>{
