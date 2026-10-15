@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v13b">
+<meta name="sw-build" content="v14">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <meta name="mobile-web-app-capable" content="yes">
@@ -401,8 +401,9 @@ const S = {asms:[],asm:null,editingAsm:null,logins:{},sq:"",starts:[],examsLoade
   qb:null,qbSub:null,qbChatSub:null,qbChat:[],board:[],notifs:[],unreadNotif:0,activity:[],activityLoaded:false,
   fadaye7:[],adminRooms:[],adminConvs:[]};
 const __seenSplash=(()=>{try{return sessionStorage.getItem("splash_ok")==="1"}catch(_){return false}})();
-const splashUntil=__seenSplash?Date.now():Date.now()+400;
-try{if(!__seenSplash)sessionStorage.setItem("splash_ok","1")}catch(_){}
+// زيارة تانية: مفيش انتظار. أول زيارة: 200ms بس
+const splashUntil=__seenSplash?Date.now():Date.now()+200;
+try{sessionStorage.setItem("splash_ok","1")}catch(_){}
 const vis=e=>!e.publishAt||Date.now()>=e.publishAt;
 const todayKey=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
 const dkey=sec=>{const d=new Date(sec*1000);return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
@@ -922,16 +923,12 @@ if(configured){
       S.view="auth";
       render(true);
     }
-  },1200);
+  },500);
 }else{S.site={maintenance:true,message:"المنصة تحت التعديل."};S.view="auth"}
 
 /* ---------- العرض ---------- */
 const app=$("#app");
-try{
-  if(app&&!app.innerHTML){
-    app.innerHTML="<div class=\"wrap\" style=\"padding-top:40px\"><div class=\"card\" style=\"text-align:center\"><p class=\"mut\">جاري التحميل…</p></div></div>";
-  }
-}catch(_e){}
+try{/* لا نضع نص تحميل — الرندر الحقيقي بيجي من auth/home فوراً */}catch(_e){}
 
 let __renderT=0;
 function scheduleRender(force){
@@ -987,7 +984,7 @@ function render(force){
   if(S.view==="editExam")bindEditor();
   ensureSol();
 }
-const splash=()=>`<div class="splash"><div><div class="logo">التفوق</div><i class="uline"></i><div class="mut" style="margin-top:16px">جاري التحضير…</div></div></div>`;
+const splash=()=>``; // مفيش شاشة تحميل داخل #app — الـ HTML splash يكفي لجزء من الثانية
 const blockedView=()=>`<div class="wrap"><div class="center"><div class="logo" style="display:inline-block">التفوق</div><h1 style="margin-top:28px">حسابك موقوف</h1><p class="mut" style="max-width:360px;margin:8px auto 24px">تواصل مع المدرس لإعادة تفعيل الحساب.</p><button class="btn ghost" data-act="logout">تسجيل خروج</button></div></div>`;
 const logo=`<div class="logo">التفوق</div>`;
 const searchBtn=()=>S.user&&!S.isAdmin?`<button type="button" class="tg" data-act="openAI" aria-label="么" title="مساعد 么">🤖</button><button type="button" class="tg" data-act="openSearch" aria-label="بحث" title="بحث عن زميل">🔍</button>`:"";
@@ -4790,7 +4787,7 @@ document.addEventListener("submit",e=>{e.preventDefault();const f=e.target.datas
 
 /* ---------- شاشة الافتتاح ---------- */
 (function(){
-  const SPLASH_MS = 900;
+  const SPLASH_MS = 250;
   const el = document.getElementById("splash");
   if(!el) return;
   const start = performance.now();
@@ -4803,7 +4800,7 @@ document.addEventListener("submit",e=>{e.preventDefault();const f=e.target.datas
       setTimeout(()=>{ try{el.remove()}catch(_){} }, 600);
     }, left);
   }
-  setTimeout(finish, SPLASH_MS + 600);
+  setTimeout(finish, SPLASH_MS + 100);
   const appEl = document.getElementById("app");
   if(appEl){
     const mo = new MutationObserver(()=>{
@@ -4834,8 +4831,8 @@ if(!configured)render(true);
     el.classList.add("hide");
     setTimeout(function(){try{el.remove()}catch(e){}},600);
   }
-  setTimeout(hideSplash, 700);
-  window.addEventListener("load", function(){ setTimeout(hideSplash, 400); });
+  setTimeout(hideSplash, 180);
+  window.addEventListener("load", function(){ setTimeout(hideSplash, 50); });
 })();
 
 if('serviceWorker' in navigator){

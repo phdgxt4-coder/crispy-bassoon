@@ -1,6 +1,6 @@
 /* التفوق SW — v12 — إشعارات مكالمات أقوى + تحديث تلقائي */
-const CACHE = "eltafawoq-v13";
-const BUILD = "20261015-v13";
+const CACHE = "eltafawoq-v14";
+const BUILD = "20261015-v14";
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
