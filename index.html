@@ -737,7 +737,10 @@ async function startSession(u){
   stopSubs();
   S.user=u;
   pingClientPresence();
-S.isAdmin=u.email===ADMIN_EMAIL;S.adminLogin=false;S.error="";
+  try{touchStreak()}catch(_){}
+  try{listenIncomingCalls()}catch(_){}
+  try{registerFcmToken()}catch(_){}
+  S.isAdmin=u.email===ADMIN_EMAIL;S.adminLogin=false;S.error="";
   try{
     if(S.isAdmin){
       S.view="admin";S.tab="dash";
@@ -775,7 +778,7 @@ S.isAdmin=u.email===ADMIN_EMAIL;S.adminLogin=false;S.error="";
       const iv=setInterval(()=>{if(S.view==="admin"&&S.tab==="live")render()},15000);subs.push(()=>clearInterval(iv));
     }else{
       const p=await getDoc(doc(db,"students",u.uid));
-      S.profile=p.exists()?p.data():{name:"طالب",phone:""};
+      S.profile=p.exists()?{name:"طالب",phone:"",...p.data()}:{name:"طالب",phone:""};if(!S.profile.name)S.profile.name="طالب";
       S.view="home";S.examsLoaded=false;
       // رابط مباشر للغرفة: #room=CODE
       try{
@@ -852,7 +855,7 @@ S.isAdmin=u.email===ADMIN_EMAIL;S.adminLogin=false;S.error="";
         if(S.view==="progress"||S.view==="home")render();
       },err=>console.warn("notifs",err)));
     }
-  }catch(e){S.site={maintenance:true,message:"في مشكلة مؤقتة في التحميل. جرّب بعد شوية."}}
+  }catch(e){console.error("startSession",e);S.site={maintenance:true,message:"في مشكلة مؤقتة في التحميل. جرّب بعد شوية."};S.view=S.view==="loading"?"auth":S.view}
   render(true);
 }
 
@@ -882,6 +885,7 @@ function render(force){
   if(S.view!=="exam"){clearInterval(timer);clearInterval(hb)}
   try{saveNavState()}catch(_){}
   let h;
+  try{
   if(S.view==="loading")h=splash();
   else if(S.site.maintenance&&!S.isAdmin&&!S.adminLogin)h=maintenance();
   else if(!S.user)h=authView();
@@ -892,7 +896,14 @@ function render(force){
     const m={games:gamesView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View,groups:groupsView,groupThread:groupThreadView,ai:aiView,books:booksView};
     h=(m[S.view]||homeView)();
   }
-  app.innerHTML=h;
+  }catch(err){
+    console.error("render",err);
+    h=`<div class="wrap"><div class="card"><b>حصل خطأ في العرض</b><p class="mut" style="margin-top:8px">${esc(String(err&&err.message||err))}</p>
+    <button class="btn" data-act="home">إعادة المحاولة</button>
+    <button class="btn ghost" data-act="logout">تسجيل خروج</button></div></div>`;
+  }
+  if(!app)return;
+  app.innerHTML=h||`<div class="wrap"><div class="card mut">جاري التحميل…</div></div>`;
   if(S.view==="chatThread"||S.view==="groupThread"){
     bindChatScroll();
     if(S.chatStickBottom!==false)scrollChatBottom(false);
@@ -950,7 +961,7 @@ function homeView(){
   const sess=peekExamSession();
   const resume=sess?`<div class="card" style="border-color:var(--gold);background:var(--ybg)"><b>▶ عندك امتحان متوقف</b><div class="mut" style="margin:4px 0">تقدر تكمّل من حيث وقفت — الإجابات محفوظة</div><button class="btn sm gold" data-act="resumeExam">استئناف الامتحان</button></div>`:"";
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="logout">خروج</button>`)}
-<h2>أهلاً يا ${esc(S.profile.name.split(" ")[0])}</h2><p class="mut">اختار المادة اللي عايز تمتحن فيها.</p>${inst||""}${an}${resume}
+<h2>أهلاً يا ${esc(((S.profile&&S.profile.name)||"طالب").split(" ")[0])}</h2><p class="mut">اختار المادة اللي عايز تمتحن فيها.</p>${inst||""}${an}${resume}
 <div class="grid">${S.examsLoaded?SUBJECTS.map(s=>{const l=ex.filter(e=>e.subject===s.id),done=l.filter(e=>(S.attempts[e.id]||[]).length).length,p=l.length?Math.round(done/l.length*100):0;
   return `<button class="subj" style="background:linear-gradient(135deg,${s.c},${s.c2})" data-act="openSubject" data-id="${s.id}"><span class="g">${s.g}</span><b>${s.name}</b><small>${l.length?l.length+" امتحان · خلصت "+done:"مفيش امتحانات لسه"}</small><div class="sp"><i style="--w:${p}%"></i></div></button>`}).join("")+`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#0B5D57)" data-act="openAsms"><span class="g">A+</span><div><b>التقييمات</b><br><small>${S.asms.length?S.asms.length+" تقييم · حلول ونماذج":"مفيش تقييمات لسه"}</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#166534,#B45309)" data-act="openGames"><span class="g">🎮</span><div><b>الألعاب</b><br><small>العب ضد الروبوت أو ضد صاحبك</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#9D174D,#BE185D)" data-act="openFadaye7"><span class="g">😂</span><div><b>فضايح</b><br><small>${(S.fadaye7||[]).length?(S.fadaye7.length)+" لقطة":"صور وفيديوهات من الأدمن"}</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#1e3a5f,#0B5D57)" data-act="openBooks"><span class="g">📚</span><div><b>الكتب</b><br><small>PDF وملفات للتحميل</small></div></button>`:SUBJECTS.map(()=>`<div class="sk"></div>`).join("")}</div>
 </div>${studentNav()}`}
