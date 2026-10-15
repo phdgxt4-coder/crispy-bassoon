@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v22">
+<meta name="sw-build" content="v23">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1760,7 +1760,7 @@ function aiLocalReply(q){
   const hi=name?("يا "+name+"، "):"";
 
   if(/مين انت|انت مين|من انت|ايه اسمك|عرف نفسك|who are you|ما اسمك/.test(s)||s.trim()==="么")
-    return "أنا **么** 🤖\nمساعد ذكي جوّه منصة التفوق.\nبساعد الطلاب يفهموا الدروس، أراجع الامتحانات والإجابات والكتب المرفوعة، وأشرح أي حاجة في المنصة مش واضحة.\nاسأل بحرية.";
+    return "أنا **么** 🤖\nمساعد منصة التفوق.\nبشرح الدروس، أراجع أسئلة الامتحانات والكتب، وأوضّح المنصة.\nلو سؤالك ناقص هطلب توضيح — ولو مفيش معلومة كافية هقول كده بصراحة.";
 
   if(/سلام|اهلا|مرحبا|ازيك|صباح|مساء|你好/.test(s))
     return "وعليكم السلام "+hi+"🙂 أنا 么. تحب نوضح درس، نراجع سؤال امتحان، ولا شرح جزء من المنصة؟";
@@ -2615,7 +2615,7 @@ const A={
     }catch(e){toast("فشل الحظر")}
   },
   openMe(){S.view="me";render(true)},
-  openAI(){S.view="ai";S.aiMsgs=S.aiMsgs||[{role:"bot",text:"你好！أنا 么 🤖\nمساعد التفوق: امتحانات، كتب، وشرح المنصة."}];render(true)},
+  openAI(){S.view="ai";S.aiMsgs=S.aiMsgs||[{role:"bot",text:"أهلاً! أنا 么 🤖\nمساعد منصة التفوق.\nأقدر: أشرح دروس، أراجع أسئلة من الامتحانات/الكتب، وأوضّح استخدام المنصة.\nاسأل بأي صيغة — ولو السؤال ناقص هطلب توضيح."}];render(true)},
   async aiSend(){
     const inp=$("#aiIn");const q=(inp&&inp.value||"").trim();
     if(!q)return;
@@ -2632,6 +2632,21 @@ const A={
           }));
           return {title:e.title,subject:e.subject,questions:qs};
         });
+        const history=(S.aiMsgs||[]).filter(m=>m.role==="me"||m.role==="bot").slice(-12).map(m=>({
+          role:m.role==="me"?"user":"assistant",
+          content:String(m.text||"").slice(0,800)
+        }));
+        const sysPrompt=[
+          "اسمك 么 — مساعد منصة التفوق التعليمية.",
+          "تكلم بالعربية المصرية الواضحة والودودة.",
+          "افهم السؤال كامل قبل ما ترد. لو غامض اطلب توضيح بجملة قصيرة.",
+          "لا تخترع معلومات عن درجات أو امتحانات مش موجودة في البيانات المرفقة.",
+          "لو مش متأكد قل: لا أملك معلومات كافية.",
+          "عند الأسئلة التعليمية: اشرح خطوة بخطوة باختصار ثم مثال لو لزم.",
+          "عند أسئلة المنصة: استخدم دليل المنصة (امتحانات، تقييمات، ألعاب، شات، جروبات، كتب، حسابي).",
+          "الطالب الحالي: "+((S.profile&&S.profile.name)||"طالب")+" · الشاشة: "+(S.view||""),
+          "لو السؤال عن امتحان أو كتاب: اعتمد على exams/books المرفقة أولاً."
+        ].join("\n");
         const r=await fetch(S.site.aiUrl,{
           method:"POST",
           headers:{"Content-Type":"application/json"},
@@ -2639,10 +2654,12 @@ const A={
             message:q,
             uid:S.user&&S.user.uid,
             name:S.profile&&S.profile.name,
-            system:"اسمك 么. أنت مساعد منصة التفوق التعليمية. تكلم عربي ودود. عرّف بنفسك إن سُئلت. استخدم الامتحانات والإجابات والكتب المرفقة. اشرح أي جزء من المنصة. لو مش متأكد قل ذلك بوضوح.",
+            view:S.view,
+            system:sysPrompt,
+            history,
             books,
             exams:examsCtx,
-            platform:"امتحانات، تقييمات، ألعاب غرف، شات، جروبات، كتب، فضائح، XP، حسابي"
+            platform:"امتحانات، تقييمات، ألعاب غرف، شات، جروبات، كتب، فضائح، XP، حسابي، مكالمات"
           })
         });
         if(r.ok){const j=await r.json();reply=j.reply||j.text||j.message||null}
@@ -2677,6 +2694,8 @@ const A={
     },100);
   },
   openChats(){
+    try{if("Notification" in window&&Notification.permission==="default")Notification.requestPermission()}catch(_){}
+
     S.view="chatList";S.chatTab=S.chatTab||"dms";
     listenMyChats();loadMyGroups();
     render(true);
@@ -4095,9 +4114,16 @@ async function listenIncomingCalls(){
         startRingtone();
         try{
           if("Notification" in window&&Notification.permission==="granted"){
-            const n=new Notification("مكالمة من "+(d.fromName||"زميل"),{body:"دوس على المنصة للرد",tag:"call_"+ch.doc.id});
-            n.onclick=()=>window.focus();
+            const n=new Notification("📞 مكالمة من "+(d.fromName||"زميل"),{
+              body:"اضغط للرد — افتح التفوق",
+              tag:"call_"+ch.doc.id,
+              renotify:true,
+              requireInteraction:true,
+              silent:false
+            });
+            n.onclick=()=>{try{window.focus();n.close()}catch(_){}};
           }
+          try{if(navigator.vibrate)navigator.vibrate([300,120,300,120,300,120,500])}catch(_){}
         }catch(_){}
         showIncomingCallUI(d.fromName||"شخص",()=>{
           window.__incomingCallId=null;
