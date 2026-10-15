@@ -1,0 +1,207 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isAdmin() {
+      return signedIn() && request.auth.token.email == '01061572071@eltafawoq.app';
+    }
+    function notBlocked() {
+      let p = /databases/$(database)/documents/students/$(request.auth.uid);
+      return !exists(p) || get(p).data.get('blocked', false) == false;
+    }
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /exams/{examId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /students/{uid} {
+      allow read: if isAdmin() || isOwner(uid);
+      allow create: if isOwner(uid);
+      allow update: if isAdmin()
+                    || (isOwner(uid)
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['lastLogin', 'ip', 'device', 'chatName', 'note', 'avatar', 'xp', 'streak', 'lastStreak', 'fcmToken', 'clientType']));
+      allow delete: if isAdmin();
+    }
+
+    match /students/{uid}/logins/{loginId} {
+      allow create: if isOwner(uid);
+      allow read, delete: if isAdmin();
+    }
+
+    match /results/{resultId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow create: if signedIn() && notBlocked()
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.attempt in [1, 2]
+                    && resultId == request.auth.uid + '_' + request.resource.data.examId + '_' + string(request.resource.data.attempt)
+                    && (request.resource.data.attempt == 1
+                        || exists(/databases/$(database)/documents/results/$(request.auth.uid + '_' + request.resource.data.examId + '_1')));
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /starts/{startId} {
+      allow read: if isAdmin() || (signedIn() && startId.matches(request.auth.uid + '_.*'));
+      allow create: if signedIn() && notBlocked() && request.resource.data.uid == request.auth.uid;
+      allow update: if signedIn() && resource.data.uid == request.auth.uid
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['answered', 'away', 'awayAt', 'seen']);
+      allow delete: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+    }
+
+    match /alerts/{alertId} {
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow read, delete: if isAdmin();
+    }
+
+    match /messages/{msgId} {
+      allow read: if isAdmin()
+                  || (signedIn()
+                      && (resource.data.fromUid == request.auth.uid
+                          || resource.data.toUid == request.auth.uid
+                          || resource.data.toUid == 'admin'));
+      allow create: if signedIn() && notBlocked()
+                    && request.resource.data.fromUid == request.auth.uid
+                    && request.resource.data.keys().hasAll(['fromUid', 'fromName', 'realName', 'toUid', 'text', 'createdAt'])
+                    && request.resource.data.text is string
+                    && request.resource.data.text.size() <= 2000;
+      allow update: if isAdmin()
+                    || (signedIn()
+                        && resource.data.toUid == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']));
+      allow delete: if isAdmin();
+    }
+
+    match /conversations/{convId} {
+      allow read: if isAdmin()
+                  || (signedIn()
+                      && resource.data.participants.hasAny([request.auth.uid, 'admin']));
+      allow create: if signedIn() && notBlocked()
+                    && request.resource.data.participants is list;
+      allow update: if isAdmin()
+                    || (signedIn() && resource.data.participants.hasAny([request.auth.uid]));
+      allow delete: if isAdmin();
+
+      match /msgs/{msgId} {
+        allow read: if signedIn();
+        allow create: if signedIn() && notBlocked();
+        // التفاعلات (reacts) + قراءة
+        allow update: if signedIn()
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['reacts', 'read']);
+        allow delete: if isAdmin() || (signedIn() && resource.data.fromUid == request.auth.uid);
+      }
+    }
+
+    match /groups/{groupId} {
+      allow read: if signedIn()
+                  && (isAdmin() || resource.data.members.hasAny([request.auth.uid]));
+      allow create: if signedIn() && notBlocked();
+      allow update: if signedIn()
+                    && (isAdmin() || resource.data.members.hasAny([request.auth.uid]));
+      allow delete: if isAdmin()
+                    || (signedIn() && resource.data.owner == request.auth.uid);
+
+      match /msgs/{msgId} {
+        allow read: if signedIn();
+        allow create: if signedIn() && notBlocked();
+        allow update: if signedIn()
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['reacts']);
+        allow delete: if isAdmin() || (signedIn() && resource.data.fromUid == request.auth.uid);
+      }
+    }
+
+    match /assessments/{asmId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+      match /files/{fileId} {
+        allow read: if signedIn();
+        allow write: if isAdmin();
+      }
+      match /chunks/{chunkId} {
+        allow read: if signedIn();
+        allow write: if isAdmin();
+      }
+    }
+
+    match /qb_rooms/{code} {
+      allow read, write: if request.auth != null;
+      match /chat/{msgId} {
+        allow read, create: if request.auth != null;
+        // التفاعلات على رسائل الغرفة
+        allow update: if request.auth != null
+                      && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['reacts']);
+        allow delete: if request.auth != null;
+      }
+    }
+
+    match /qb_battles/{id} {
+      allow read, create: if request.auth != null;
+    }
+
+    match /leaderboard/{uid} {
+      allow read: if signedIn();
+      allow create, update: if signedIn()
+        && (request.auth.uid == uid || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /activity/{id} {
+      allow create: if signedIn();
+      allow read, delete: if isAdmin();
+    }
+
+    match /notifications/{id} {
+      allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow create: if isAdmin() || (signedIn() && request.resource.data.uid == request.auth.uid);
+      allow update: if signedIn() && resource.data.uid == request.auth.uid;
+      allow delete: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+    }
+
+    match /fadaye7/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /books/{id} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // مكالمات صوتية
+    match /calls/{callId} {
+      allow read: if signedIn()
+                  && (resource.data.from == request.auth.uid
+                      || resource.data.to == request.auth.uid
+                      || isAdmin());
+      allow create: if signedIn() && notBlocked()
+                    && request.resource.data.from == request.auth.uid;
+      allow update: if signedIn()
+                    && (resource.data.from == request.auth.uid
+                        || resource.data.to == request.auth.uid);
+      allow delete: if isAdmin()
+                    || (signedIn() && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid));
+    }
+
+    // طلبات إشعار (اختياري لـ Cloud Function)
+    match /pushRequests/{id} {
+      allow create: if signedIn();
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}
