@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.eltafawoq.app",
+        "sha256_cert_fingerprints": ["70:EC:83:EC:57:FB:A3:5F:93:0E:89:8E:30:7D:61:7C:C6:C5:5D:77:32:A9:3D:16:BF:17:28:A1:A0:62:B3:61"]
+      }
+    }]
