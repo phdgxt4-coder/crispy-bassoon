@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v13">
+<meta name="sw-build" content="v13b">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <meta name="mobile-web-app-capable" content="yes">
@@ -877,7 +877,11 @@ async function startSession(u){
         if(S.view==="progress"||S.view==="home")(typeof scheduleRender==="function"?scheduleRender():render());
       },err=>console.warn("notifs",err)));
     }
-  }catch(e){console.error("startSession",e);console.error("startSession partial",e);if(!S.profile)S.profile={name:"طالب",phone:""};if(!S.view||S.view==="loading")S.view=S.isAdmin?"admin":"home";
+  }catch(e){
+    console.error("startSession",e);
+    if(!S.profile)S.profile={name:"طالب",phone:""};
+    if(!S.view||S.view==="loading")S.view=S.isAdmin?"admin":"home";
+  }
   render(true);
 }
 
