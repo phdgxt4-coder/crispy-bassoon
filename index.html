@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v14">
+<meta name="sw-build" content="v15">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <meta name="mobile-web-app-capable" content="yes">
@@ -592,7 +592,7 @@ function buildOrder(e,seed){
 
 /* ---------- إحصائيات الأدمن ---------- */
 function stats(){
-  const R=S.results.filter(r=>r.total>0);
+  const R=(Array.isArray(S.results)?S.results:[]).filter(r=>r.total>0);
   const avg=a=>a.length?Math.round(a.reduce((s,r)=>s+pctOf(r),0)/a.length):0;
   const wp=R.filter(r=>r.passMark>0);
   const per=S.exams.map(e=>{const rs=R.filter(r=>r.examId===e.id),w=rs.filter(r=>r.passMark>0);
@@ -862,7 +862,7 @@ async function startSession(u){
         }
         __seenExams=new Set(list.map(e=>e.id));
         S.examsLoaded=true;S.exams=list;render();maybeResume();
-      }));
+      },err=>{console.warn("exams",err);S.exams=Array.isArray(S.exams)?S.exams:[];S.examsLoaded=true;render();}));
       subs.push(onSnapshot(query(collection(db,"results"),where("uid","==",u.uid)),s=>{
         S.myList=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(a)-tms(b));S.attempts=groupAttempts(S.myList);S._resultsReady=true;render();maybeResume();syncMyLeaderboard();
       }));
@@ -872,9 +872,9 @@ async function startSession(u){
       },err=>console.warn("leaderboard",err)));
       subs.push(onSnapshot(query(collection(db,"notifications"),where("uid","==",u.uid),orderBy("createdAt","desc"),limit(30)),s=>{
         S.notifs=s.docs.map(d=>({id:d.id,...d.data()}));
-        S.unreadNotif=S.notifs.filter(n=>!n.read).length+(S.unreadNotif>0&&!S.notifs.length?S.unreadNotif:0);
+        S.unreadNotif=(Array.isArray(S.notifs)?S.notifs:[]).filter(n=>!n.read).length+(S.unreadNotif>0&&!S.notifs.length?S.unreadNotif:0);
         // prefer count from docs when available
-        S.unreadNotif=S.notifs.filter(n=>!n.read).length;
+        S.unreadNotif=(Array.isArray(S.notifs)?S.notifs:[]).filter(n=>!n.read).length;
         if(S.view==="progress"||S.view==="home")(typeof scheduleRender==="function"?scheduleRender():render());
       },err=>console.warn("notifs",err)));
     }
@@ -1021,6 +1021,9 @@ ${S.adminLogin?"":`<p class="mut" style="text-align:center;margin:14px 0 0">${re
 
 /* ---------- الطالب ---------- */
 function homeView(){
+  if(!S.profile)S.profile={name:"طالب",phone:""};
+  if(!Array.isArray(S.exams))S.exams=[];
+
   const ex=(Array.isArray(S.exams)?S.exams:[]).filter(vis);
   const an=S.site.announceOn&&S.site.announce?`<div class="card ann"><b>📢 إعلان</b><div style="white-space:pre-wrap;margin-top:4px">${esc(S.site.announce)}</div></div>`:"";
   const inst=installBanner();
@@ -1029,7 +1032,7 @@ function homeView(){
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="logout">خروج</button>`)}
 <h2>أهلاً يا ${esc(((S.profile&&S.profile.name)||"طالب").split(" ")[0])}</h2><p class="mut">اختار المادة اللي عايز تمتحن فيها.</p>${inst||""}${an}${resume}
 <div class="grid">${S.examsLoaded?SUBJECTS.map(s=>{const l=ex.filter(e=>e.subject===s.id),done=l.filter(e=>(S.attempts[e.id]||[]).length).length,p=l.length?Math.round(done/l.length*100):0;
-  return `<button class="subj" style="background:linear-gradient(135deg,${s.c},${s.c2})" data-act="openSubject" data-id="${s.id}"><span class="g">${s.g}</span><b>${s.name}</b><small>${l.length?l.length+" امتحان · خلصت "+done:"مفيش امتحانات لسه"}</small><div class="sp"><i style="--w:${p}%"></i></div></button>`}).join("")+`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#0B5D57)" data-act="openAsms"><span class="g">A+</span><div><b>التقييمات</b><br><small>${S.asms.length?S.asms.length+" تقييم · حلول ونماذج":"مفيش تقييمات لسه"}</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#166534,#B45309)" data-act="openGames"><span class="g">🎮</span><div><b>الألعاب</b><br><small>العب ضد الروبوت أو ضد صاحبك</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#9D174D,#BE185D)" data-act="openFadaye7"><span class="g">😂</span><div><b>فضايح</b><br><small>${(S.fadaye7||[]).length?(S.fadaye7.length)+" لقطة":"صور وفيديوهات من الأدمن"}</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#1e3a5f,#0B5D57)" data-act="openBooks"><span class="g">📚</span><div><b>الكتب</b><br><small>PDF وملفات للتحميل</small></div></button>`:SUBJECTS.map(()=>`<div class="sk"></div>`).join("")}</div>
+  return `<button class="subj" style="background:linear-gradient(135deg,${s.c},${s.c2})" data-act="openSubject" data-id="${s.id}"><span class="g">${s.g}</span><b>${s.name}</b><small>${l.length?l.length+" امتحان · خلصت "+done:"مفيش امتحانات لسه"}</small><div class="sp"><i style="--w:${p}%"></i></div></button>`}).join("")+`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#0B5D57)" data-act="openAsms"><span class="g">A+</span><div><b>التقييمات</b><br><small>${S.asms.length?S.asms.length+" تقييم · حلول ونماذج":"مفيش تقييمات لسه"}</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#166534,#B45309)" data-act="openGames"><span class="g">🎮</span><div><b>الألعاب</b><br><small>العب ضد الروبوت أو ضد صاحبك</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#9D174D,#BE185D)" data-act="openFadaye7"><span class="g">😂</span><div><b>فضايح</b><br><small>${(S.fadaye7||[]).length?((Array.isArray(S.fadaye7)?S.fadaye7:[]).length)+" لقطة":"صور وفيديوهات من الأدمن"}</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#1e3a5f,#0B5D57)" data-act="openBooks"><span class="g">📚</span><div><b>الكتب</b><br><small>PDF وملفات للتحميل</small></div></button>`:SUBJECTS.map(()=>`<div class="sk"></div>`).join("")}</div>
 </div>${studentNav()}`}
 function subjectView(){
   const s=SUBJECTS.find(x=>x.id===S.subject),ex=(Array.isArray(S.exams)?S.exams:[]).filter(e=>e&&e.subject===s.id&&vis(e));
@@ -1335,6 +1338,8 @@ ${g.mode==="friends"&&g.roomCode?`<button class="btn block gold" data-act="qbRem
 
 
 function gamesView(){
+  if(!Array.isArray(S.exams))S.exams=[];
+
   const openRooms=(S.openRooms||[]).filter(r=>r.public&&r.status==="lobby");
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
 <h2>الألعاب</h2><p class="mut">اختار لعبة والعب ضد الروبوت، أو اعمل غرفة مع أصحابك من قسم الغرف.</p>
@@ -1526,6 +1531,8 @@ function chatThreadView(){
 
 
 function meView(){
+  if(!S.profile)S.profile={name:"طالب",phone:""};
+
   const p=S.profile||{};
   const av=p.avatar?`<img src="${p.avatar}" alt="" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--pri)">`:`<div class="av" style="width:72px;height:72px;font-size:28px">${esc((p.name||"؟")[0]||"?")}</div>`;
   const xp=p.xp||0;
@@ -1762,7 +1769,7 @@ ${list.length?list.map(f=>{
 function asmListView(){
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
 <h2 style="color:var(--ind)">التقييمات</h2>
-${S.asms.length?S.asms.map(a=>`<div class="card lift"><div class="row"><div><b>${esc(a.title)}</b><div>${pill(subName(a.subject))} ${a.showSolution?pill("محلول ✓","g"):pill("الحل لسه","y")}</div></div><button class="btn sm" data-act="openAsm" data-id="${a.id}">افتح</button></div></div>`).join(""):`<div class="card mut">مفيش تقييمات دلوقتي. ارجع تاني بعدين.</div>`}
+${S.asms.length?(Array.isArray(S.asms)?S.asms:[]).map(a=>`<div class="card lift"><div class="row"><div><b>${esc(a.title)}</b><div>${pill(subName(a.subject))} ${a.showSolution?pill("محلول ✓","g"):pill("الحل لسه","y")}</div></div><button class="btn sm" data-act="openAsm" data-id="${a.id}">افتح</button></div></div>`).join(""):`<div class="card mut">مفيش تقييمات دلوقتي. ارجع تاني بعدين.</div>`}
 </div>${studentNav()}`}
 function asmView(){
   const x=S.asm,a=S.asms.find(q=>q.id===x.id);
@@ -1897,17 +1904,17 @@ function adminPlatformStatus(){
 
 function adminDash(){
   const st=stats(),days=lastDays(14),tk=todayKey();
-  const regs=days.map(d=>S.students.filter(x=>x.createdAt&&x.createdAt.seconds&&dkey(x.createdAt.seconds)===d.k).length);
-  const atts=days.map(d=>S.results.filter(x=>x.createdAt&&x.createdAt.seconds&&dkey(x.createdAt.seconds)===d.k).length);
-  const today=S.results.filter(x=>x.createdAt&&x.createdAt.seconds&&dkey(x.createdAt.seconds)===tk);
+  const regs=days.map(d=>(Array.isArray(S.students)?S.students:[]).filter(x=>x.createdAt&&x.createdAt.seconds&&dkey(x.createdAt.seconds)===d.k).length);
+  const atts=days.map(d=>(Array.isArray(S.results)?S.results:[]).filter(x=>x.createdAt&&x.createdAt.seconds&&dkey(x.createdAt.seconds)===d.k).length);
+  const today=(Array.isArray(S.results)?S.results:[]).filter(x=>x.createdAt&&x.createdAt.seconds&&dkey(x.createdAt.seconds)===tk);
   const act=new Set(today.map(x=>x.uid));S.students.forEach(x=>{if(x.lastLogin&&x.lastLogin.seconds&&dkey(x.lastLogin.seconds)===tk)act.add(x.id)});
-  const ts=S.results.filter(r=>r.secs>0),avgT=ts.length?Math.round(ts.reduce((a,r)=>a+r.secs,0)/ts.length):null;
-  const blocked=S.students.filter(x=>x.blocked).length;
-  const sub=SUBJECTS.map(s=>{const rs=S.results.filter(r=>r.subject===s.id),w=rs.filter(r=>r.passMark>0);return {s,n:rs.length,pass:w.length?Math.round(w.filter(r=>r.passed).length/w.length*100):null}});
+  const ts=(Array.isArray(S.results)?S.results:[]).filter(r=>r.secs>0),avgT=ts.length?Math.round(ts.reduce((a,r)=>a+r.secs,0)/ts.length):null;
+  const blocked=(Array.isArray(S.students)?S.students:[]).filter(x=>x.blocked).length;
+  const sub=SUBJECTS.map(s=>{const rs=(Array.isArray(S.results)?S.results:[]).filter(r=>r.subject===s.id),w=rs.filter(r=>r.passMark>0);return {s,n:rs.length,pass:w.length?Math.round(w.filter(r=>r.passed).length/w.length*100):null}});
   const mxn=Math.max(1,...sub.map(x=>x.n));
   const bd=board();
   const wk=Date.now()/1000-7*86400;
-  const need=S.students.filter(x=>!x.blocked).map(x=>{const r=S.results.filter(q=>q.uid===x.id);return {x,last:r.length?Math.max(...r.map(tms)):0}}).filter(y=>y.last<wk).sort((a,b)=>a.last-b.last).slice(0,8);
+  const need=(Array.isArray(S.students)?S.students:[]).filter(x=>!x.blocked).map(x=>{const r=(Array.isArray(S.results)?S.results:[]).filter(q=>q.uid===x.id);return {x,last:r.length?Math.max(...r.map(tms)):0}}).filter(y=>y.last<wk).sort((a,b)=>a.last-b.last).slice(0,8);
   const rec=S.results.slice(0,5);
   const ql=(a,t)=>a.length?a.map(m=>`<div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><span dir="auto" style="white-space:normal;flex:1">${esc(m.q.slice(0,90))}<div class="mut">${esc(m.exam)}</div></span>${pill(m.p+"% صح ("+m.n+")",t)}</div>`).join(""):`<div class="mut">محتاج 3 محاولات على الأقل على السؤال الواحد.</div>`;
   const li=(a,f)=>a.length?a.map((x,i)=>`<div class="row" style="padding:5px 0;border-bottom:1px solid var(--line)"><span>${["🥇","🥈","🥉"][i]||(i+1)+"."} <a href="#" data-act="student" data-id="${x.uid}" style="color:var(--pri);font-weight:600">${esc(x.name)}</a></span><span>${f(x)}</span></div>`).join(""):`<div class="mut">لسه مفيش بيانات.</div>`;
@@ -1935,7 +1942,7 @@ ${st.per.map(p=>`<tr><td>${esc(p.e.title)}</td><td>${subName(p.e.subject)}</td><
 
 function adminAsm(){
   return `<div class="row" style="margin-bottom:12px"><div class="mut">${S.asms.length} تقييم</div><button class="btn" data-act="newAsm">تقييم جديد</button></div>
-${S.asms.length?S.asms.map(a=>`<div class="card"><div class="row"><div><b>${esc(a.title)}</b> ${pill(subName(a.subject))} ${pill(a.published?"ظاهر":"مخفي",a.published?"g":"y")} ${pill(a.showSolution?"الحل ظاهر":"الحل مقفول",a.showSolution?"g":"y")}
+${S.asms.length?(Array.isArray(S.asms)?S.asms:[]).map(a=>`<div class="card"><div class="row"><div><b>${esc(a.title)}</b> ${pill(subName(a.subject))} ${pill(a.published?"ظاهر":"مخفي",a.published?"g":"y")} ${pill(a.showSolution?"الحل ظاهر":"الحل مقفول",a.showSolution?"g":"y")}
 <div class="mut">${a.qn||0} ملف تقييم · ${a.sn||0} ملف حل${a.link?" · فيه رابط":""}</div></div>
 <div class="row"><button class="btn ghost sm" data-act="editAsm" data-id="${a.id}">تعديل</button><button class="btn ghost sm" data-act="toggleSol" data-id="${a.id}">${a.showSolution?"اقفل الحل":"نزّل الحل"}</button><button class="btn ghost sm" data-act="toggleAsm" data-id="${a.id}">${a.published?"إخفاء":"إظهار"}</button><button class="btn danger sm" data-act="delAsm" data-id="${a.id}">حذف</button></div></div></div>`).join(""):`<div class="card mut">لسه مفيش تقييمات. دوس "تقييم جديد" وارفع صور أو ملفات PDF، أو اكتب التقييم وحله.</div>`}`}
 
@@ -2023,7 +2030,7 @@ function asmEditor(){
 
 function adminLive(){
   const n=NOW();
-  const rows=S.starts.map(x=>{const e=S.exams.find(q=>q.id===x.examId);
+  const rows=(Array.isArray(S.starts)?S.starts:[]).map(x=>{const e=S.exams.find(q=>q.id===x.examId);
     return {...x,e,left:e&&e.minutes?Math.max(0,Math.round((x.t+e.minutes*60000-n)/1000)):null,active:n-(x.seen||x.t)<150000}}).sort((a,b)=>b.t-a.t);
   const act=rows.filter(r=>r.active),old=rows.filter(r=>!r.active&&n-(r.seen||r.t)<6*3600000);
   const row=r=>`<div class="card"><div class="row"><b><a href="#" data-act="student" data-id="${r.uid}" style="color:var(--pri)">${esc(r.name||"طالب")}</a></b><span>${r.active?(r.away?pill("🔴 خرج من الامتحان","r"):pill("🟢 بيحل","g")):pill("⚪ انقطع الاتصال","y")}</span></div>
@@ -2073,11 +2080,11 @@ ${chats.length?"":(recentAll.length?recentAll.map(c=>{
 ${old.length?`<h3 style="margin-top:18px">⚪ امتحان — انقطع الاتصال (${old.length})</h3>${old.map(row).join("")}`:""}`}
 function adminExams(){
   return `<div class="row" style="margin-bottom:12px"><div class="mut">${S.exams.length} امتحان</div><button class="btn" data-act="newExam">امتحان جديد</button></div>
-${S.exams.length?S.exams.map(e=>{const n=S.results.filter(r=>r.examId===e.id).length;return `<div class="card"><div class="row"><div><b>${esc(e.title)}</b> ${pill(subName(e.subject))} ${pill(e.published?(e.publishAt&&!vis(e)?"مجدول":"ظاهر للطلاب"):"مخفي",e.published?(e.publishAt&&!vis(e)?"i":"g"):"y")}
+${S.exams.length?S.exams.map(e=>{const n=(Array.isArray(S.results)?S.results:[]).filter(r=>r.examId===e.id).length;return `<div class="card"><div class="row"><div><b>${esc(e.title)}</b> ${pill(subName(e.subject))} ${pill(e.published?(e.publishAt&&!vis(e)?"مجدول":"ظاهر للطلاب"):"مخفي",e.published?(e.publishAt&&!vis(e)?"i":"g"):"y")}
 <div class="mut">${gcount(e)} سؤال${e.questions.length>gcount(e)?" + ألغاز":""} · ${e.minutes?e.minutes+" دقيقة":"بدون وقت"} · ${e.passMark>0?"النجاح من "+e.passMark:"بدون درجة نجاح"} · ${n} محاولة${e.publishAt?" · ينزل "+new Date(e.publishAt).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}):""}</div></div>
 <div class="row"><button class="btn ghost sm" data-act="editExam" data-id="${e.id}">تعديل</button><button class="btn ghost sm" data-act="dupExam" data-id="${e.id}">نسخ</button><button class="btn ghost sm" data-act="togglePub" data-id="${e.id}">${e.published?"إخفاء":"إظهار"}</button><button class="btn danger sm" data-act="delExam" data-id="${e.id}">حذف</button></div></div></div>`}).join(""):`<div class="card mut">لسه مفيش امتحانات. دوس "+" وابدأ.</div>`}`}
 function studentRows(){
-  return S.students.map(s=>{const rs=S.results.filter(r=>r.uid===s.id);
+  return (Array.isArray(S.students)?S.students:[]).map(s=>{const rs=(Array.isArray(S.results)?S.results:[]).filter(r=>r.uid===s.id);
     const avg=rs.length?Math.round(rs.reduce((a,r)=>a+pctOf(r),0)/rs.length):null;
     return {s,rs,avg,tabs:rs.reduce((a,r)=>a+(r.tabs||0),0),last:rs.length?rs[0]:null}});
 }
@@ -2095,10 +2102,10 @@ function adminStudents(){
 <p class="mut">علامة "مشترك" معناها إن نفس الـ IP استخدمه أكتر من حساب (ممكن أخوات في نفس البيت، أو حساب واحد بيتشارك). الـ IP ممكن يبقى فاضي أو غير دقيق مع VPN أو مانع إعلانات. لمسح حساب أو تغيير كلمة سر: Firebase Console ← Authentication.</p>`}
 function studentDetail(){
   const s=S.students.find(x=>x.id===S.studentId)||{id:"",name:"؟",phone:""};
-  const rs=S.results.filter(r=>r.uid===s.id),avg=rs.length?Math.round(rs.reduce((a,r)=>a+pctOf(r),0)/rs.length):null;
+  const rs=(Array.isArray(S.results)?S.results:[]).filter(r=>r.uid===s.id),avg=rs.length?Math.round(rs.reduce((a,r)=>a+pctOf(r),0)/rs.length):null;
   const w=rs.filter(r=>r.passMark>0),lg=S.logins[s.id],al=S.alerts.filter(a=>a.uid===s.id),lv=S.starts.filter(x=>x.uid===s.id);
   const ips=new Set([s.ip,...(lg||[]).map(x=>x.ip)].filter(Boolean));
-  const shared=S.students.filter(x=>x.id!==s.id&&((x.ip&&ips.has(x.ip))));
+  const shared=(Array.isArray(S.students)?S.students:[]).filter(x=>x.id!==s.id&&((x.ip&&ips.has(x.ip))));
   const ev=[];
   if(s.createdAt&&s.createdAt.seconds)ev.push({t:s.createdAt.seconds,i:"🆕",x:"سجّل الحساب"+(s.regIp?` · IP ${s.regIp}`:"")+(s.regDevice?` · ${s.regDevice}`:"")});
   (lg||[]).forEach(x=>{if(x.createdAt&&x.createdAt.seconds)ev.push({t:x.createdAt.seconds,i:"🔑",x:`دخل من ${x.device||"؟"} · IP ${x.ip||"؟"}`})});
@@ -2132,8 +2139,8 @@ ${s.pwResetCode?`<div class="err" style="background:var(--ybg);color:var(--yfg)"
 <div class="card"><h3>المحاولات</h3>${rs.length?`<div class="tw"><table><tr><th>الامتحان</th><th>المادة</th><th>م</th><th>الدرجة</th><th>%</th><th>النتيجة</th><th>الوقت</th><th>خروج</th><th>التاريخ</th><th></th></tr>
 ${rs.map(r=>`<tr><td>${esc(r.examTitle)}</td><td>${subName(r.subject)}</td><td>${r.attempt||1}</td><td><b>${r.score}/${r.total}</b></td><td>${pctOf(r)}%</td><td>${passPill(r)||"-"}</td><td>${dur(r.secs)}</td><td>${r.tabs?pill(r.tabs,"r"):0}</td><td>${fmt(r.createdAt)}</td><td><button class="btn ghost sm" data-act="reviewAdmin" data-id="${r.id}" data-back="studentDetail">شوف الحل</button> <button class="btn ghost sm" data-act="delResult" data-id="${r.id}">حذف</button></td></tr>`).join("")}</table></div>`:`<div class="mut">الطالب ده لسه ما امتحنش.</div>`}</div></div>`}
 function adminResults(){
-  const exs=[...new Map(S.results.map(r=>[r.examId,r.examTitle]))];
-  const rows=S.results.filter(r=>!S.filter||r.examId===S.filter);
+  const exs=[...new Map((Array.isArray(S.results)?S.results:[]).map(r=>[r.examId,r.examTitle]))];
+  const rows=(Array.isArray(S.results)?S.results:[]).filter(r=>!S.filter||r.examId===S.filter);
   return `<div class="row" style="margin-bottom:12px"><select data-change="filter" style="max-width:260px"><option value="">كل الامتحانات</option>${exs.map(([id,t])=>`<option value="${id}" ${S.filter===id?"selected":""}>${esc(t)}</option>`).join("")}</select>
 <button class="btn ghost sm" data-act="csv">تصدير Excel (CSV)</button></div>
 ${rows.length?`<div class="tw card" style="padding:0"><table><tr><th>الاسم</th><th>التليفون</th><th>الامتحان</th><th>م</th><th>الدرجة</th><th>%</th><th>النتيجة</th><th>الوقت</th><th>خروج</th><th>التاريخ</th><th></th></tr>
@@ -2145,7 +2152,7 @@ function adminAlerts(){
 
   return `<p class="mut">بتظهر هنا كل مرة طالب يخرج من صفحة الامتحان (يغيّر التبويب أو يفتح تطبيق تاني). ممكن تظهر تنبيه بالغلط لو نزّل شريط الإشعارات أو جاله اتصال.</p>
 ${S.alerts.length?`<div class="tw card" style="padding:0"><table><tr><th>الطالب</th><th>التليفون</th><th>الامتحان</th><th>م</th><th>المرة</th><th>الوقت</th></tr>
-${S.alerts.map(a=>`<tr><td><a href="#" data-act="student" data-id="${a.uid}" style="color:var(--pri);font-weight:600">${esc(a.name)}</a></td><td dir="ltr">${esc(a.phone)}</td><td>${esc(a.examTitle)}</td><td>${a.attempt||1}</td><td>${pill(a.count,"r")}</td><td>${fmt(a.createdAt)}</td></tr>`).join("")}</table></div>`:`<div class="card mut">مفيش تنبيهات.</div>`}`}
+${(Array.isArray(S.alerts)?S.alerts:[]).map(a=>`<tr><td><a href="#" data-act="student" data-id="${a.uid}" style="color:var(--pri);font-weight:600">${esc(a.name)}</a></td><td dir="ltr">${esc(a.phone)}</td><td>${esc(a.examTitle)}</td><td>${a.attempt||1}</td><td>${pill(a.count,"r")}</td><td>${fmt(a.createdAt)}</td></tr>`).join("")}</table></div>`:`<div class="card mut">مفيش تنبيهات.</div>`}`}
 
 function adminSettings(){
   const extra=`<div class="card"><h3 style="margin-top:0">إشعار لكل الطلاب</h3>
@@ -2231,7 +2238,7 @@ async function wipeFiles(id,part,gid){
   for(const d of sn.docs)await deleteDoc(d.ref);
 }
 const A={
-  async markNotifsRead(){for(const n of S.notifs.filter(x=>!x.read)){try{await updateDoc(doc(db,"notifications",n.id),{read:true})}catch(e){}}},
+  async markNotifsRead(){for(const n of (Array.isArray(S.notifs)?S.notifs:[]).filter(x=>!x.read)){try{await updateDoc(doc(db,"notifications",n.id),{read:true})}catch(e){}}},
   theme(d,el){const t=isDark()?"light":"dark";document.querySelectorAll(".tg").forEach(b=>{b.classList.add("spin");setTimeout(()=>b.classList.remove("spin"),500)});setTheme(t)},
   mode(){S.mode=S.mode==="login"?"register":"login";S.error="";render(true)},
   logoTap(){const n=Date.now();S.taps=S.taps.filter(t=>n-t<2500);S.taps.push(n);if(S.taps.length>=3){S.taps=[];S.adminLogin=true;S.error="";render(true)}},
@@ -3376,7 +3383,7 @@ const A={
   async delExam(d){if(confirm("تمسح الامتحان ده؟ مش هتقدر ترجعه."))await deleteDoc(doc(db,"exams",d.id))},
   async delResult(d){if(confirm("تمسح المحاولة دي؟ الطالب هيرجعله محاولة."))await deleteDoc(doc(db,"results",d.id))},
   csv(){
-    const rows=S.results.filter(r=>!S.filter||r.examId===S.filter);
+    const rows=(Array.isArray(S.results)?S.results:[]).filter(r=>!S.filter||r.examId===S.filter);
     const q=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
     const csv="\ufeff"+["الاسم,التليفون,المادة,الامتحان,المحاولة,الدرجة,من,النتيجة,الوقت بالثواني,مرات الخروج,التاريخ",
       ...rows.map(r=>[r.name,r.phone,subName(r.subject),r.examTitle,r.attempt||1,r.score,r.total,r.passMark>0?(r.passed?"ناجح":"راسب"):"",r.secs??"",r.tabs||0,fmt(r.createdAt)].map(q).join(","))].join("\n");
