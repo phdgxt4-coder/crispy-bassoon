@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v17">
+<meta name="sw-build" content="v18">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <meta name="mobile-web-app-capable" content="yes">
@@ -316,9 +316,26 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 .audio-speed button{font-size:11px;padding:2px 8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:inherit;cursor:pointer}
 
 
-.msg-reacts{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
-.msg-reacts button,.react-add{border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:2px 8px;font-size:13px;cursor:pointer}
-.msg-reacts button.on{background:var(--sel);border-color:var(--pri)}
+.msg-reacts{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;align-items:center}
+.msg-reacts button,.react-add{
+  border:1px solid color-mix(in srgb,var(--ink) 18%,transparent);
+  background:color-mix(in srgb,var(--card) 92%,var(--ink));
+  color:var(--ink);
+  border-radius:99px;padding:3px 9px;font-size:14px;cursor:pointer;
+  line-height:1.2;min-height:28px
+}
+.msg-reacts button.on{background:color-mix(in srgb,var(--pri) 22%,var(--card));border-color:var(--pri);font-weight:700}
+.tk-bubble.me .msg-reacts button,.tk-bubble.me .react-add{
+  background:rgba(255,255,255,.18);
+  border-color:rgba(255,255,255,.35);
+  color:#fff
+}
+.tk-bubble.me .msg-reacts button.on{background:rgba(255,255,255,.32);border-color:#fff}
+.tk-bubble.them .msg-reacts button,.tk-bubble.them .react-add{
+  background:var(--card);border-color:var(--line);color:var(--ink)
+}
+.online-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-inline-start:6px;box-shadow:0 0 0 2px color-mix(in srgb,var(--ok) 30%,transparent)}
+.online-dot.off{background:var(--mut);box-shadow:none}
 .confetti-layer{position:fixed;inset:0;pointer-events:none;z-index:200;overflow:hidden}
 .confetti-piece{position:absolute;width:8px;height:14px;top:-20px;animation:fall 2.8s linear forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
@@ -653,9 +670,17 @@ async function pingClientPresence(){
     await setDoc(doc(db,"students",S.user.uid),{
       clientType:t,
       lastSeenAt:serverTimestamp(),
-      lastClientAt:serverTimestamp()
+      lastClientAt:serverTimestamp(),
+      online:true
     },{merge:true});
   }catch(e){console.warn("presence",e)}
+}
+// نبض تواجد كل 40 ثانية
+if(!window.__presenceIv){
+  window.__presenceIv=setInterval(()=>{try{pingClientPresence()}catch(_){}},40000);
+  document.addEventListener("visibilitychange",()=>{
+    if(!document.hidden)pingClientPresence();
+  });
 }
 
 
@@ -734,24 +759,23 @@ async function touchStreak(){
 async function registerFcmToken(){
   if(!S.user)return;
   try{
+    if(!__msgMod){
+      try{__msgMod=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js")}catch(_){return}
+    }
+    if(!(await __msgMod.isSupported()))return;
     if(!messaging){
-      if(!__msgMod){
-        try{__msgMod=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js")}catch(_){return}
-      }
-      if(!(await __msgMod.isSupported()))return;
-      const apps=(await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"));
-      // messaging already inited in boot if possible
-      return;
+      try{messaging=__msgMod.getMessaging()}catch(_){return}
     }
     const perm=await Notification.requestPermission();
-    if(perm!=="granted")return;
+    if(perm!=="granted"){console.info("FCM: الإذن مرفوض");return}
     const vapid=(S.site&&S.site.vapidKey)||window.__VAPID_KEY||"";
-    if(!vapid){console.info("FCM: أضف vapidKey في إعدادات الأدمن");return}
+    if(!vapid){console.info("FCM: أضف vapidKey في إعدادات الأدمن (config/site)");return}
     const reg=await navigator.serviceWorker.ready;
     const token=await __msgMod.getToken(messaging,{vapidKey:vapid,serviceWorkerRegistration:reg});
     if(token){
       await setDoc(doc(db,"students",S.user.uid),{fcmToken:token,fcmUpdatedAt:serverTimestamp()},{merge:true});
       if(S.profile)S.profile.fcmToken=token;
+      console.info("FCM token OK");
     }
   }catch(e){console.warn("fcm token",e)}
 }
@@ -1574,7 +1598,7 @@ function dmBubbleHtml(m){
 function chatThreadView(){
   const t=S.chatThread;if(!t)return chatListView();
   const msgs=S.chatMsgs||[];
-  const typing=S.chatTyping?`<div class="mut" style="font-size:12px;margin-top:2px">يكتب الآن…</div>`:"";
+  const typing=`<div id="dmTypingLine" class="mut" style="font-size:12px;margin-top:2px">${S.chatTyping?"يكتب الآن…":""}</div>`;
   const replyBar=S.replyTo?`<div class="tk-reply-bar"><div style="flex:1;min-width:0" dir="auto"><b>رد على ${esc(S.replyTo.name||"")}</b><div class="mut" style="font-size:12px">${esc((S.replyTo.text||"").slice(0,100))}</div></div><button type="button" class="btn ghost sm" data-act="dmCancelReply">✕</button></div>`:"";
   return `<div class="wrap chat-wrap">${header(`<button class="btn ghost sm" data-act="openChats">رجوع</button>`)}
 <div class="row" style="margin-bottom:8px;gap:10px;align-items:center">
@@ -1582,7 +1606,8 @@ function chatThreadView(){
     ${t.avatar?`<img class="tk-av" src="${t.avatar}" alt="" style="width:44px;height:44px">`:`<div class="tk-av letter" style="width:44px;height:44px;font-size:16px">${esc((t.name||"?")[0])}</div>`}
   </button>
   <div style="flex:1;min-width:0">
-    <b data-act="openProfile" data-uid="${t.uid}" style="cursor:pointer">${esc(t.name||"زميل")}</b>
+    <b data-act="openProfile" data-uid="${t.uid}" style="cursor:pointer">${esc(t.name||"زميل")}<i id="dmOnlineDot" class="online-dot${S.chatPeerOnline?"":" off"}"></i></b>
+    <div id="dmOnlineTxt" class="mut" style="font-size:12px">${S.chatPeerOnline?"متصل":"غير متصل"}</div>
     ${typing}
   </div>
   <button class="btn ghost sm" data-act="startCall" data-uid="${t.uid}" data-name="${esc(t.name||"")}">📞</button>
@@ -3549,6 +3574,40 @@ async function openDmThread(uid,name){
   S.chatMsgs=S.chatMsgs||[];
   S.chatStickBottom=true;S.chatNewBelow=0;
   S.view="chatThread";
+  S.chatPeerOnline=false;
+  (async()=>{
+    try{
+      const ps=await getDoc(doc(db,"students",uid));
+      if(ps.exists()){
+        const ls=ps.data().lastSeenAt||ps.data().lastClientAt;
+        const ms=tsMs(ls);
+        S.chatPeerOnline=ms&&(Date.now()-ms<90000);
+      }
+    }catch(_){}
+    if(S.view==="chatThread"){
+      const d=document.getElementById("dmOnlineDot");
+      if(d){d.className="online-dot"+(S.chatPeerOnline?"":" off")}
+      const st=document.getElementById("dmOnlineTxt");
+      if(st)st.textContent=S.chatPeerOnline?"متصل":"غير متصل";
+    }
+  })();
+  clearInterval(window.__peerPres);
+  window.__peerPres=setInterval(async()=>{
+    if(S.view!=="chatThread"||!S.chatThread){clearInterval(window.__peerPres);return}
+    try{
+      const ps=await getDoc(doc(db,"students",S.chatThread.uid));
+      if(!ps.exists())return;
+      const ls=ps.data().lastSeenAt||ps.data().lastClientAt;
+      const on=tsMs(ls)&&(Date.now()-tsMs(ls)<90000);
+      if(on!==S.chatPeerOnline){
+        S.chatPeerOnline=on;
+        const d=document.getElementById("dmOnlineDot");
+        if(d)d.className="online-dot"+(on?"":" off");
+        const st=document.getElementById("dmOnlineTxt");
+        if(st)st.textContent=on?"متصل":"غير متصل";
+      }
+    }catch(_){}
+  },20000);
   try{await updateDoc(doc(db,"conversations",cid),{[`readBy.${S.user.uid}`]:serverTimestamp()})}catch(_){}
   listenDmThread(cid,uid);
   render(true);
@@ -3613,6 +3672,22 @@ async function sendDm(toUid,text,img,extra){
       },{merge:true})
     ]);
     S.replyTo=null;
+    // إشعار داخل المنصة + طلب Push
+    try{
+      const preview=img?(extra&&extra.kind==="audio"?"🎙 رسالة صوتية":"🖼 صورة"):(text||"").slice(0,80);
+      const fromN=(S.profile.name||"طالب").split(" ")[0];
+      addDoc(collection(db,"notifications"),{
+        uid:toUid, text:fromN+": "+preview, kind:"dm", fromUid:S.user.uid,
+        createdAt:serverTimestamp(), read:false
+      }).catch(()=>{});
+      getDoc(doc(db,"students",toUid)).then(peer=>{
+        const token=peer.exists()?(peer.data().fcmToken||null):null;
+        addDoc(collection(db,"pushRequests"),{
+          toUid, token, type:"dm", status:"pending",
+          title:fromN, body:preview, createdAt:serverTimestamp()
+        }).catch(()=>{});
+      }).catch(()=>{});
+    }catch(_){}
   }catch(err){
     console.error("sendDm",err);
     const code=(err&&err.code)||"";
@@ -4137,23 +4212,52 @@ function listenDmThread(cid,otherUid){
     if(!!typing!==!!S.chatTyping){
       S.chatTyping=!!typing;
       if(S.view==="chatThread"){
-        // تحديث خفيف لمؤشر الكتابة فقط
-        const head=document.querySelector(".chat-wrap .row .mut");
-        // full soft render for typing line
-        (typeof scheduleRender==="function"?scheduleRender():render());
+        let el=document.getElementById("dmTypingLine");
+        if(!el){
+          const box=document.querySelector(".chat-wrap .row div[style*=\"flex:1\"]");
+          if(box){el=document.createElement("div");el.id="dmTypingLine";el.className="mut";el.style.cssText="font-size:12px;margin-top:2px";box.appendChild(el)}
+        }
+        if(el)el.textContent=typing?"يكتب الآن…":"";
       }
     }
   },()=>{});
   window.__dmUnsub=onSnapshot(query(collection(db,"conversations",cid,"msgs"),orderBy("createdAt","asc"),limit(100)),snap=>{
     const prev=(S.chatMsgs||[]).length;
-    const msgs=snap.docs.map(d=>({id:d.id,...d.data()}));
+    let msgs=snap.docs.map(d=>({id:d.id,...d.data()}));
+    // احتفظ بالرسائل المحلية لحد ما توصل من السيرفر (صور فورية)
+    const locals=(S.chatMsgs||[]).filter(m=>m._local);
+    if(locals.length){
+      const ids=new Set(msgs.map(m=>m.id));
+      const texts=new Set(msgs.map(m=>(m.text||"")+"|"+(m.img?1:0)));
+      locals.forEach(l=>{
+        const key=(l.text||"")+"|"+(l.img?1:0);
+        if(!texts.has(key))msgs=msgs.concat([l]);
+      });
+      msgs.sort((a,b)=>tsMs(a.createdAt)-tsMs(b.createdAt));
+    }
+    const sig=msgs.map(m=>m.id+":"+(m.read?1:0)+":"+(m.deleted?1:0)+":"+Object.keys(m.reacts||{}).join("")).join("|");
+    if(sig===window.__dmSig&&S.view==="chatThread"){
+      // مفيش تغيير حقيقي
+      return;
+    }
+    window.__dmSig=sig;
     S.chatMsgs=msgs;
     if(S.view==="chatThread"){
-      render();
-      bindChatScroll();
-      onChatMsgsUpdate(prev,msgs.length);
+      const log=$("#dmChatLog");
+      if(log&&prev>0&&msgs.length>=prev){
+        // تحديث اللوج فقط بدون إعادة رسم الصفحة كلها
+        try{
+          log.innerHTML=msgs.length?msgs.map(dmBubbleHtml).join(""):`<div class="mut" style="text-align:center;margin:auto">قول سلام 👋</div>`;
+          bindChatScroll();
+          onChatMsgsUpdate(prev,msgs.length);
+        }catch(e){render();bindChatScroll();onChatMsgsUpdate(prev,msgs.length)}
+      }else{
+        render();
+        bindChatScroll();
+        onChatMsgsUpdate(prev,msgs.length);
+      }
     }
-    msgs.filter(m=>m.toUid===S.user.uid&&!m.read).forEach(m=>{
+    msgs.filter(m=>m.toUid===S.user.uid&&!m.read&&!m._local).forEach(m=>{
       updateDoc(doc(db,"conversations",cid,"msgs",m.id),{read:true}).catch(()=>{});
     });
   },err=>{
