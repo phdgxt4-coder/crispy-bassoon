@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v15">
+<meta name="sw-build" content="v16">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <meta name="mobile-web-app-capable" content="yes">
@@ -446,7 +446,21 @@ function authErr(e){
   if(c.includes("too-many")) return "محاولات كتير. استنى شوية وجرّب تاني.";
   return "حصلت مشكلة. جرّب تاني.";
 }
-function stopSubs(){subs.forEach(u=>u());subs=[]}
+function stopSubs(){
+  subs.forEach(u=>{try{u()}catch(_){}});
+  subs=[];
+  // قفل أي listener خاص بشاشة
+  ["__dmUnsub","__grpUnsub","__grpListUnsub","__chatsUnsub","__openRoomsUnsub","__callListen"].forEach(k=>{
+    try{if(window[k]){window[k]();window[k]=null}}catch(_){}
+  });
+  try{if(S.qbSub){S.qbSub();S.qbSub=null}}catch(_){}
+  try{if(S.qbChatSub){S.qbChatSub();S.qbChatSub=null}}catch(_){}
+}
+function stopViewSubs(){
+  // لما تخرج من شات/جروب/غرف — قفل اللي مش محتاجينه (من غير ما تقفل exams/profile)
+  try{if(window.__dmUnsub&&S.view!=="chatThread"){window.__dmUnsub();window.__dmUnsub=null}}catch(_){}
+  try{if(window.__grpUnsub&&S.view!=="groupThread"){window.__grpUnsub();window.__grpUnsub=null}}catch(_){}
+}
 
 /* ---------- الوضع الليلي ---------- */
 const isDark = () => document.documentElement.dataset.theme==="dark";
@@ -757,6 +771,13 @@ async function startSession(u){
       }
     }
   }catch(_){}
+  try{
+    const rawB=localStorage.getItem("books_cache_v1");
+    if(rawB&&(!S.books||!S.books.length)){
+      const cached=JSON.parse(rawB);
+      if(Array.isArray(cached)&&cached.length)S.books=cached;
+    }
+  }catch(_){}
 
 
   pingClientPresence();
@@ -776,8 +797,16 @@ async function startSession(u){
       }));
       subs.push(onSnapshot(collection(db,"assessments"),s=>{S.asms=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));render()}));
       subs.push(onSnapshot(query(collection(db,"fadaye7"),limit(40)),s=>{S.fadaye7=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt));if(S.view==="admin"&&S.tab==="fadaye7")render();}));
-      subs.push(onSnapshot(query(collection(db,"books"),limit(50)),s=>{S.books=s.docs.map(d=>({id:d.id,...d.data()}));if((S.view==="admin"&&S.tab==="books")||S.view==="books"||S.view==="home")render();}));
-      subs.push(onSnapshot(collection(db,"students"),s=>{S.students=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));render()}));
+      subs.push(onSnapshot(query(collection(db,"books"),limit(50)),s=>{
+        S.books=s.docs.map(d=>({id:d.id,...d.data()}));
+        try{localStorage.setItem("books_cache_v1",JSON.stringify(S.books.slice(0,40).map(b=>({id:b.id,title:b.title,url:b.url,subject:b.subject}))))}catch(_){}
+        if((S.view==="admin"&&S.tab==="books")||S.view==="books"||S.view==="home")(typeof scheduleRender==="function"?scheduleRender():render());
+      }));
+      subs.push(onSnapshot(collection(db,"students"),s=>{
+        S.students=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));
+        if(S.view==="admin"&&(S.tab==="students"||S.tab==="dash"||S.tab==="live"))
+          (typeof scheduleRender==="function"?scheduleRender():render());
+      }));
       subs.push(onSnapshot(query(collection(db,"alerts"),orderBy("createdAt","desc"),limit(200)),s=>{
         if(!f2)s.docChanges().forEach(c=>{if(c.type==="added"&&c.doc.data().createdAt){const a=c.doc.data();toast(`⚠ ${a.name} (${a.phone}) خرج من الامتحان: ${a.examTitle}`,true);if(S.tab!=="alerts"){S.unreadAlerts++;updTitle()}}});
         f2=false;S.alerts=s.docs.map(d=>({id:d.id,...d.data()}));render();
@@ -809,8 +838,17 @@ async function startSession(u){
         const m=h.match(/^room=([A-Za-z0-9]+)/i);
         if(m){S._pendingRoom=m[1].toUpperCase();history.replaceState(null,"",location.pathname+location.search)}
       }catch(_){}
-      subs.push(onSnapshot(doc(db,"students",u.uid),s=>{if(s.exists()){S.profile=s.data();render()}}));
-      subs.push(onSnapshot(collection(db,"assessments"),s=>{S.asms=s.docs.map(d=>({id:d.id,...d.data()})).filter(a=>a.published).sort((a,b)=>tms(b)-tms(a));render()}));
+      subs.push(onSnapshot(doc(db,"students",u.uid),s=>{
+        if(s.exists()){
+          S.profile=s.data();
+          if(["home","me","profile","progress","chatList","chatThread"].includes(S.view))
+            (typeof scheduleRender==="function"?scheduleRender():render());
+        }
+      }));
+      subs.push(onSnapshot(collection(db,"assessments"),s=>{
+        S.asms=s.docs.map(d=>({id:d.id,...d.data()})).filter(a=>a.published).sort((a,b)=>tms(b)-tms(a));
+        if(S.view==="asmList"||S.view==="asm"||S.view==="home")(typeof scheduleRender==="function"?scheduleRender():render());
+      }));
       listenMyChats();
       subs.push(onSnapshot(query(collection(db,"fadaye7"),limit(40)),s=>{S.fadaye7=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt));if(S.view==="fadaye7"||S.view==="home")render();}));
       getIp().then(ip=>{
@@ -933,12 +971,16 @@ try{/* لا نضع نص تحميل — الرندر الحقيقي بيجي من
 let __renderT=0;
 function scheduleRender(force){
   clearTimeout(__renderT);
-  __renderT=setTimeout(()=>render(!!force), force?0:80);
+  __renderT=setTimeout(()=>render(!!force), force?0:120);
 }
 
 function render(force){
   if(!force&&(S.view==="exam"||S.view==="editExam"||S.view==="editAsm"))return;
   if(S.view!=="exam"){clearInterval(timer);clearInterval(hb)}
+  try{
+    if(window.__lastView&&window.__lastView!==S.view&&typeof stopViewSubs==="function")stopViewSubs();
+    window.__lastView=S.view;
+  }catch(_){}
   try{saveNavState()}catch(_){}
   let h;
   try{
