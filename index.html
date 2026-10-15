@@ -1285,7 +1285,12 @@ ${installBanner()}
 </div>${studentNav()}`}
 
 function fadaye7View(){
-  const list=(S.fadaye7||[]).filter(f=>f.published!==false && f.status!=="pending" && f.status!=="rejected");
+  const uid=S.user&&S.user.uid;
+  const list=(S.fadaye7||[]).filter(f=>{
+    if(f.published===false||f.status==="pending"||f.status==="rejected")return false;
+    if(uid&&Array.isArray(f.hideFrom)&&f.hideFrom.includes(uid))return false;
+    return true;
+  });
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
 <h2>فضايح 😂</h2>
 <p class="mut">لقطات من الأدمن والطلاب (بعد الموافقة)</p>
@@ -1508,11 +1513,21 @@ function adminFadaye7(){
   <input id="fadLink" class="ltr" type="url" placeholder="https://youtube.com/… أو https://…">
   <button class="btn" style="margin-top:12px" data-act="addFadaye7">نشر</button>
 </div>
-${list.length?list.map(f=>`<div class="card"><div class="row" style="align-items:flex-start"><div style="flex:1"><b>${esc(f.title||"فضيحة")}</b>
-<div class="mut">${fmt(f.createdAt)} · ${f.kind==="video"?"🎬 فيديو":"🖼 صورة"}</div>
+${list.length?list.map(f=>{
+  const hid=f.hideFrom||[];
+  const hideNames=(f.hideNames||{});
+  const hideLine=hid.length?`<div class="mut" style="margin-top:6px">مخفية عن: ${hid.map(u=>esc(hideNames[u]||u.slice(0,6))).join(" · ")}</div>`:"";
+  return `<div class="card"><div class="row" style="align-items:flex-start"><div style="flex:1"><b>${esc(f.title||"فضيحة")}</b>
+<div class="mut">${fmt(f.createdAt)} · ${f.kind==="video"?"🎬 فيديو":"🖼 صورة"} · ${f.status||"approved"}</div>
 ${mediaEmbed(f.url,f.kind)}
+${hideLine}
 </div>
-<button class="btn danger sm" data-act="delFadaye7" data-id="${f.id}">حذف</button></div></div>`).join(""):`<div class="card mut">لسه مفيش فضايح — انشر أول واحدة 😂</div>`}
+<div style="display:flex;flex-direction:column;gap:6px">
+<button class="btn ghost sm" data-act="hideFadFrom" data-id="${f.id}">إخفاء عن شخص</button>
+${hid.length?`<button class="btn ghost sm" data-act="clearFadHide" data-id="${f.id}">إظهار للجميع</button>`:""}
+<button class="btn danger sm" data-act="delFadaye7" data-id="${f.id}">حذف</button>
+</div></div></div>`;
+}).join(""):`<div class="card mut">لسه مفيش فضايح — انشر أول واحدة 😂</div>`}
 ${(()=>{const pend=(S.fadaye7||[]).filter(f=>f.status==="pending");
   if(!pend.length)return "";
   return `<h3 style="margin-top:18px">طلبات طلاب معلّقة (${pend.length})</h3>`+pend.map(f=>`<div class="card" style="border-color:var(--gold)"><b>${esc(f.title||"")}</b>
@@ -2273,7 +2288,7 @@ const A={
       }else if(file){
         if(!/^image\//.test(file.type)){toast("من الجهاز: صور فقط — الفيديو بالرابط");return}
         toast("جاري تجهيز الصورة…");
-        url=await packImage(file,1600,0.9,900000);
+        url=await packImage(file,1200,0.82,700000);
         kind="image";
       }
       await addDoc(collection(db,"fadaye7"),{
@@ -2285,7 +2300,7 @@ const A={
       if($("#fadFile"))$("#fadFile").value="";
       if($("#fadLink"))$("#fadLink").value="";
       toast("اتنشرت الفضيحة 😂",true);
-    }catch(e){console.error(e);toast("فشل النشر: "+(e.code||e.message||""))}
+    }catch(e){console.error(e);const c=e.code||"";toast(c.includes("permission")?"صلاحيات الفضائح — انشر firestore.rules من Firebase":c.includes("size")||String(e.message||"").includes("longer")?"الصورة كبيرة أوي — صغّرها":("فشل النشر: "+(c||e.message||"")))}
   },
   async dmSendLink(){
     const t=S.chatThread;if(!t)return;
@@ -2356,6 +2371,37 @@ const A={
   async rejectFadaye7(d){
     if(!S.isAdmin||!d.id)return;
     try{await updateDoc(doc(db,"fadaye7",d.id),{status:"rejected",published:false});toast("اترفضت")}catch(e){toast("فشل")}
+  },
+  async hideFadFrom(d){
+    if(!S.isAdmin||!d.id)return;
+    const q=prompt("اكتب اسم أو رقم الطالب اللي مش هيشوف الفضيحة:");
+    if(!q||q.trim().length<2)return;
+    try{
+      const sn=await getDocs(query(collection(db,"students"),limit(150)));
+      const ql=q.trim().toLowerCase();
+      const hit=sn.docs.map(x=>({id:x.id,...x.data()})).find(s=>
+        ((s.name||"").toLowerCase().includes(ql))||(s.phone||"").includes(q.trim())
+      );
+      if(!hit){toast("مش لاقي الطالب");return}
+      const ref=doc(db,"fadaye7",d.id);
+      const cur=await getDoc(ref);
+      if(!cur.exists())return;
+      const hideFrom=[...(cur.data().hideFrom||[])];
+      const hideNames={...(cur.data().hideNames||{})};
+      if(hideFrom.includes(hit.id)){toast("مخفية عنه أصلًا");return}
+      hideFrom.push(hit.id);
+      hideNames[hit.id]=hit.name||hit.phone||"طالب";
+      await updateDoc(ref,{hideFrom,hideNames});
+      toast("اتخفّت عن "+(hit.name||"الطالب")+" ✓",true);
+    }catch(e){console.error(e);toast("فشل الإخفاء")}
+  },
+  async clearFadHide(d){
+    if(!S.isAdmin||!d.id)return;
+    if(!confirm("إظهار الفضيحة لكل الطلاب تاني؟"))return;
+    try{
+      await updateDoc(doc(db,"fadaye7",d.id),{hideFrom:[],hideNames:{}});
+      toast("اتظهرت للجميع ✓",true);
+    }catch(e){toast("فشل")}
   },
   async dmVoice(){
     if(!S.chatThread)return;
