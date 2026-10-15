@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v20">
+<meta name="sw-build" content="v21">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <meta name="mobile-web-app-capable" content="yes">
@@ -30,7 +30,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 'IBM Plex Sans
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0 16px}
 .logo{font-family:'Reem Kufi',sans-serif;font-size:30px;font-weight:700;color:var(--pri);text-decoration:underline;text-decoration-color:var(--gold);text-decoration-thickness:3px;text-underline-offset:9px;user-select:none;-webkit-user-select:none;transition:color .35s}
 .tg{width:42px;height:42px;border-radius:50%;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font-size:19px;cursor:pointer;box-shadow:var(--sh);transition:transform .5s cubic-bezier(.3,1.4,.5,1),background-color .35s,border-color .35s}
-.tg.spin{transform:rotate(360deg)}
+.tg.spin{transform:rotate(360deg)}.tg-icon{transition:background-color .35s,border-color .35s}.tg-icon.spin{transform:none!important}
 h1,h2,h3{margin:0 0 8px;line-height:1.4}h2{font-size:20px}h3{font-size:17px}
 .mut{color:var(--mut);font-size:14px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:var(--sh);transition:background-color .35s,border-color .25s,transform .25s}
@@ -496,7 +496,7 @@ function stopViewSubs(){
 
 /* ---------- الوضع الليلي ---------- */
 const isDark = () => document.documentElement.dataset.theme==="dark";
-function setTheme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem("theme",t)}catch(e){}document.querySelectorAll(".tg").forEach(b=>b.textContent=t==="dark"?"☀":"☾")}
+function setTheme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem("theme",t)}catch(e){}document.querySelectorAll('.tg[data-act="theme"]').forEach(b=>b.textContent=t==="dark"?"☀":"☾")}
 {let sv;try{sv=localStorage.getItem("theme")}catch(e){}
  setTheme(sv||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"))}
 const themeBtn = () => `<button class="tg" data-act="theme" aria-label="تبديل الوضع الليلي">${isDark()?"☀":"☾"}</button>`;
@@ -1091,7 +1091,7 @@ function render(force){
 const splash=()=>``; // مفيش شاشة تحميل داخل #app — الـ HTML splash يكفي لجزء من الثانية
 const blockedView=()=>`<div class="wrap"><div class="center"><div class="logo" style="display:inline-block">التفوق</div><h1 style="margin-top:28px">حسابك موقوف</h1><p class="mut" style="max-width:360px;margin:8px auto 24px">تواصل مع المدرس لإعادة تفعيل الحساب.</p><button class="btn ghost" data-act="logout">تسجيل خروج</button></div></div>`;
 const logo=`<div class="logo">التفوق</div>`;
-const searchBtn=()=>S.user&&!S.isAdmin?`<button type="button" class="tg" data-act="openAI" aria-label="么" title="مساعد 么">🤖</button><button type="button" class="tg" data-act="openSearch" aria-label="بحث" title="بحث عن زميل">🔍</button>`:"";
+const searchBtn=()=>S.user&&!S.isAdmin?`<button type="button" class="tg tg-icon" data-act="openAI" aria-label="么" title="مساعد 么">🤖</button><button type="button" class="tg tg-icon" data-act="openSearch" aria-label="بحث" title="بحث عن زميل">🔍</button>`:"";
 const header=(extra)=>`<div class="top"><div class="row" style="gap:8px;flex:1;min-width:0">${logo}${searchBtn()}</div><div class="row">${extra||""}${themeBtn()}</div></div>`;
 const studentNav=()=>`<nav class="bot">
 <button class="${S.view==="home"||S.view==="subject"||S.view==="exam"||S.view==="result"?"on":""}" data-act="home">المواد</button>
@@ -1513,16 +1513,50 @@ ${u.id===S.user.uid?`<button class="btn block ghost" data-act="openMe">تعدي�
 </div>${studentNav()}`;
 }
 
+
+function runGlobalSearch(q){
+  const qq=(q||"").trim().toLowerCase();
+  const out={people:[],exams:[],books:[],games:[],groups:[]};
+  if(!qq)return out;
+  out.people=(S.friendHits||[]).slice(0,12);
+  const exams=Array.isArray(S.exams)?S.exams:[];
+  out.exams=exams.filter(e=>{
+    if(e.published===false)return false;
+    return ((e.title||"")+" "+(e.subject||"")).toLowerCase().includes(qq);
+  }).slice(0,10);
+  const books=Array.isArray(S.books)?S.books:[];
+  out.books=books.filter(b=>((b.title||"")+" "+(b.subject||"")+" "+(b.name||"")).toLowerCase().includes(qq)).slice(0,8);
+  const gameNames=[{id:"qb",name:"تحدي الأسئلة"},{id:"memory",name:"الذاكرة"},{id:"xo",name:"XO"}];
+  out.games=gameNames.filter(g=>g.name.includes(q)||g.id.includes(qq));
+  (S.openRooms||[]).forEach(r=>{
+    const tt=((r.code||"")+" "+(r.subject||"")+" "+(r.game||"")).toLowerCase();
+    if(tt.includes(qq))out.games.push({id:r.code,name:"غرفة "+r.code,room:true,code:r.code});
+  });
+  out.games=out.games.slice(0,10);
+  const groups=Array.isArray(S.groups)?S.groups:[];
+  out.groups=groups.filter(g=>((g.name||"")+" "+(g.lastText||"")).toLowerCase().includes(qq)).slice(0,8);
+  return out;
+}
+
 function searchView(){
   const q=(S.friendQ||"").trim();
   const hits=S.friendHits||[];
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
-<h2>🔍 بحث</h2>
-<p class="mut">ابحث عن زميل بالاسم أو رقم التليفون — اضغط على الحساب أو راسله مباشرة</p>
+<h2>🔍 بحث شامل</h2>
+<p class="mut">زملاء · امتحانات · كتب · ألعاب · جروبات</p>
 <div class="card">
 <input id="friendQ" type="search" placeholder="اسم أو رقم…" value="${esc(q)}" autocomplete="off" autofocus>
 <button class="btn block" style="margin-top:10px" data-act="searchFriend">بحث</button>
 </div>
+${(()=>{
+  const g=S.globalHits||{exams:[],books:[],games:[],groups:[]};
+  let h="";
+  if(g.exams&&g.exams.length)h+=`<div class="card"><b>📚 امتحانات</b>`+g.exams.map(e=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><span>${esc(e.title||"")}<div class="mut">${esc(e.subject||"")}</div></span></div>`).join("")+`</div>`;
+  if(g.books&&g.books.length)h+=`<div class="card"><b>📖 كتب</b>`+g.books.map(b=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><a href="${esc(b.url||b.link||"#")}" target="_blank" rel="noopener">${esc(b.title||b.name||"كتاب")}</a></div>`).join("")+`</div>`;
+  if(g.games&&g.games.length)h+=`<div class="card"><b>🎮 ألعاب</b>`+g.games.map(x=>x.room?`<button class="btn sm" style="margin:4px" data-act="qbRequestJoin" data-code="${esc(x.code)}">${esc(x.name)}</button>`:`<button class="btn sm" style="margin:4px" data-act="openGames">${esc(x.name)}</button>`).join("")+`</div>`;
+  if(g.groups&&g.groups.length)h+=`<div class="card"><b>👥 جروبات</b>`+g.groups.map(gr=>`<button class="btn sm" style="margin:4px" data-act="openGroup" data-id="${gr.id}" data-name="${esc(gr.name||"")}">${esc(gr.name||"جروب")}</button>`).join("")+`</div>`;
+  return h;
+})()}
 ${S.friendSearching?`<div class="card mut">جاري البحث…</div>`:""}
 ${hits.length?hits.map(h=>{
   const av2=h.avatar?`<img src="${h.avatar}" alt="" style="width:52px;height:52px;border-radius:50%;object-fit:cover">`:`<div class="av" style="width:52px;height:52px;font-size:18px">${esc((h.name||"?")[0])}</div>`;
@@ -1945,7 +1979,27 @@ ${!board.length?`<div class="mut" style="text-align:center;padding:12px">لسه 
 ${boardCard}
 ${(S.unreadNotif||0)>0||notifs.length?`<div class="card"><div class="row"><h3 style="margin:0">الإشعارات ${(S.unreadNotif||0)?pill(String(S.unreadNotif),"y"):""}</h3>
 ${notifs.some(n=>!n.read)?`<button class="btn ghost sm" data-act="markNotifsRead">تعليم تحديد الكل كمقروء</button>`:""}</div>
-${notifs.length?notifs.slice(0,8).map(n=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line);opacity:${n.read?.6:1}"><span>${n.read?"":"🔵 "}${esc(n.title||n.text||"إشعار")}<div class="mut">${esc(n.body||"")} · ${fmt(n.createdAt)}</div></span></div>`).join(""):`<div class="mut">مفيش إشعارات حالياً.</div>`}
+${(()=>{
+  if(!notifs.length)return `<div class="mut">مفيش إشعارات حالياً.</div>`;
+  const kindOf=n=>{
+    const k=(n.kind||n.type||"").toLowerCase();
+    const tx=((n.title||"")+" "+(n.text||"")+" "+(n.body||"")).toLowerCase();
+    if(k==="call"||tx.includes("مكالمة")||tx.includes("📞"))return "call";
+    if(k==="dm"||k==="chat"||tx.includes("رسالة"))return "dm";
+    if(k==="exam"||tx.includes("امتحان"))return "exam";
+    if(k==="game"||tx.includes("لعبة")||tx.includes("غرفة"))return "game";
+    if(k==="admin")return "admin";
+    return "other";
+  };
+  const labels={call:"📞 مكالمات",dm:"💬 رسائل",exam:"📚 امتحانات",game:"🎮 ألعاب",admin:"👨‍🏫 الإدارة",other:"⭐ أخرى"};
+  const groups={call:[],dm:[],exam:[],game:[],admin:[],other:[]};
+  notifs.slice(0,40).forEach(n=>groups[kindOf(n)].push(n));
+  return ["call","dm","exam","game","admin","other"].filter(k=>groups[k].length).map(k=>
+    `<div style="margin-top:10px"><b style="font-size:13px">${labels[k]}</b>`+
+    groups[k].slice(0,6).map(n=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line);opacity:${n.read?0.65:1}"><span>${n.read?"":"🔵 "}${esc(n.title||n.text||"إشعار")}<div class="mut">${esc(n.body||"")} · ${fmt(n.createdAt)}</div></span></div>`).join("")+
+    `</div>`
+  ).join("");
+})()}
 </div>`:""}
 ${L.length?`<div class="stats"><div class="card stat"><b>${L.length}</b><span class="mut">محاولة</span></div><div class="card stat"><b>${exams}</b><span class="mut">امتحان</span></div><div class="card stat"><b>${avgP}%</b><span class="mut">المتوسط</span></div><div class="card stat"><b>${best}%</b><span class="mut">أعلى نتيجة</span></div></div>
 <div class="card"><h3>تطور درجاتك (آخر ${last.length})</h3><div class="bars">${last.map(r=>`<div>${pctOf(r)}<i class="${r.passMark>0&&!r.passed?"f":""}" style="height:${Math.max(3,pctOf(r))*0.9}%"></i></div>`).join("")}</div></div>
@@ -2362,7 +2416,7 @@ async function wipeFiles(id,part,gid){
 }
 const A={
   async markNotifsRead(){for(const n of (Array.isArray(S.notifs)?S.notifs:[]).filter(x=>!x.read)){try{await updateDoc(doc(db,"notifications",n.id),{read:true})}catch(e){}}},
-  theme(d,el){const t=isDark()?"light":"dark";document.querySelectorAll(".tg").forEach(b=>{b.classList.add("spin");setTimeout(()=>b.classList.remove("spin"),500)});setTheme(t)},
+  theme(d,el){const t=isDark()?"light":"dark";document.querySelectorAll('.tg[data-act="theme"]').forEach(b=>{b.classList.add("spin");setTimeout(()=>b.classList.remove("spin"),500)});setTheme(t)},
   mode(){S.mode=S.mode==="login"?"register":"login";S.error="";render(true)},
   logoTap(){const n=Date.now();S.taps=S.taps.filter(t=>n-t<2500);S.taps.push(n);if(S.taps.length>=3){S.taps=[];S.adminLogin=true;S.error="";render(true)}},
   studentLink(){S.adminLogin=false;S.error="";render(true)},
@@ -2566,7 +2620,27 @@ const A={
     requestAnimationFrame(()=>{const el=$("#aiLog");if(el)el.scrollTop=el.scrollHeight});
   },
 
-  openSearch(){S.view="search";S.friendHits=S.friendHits||[];render(true);setTimeout(()=>{const i=$("#friendQ");if(i)i.focus()},100)},
+  openSearch(){
+    S.view="search";S.friendHits=S.friendHits||[];
+    S.globalHits=typeof runGlobalSearch==="function"?runGlobalSearch(S.friendQ||""):{};
+    render(true);
+    setTimeout(()=>{
+      const i=$("#friendQ");
+      if(!i)return;
+      i.focus();
+      if(i._liveBound)return;
+      i._liveBound=true;
+      i.addEventListener("input",()=>{
+        S.friendQ=i.value;
+        S.globalHits=runGlobalSearch(i.value);
+        if(S.view!=="search")return;
+        const pos=i.selectionStart;
+        render(true);
+        const n=$("#friendQ");
+        if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(_){}}
+      });
+    },100);
+  },
   openChats(){
     S.view="chatList";S.chatTab=S.chatTab||"dms";
     listenMyChats();loadMyGroups();
@@ -2728,6 +2802,7 @@ const A={
       }).slice(0,20);
       // ترتيب leaderboard حسب النقاط
       const ranked=[...board].sort((a,b)=>(b.pct||0)-(a.pct||0)||(b.examsDone||0)-(a.examsDone||0));
+      try{S.globalHits=runGlobalSearch(S.friendQ||"")}catch(_){}
       S.friendHits=matched.map(s=>{
         const lb=board.find(b=>b.uid===s.id||b.id===s.id)||{};
         const rankIdx=ranked.findIndex(b=>(b.uid||b.id)===s.id);
