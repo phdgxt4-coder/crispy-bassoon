@@ -866,7 +866,7 @@ function render(force){
 const splash=()=>`<div class="splash"><div><div class="logo">التفوق</div><i class="uline"></i><div class="mut" style="margin-top:16px">جاري التحضير…</div></div></div>`;
 const blockedView=()=>`<div class="wrap"><div class="center"><div class="logo" style="display:inline-block">التفوق</div><h1 style="margin-top:28px">حسابك موقوف</h1><p class="mut" style="max-width:360px;margin:8px auto 24px">تواصل مع المدرس لإعادة تفعيل الحساب.</p><button class="btn ghost" data-act="logout">تسجيل خروج</button></div></div>`;
 const logo=`<div class="logo">التفوق</div>`;
-const searchBtn=()=>S.user&&!S.isAdmin?`<button type="button" class="tg" data-act="openSearch" aria-label="بحث" title="بحث عن زميل">🔍</button>`:"";
+const searchBtn=()=>S.user&&!S.isAdmin?`<button type="button" class="tg" data-act="openAI" aria-label="么" title="مساعد 么">🤖</button><button type="button" class="tg" data-act="openSearch" aria-label="بحث" title="بحث عن زميل">🔍</button>`:"";
 const header=(extra)=>`<div class="top"><div class="row" style="gap:8px;flex:1;min-width:0">${logo}${searchBtn()}</div><div class="row">${extra||""}${themeBtn()}</div></div>`;
 const studentNav=()=>`<nav class="bot">
 <button class="${S.view==="home"||S.view==="subject"||S.view==="exam"||S.view==="result"?"on":""}" data-act="home">المواد</button>
@@ -1404,14 +1404,14 @@ function chatThreadView(){
 
 
 function aiView(){
-  const msgs=S.aiMsgs||[{role:"bot",text:"أهلاً 👋 أنا مساعد التفوق.\nاسألني عن المذاكرة، الأدب الجاهلي، أو طريقة حل الامتحانات.\n\nمثال: إزاي أذاكر الأدب؟ / ما هي المعلقات؟"}];
+  const msgs=S.aiMsgs||[{role:"bot",text:"你好！أنا 么 🤖\nمساعد منصة التفوق.\nبفتش في الامتحانات والإجابات والكتب المرفوعة وشرح المنصة.\nاسألني أي حاجة مش فاهمها."}];
   return `<div class="wrap chat-wrap">${header(`<button class="btn ghost sm" data-act="openMe">رجوع</button>`)}
-<h2>🤖 مساعد التفوق</h2>
-<p class="mut">مكان مخصص للمساعدة الدراسية — مش جوه الشات</p>
+<h2>🤖 么</h2>
+<p class="mut">يراجع الامتحانات · الكتب · شرح المنصة — ولو في رابط ذكي خارجي بيرد أوسع</p>
 <div class="card">
   <div class="ai-log" id="aiLog">${msgs.map(m=>`<div class="ai-bubble ${m.role==="me"?"me":"bot"}" dir="auto">${esc(m.text)}</div>`).join("")}</div>
   <form class="tk-compose" style="position:relative;bottom:auto;left:auto;right:auto;margin-top:12px" data-submit="aiSend">
-    <input id="aiIn" type="text" maxlength="500" placeholder="اكتب سؤالك…" autocomplete="off">
+    <input id="aiIn" type="text" maxlength="500" placeholder="اسأل 么 عن درس، امتحان، أو المنصة…" autocomplete="off">
     <button class="btn sm" type="submit">➤</button>
   </form>
 </div>
@@ -1419,56 +1419,108 @@ function aiView(){
 }
 function aiLocalReply(q){
   const s=normalizeAr(q);
-  if(/معلق/.test(s))return "المعلقات قصائد طوال من أجود الشعر الجاهلي. من أصحابها: امرؤ القيس، زهير بن أبي سلمى، طرفة بن العبد، لبيد، عنترة، الحارث بن حلزة، عمرو بن كلثوم. سُميت بهذا الاسم لأراء منها أنها عُلقت على الكعبة أو لسرعة تعلقها بالأذهان.";
-  if(/جاهل|عصر جاهل/.test(s))return "العصر الجاهلي: الفترة قبل الإسلام بحوالي قرن ونصف. التسمية من «الجهالة» (فعل القبيح بعلم وإرادة) وليس الجهل بالقراءة فقط. الأدب فيه شعر ونثر (خطب، وصايا، حكم، أمثال).";
-  if(/قصيد|اطلال|منهج/.test(s))return "بناء القصيدة الجاهلية غالبًا: غزل وبكاء الأطلال ← وصف الرحلة والناقة ← الغرض الرئيس (مدح/فخر/هجاء) ← وقد تُختم بالحكم. تعددت الأغراض بسبب حياة الترحال والحروب.";
-  if(/نثر|وصي|خطب|مثل/.test(s))return "فنون النثر الجاهلي: الوصايا، الخطب، الحكم، الأمثال. من الوصايا: أمامة بنت الحارث. من الخطباء: قس بن ساعدة. الأمثال موجزة ولها مورد ومضرب.";
-  if(/اذاكر|مذاكر|امتحان|تنظيم/.test(s))return "نصيحة مذاكرة:\n1) اقرأ الملخص مرة\n2) حل 10–20 سؤال على نفس الجزئية\n3) راجع الغلط فورًا\n4) كرر تاني يوم بنفس الأسئلة\n5) امتحن نفسك بوقت محدود زي المنصة.\nلو حابب امتحان تجريبي: روح للمواد وابدأ محاولة.";
-  if(/لعبه|العاب|غرف/.test(s))return "الألعاب من تبويب الألعاب تحت: تقدر تلعب ضد روبوت أو تعمل غرفة وتدعو صاحبك. بعد الماتش هتكسب XP.";
-  if(/xp|نقط|لفل|مستوى|لقب/.test(s))return "نظام النقاط: حل امتحان +XP، درجة عالية زيادة، دخول يومي +5 وسلسلة أيام 🔥. الألقاب: مبتدئ → مجتهد → مثابر → عبقري → أسطورة التفوق.";
-  if(/سلام|اهلا|مرحبا|ازيك/.test(s))return "وعليكم السلام! اسأل عن أي جزئية في الدرس أو طريقة المذاكرة.";
-  return "فهمت سؤالك. جرّب تصيغه أوضح أو اسأل عن: العصر الجاهلي، المعلقات، بناء القصيدة، النثر، أو طريقة المذاكرة.\n(المساعد المحلي بيرد من منهج المنصة — لو المدرس فعّل رابط ذكاء اصطناعي خارجي هتبقى الإجابات أوسع.)";
+  const name=(S.profile&&S.profile.name)?S.profile.name.split(" ")[0]:"";
+  const hi=name?("يا "+name+"، "):"";
+
+  if(/مين انت|انت مين|من انت|ايه اسمك|عرف نفسك|who are you|ما اسمك/.test(s)||s.trim()==="么")
+    return "أنا **么** 🤖\nمساعد ذكي جوّه منصة التفوق.\nبساعد الطلاب يفهموا الدروس، أراجع الامتحانات والإجابات والكتب المرفوعة، وأشرح أي حاجة في المنصة مش واضحة.\nاسأل بحرية.";
+
+  if(/سلام|اهلا|مرحبا|ازيك|صباح|مساء|你好/.test(s))
+    return "وعليكم السلام "+hi+"🙂 أنا 么. تحب نوضح درس، نراجع سؤال امتحان، ولا شرح جزء من المنصة؟";
+
+  // —— شرح المنصة ——
+  if(/ازاي|كيف|فين|مش فاهم|ايه هو|يعني ايه/.test(s)){
+    if(/امتحان|اختبار/.test(s))
+      return hi+"**الامتحانات:** من «المواد» اختار المادة → امتحان → ابدأ. في وقت محفوظ، ومحاولتين غالبًا. بعد التسليم تشوف درجتك. لو وقفت في النص: «حفظ وخرج» وترجع تكمل.";
+    if(/تقييم|حل|نموذج/.test(s))
+      return hi+"**التقييمات:** من الصفحة الرئيسية → التقييمات. فيها نماذج وحلول لما الأدمن يفتح الحل.";
+    if(/لعبه|غرف|روبوت/.test(s))
+      return hi+"**الألعاب:** تبويب الألعاب تحت. ضد روبوت من اللعبة نفسها، أو غرفة مع أصحابك (إنشاء/انضمام بكود).";
+    if(/شات|جروب|تواصل|رسايل/.test(s))
+      return hi+"**التواصل:** تبويب تواصل — محادثات خاصة وجروبات. تقدر تبعت نص/صورة/صوت، وفي مكالمة صوت 📞 من الشات.";
+    if(/فضي|كتب|xp|نقط|لفل|حسابي|ملف/.test(s))
+      return hi+"من **حسابي**: صورتك، XP، الألقاب، الستريك، ومساعد 么.\n**الكتب** من الرئيسية للتحميل.\n**فضايح** لقطات بعد موافقة الأدمن.";
+    if(/منصه|التفوق|استخدم|تنزيل|تطبيق|apk/.test(s))
+      return hi+"منصة التفوق للامتحانات والتقييمات والألعاب والتواصل. تقدر تثبّتها كتطبيق من زر التحميل أو من قائمة المتصفح.";
+  }
+
+  // —— بحث في الامتحانات (أسئلة + إجابات) ——
+  const exams=(S.exams||[]).filter(e=>vis(e)||S.isAdmin);
+  const qTokens=s.split(/\s+/).filter(w=>w.length>2);
+  let examHits=[];
+  for(const e of exams){
+    const list=Array.isArray(e.questions)?e.questions:[];
+    // parse if string bank
+    let items=list;
+    if(!items.length&&e.raw){
+      // skip heavy
+    }
+    for(let i=0;i<(list.length||0);i++){
+      const qq=list[i];
+      if(!qq)continue;
+      const qt=normalizeAr(qq.q||qq.question||"");
+      const opts=(qq.o||qq.options||[]).map(x=>normalizeAr(String(x))).join(" ");
+      let score=0;
+      for(const w of qTokens){if(qt.includes(w))score+=2;if(opts.includes(w))score+=1}
+      if(score>=3){
+        const ansIdx=typeof qq.a==="number"?qq.a:(typeof qq.answer==="number"?qq.answer:-1);
+        const ansTxt=ansIdx>=0&&(qq.o||qq.options)?(qq.o||qq.options)[ansIdx]:"";
+        examHits.push({score,title:e.title,subject:e.subject,q:qq.q||qq.question,ans:ansTxt,i:i+1});
+      }
+    }
+  }
+  examHits.sort((a,b)=>b.score-a.score);
+  if(examHits.length){
+    const top=examHits.slice(0,3);
+    let out=hi+"لقيت في امتحانات المنصة:\n\n";
+    top.forEach(h=>{
+      out+="📝 **"+h.title+"**"+(h.subject?" · "+(typeof subName==="function"?subName(h.subject):h.subject):"")+"\n";
+      out+="س"+(h.i)+": "+String(h.q||"").slice(0,180)+"\n";
+      if(h.ans)out+="✅ الإجابة: "+h.ans+"\n";
+      out+="\n";
+    });
+    out+="لو مش ده اللي تقصده، صغّر السؤال أو اذكر عنوان الامتحان.";
+    return out;
+  }
+
+  // —— بحث في الكتب ——
+  const books=(S.books||[]).filter(b=>(b.content||"").trim().length>15);
+  if(books.length){
+    let best=null,bestScore=0,snippet="";
+    for(const b of books){
+      const c=normalizeAr(b.content), th=normalizeAr(b.title||"");
+      let score=0;
+      for(const w of qTokens){if(c.includes(w))score++;if(th.includes(w))score+=2}
+      if(score>bestScore){
+        bestScore=score;best=b;
+        const raw=b.content||"";
+        let idx=0;
+        for(const w of qTokens){const p=normalizeAr(raw).indexOf(w);if(p>=0){idx=Math.max(0,p-50);break}}
+        snippet=raw.slice(idx,idx+450).trim();
+        if(idx>0)snippet="…"+snippet;
+        if(raw.length>idx+450)snippet+="…";
+      }
+    }
+    if(best&&bestScore>=2){
+      return hi+"من كتاب **"+best.title+"**:\n\n"+snippet+"\n\nعايز تفصيل أكتر من نفس الكتاب؟";
+    }
+  }
+
+  // منهج أساسي
+  if(/معلق/.test(s))
+    return hi+"المعلقات: قصائد طوال من أجود الشعر الجاهلي (امرؤ القيس، زهير، طرفة، لبيد، عنترة، الحارث، عمرو بن كلثوم). تسمية مرتبطة بالتعلق أو التعليق على الكعبة حسب الآراء.";
+  if(/جاهل|عصر جاهل/.test(s))
+    return hi+"العصر الجاهلي قبل الإسلام ~قرن ونصف. الجهالة = فعل القبيح بعلم، مش الجهل بالقراءة فقط. أدب: شعر ونثر.";
+  if(/اذاكر|مذاكر/.test(s))
+    return hi+"ذاكر جزء → حل أسئلة عليه من المنصة → راجع الغلط → كرّر تاني يوم. استخدم الامتحانات كاختبار زمني.";
+
+  if(/كتاب|كتب/.test(s)){
+    const n=(S.books||[]).length;
+    return n?hi+"الكتب المتاحة:\n"+(S.books||[]).map(b=>"• "+b.title).join("\n")+"\nاسأل عن عنوان معيّن لو النص متسجّل عندي.":hi+"لسه مفيش كتب بنص للمراجعة. الأدمن يضيف الكتاب + ملخصه من لوحة الكتب.";
+  }
+
+  return hi+"أنا 么 — دورّت في الامتحانات والكتب المتاحة وما لقيتش تطابق قوي.\nجرّب:\n• نص سؤال من امتحان\n• اسم درس أو كتاب\n• «ازاي أبدأ امتحان؟»\nولو المدرس مفعّل الرابط الذكي، الإجابات بتبقى أوسع.";
 }
-
-function meView(){
-  const p=S.profile||{};
-  const av=p.avatar?`<img src="${p.avatar}" alt="" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--pri)">`:`<div class="av" style="width:72px;height:72px;font-size:28px">${esc((p.name||"؟")[0]||"?")}</div>`;
-  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
-<h2>حسابي</h2>
-${installBanner()}
-<div class="card xp-card">${av}
-<div style="margin-top:8px"><b>${esc(p.name||"طالب")}</b></div>
-<div class="mut">${esc(p.phone||"")}</div>
-<div class="title-pill">${xpTitle(p.xp).emoji} ${esc(p.title||xpTitle(p.xp).name)}</div>
-<div class="xp-lvl">المستوى ${xpLevel(p.xp)}</div>
-<div class="mut">${p.xp||0} XP · 🔥 ${(p.streak||0)} يوم متتالي</div>
-<div class="xp-bar"><i style="width:${xpProgress(p.xp)}%"></i></div>
-<div class="mut" style="font-size:12px">${50-((p.xp||0)%50)} XP للمستوى التالي</div>
-${(p.badges||[]).length?`<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center">${(p.badges||[]).map(b=>pill("🏅 "+b,"g")).join("")}</div>`:""}
-<label class="btn ghost sm" style="margin-top:10px;cursor:pointer">📷 صورة شخصية<input type="file" id="meAvatar" accept="image/*" hidden></label>
-</div>
-<div class="card">
-  <button class="btn block gold" data-act="openAI">🤖 مساعد التفوق</button>
-  <p class="mut" style="margin:8px 0 0;text-align:center">اسأل في الدروس أو طريقة المذاكرة</p>
-</div>
-<div class="card"><b>تغيير الاسم</b>
-<label class="f">الاسم</label>
-<input id="meName" type="text" value="${esc(p.name||"")}" maxlength="40">
-<button class="btn sm" style="margin-top:10px" data-act="meSaveName">حفظ الاسم</button>
-</div>
-<div class="card"><b>تغيير كلمة السر</b>
-<p class="mut" style="margin:4px 0 8px">يُسمح مرة كل أسبوع، ومن جهاز سبق دخول الحساب منه. لو معاك كود استعادة من المدرس اكتبُه تحت.</p>
-<label class="f">كلمة السر الجديدة</label>
-<input id="mePw" class="ltr" type="password" autocomplete="new-password" minlength="6">
-<label class="f">تأكيد</label>
-<input id="mePw2" class="ltr" type="password" autocomplete="new-password" minlength="6">
-<label class="f">كود الاستعادة (اختياري)</label>
-<input id="meResetCode" class="ltr" type="text" maxlength="8" placeholder="من المدرس إن وُجد">
-<button class="btn sm" style="margin-top:10px" data-act="meChangePw">تغيير كلمة السر</button>
-</div>
-<button class="btn ghost block" data-act="logout">تسجيل خروج</button>
-</div>${studentNav()}`}
-
 
 function booksView(){
   const list=S.books||[];
@@ -1494,8 +1546,11 @@ function adminBooks(){
 <input id="bookTitle" type="text" maxlength="80" placeholder="مثال: ملخص الأدب الجاهلي">
 <label class="f">المادة (اختياري)</label>
 <input id="bookSub" type="text" maxlength="40" placeholder="عربي">
-<label class="f">رابط الملف (Drive / PDF مباشر)</label>
+<label class="f">رابط الملف (Drive / PDF) للتحميل</label>
 <input id="bookUrl" class="ltr" type="url" placeholder="https://…">
+<label class="f">نص / ملخص الكتاب (مهم للمساعد)</label>
+<textarea id="bookContent" rows="6" placeholder="الصق هنا نص الملخص أو أهم النقاط من الكتاب… المساعد هيبحث فيه لما الطلاب يسألوا"></textarea>
+<p class="mut" style="margin-top:6px">الرابط للتحميل · النص عشان مساعد التفوق يجاوب منه</p>
 <button class="btn" style="margin-top:10px" data-act="addBook">إضافة</button>
 </div>
 ${list.map(b=>`<div class="card row"><div style="flex:1"><b>${esc(b.title)}</b><div class="mut">${esc(b.url||"").slice(0,40)}…</div></div>
@@ -1928,7 +1983,11 @@ ${S.alerts.map(a=>`<tr><td><a href="#" data-act="student" data-id="${a.uid}" sty
 function adminSettings(){
   const extra=`<div class="card"><h3 style="margin-top:0">إشعار لكل الطلاب</h3>
   <p class="mut">يبعت إشعار يظهر في «تقدمي»</p>
-  <button class="btn gold" data-act="broadcastNotif">📢 إرسال إشعار جماعي</button></div>`;
+  <button class="btn gold" data-act="broadcastNotif">📢 إرسال إشعار جماعي</button></div>
+<div class="card"><h3 style="margin-top:0">رابط مساعد ذكي (اختياري)</h3>
+<p class="mut">Webhook يرد JSON: {"reply":"..."} ويستقبل message + books. لو فاضي = المساعد المحلي.</p>
+<input id="aiUrlIn" class="ltr" type="url" placeholder="https://…/webhook" value="${esc(S.site.aiUrl||"")}">
+<button class="btn sm" style="margin-top:8px" data-act="saveAiUrl">حفظ الرابط</button></div>`;
   // ---
   
   return extra+`<div class="card"><h3>وضع الصيانة</h3>
@@ -2116,14 +2175,17 @@ const A={
     const title=($("#bookTitle")?.value||"").trim();
     const url=($("#bookUrl")?.value||"").trim();
     const subject=($("#bookSub")?.value||"").trim();
+    const content=($("#bookContent")?.value||"").trim();
     if(!title||!url){toast("العنوان والرابط مطلوبين");return}
     if(!/^https?:\/\//i.test(url)){toast("رابط غير صالح");return}
+    if(content.length>900000){toast("النص طويل أوي — اختصر الملخص");return}
     try{
-      await addDoc(collection(db,"books"),{title,url,subject,kind:"pdf",createdAt:serverTimestamp()});
-      toast("اتضاف الكتاب ✓",true);
+      await addDoc(collection(db,"books"),{title,url,subject,content:content.slice(0,100000),kind:"pdf",createdAt:serverTimestamp()});
+      toast(content?"اتضاف الكتاب والمساعد يقدر يبحث فيه ✓":"اتضاف الكتاب (من غير نص — المساعد مش هيقرأ PDF لوحده)",true);
       if($("#bookTitle"))$("#bookTitle").value="";
       if($("#bookUrl"))$("#bookUrl").value="";
-    }catch(e){toast("فشل — انشر rules")}
+      if($("#bookContent"))$("#bookContent").value="";
+    }catch(e){console.error(e);toast("فشل — انشر rules أو صغّر النص")}
   },
   async delBook(d){
     if(!S.isAdmin||!d.id)return;
@@ -2162,22 +2224,42 @@ const A={
     }catch(e){toast("فشل الحظر")}
   },
   openMe(){S.view="me";render(true)},
-  openAI(){S.view="ai";S.aiMsgs=S.aiMsgs||[{role:"bot",text:"أهلاً 👋 أنا مساعد التفوق.\nاسألني عن المذاكرة أو الأدب الجاهلي أو الامتحانات."}];render(true)},
+  openAI(){S.view="ai";S.aiMsgs=S.aiMsgs||[{role:"bot",text:"你好！أنا 么 🤖
+مساعد التفوق: امتحانات، كتب، وشرح المنصة."}];render(true)},
   async aiSend(){
     const inp=$("#aiIn");const q=(inp&&inp.value||"").trim();
     if(!q)return;
     if(inp)inp.value="";
-    S.aiMsgs=(S.aiMsgs||[]).concat([{role:"me",text:q}]);
+    S.aiMsgs=(S.aiMsgs||[]).concat([{role:"me",text:q},{role:"bot",text:"جاري التفكير…"}]);
     render();
-    // optional external AI webhook from config
     let reply=null;
     try{
       if(S.site&&S.site.aiUrl){
-        const r=await fetch(S.site.aiUrl,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:q,uid:S.user&&S.user.uid})});
-        if(r.ok){const j=await r.json();reply=j.reply||j.text||null}
+        const books=(S.books||[]).map(b=>({title:b.title,subject:b.subject,url:b.url,content:(b.content||"").slice(0,8000)}));
+        const examsCtx=(S.exams||[]).slice(0,15).map(e=>{
+          const qs=(e.questions||[]).slice(0,30).map((qq,i)=>({
+            q:qq.q, options:qq.o, answer:typeof qq.a==="number"&&qq.o?qq.o[qq.a]:null
+          }));
+          return {title:e.title,subject:e.subject,questions:qs};
+        });
+        const r=await fetch(S.site.aiUrl,{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({
+            message:q,
+            uid:S.user&&S.user.uid,
+            name:S.profile&&S.profile.name,
+            system:"اسمك 么. أنت مساعد منصة التفوق التعليمية. تكلم عربي ودود. عرّف بنفسك إن سُئلت. استخدم الامتحانات والإجابات والكتب المرفقة. اشرح أي جزء من المنصة. لو مش متأكد قل ذلك بوضوح.",
+            books,
+            exams:examsCtx,
+            platform:"امتحانات، تقييمات، ألعاب غرف، شات، جروبات، كتب، فضائح، XP، حسابي"
+          })
+        });
+        if(r.ok){const j=await r.json();reply=j.reply||j.text||j.message||null}
       }
-    }catch(_){}
+    }catch(e){console.warn("aiUrl",e)}
     if(!reply)reply=aiLocalReply(q);
+    S.aiMsgs=(S.aiMsgs||[]).slice(0,-1); // remove thinking
     S.aiMsgs.push({role:"bot",text:reply});
     render();
     requestAnimationFrame(()=>{const el=$("#aiLog");if(el)el.scrollTop=el.scrollHeight});
