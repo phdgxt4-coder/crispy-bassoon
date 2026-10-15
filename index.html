@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v18">
+<meta name="sw-build" content="v20">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <meta name="mobile-web-app-capable" content="yes">
@@ -76,11 +76,19 @@ textarea{min-height:320px;line-height:1.8;font-size:15px}
 .qb-room-theme.t-gold{--room-accent:#B45309;--room-accent2:#E3A81C}
 .qb-room-theme.t-rose{--room-accent:#9F1239;--room-accent2:#F43F5E}
 .qb-room-theme.t-blue{--room-accent:#1D4ED8;--room-accent2:#38BDF8}
-.qb-room-theme .qb-card{border-color:color-mix(in srgb,var(--room-accent,#0B5D57) 35%,var(--line))}
+.qb-room-theme{--pri:var(--room-accent,#0B5D57);--gold:var(--room-accent2,#2FB5A8)}
+.qb-room-theme .wrap,.qb-room-theme.wrap{
+  background:linear-gradient(180deg,color-mix(in srgb,var(--room-accent,#0B5D57) 18%,var(--bg)) 0%,var(--bg) 42%);
+  min-height:100vh;border-radius:0
+}
+.qb-room-theme .qb-card{border-color:color-mix(in srgb,var(--room-accent,#0B5D57) 35%,var(--line));background:color-mix(in srgb,var(--room-accent) 6%,var(--card))}
 .qb-room-theme .qb-chip.host,.qb-room-theme .qb-chip.ready{border-color:var(--room-accent2,#2FB5A8)}
 .qb-room-theme .btn.gold{background:var(--room-accent2,#E3A81C)}
+.qb-room-theme .btn:not(.ghost):not(.danger){background:var(--room-accent,#0B5D57)}
 .qb-room-theme .qb-chat{border-color:color-mix(in srgb,var(--room-accent,#0B5D57) 40%,var(--line))}
 .qb-room-theme .qb-hud .qb-player.lead{box-shadow:0 0 0 2px var(--room-accent2)}
+.qb-room-theme header .logo,.qb-room-theme .logo{color:var(--room-accent)}
+.qb-room-theme .tk-compose,.qb-room-theme .qb-chat-form{background:color-mix(in srgb,var(--room-accent) 8%,var(--card))}
 .qb-viewers{display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.25);color:#fff;border-radius:99px;padding:4px 12px;font-size:13px;font-weight:700;cursor:pointer}
 .qb-viewers-panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0;max-height:180px;overflow:auto}
 .qb-chip .kick{margin-right:4px;font-size:11px;opacity:.85;cursor:pointer}
@@ -780,6 +788,18 @@ async function registerFcmToken(){
   }catch(e){console.warn("fcm token",e)}
 }
 
+
+// من Service Worker عند ضغط إشعار مكالمة
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.addEventListener("message",ev=>{
+    const d=ev.data||{};
+    if(d.type==="INCOMING_CALL"&&d.callId){
+      S._pendingCall=d.callId;
+      try{handlePendingCall()}catch(_){}
+    }
+  });
+}
+
 async function startSession(u){
   stopSubs();
   S.user=u;
@@ -815,6 +835,7 @@ async function startSession(u){
   try{touchStreak()}catch(_){}
   try{listenIncomingCalls()}catch(_){}
   try{registerFcmToken()}catch(_){}
+  try{handlePendingCall()}catch(_){}
   S.isAdmin=u.email===ADMIN_EMAIL;S.adminLogin=false;S.error="";
   try{
     if(S.isAdmin){
@@ -868,6 +889,9 @@ async function startSession(u){
         const h=(location.hash||"").replace(/^#/,"");
         const m=h.match(/^room=([A-Za-z0-9]+)/i);
         if(m){S._pendingRoom=m[1].toUpperCase();history.replaceState(null,"",location.pathname+location.search)}
+        const qs=new URLSearchParams(location.search||"");
+        const callQ=qs.get("call");
+        if(callQ){S._pendingCall=callQ;qs.delete("call");const s=qs.toString();history.replaceState(null,"",location.pathname+(s?"?"+s:"")+location.hash)}
       }catch(_){}
       subs.push(onSnapshot(doc(db,"students",u.uid),s=>{
         if(s.exists()){
@@ -1359,6 +1383,7 @@ ${qbChatHtml()}
 
 function qbPlayView(){
   const g=S.qb;if(!g||!g.match)return gamesView();
+  const roomColor=(g.room&&g.room.color)||g.color||"teal";
   const m=g.match, q=m.qs[m.idx];
   if(!q)return qbResultView();
   const left=m.sec?Math.max(0,Math.ceil((m.deadline-Date.now())/1000)):0;
@@ -1386,12 +1411,13 @@ ${g.roomCode?qbChatHtml():""}
 
 function qbResultView(){
   const g=S.qb;if(!g||!g.match)return gamesView();
+  const roomColor=(g.room&&g.room.color)||g.color||"teal";
   const m=g.match;
   const sorted=[...m.players].sort((a,b)=>b.score-a.score||b.correct-a.correct);
   const me=sorted.find(p=>p.uid===S.user.uid)||sorted[0];
   const total=m.qs.length;
   const acc=me.correct?Math.round(me.correct/total*100):0;
-  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openGames">الألعاب</button>`)}
+  return `<div class="wrap qb-room-theme t-${roomColor}">${header(`<button class="btn ghost sm" data-act="openGames">الألعاب</button>`)}
 <div class="qb-hero" style="text-align:center;padding:20px">
   <div style="font-size:40px">🏆</div>
   <div class="qb-title" style="font-size:24px">انتهت المباراة</div>
@@ -3915,6 +3941,22 @@ async function answerVoiceCall(callId,d){
     }
   })};
 }
+
+async function handlePendingCall(){
+  const id=S._pendingCall;
+  if(!id||!S.user)return;
+  S._pendingCall=null;
+  try{
+    const snap=await getDoc(doc(db,"calls",id));
+    if(!snap.exists()){toast("المكالمة انتهت");return}
+    const d=snap.data();
+    if(d.to!==S.user.uid)return;
+    if(d.status!=="ringing"){toast("المكالمة مش متاحة دلوقتي");return}
+    // listenIncomingCalls will also pick it; force UI
+    toast("مكالمة واردة…");
+  }catch(e){console.warn(e)}
+}
+
 async function listenIncomingCalls(){
   if(!S.user||S.isAdmin||window.__callListen)return;
   // طلب إذن إشعارات (لما التطبيق مفتوح في الخلفية)
@@ -4915,10 +4957,16 @@ window.addEventListener("pagehide",()=>{
   if(S.qb&&S.qb.roomCode&&S.user){
     try{
       const code=S.qb.roomCode;
-      // best-effort; may not complete on mobile
       updateDoc(doc(db,"qb_rooms",code),{[`players.${S.user.uid}`]:deleteField()}).catch(()=>{});
     }catch(_){}
   }
+});
+document.addEventListener("visibilitychange",()=>{
+  if(!S.qb||!S.qb.roomCode||!S.user)return;
+  try{
+    if(document.hidden) qbPresence(true);
+    else qbPresence(false);
+  }catch(_){}
 });
 
 /* ---------- المحرر ---------- */
