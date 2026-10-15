@@ -1501,32 +1501,53 @@ ${S.asms.length?S.asms.map(a=>`<div class="card"><div class="row"><div><b>${esc(
 
 function adminFadaye7(){
   const list=S.fadaye7||[];
-  return `<div class="row" style="margin-bottom:12px"><div class="mut">${list.length} فضيحة 😂</div></div>
+  const students=(S.students||[]).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));
+  const editId=S.fadHideEdit||null;
+  return `<div class="row" style="margin-bottom:12px"><div class="mut">${list.length} فضيحة 😂 · ${students.length} طالب</div></div>
 <div class="card">
   <h3 style="margin-top:0">إضافة فضيحة جديدة</h3>
-  <p class="mut">صور: ارفع من الجهاز · فيديو: الصق رابط (يوتيوب / Drive / رابط مباشر) — من غير Storage.</p>
+  <p class="mut">صور: ارفع من الجهاز · فيديو: الصق رابط (يوتيوب / Drive)</p>
   <label class="f">عنوان / تعليق</label>
   <input id="fadTitle" type="text" placeholder="مثال: لما أحمد نسي الكود…" maxlength="120">
   <label class="f">صورة من الجهاز (اختياري)</label>
   <input id="fadFile" type="file" accept="image/*">
-  <label class="f">أو رابط فيديو / صورة (يوتيوب، Drive، mp4…)</label>
-  <input id="fadLink" class="ltr" type="url" placeholder="https://youtube.com/… أو https://…">
+  <label class="f">أو رابط فيديو / صورة</label>
+  <input id="fadLink" class="ltr" type="url" placeholder="https://…">
   <button class="btn" style="margin-top:12px" data-act="addFadaye7">نشر</button>
 </div>
 ${list.length?list.map(f=>{
-  const hid=f.hideFrom||[];
-  const hideNames=(f.hideNames||{});
-  const hideLine=hid.length?`<div class="mut" style="margin-top:6px">مخفية عن: ${hid.map(u=>esc(hideNames[u]||u.slice(0,6))).join(" · ")}</div>`:"";
+  const hid=new Set(f.hideFrom||[]);
+  const isEdit=editId===f.id;
+  const panel=isEdit?`<div class="card" style="margin-top:10px;background:var(--sel)">
+  <div class="row" style="margin-bottom:8px"><b style="flex:1">مين يشوف الفضيحة؟</b>
+    <button class="btn ghost sm" data-act="closeFadHide">إغلاق</button></div>
+  <p class="mut" style="margin:0 0 8px">✅ ظاهر · ☐ مخفي عن الطالب ده</p>
+  <div class="row" style="gap:8px;margin-bottom:10px;flex-wrap:wrap">
+    <button class="btn sm" data-act="fadHideNone" data-id="${f.id}">إظهار للجميع</button>
+    <button class="btn ghost sm" data-act="fadHideAll" data-id="${f.id}">إخفاء عن الكل</button>
+  </div>
+  <div style="max-height:280px;overflow:auto">
+  ${students.length?students.map(s=>{
+    const on=!hid.has(s.id);
+    return `<label class="row" style="padding:8px 0;border-bottom:1px solid var(--line);gap:10px;cursor:pointer">
+      <input type="checkbox" data-change="fadToggleStu" data-id="${f.id}" data-uid="${s.id}" data-name="${esc(s.name||"")}" ${on?"checked":""} style="width:18px;height:18px">
+      <span style="flex:1"><b>${esc(s.name||"?")}</b><div class="mut" dir="ltr">${esc(s.phone||"")}</div></span>
+      <span class="mut">${on?"يشوفها":"مخفية"}</span>
+    </label>`;
+  }).join(""):`<div class="mut">مفيش طلاب مسجّلين</div>`}
+  </div>
+  <button class="btn" style="margin-top:12px;width:100%" data-act="saveFadHide" data-id="${f.id}">حفظ من يشوف</button>
+</div>`:"";
+  const hideLine=(f.hideFrom||[]).length?`<div class="mut" style="margin-top:6px">مخفية عن ${(f.hideFrom||[]).length} طالب</div>`:`<div class="mut" style="margin-top:6px">ظاهرة للجميع</div>`;
   return `<div class="card"><div class="row" style="align-items:flex-start"><div style="flex:1"><b>${esc(f.title||"فضيحة")}</b>
-<div class="mut">${fmt(f.createdAt)} · ${f.kind==="video"?"🎬 فيديو":"🖼 صورة"} · ${f.status||"approved"}</div>
+<div class="mut">${fmt(f.createdAt)} · ${f.kind==="video"?"🎬 فيديو":"🖼 صورة"}</div>
 ${mediaEmbed(f.url,f.kind)}
 ${hideLine}
 </div>
 <div style="display:flex;flex-direction:column;gap:6px">
-<button class="btn ghost sm" data-act="hideFadFrom" data-id="${f.id}">إخفاء عن شخص</button>
-${hid.length?`<button class="btn ghost sm" data-act="clearFadHide" data-id="${f.id}">إظهار للجميع</button>`:""}
+<button class="btn gold sm" data-act="openFadHide" data-id="${f.id}">👥 مين يشوف؟</button>
 <button class="btn danger sm" data-act="delFadaye7" data-id="${f.id}">حذف</button>
-</div></div></div>`;
+</div></div>${panel}</div>`;
 }).join(""):`<div class="card mut">لسه مفيش فضايح — انشر أول واحدة 😂</div>`}
 ${(()=>{const pend=(S.fadaye7||[]).filter(f=>f.status==="pending");
   if(!pend.length)return "";
@@ -1537,7 +1558,8 @@ ${(()=>{const pend=(S.fadaye7||[]).filter(f=>f.status==="pending");
     <button class="btn sm" data-act="approveFadaye7" data-id="${f.id}">موافقة ✓</button>
     <button class="btn danger sm" data-act="rejectFadaye7" data-id="${f.id}">رفض</button>
   </div></div>`).join("");
-})()}`}
+})()}`;
+}
 
 const fileList=(arr,part)=>arr.length?arr.map(f=>`<span class="thumb">${f.kind==="image"?`<img src="${f.data}" alt="">`:"📄"} ${esc((f.name||"").slice(0,22))} <button type="button" class="btn danger sm" style="min-height:28px;padding:0 8px" data-act="delFile" data-part="${part}" data-id="${f.id}" data-gid="${f.gid}" data-kind="${f.kind}">✕</button></span>`).join(""):`<span class="mut">مفيش ملفات مرفوعة.</span>`;
 function asmEditor(){
@@ -2372,37 +2394,42 @@ const A={
     if(!S.isAdmin||!d.id)return;
     try{await updateDoc(doc(db,"fadaye7",d.id),{status:"rejected",published:false});toast("اترفضت")}catch(e){toast("فشل")}
   },
-  async hideFadFrom(d){
+  openFadHide(d){
     if(!S.isAdmin||!d.id)return;
-    const q=prompt("اكتب اسم أو رقم الطالب اللي مش هيشوف الفضيحة:");
-    if(!q||q.trim().length<2)return;
-    try{
-      const sn=await getDocs(query(collection(db,"students"),limit(150)));
-      const ql=q.trim().toLowerCase();
-      const hit=sn.docs.map(x=>({id:x.id,...x.data()})).find(s=>
-        ((s.name||"").toLowerCase().includes(ql))||(s.phone||"").includes(q.trim())
-      );
-      if(!hit){toast("مش لاقي الطالب");return}
-      const ref=doc(db,"fadaye7",d.id);
-      const cur=await getDoc(ref);
-      if(!cur.exists())return;
-      const hideFrom=[...(cur.data().hideFrom||[])];
-      const hideNames={...(cur.data().hideNames||{})};
-      if(hideFrom.includes(hit.id)){toast("مخفية عنه أصلًا");return}
-      hideFrom.push(hit.id);
-      hideNames[hit.id]=hit.name||hit.phone||"طالب";
-      await updateDoc(ref,{hideFrom,hideNames});
-      toast("اتخفّت عن "+(hit.name||"الطالب")+" ✓",true);
-    }catch(e){console.error(e);toast("فشل الإخفاء")}
+    S.fadHideEdit=d.id;
+    // حالة محلية للتعديل قبل الحفظ
+    const f=(S.fadaye7||[]).find(x=>x.id===d.id);
+    S.fadHideDraft=new Set(f&&f.hideFrom?f.hideFrom:[]);
+    render();
   },
-  async clearFadHide(d){
+  closeFadHide(){S.fadHideEdit=null;S.fadHideDraft=null;render()},
+  fadToggleStu(d,el){
+    if(!S.fadHideDraft)S.fadHideDraft=new Set();
+    const uid=d.uid;if(!uid)return;
+    const checked=el?el.checked:false;
+    if(checked)S.fadHideDraft.delete(uid);
+    else S.fadHideDraft.add(uid);
+  },
+  fadHideNone(d){
+    S.fadHideDraft=new Set();
+    document.querySelectorAll(`input[data-change="fadToggleStu"][data-id="${d.id}"]`).forEach(el=>{el.checked=true});
+  },
+  fadHideAll(d){
+    S.fadHideDraft=new Set((S.students||[]).map(s=>s.id));
+    document.querySelectorAll(`input[data-change="fadToggleStu"][data-id="${d.id}"]`).forEach(el=>{el.checked=false});
+  },
+  async saveFadHide(d){
     if(!S.isAdmin||!d.id)return;
-    if(!confirm("إظهار الفضيحة لكل الطلاب تاني؟"))return;
     try{
-      await updateDoc(doc(db,"fadaye7",d.id),{hideFrom:[],hideNames:{}});
-      toast("اتظهرت للجميع ✓",true);
-    }catch(e){toast("فشل")}
+      const hideFrom=[...(S.fadHideDraft||[])];
+      const hideNames={};
+      (S.students||[]).forEach(s=>{if(hideFrom.includes(s.id))hideNames[s.id]=s.name||s.phone||""});
+      await updateDoc(doc(db,"fadaye7",d.id),{hideFrom,hideNames});
+      S.fadHideEdit=null;S.fadHideDraft=null;
+      toast(hideFrom.length?("مخفية عن "+hideFrom.length+" طالب ✓"):"ظاهرة للجميع ✓",true);
+    }catch(e){console.error(e);toast("فشل الحفظ — انشر firestore.rules")}
   },
+
   async dmVoice(){
     if(!S.chatThread)return;
     await recordVoice(async(dataUrl)=>{
