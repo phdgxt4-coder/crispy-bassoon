@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v24">
+<meta name="sw-build" content="v25">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1775,60 +1775,70 @@ function aiLocalReply(q){
   const name=(S.profile&&S.profile.name)?S.profile.name.split(" ")[0]:"";
   const hi=name?("يا "+name+"، "):"";
 
-  if(/مين انت|انت مين|من انت|ايه اسمك|عرف نفسك|who are you|ما اسمك/.test(s)||s.trim()==="么")
-    return "أنا **么** 🤖\nمساعد منصة التفوق.\nبشرح الدروس، أراجع أسئلة الامتحانات والكتب، وأوضّح المنصة.\nلو سؤالك ناقص هطلب توضيح — ولو مفيش معلومة كافية هقول كده بصراحة.";
+  // —— حماية الخصوصية: أرقام/أسماء/من موجود ——
+  if(/(كام|عدد|قد ايه|كام واحد|كام طالب|كام شخص|مين في|مين موجود|مين اونلاين|مين متصل|اسماء|أسماء|قائمة الطلاب|ليست الطلاب|ارقام|أرقام|تليفونات|موبايلات|ip|اي بي|مين داخل|who is online|how many|list (students|users)|ايميلات)/.test(s)
+     && /(منصه|المنصه|طلاب|طالب|يوزر|مستخدم|حساب|متصل|اونلاين|موجود)/.test(s)){
+    return hi+"مش هقدر أجاوب على أسئلة عن **أعداد أو أسماء أو أرقام** الموجودين على المنصة — دي بيانات خاصة.\nأقدر أساعدك في: شرح المنصة، الدروس، أسئلة الامتحانات، والكتب.";
+  }
+  if(/(مين|اسم|رقم|تليفون|موبايل).{0,20}(طالب|ادمن|مدرس|فلان)/.test(s) && !/امتحان|سؤال|درس|كتاب/.test(s))
+    return hi+"ماينفعش أشارك أسماء أو أرقام حسابات. لو محتاج مساعدة في مذاكرة أو استخدام المنصة، اسأل براحتك.";
 
-  if(/سلام|اهلا|مرحبا|ازيك|صباح|مساء|你好/.test(s))
+  if(/مين انت|انت مين|من انت|ايه اسمك|عرف نفسك|who are you|ما اسمك/.test(s)||s.trim()==="么")
+    return "أنا **么** 🤖 مساعد منصة التفوق.\n\nبقدر:\n• أشرح أي جزء في المنصة (امتحانات، شات، ألعاب، تقييمات، XP…)\n• أراجع أسئلة من الامتحانات والكتب المسجّلة\n• أوضّح خطوات الاستخدام\n\n**مش بقدر** أقول أعداد أو أسماء الطلاب أو أرقامهم — خصوصية.\nاسأل بأي صيغة، ولو السؤال ناقص هطلب توضيح.";
+
+  if(/سلام|اهلا|مرحبا|ازيك|صباح|مساء/.test(s))
     return "وعليكم السلام "+hi+"🙂 أنا 么. تحب نوضح درس، نراجع سؤال امتحان، ولا شرح جزء من المنصة؟";
 
-  // —— شرح المنصة ——
-  if(/ازاي|كيف|فين|مش فاهم|ايه هو|يعني ايه/.test(s)){
+  // —— دليل المنصة الشامل ——
+  if(/ازاي|كيف|فين|مش فاهم|ايه هو|يعني ايه|شرح|استخدام|استخدم/.test(s)){
     if(/امتحان|اختبار/.test(s))
-      return hi+"**الامتحانات:** من «المواد» اختار المادة → امتحان → ابدأ. في وقت محفوظ، ومحاولتين غالبًا. بعد التسليم تشوف درجتك. لو وقفت في النص: «حفظ وخرج» وترجع تكمل.";
+      return hi+"**الامتحانات:**\n1) من الشريط تحت → **المواد**\n2) اختار المادة → اختار امتحان → **ابدأ**\n3) جاوب، والشريط فوق بيحسب الوقت\n4) **تسليم** في الآخر\n\n• غالبًا **محاولتين** لكل امتحان\n• تقدر **حفظ وخرج** وترجع تكمل من نفس الجهاز\n• الخروج من الصفحة أثناء الامتحان بيتسجّل عند المدرس\n• بعد التسليم: درجتك + مراجعة الإجابات";
     if(/تقييم|حل|نموذج/.test(s))
-      return hi+"**التقييمات:** من الصفحة الرئيسية → التقييمات. فيها نماذج وحلول لما الأدمن يفتح الحل.";
-    if(/لعبه|غرف|روبوت/.test(s))
-      return hi+"**الألعاب:** تبويب الألعاب تحت. ضد روبوت من اللعبة نفسها، أو غرفة مع أصحابك (إنشاء/انضمام بكود).";
-    if(/شات|جروب|تواصل|رسايل/.test(s))
-      return hi+"**التواصل:** تبويب تواصل — محادثات خاصة وجروبات. تقدر تبعت نص/صورة/صوت، وفي مكالمة صوت 📞 من الشات.";
-    if(/فضي|كتب|xp|نقط|لفل|حسابي|ملف/.test(s))
-      return hi+"من **حسابي**: صورتك، XP، الألقاب، الستريك، ومساعد 么.\n**الكتب** من الرئيسية للتحميل.\n**فضايح** لقطات بعد موافقة الأدمن.";
-    if(/منصه|التفوق|استخدم|تنزيل|تطبيق|apk/.test(s))
-      return hi+"منصة التفوق للامتحانات والتقييمات والألعاب والتواصل. تقدر تثبّتها كتطبيق من زر التحميل أو من قائمة المتصفح.";
+      return hi+"**التقييمات:** من الرئيسية → التقييمات. فيها ملفات/نماذج. الحل يظهر لما الأدمن يفتحه. مش زي الامتحان المتزمن — للتمرين والمراجعة.";
+    if(/لعبه|العاب|غرف|روبوت|كويز|battle|غرفة/.test(s))
+      return hi+"**الألعاب:** تبويب الألعاب تحت.\n• ضد **روبوت** من اللعبة نفسها\n• **غرفة** مع أصحابك: إنشاء → كود → التانيين ينضموا بنفس الكود\n• في الشات داخل الغرفة، وترتيب نقاط في الآخر";
+    if(/شات|جروب|تواصل|رسايل|محادث|مكلمه|اتصال/.test(s))
+      return hi+"**التواصل:** تبويب تواصل.\n• محادثات **خاصة** مع طالب أو المدرس\n• **جروبات**\n• نص / صورة / صوت\n• **مكالمة صوتية** 📞 من الشات\n• الاسم الظاهر في الشات ممكن يختلف عن اسم الحساب (والمدرس يشوف الاثنين)";
+    if(/فضايح|كتب|xp|نقط|لفل|حسابي|ملف|صوره|ستريك|لقب/.test(s))
+      return hi+"**حسابي:** صورتك، XP، الألقاب، الستريك، وتغيير كلمة السر.\n**الكتب:** من الرئيسية للتحميل/المراجعة.\n**فضايح:** لقطات بعد موافقة الأدمن.\n**XP:** بتجيب من الامتحانات والنشاط — كل ما زادت قربت للقب أعلى.";
+    if(/نسيت|كلمة سر|باسورد|password|دخول|تسجيل|حساب جديد/.test(s))
+      return hi+"**تسجيل الدخول:** رقم الموبايل + كلمة السر.\n**حساب جديد:** من شاشة الدخول → إنشاء حساب.\n**نسيت كلمة السر:** كلّم المدرس من واتساب/المنصة وهو يقدر يعيّن لك كلمة سر جديدة من لوحة التحكم.\nمن **حسابي** وأنت داخل تقدر تغيّر كلمة سرك بنفسك.";
+    if(/وضع|ليلي|نهاري|ثيم|الوان/.test(s))
+      return hi+"من زر القمر/الشمس فوق تغيّر الوضع الليلي والنهاري. الاختيار بيتخزن على جهازك.";
+    if(/تنزيل|تطبيق|apk|تثبيت|pwa/.test(s))
+      return hi+"تقدر تثبّت المنصة كتطبيق:\n• من زر التحميل لو ظهر\n• أو من قائمة المتصفح → **إضافة إلى الشاشة الرئيسية**\nهتشتغل زي التطبيق من غير متجر.";
+    if(/ادمن|مدرس|لوحة/.test(s) && S.isAdmin)
+      return hi+"**لوحة الأدمن:** إحصائيات، امتحانات، طلاب، نتائج، تنبيهات، شات، كتب، إعدادات، وربط المساعد.\nمن ملف الطالب: حظر، شات، وتعيين كلمة سر جديدة.";
+    if(/منصه|التفوق|ساعد|مساعد|么/.test(s))
+      return hi+"منصة **التفوق**: امتحانات متزمنة، تقييمات، ألعاب، شات، كتب، XP، ومساعد 么.\nاسأل عن أي تبويب أو خطوة بالتفصيل.";
   }
 
-  // —— بحث في الامتحانات (أسئلة + إجابات) ——
+  // —— بحث في الامتحانات ——
   const exams=(S.exams||[]).filter(e=>vis(e)||S.isAdmin);
   const qTokens=s.split(/\s+/).filter(w=>w.length>2);
   let examHits=[];
   for(const e of exams){
     const list=Array.isArray(e.questions)?e.questions:[];
-    // parse if string bank
-    let items=list;
-    if(!items.length&&e.raw){
-      // skip heavy
-    }
     for(let i=0;i<(list.length||0);i++){
       const qq=list[i];
-      if(!qq)continue;
+      if(!qq||qq.fun)continue;
       const qt=normalizeAr(qq.q||qq.question||"");
       const opts=(qq.o||qq.options||[]).map(x=>normalizeAr(String(x))).join(" ");
       let score=0;
       for(const w of qTokens){if(qt.includes(w))score+=2;if(opts.includes(w))score+=1}
       if(score>=3){
         const ansIdx=typeof qq.a==="number"?qq.a:(typeof qq.answer==="number"?qq.answer:-1);
-        const ansTxt=ansIdx>=0&&(qq.o||qq.options)?(qq.o||qq.options)[ansIdx]:"";
-        examHits.push({score,title:e.title,subject:e.subject,q:qq.q||qq.question,ans:ansTxt,i:i+1});
+        const optsArr=qq.o||qq.options||[];
+        const ansTxt=ansIdx>=0&&optsArr[ansIdx]!=null?String(optsArr[ansIdx]):(qq.model||"");
+        examHits.push({score,exam:e.title||"",q:qq.q||qq.question||"",ans:ansTxt,opts:optsArr});
       }
     }
   }
   examHits.sort((a,b)=>b.score-a.score);
   if(examHits.length){
-    const top=examHits.slice(0,3);
-    let out=hi+"لقيت في امتحانات المنصة:\n\n";
-    top.forEach(h=>{
-      out+="📝 **"+h.title+"**"+(h.subject?" · "+(typeof subName==="function"?subName(h.subject):h.subject):"")+"\n";
-      out+="س"+(h.i)+": "+String(h.q||"").slice(0,180)+"\n";
+    let out=hi+"لقيت أسئلة قريبة من امتحانات المنصة:\n\n";
+    examHits.slice(0,3).forEach((h,i)=>{
+      out+="**"+(i+1)+". من «"+h.exam+"»:**\n"+String(h.q).slice(0,180)+"\n";
       if(h.ans)out+="✅ الإجابة: "+h.ans+"\n";
       out+="\n";
     });
@@ -1854,25 +1864,27 @@ function aiLocalReply(q){
         if(raw.length>idx+450)snippet+="…";
       }
     }
-    if(best&&bestScore>=2){
+    if(best&&bestScore>=2)
       return hi+"من كتاب **"+best.title+"**:\n\n"+snippet+"\n\nعايز تفصيل أكتر من نفس الكتاب؟";
-    }
   }
 
-  // منهج أساسي
+  // منهج أساسي مختصر
   if(/معلق/.test(s))
-    return hi+"المعلقات: قصائد طوال من أجود الشعر الجاهلي (امرؤ القيس، زهير، طرفة، لبيد، عنترة، الحارث، عمرو بن كلثوم). تسمية مرتبطة بالتعلق أو التعليق على الكعبة حسب الآراء.";
+    return hi+"المعلقات: قصائد طوال من أجود الشعر الجاهلي (امرؤ القيس، زهير، طرفة، لبيد، عنترة، الحارث، عمرو بن كلثوم).";
   if(/جاهل|عصر جاهل/.test(s))
-    return hi+"العصر الجاهلي قبل الإسلام ~قرن ونصف. الجهالة = فعل القبيح بعلم، مش الجهل بالقراءة فقط. أدب: شعر ونثر.";
+    return hi+"العصر الجاهلي قبل الإسلام ~قرن ونصف. أدب: شعر ونثر. الجهالة هنا بمعنى فعل القبيح بعلم.";
   if(/اذاكر|مذاكر/.test(s))
-    return hi+"ذاكر جزء → حل أسئلة عليه من المنصة → راجع الغلط → كرّر تاني يوم. استخدم الامتحانات كاختبار زمني.";
-
+    return hi+"ذاكر جزء → حل أسئلة من المنصة → راجع الغلط → كرّر تاني يوم. استخدم الامتحانات كاختبار زمني.";
   if(/كتاب|كتب/.test(s)){
     const n=(S.books||[]).length;
     return n?hi+"الكتب المتاحة:\n"+(S.books||[]).map(b=>"• "+b.title).join("\n")+"\nاسأل عن عنوان معيّن لو النص متسجّل عندي.":hi+"لسه مفيش كتب بنص للمراجعة. الأدمن يضيف الكتاب + ملخصه من لوحة الكتب.";
   }
+  if(/امتحان|امتحانات/.test(s)){
+    const visEx=exams.filter(e=>vis(e));
+    return visEx.length?hi+"في امتحانات متاحة زي:\n"+visEx.slice(0,8).map(e=>"• "+(e.title||"")+" ("+(e.subject||"")+")").join("\n")+"\nمن **المواد** تقدر تبدأ.":hi+"مفيش امتحانات ظاهرة لك دلوقتي. لو المدرس لسه ما نشرش، استنى أو كلّمه.";
+  }
 
-  return hi+"أنا 么 — دورّت في الامتحانات والكتب المتاحة وما لقيتش تطابق قوي.\nجرّب:\n• نص سؤال من امتحان\n• اسم درس أو كتاب\n• «ازاي أبدأ امتحان؟»\nولو المدرس مفعّل الرابط الذكي، الإجابات بتبقى أوسع.";
+  return hi+"أنا 么 — دورّت في الامتحانات والكتب المتاحة وما لقيتش تطابق قوي.\nجرّب:\n• نص سؤال من امتحان\n• اسم درس أو كتاب\n• «ازاي أبدأ امتحان؟» / «ازاي الشات؟» / «ازاي الألعاب؟»\nولو المدرس مفعّل الرابط الذكي، الإجابات بتبقى أوسع.";
 }
 
 function booksView(){
@@ -2344,7 +2356,18 @@ function studentDetail(){
   return `<div class="wrap wide">${header(`<button class="btn ghost sm" data-act="backAdmin">رجوع</button>`)}
 <div class="card"><div class="row" style="flex-wrap:nowrap;gap:14px;justify-content:flex-start"><div class="av">${esc((s.name||"؟").trim().charAt(0))}</div>
 <div style="flex:1"><h2 style="margin:0">${esc(s.name)} ${s.blocked?pill("موقوف","r"):pill("نشط","g")}</h2><div class="mut" dir="auto">${esc(s.phone)}</div></div></div>
-<div class="row" style="margin-top:12px;justify-content:flex-start">${s.phone?`<a class="btn ghost sm" href="tel:${esc(s.phone)}">📞 اتصال</a>`:""}${wa?`<a class="btn ghost sm" href="${wa}" target="_blank" rel="noopener">💬 واتساب</a>`:""}<button class="btn ${s.blocked?"":"danger"} sm" data-act="${s.blocked?"unblock":"block"}" data-id="${s.id}">${s.blocked?"فك الحظر":"حظر"}</button></div></div>
+<div class="row" style="margin-top:12px;justify-content:flex-start">${s.phone?`<a class="btn ghost sm" href="tel:${esc(s.phone)}">📞 اتصال</a>`:""}${wa?`<a class="btn ghost sm" href="${wa}" target="_blank" rel="noopener">💬 واتساب</a>`:""}<button class="btn ${s.blocked?"":"danger"} sm" data-act="${s.blocked?"unblock":"block"}" data-id="${s.id}">${s.blocked?"فك الحظر":"حظر"}</button>
+<button class="btn ghost sm" data-act="adminResetPass" data-id="${s.id}" data-phone="${esc(s.phone||"")}">🔑 كلمة سر جديدة</button></div></div>
+<div class="card" id="resetPassBox" style="display:none"><h3>تعيين كلمة سر جديدة</h3>
+<p class="mut">للإيميل في Firebase: <b dir="ltr">${esc((s.phone||"")+"@eltafawoq.app")}</b></p>
+<label class="f">كلمة السر الجديدة (6+)</label>
+<input id="adminNewPw" class="ltr" type="text" minlength="6" placeholder="مثلاً 123456" autocomplete="off">
+<div class="row" style="margin-top:10px;justify-content:flex-start;gap:8px">
+<button class="btn sm" data-act="adminResetPassGo" data-id="${s.id}" data-phone="${esc(s.phone||"")}">حفظ كلمة السر</button>
+<button class="btn ghost sm" type="button" onclick="document.getElementById('resetPassBox').style.display='none'">إلغاء</button>
+</div>
+<p class="mut" style="margin-top:8px">لو ظهرت رسالة إن التغيير من الكونسول: Firebase → Authentication → Users → دور على الإيميل فوق → Reset password / Edit.</p>
+</div>
 <div class="card"><h3>بيانات الحساب</h3>
 <div class="tl"><span>🆕</span><span>تاريخ التسجيل: <b>${fmt(s.createdAt)||"-"}</b></span></div>
 <div class="tl"><span>🔑</span><span>آخر دخول: <b>${fmt(s.lastLogin)||"-"}</b></span></div>
@@ -2685,6 +2708,40 @@ const A={
     }catch(e){toast("فشل الحظر")}
   },
   openMe(){S.view="me";render(true)},
+  adminResetPass(d){
+    const box=document.getElementById("resetPassBox");
+    if(box){box.style.display=box.style.display==="none"?"block":"none";const inp=$("#adminNewPw");if(inp){inp.value="";inp.focus()}}
+  },
+  async adminResetPassGo(d){
+    if(!S.isAdmin)return;
+    const pw=($("#adminNewPw")&&$("#adminNewPw").value||"").trim();
+    const phone=(d.phone||"").trim();
+    const uid=d.id;
+    if(!pw||pw.length<6){toast("كلمة السر 6 حروف أو أرقام على الأقل");return}
+    if(!phone){toast("مفيش رقم للطالب");return}
+    const email=phone+"@eltafawoq.app";
+    // 1) لو في Cloud Function / endpoint مخصص
+    const url=(S.site&&(S.site.resetPassUrl||S.site.aiUrl))||"";
+    if(url&&S.site&&S.site.resetPassUrl){
+      try{
+        toast("جاري التعيين…");
+        const r=await fetch(S.site.resetPassUrl,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid,email,password:pw,adminEmail:ADMIN_EMAIL})});
+        if(r.ok){toast("اتعيّنت كلمة السر الجديدة ✓",true);const box=document.getElementById("resetPassBox");if(box)box.style.display="none";return}
+        const t=await r.text();console.warn(t);
+      }catch(e){console.error(e)}
+    }
+    // 2) محاولة عبر Identity Toolkit (بتحتاج صلاحيات محدودة — غالبًا هتفشل من المتصفح)
+    try{
+      const apiKey=(typeof firebaseConfig!=="undefined"&&firebaseConfig.apiKey)||"";
+      // حفظ ملاحظة للأدمن في ملف الطالب
+      await updateDoc(doc(db,"students",uid),{passNote:"طُلب تعيين كلمة سر في "+new Date().toLocaleString("ar-EG"),passNoteAt:serverTimestamp()});
+    }catch(e){}
+    // 3) تعليمات Firebase Console + نسخ الإيميل
+    try{await navigator.clipboard.writeText(email)}catch(e){}
+    toast("اتنسخ الإيميل. افتح Firebase Authentication وعيّن كلمة السر هناك",true);
+    const go=confirm("فتح Firebase Console الآن؟\\nUsers → ابحث عن:\\n"+email);
+    if(go) window.open("https://console.firebase.google.com/project/eltafawoq-8b700/authentication/users","_blank");
+  },
   openAI(){S.view="ai";S.aiMsgs=S.aiMsgs||[{role:"bot",text:"أهلاً! أنا 么 🤖\nمساعد منصة التفوق.\nأقدر: أشرح دروس، أراجع أسئلة من الامتحانات/الكتب، وأوضّح استخدام المنصة.\nاسأل بأي صيغة — ولو السؤال ناقص هطلب توضيح."}];render(true)},
   async aiSend(){
     const inp=$("#aiIn");const q=(inp&&inp.value||"").trim();
