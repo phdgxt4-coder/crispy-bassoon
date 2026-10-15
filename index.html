@@ -314,6 +314,16 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 .audio-speed{display:inline-flex;gap:4px;margin-top:4px}
 .audio-speed button{font-size:11px;padding:2px 8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:inherit;cursor:pointer}
 
+
+.msg-reacts{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.msg-reacts button,.react-add{border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:2px 8px;font-size:13px;cursor:pointer}
+.msg-reacts button.on{background:var(--sel);border-color:var(--pri)}
+.confetti-layer{position:fixed;inset:0;pointer-events:none;z-index:200;overflow:hidden}
+.confetti-piece{position:absolute;width:8px;height:14px;top:-20px;animation:fall 2.8s linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+.book-card{display:flex;gap:12px;align-items:center}
+.book-card .ico{font-size:28px}
+
 </style>
 </head>
 <body>
@@ -688,13 +698,15 @@ S.isAdmin=u.email===ADMIN_EMAIL;S.adminLogin=false;S.error="";
     if(S.isAdmin){
       S.view="admin";S.tab="dash";
       let f1=true,f2=true,f3=true;
-      subs.push(onSnapshot(collection(db,"exams"),s=>{S.exams=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));render()}));
+      subs.push(onSnapshot(collection(db,"exams"),s=>{try{if(S.exams&&S.exams.length)localStorage.setItem("exams_cache_v1",JSON.stringify(S.exams.map(e=>({id:e.id,title:e.title,subject:e.subject,minutes:e.minutes,passMark:e.passMark,published:e.published}))))}catch(_){}
+      S.exams=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));render()}));
       subs.push(onSnapshot(query(collection(db,"results"),orderBy("createdAt","desc")),s=>{
         if(!f1)s.docChanges().forEach(c=>{if(c.type==="added"&&c.doc.data().createdAt){const r=c.doc.data();toast(`${r.name} امتحن ${r.examTitle} (محاولة ${r.attempt||1}) وجاب ${r.score}/${r.total}`,true);if(S.tab!=="results"){S.unread++;updTitle()}}});
         f1=false;S.results=s.docs.map(d=>({id:d.id,...d.data()}));render();
       }));
       subs.push(onSnapshot(collection(db,"assessments"),s=>{S.asms=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));render()}));
       subs.push(onSnapshot(query(collection(db,"fadaye7"),limit(40)),s=>{S.fadaye7=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt));if(S.view==="admin"&&S.tab==="fadaye7")render();}));
+      subs.push(onSnapshot(query(collection(db,"books"),limit(50)),s=>{S.books=s.docs.map(d=>({id:d.id,...d.data()}));if((S.view==="admin"&&S.tab==="books")||S.view==="books"||S.view==="home")render();}));
       subs.push(onSnapshot(collection(db,"students"),s=>{S.students=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));render()}));
       subs.push(onSnapshot(query(collection(db,"alerts"),orderBy("createdAt","desc"),limit(200)),s=>{
         if(!f2)s.docChanges().forEach(c=>{if(c.type==="added"&&c.doc.data().createdAt){const a=c.doc.data();toast(`⚠ ${a.name} (${a.phone}) خرج من الامتحان: ${a.examTitle}`,true);if(S.tab!=="alerts"){S.unreadAlerts++;updTitle()}}});
@@ -833,7 +845,7 @@ function render(force){
     h=S.view==="editExam"?editor():S.view==="editAsm"?asmEditor():S.view==="studentDetail"?studentDetail():S.view==="review"?reviewView():adminView();
   }else if(S.profile&&S.profile.blocked){h=blockedView()}
   else{
-    const m={games:gamesView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View,groups:groupsView,groupThread:groupThreadView,ai:aiView};
+    const m={games:gamesView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View,groups:groupsView,groupThread:groupThreadView,ai:aiView,books:booksView};
     h=(m[S.view]||homeView)();
   }
   app.innerHTML=h;
@@ -896,7 +908,7 @@ function homeView(){
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="logout">خروج</button>`)}
 <h2>أهلاً يا ${esc(S.profile.name.split(" ")[0])}</h2><p class="mut">اختار المادة اللي عايز تمتحن فيها.</p>${inst||""}${an}${resume}
 <div class="grid">${S.examsLoaded?SUBJECTS.map(s=>{const l=ex.filter(e=>e.subject===s.id),done=l.filter(e=>(S.attempts[e.id]||[]).length).length,p=l.length?Math.round(done/l.length*100):0;
-  return `<button class="subj" style="background:linear-gradient(135deg,${s.c},${s.c2})" data-act="openSubject" data-id="${s.id}"><span class="g">${s.g}</span><b>${s.name}</b><small>${l.length?l.length+" امتحان · خلصت "+done:"مفيش امتحانات لسه"}</small><div class="sp"><i style="--w:${p}%"></i></div></button>`}).join("")+`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#0B5D57)" data-act="openAsms"><span class="g">A+</span><div><b>التقييمات</b><br><small>${S.asms.length?S.asms.length+" تقييم · حلول ونماذج":"مفيش تقييمات لسه"}</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#166534,#B45309)" data-act="openGames"><span class="g">🎮</span><div><b>الألعاب</b><br><small>العب ضد الروبوت أو ضد صاحبك</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#9D174D,#BE185D)" data-act="openFadaye7"><span class="g">😂</span><div><b>فضايح</b><br><small>${(S.fadaye7||[]).length?(S.fadaye7.length)+" لقطة":"صور وفيديوهات من الأدمن"}</small></div></button>`:SUBJECTS.map(()=>`<div class="sk"></div>`).join("")}</div>
+  return `<button class="subj" style="background:linear-gradient(135deg,${s.c},${s.c2})" data-act="openSubject" data-id="${s.id}"><span class="g">${s.g}</span><b>${s.name}</b><small>${l.length?l.length+" امتحان · خلصت "+done:"مفيش امتحانات لسه"}</small><div class="sp"><i style="--w:${p}%"></i></div></button>`}).join("")+`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#0B5D57)" data-act="openAsms"><span class="g">A+</span><div><b>التقييمات</b><br><small>${S.asms.length?S.asms.length+" تقييم · حلول ونماذج":"مفيش تقييمات لسه"}</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#166534,#B45309)" data-act="openGames"><span class="g">🎮</span><div><b>الألعاب</b><br><small>العب ضد الروبوت أو ضد صاحبك</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#9D174D,#BE185D)" data-act="openFadaye7"><span class="g">😂</span><div><b>فضايح</b><br><small>${(S.fadaye7||[]).length?(S.fadaye7.length)+" لقطة":"صور وفيديوهات من الأدمن"}</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#1e3a5f,#0B5D57)" data-act="openBooks"><span class="g">📚</span><div><b>الكتب</b><br><small>PDF وملفات للتحميل</small></div></button>`:SUBJECTS.map(()=>`<div class="sk"></div>`).join("")}</div>
 </div>${studentNav()}`}
 function subjectView(){
   const s=SUBJECTS.find(x=>x.id===S.subject),ex=S.exams.filter(e=>e.subject===s.id&&vis(e));
@@ -953,11 +965,41 @@ function reviewView(){
 ${!e?`<div class="card mut">الامتحان ده اتمسح أو اتخفى، فمش هقدر أعرض الأسئلة.</div>`:!r.ans?`<div class="card mut">مفيش حل محفوظ للمحاولة دي.</div>`:!showAns?`<div class="card mut">المدرس مقفل عرض الإجابات الصحيحة للامتحان ده.</div>`:reviewBody(r,e)}
 </div>`}
 
+
+function celebratePerfect(){
+  try{if(navigator.vibrate)navigator.vibrate([40,30,40,30,80])}catch(_){}
+  try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const notes=[523,659,784,1046];
+    notes.forEach((f,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type="sine";o.frequency.value=f;g.gain.value=0.06;
+      o.connect(g);g.connect(ctx.destination);
+      o.start(ctx.currentTime+i*0.12);o.stop(ctx.currentTime+i*0.12+0.2);
+    });
+  }catch(_){}
+  const layer=document.createElement("div");layer.className="confetti-layer";
+  const colors=["#0B5D57","#F5C542","#E85D4C","#3B82F6","#22C55E","#fff"];
+  for(let i=0;i<48;i++){
+    const p=document.createElement("i");p.className="confetti-piece";
+    p.style.left=(Math.random()*100)+"%";
+    p.style.background=colors[i%colors.length];
+    p.style.animationDelay=(Math.random()*0.8)+"s";
+    p.style.borderRadius=Math.random()>0.5?"50%":"2px";
+    layer.appendChild(p);
+  }
+  document.body.appendChild(layer);
+  setTimeout(()=>layer.remove(),3500);
+  toast("🏆 مبروك 100%!",true);
+}
+
 function resultView(){
   const r=S.last,p=pctOf(r),left=MAX_ATTEMPTS-(S.attempts[r.examId]||[]).length;
   const st=p>=90?3:p>=70?2:p>=50?1:0;
+  const perfect=r.total>0&&r.score===r.total;
+  if(perfect&&!r._celebrated){r._celebrated=true;setTimeout(celebratePerfect,300)}
   return `<div class="wrap">${header()}
-<div class="card" style="text-align:center;padding:24px 16px"><div class="mut">${esc(r.examTitle)} · محاولة ${r.attempt}</div>
+<div class="card" style="text-align:center;padding:24px 16px${perfect?";border-color:var(--gold);box-shadow:0 0 0 2px color-mix(in srgb,var(--gold) 40%,transparent)":""}"><div class="mut">${esc(r.examTitle)} · محاولة ${r.attempt}${perfect?" · 💯":""}</div>
 <div class="ring"><svg viewBox="0 0 120 120" width="150" height="150"><circle class="bg" cx="60" cy="60" r="54"/><circle class="fg" id="fg" cx="60" cy="60" r="54"/></svg><b id="sc">0</b></div>
 <div class="stars">${[1,2,3].map(i=>`<span class="${i<=st?"":"off"}">★</span>`).join("")}</div>
 <div class="mut">من ${r.total} · ${p}% ${passPill(r)}</div>
@@ -1235,7 +1277,7 @@ function profileView(){
   </div>
 </div>
 ${u.recent&&u.recent.length?`<div class="card"><h3>آخر النتائج</h3>${u.recent.map(r=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><span style="flex:1"><b dir="auto">${esc(r.examTitle||"امتحان")}</b><div class="mut">${esc(subName(r.subject)||"")}</div></span><span><b>${r.score}/${r.total}</b> ${passPill(r)}</span></div>`).join("")}</div>`:`<div class="card mut">لسه مفيش نتائج ظاهرة.</div>`}
-${u.id===S.user.uid?`<button class="btn block ghost" data-act="openMe">تعديل حسابي</button>`:`<button class="btn block gold" data-act="startChat" data-uid="${u.id}" data-name="${esc(u.name||"طالب")}">💬 راسله دلوقتي</button>`}
+${u.id===S.user.uid?`<button class="btn block ghost" data-act="openMe">تعديل حسابي</button>`:`<button class="btn block gold" data-act="startChat" data-uid="${u.id}" data-name="${esc(u.name||"طالب")}">💬 راسله دلوقتي</button><button class="btn block ghost" style="margin-top:8px" data-act="blockUser" data-uid="${u.id}">🚫 حظر</button>`}
 </div>${studentNav()}`;
 }
 
@@ -1313,6 +1355,18 @@ ${tab==="dms"?`
 </div>${studentNav()}`;
 }
 
+
+const REACT_EMOJI=["❤️","😂","🔥","👍","👏","😮"];
+function reactsHtml(col, id, reacts, mine){
+  const r=reacts||{};
+  const chips=Object.keys(r).filter(k=>(r[k]||[]).length).map(k=>{
+    const n=(r[k]||[]).length, on=(r[k]||[]).includes(S.user&&S.user.uid);
+    return `<button type="button" class="${on?"on":""}" data-act="toggleReact" data-col="${col}" data-id="${id}" data-emoji="${k}">${k} ${n}</button>`;
+  }).join("");
+  const add=`<button type="button" class="react-add" data-act="pickReact" data-col="${col}" data-id="${id}">+</button>`;
+  return `<div class="msg-reacts">${chips}${add}</div>`;
+}
+
 function chatThreadView(){
   const t=S.chatThread;if(!t)return chatListView();
   const msgs=S.chatMsgs||[];
@@ -1335,6 +1389,7 @@ function chatThreadView(){
       ${m.img?mediaEmbed(m.img,m.kind):""}
       ${m.roomCode?`<button class="btn sm gold" style="margin-top:6px" data-act="qbJoinInvite" data-code="${esc(m.roomCode)}">دخول الغرفة</button>`:""}
       <span class="when">${m.createdAt?fmt(m.createdAt):""}</span>
+      ${reactsHtml("dm",m.id,m.reacts)}
     </div>`;
   }).join(""):`<div class="mut" style="text-align:center;margin:auto">قول سلام 👋</div>`}</div>
 </div>
@@ -1413,6 +1468,39 @@ ${(p.badges||[]).length?`<div style="margin-top:10px;display:flex;flex-wrap:wrap
 </div>
 <button class="btn ghost block" data-act="logout">تسجيل خروج</button>
 </div>${studentNav()}`}
+
+
+function booksView(){
+  const list=S.books||[];
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
+<h2>📚 الكتب</h2>
+<p class="mut">ملفات وكتب للتحميل أو الفتح على الموبايل</p>
+${list.length?list.map(b=>`<div class="card book-card">
+  <div class="ico">${b.kind==="pdf"?"📄":"📘"}</div>
+  <div style="flex:1;min-width:0"><b>${esc(b.title||"كتاب")}</b>
+  <div class="mut">${esc(b.subject||"")} ${b.size?("· "+b.size):""}</div></div>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <a class="btn sm" href="${esc(b.url)}" target="_blank" rel="noopener">فتح</a>
+    <a class="btn ghost sm" href="${esc(b.url)}" download="${esc(b.title||"book")}.pdf">⬇ تنزيل</a>
+  </div>
+</div>`).join(""):`<div class="card mut">لسه مفيش كتب — الأدمن هيضيف قريب.</div>`}
+</div>${studentNav()}`;
+}
+function adminBooks(){
+  const list=S.books||[];
+  return `<div class="row" style="margin-bottom:12px"><div class="mut">${list.length} كتاب</div></div>
+<div class="card"><h3 style="margin-top:0">إضافة كتاب / ملف</h3>
+<label class="f">العنوان</label>
+<input id="bookTitle" type="text" maxlength="80" placeholder="مثال: ملخص الأدب الجاهلي">
+<label class="f">المادة (اختياري)</label>
+<input id="bookSub" type="text" maxlength="40" placeholder="عربي">
+<label class="f">رابط الملف (Drive / PDF مباشر)</label>
+<input id="bookUrl" class="ltr" type="url" placeholder="https://…">
+<button class="btn" style="margin-top:10px" data-act="addBook">إضافة</button>
+</div>
+${list.map(b=>`<div class="card row"><div style="flex:1"><b>${esc(b.title)}</b><div class="mut">${esc(b.url||"").slice(0,40)}…</div></div>
+<button class="btn danger sm" data-act="delBook" data-id="${b.id}">حذف</button></div>`).join("")}`;
+}
 
 function fadaye7View(){
   const uid=S.user&&S.user.uid;
@@ -1520,12 +1608,12 @@ const NOW=()=>Date.now();
 const liveActive=()=>S.starts.filter(x=>NOW()-(x.seen||x.t)<150000);
 function adminView(){
   const t=S.tab;
-  const tabs=[["dash","الرئيسية"],["live","مباشر"],["status","حالة المنصة"],["activity","نشاط المنصة"],["exams","الامتحانات"],["asm","التقييمات"],["fadaye7","فضايح 😂"],["students","الطلاب"],["results","النتايج"],["alerts","التنبيهات"],["settings","الإعدادات"]];
+  const tabs=[["dash","الرئيسية"],["live","مباشر"],["status","حالة المنصة"],["activity","نشاط المنصة"],["exams","الامتحانات"],["asm","التقييمات"],["fadaye7","فضايح 😂"],["books","الكتب"],["students","الطلاب"],["results","النتايج"],["alerts","التنبيهات"],["settings","الإعدادات"]];
   const bd={results:S.unread,alerts:S.unreadAlerts,live:liveActive().length};
   return `<div class="wrap wide">${header(`${pill("أدمن","i")}<button class="btn ghost sm" data-act="logout">خروج</button>`)}
 ${S.site.maintenance?`<div class="err" style="margin:0 0 12px">وضع الصيانة شغّال. الطلاب شايفين "المنصة تحت التعديل".</div>`:""}
 <div class="tabs">${tabs.map(([k,v])=>`<button class="tab ${t===k?"on":""}" data-act="tab" data-id="${k}">${v}${bd[k]?`<span class="badge">${bd[k]}</span>`:""}</button>`).join("")}</div>
-${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,students:adminStudents,results:adminResults,alerts:adminAlerts,settings:adminSettings}[t])()}
+${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,settings:adminSettings}[t])()}
 ${t==="exams"?`<button class="fab" data-act="newExam" aria-label="امتحان جديد">+</button>`:""}</div>`}
 const chart=(days,vals,cls)=>{const mx=Math.max(1,...vals);return `<div class="bars">${vals.map((v,i)=>`<div>${v||""}<i class="${cls||""}" style="height:${Math.max(3,v/mx*68)}%"></i><span>${days[i].l}</span></div>`).join("")}</div>`};
 
@@ -1831,12 +1919,19 @@ ${rows.map(r=>`<tr><td><a href="#" data-act="student" data-id="${r.uid}" style="
 <p class="mut">زرار "حذف" بيمسح المحاولة دي ويرجّع للطالب محاولة.</p>`:`<div class="card mut">لسه مفيش حد امتحن.</div>`}`}
 
 function adminAlerts(){
+  /* إشعار جماعي من الإعدادات أيضًا */
+
   return `<p class="mut">بتظهر هنا كل مرة طالب يخرج من صفحة الامتحان (يغيّر التبويب أو يفتح تطبيق تاني). ممكن تظهر تنبيه بالغلط لو نزّل شريط الإشعارات أو جاله اتصال.</p>
 ${S.alerts.length?`<div class="tw card" style="padding:0"><table><tr><th>الطالب</th><th>التليفون</th><th>الامتحان</th><th>م</th><th>المرة</th><th>الوقت</th></tr>
 ${S.alerts.map(a=>`<tr><td><a href="#" data-act="student" data-id="${a.uid}" style="color:var(--pri);font-weight:600">${esc(a.name)}</a></td><td dir="ltr">${esc(a.phone)}</td><td>${esc(a.examTitle)}</td><td>${a.attempt||1}</td><td>${pill(a.count,"r")}</td><td>${fmt(a.createdAt)}</td></tr>`).join("")}</table></div>`:`<div class="card mut">مفيش تنبيهات.</div>`}`}
 
 function adminSettings(){
-  return `<div class="card"><h3>وضع الصيانة</h3>
+  const extra=`<div class="card"><h3 style="margin-top:0">إشعار لكل الطلاب</h3>
+  <p class="mut">يبعت إشعار يظهر في «تقدمي»</p>
+  <button class="btn gold" data-act="broadcastNotif">📢 إرسال إشعار جماعي</button></div>`;
+  // ---
+  
+  return extra+`<div class="card"><h3>وضع الصيانة</h3>
 <p class="mut">لما تشغّله، الطلاب بيشوفوا "المنصة تحت التعديل". وإنت تدخل بحساب الأدمن بالضغط 3 مرات على كلمة "التفوق" اللي في نص الشاشة.</p>
 <label class="f" for="mmsg">الرسالة اللي هتظهر للطلاب</label><textarea id="mmsg" style="min-height:90px">${esc(S.site.message||"بنحدّث المنصة دلوقتي. ارجع بعد شوية.")}</textarea>
 <div class="row" style="margin-top:14px"><button class="btn ghost" data-act="rebuildBoard">🏆 بناء لوحة الشرف</button><button class="btn ${S.site.maintenance?"gold":"danger"}" data-act="toggleMaint">${S.site.maintenance?"إيقاف وضع الصيانة":"تشغيل وضع الصيانة"}</button><button class="btn ghost" data-act="saveMsg">حفظ الرسالة بس</button></div></div>
@@ -1985,6 +2080,87 @@ const A={
   },
   audSpeed(d){const el=document.getElementById(d.id);if(el){el.playbackRate=parseFloat(d.r)||1;toast("السرعة ×"+(d.r||1))}},
   async startCall(d){if(!d.uid)return;await startVoiceCall(d.uid,d.name||"زميل")},
+  
+  pickReact(d){
+    const emoji=prompt("اكتب إيموجي للتفاعل:\n"+REACT_EMOJI.join(" "),"❤️");
+    if(!emoji)return;
+    this.toggleReact({...d,emoji:emoji.trim().slice(0,4)});
+  },
+  async toggleReact(d){
+    if(!S.user||!d.id||!d.emoji)return;
+    try{
+      let ref;
+      if(d.col==="dm"&&S.chatThread){
+        const cid=convIdFor(S.user.uid,S.chatThread.uid);
+        ref=doc(db,"conversations",cid,"msgs",d.id);
+      }else if(d.col==="grp"&&S.groupId){
+        ref=doc(db,"groups",S.groupId,"msgs",d.id);
+      }else if(d.col==="qb"&&S.qb&&S.qb.roomCode){
+        ref=doc(db,"qb_rooms",S.qb.roomCode,"chat",d.id);
+      }else return;
+      const snap=await getDoc(ref);
+      if(!snap.exists())return;
+      const reacts={...(snap.data().reacts||{})};
+      const arr=[...(reacts[d.emoji]||[])];
+      const i=arr.indexOf(S.user.uid);
+      if(i>=0)arr.splice(i,1);else arr.push(S.user.uid);
+      if(arr.length)reacts[d.emoji]=arr;else delete reacts[d.emoji];
+      await updateDoc(ref,{reacts});
+    }catch(e){console.error(e);toast("فشل التفاعل")}
+  },
+
+  
+  openBooks(){S.view="books";render(true)},
+  async addBook(){
+    if(!S.isAdmin)return;
+    const title=($("#bookTitle")?.value||"").trim();
+    const url=($("#bookUrl")?.value||"").trim();
+    const subject=($("#bookSub")?.value||"").trim();
+    if(!title||!url){toast("العنوان والرابط مطلوبين");return}
+    if(!/^https?:\/\//i.test(url)){toast("رابط غير صالح");return}
+    try{
+      await addDoc(collection(db,"books"),{title,url,subject,kind:"pdf",createdAt:serverTimestamp()});
+      toast("اتضاف الكتاب ✓",true);
+      if($("#bookTitle"))$("#bookTitle").value="";
+      if($("#bookUrl"))$("#bookUrl").value="";
+    }catch(e){toast("فشل — انشر rules")}
+  },
+  async delBook(d){
+    if(!S.isAdmin||!d.id)return;
+    if(!confirm("حذف الكتاب؟"))return;
+    try{await deleteDoc(doc(db,"books",d.id));toast("اتحذف")}catch(e){toast("فشل")}
+  },
+  async broadcastNotif(){
+    if(!S.isAdmin)return;
+    const msg=prompt("نص الإشعار لكل الطلاب:");
+    if(!msg||!msg.trim())return;
+    try{
+      const st=S.students||[];
+      // إشعار جماعي كمستند واحد + نسخة activity
+      await addDoc(collection(db,"notifications"),{
+        uid:"__all__", broadcast:true, text:msg.trim(),
+        createdAt:serverTimestamp(), fromAdmin:true
+      });
+      // لكل طالب (حد أقصى 50 مرة واحدة لتفادي الضغط)
+      const batch=st.slice(0,80);
+      await Promise.all(batch.map(s=>addDoc(collection(db,"notifications"),{
+        uid:s.id, text:msg.trim(), createdAt:serverTimestamp(), fromAdmin:true, read:false
+      })));
+      toast("اتبعت الإشعار ✓",true);
+    }catch(e){toast("فشل الإرسال")}
+  },
+
+  async blockUser(d){
+    if(!d.uid||d.uid===S.user.uid)return;
+    if(!confirm("حظر الطالب ده؟ مش هيقدر يبعتلك"))return;
+    try{
+      const blocked=[...((S.profile&&S.profile.blockedUsers)||[])];
+      if(!blocked.includes(d.uid))blocked.push(d.uid);
+      await setDoc(doc(db,"students",S.user.uid),{blockedUsers:blocked},{merge:true});
+      if(S.profile)S.profile.blockedUsers=blocked;
+      toast("اتحظر ✓",true);
+    }catch(e){toast("فشل الحظر")}
+  },
   openMe(){S.view="me";render(true)},
   openAI(){S.view="ai";S.aiMsgs=S.aiMsgs||[{role:"bot",text:"أهلاً 👋 أنا مساعد التفوق.\nاسألني عن المذاكرة أو الأدب الجاهلي أو الامتحانات."}];render(true)},
   async aiSend(){
@@ -2262,7 +2438,7 @@ const A={
     const code=qbCode();
     const av=await packTinyAvatar(S.profile&&S.profile.avatar);
     const room={code,host:S.user.uid,hostName:(S.profile.name||"طالب").split(" ")[0],subject,qCount:n,sec,maxPlayers,status:"lobby",seed,qs,game,color:"teal",public:isPublic,
-      players:{[S.user.uid]:{uid:S.user.uid,name:S.profile.name.split(" ")[0],ready:true,score:0,correct:0,wrong:0,streak:0,bestStreak:0,away:false,seen:Date.now(),avatar:av||null}},
+      players:{[S.user.uid]:{uid:S.user.uid,name:S.profile.name.split(" ")[0],ready:true,score:0,correct:0,wrong:0,streak:0,bestStreak:0,away:false,seen:Date.now(),avatar:(S.profile.avatar&&String(S.profile.avatar).startsWith("http")?S.profile.avatar:av)||null}},
       createdAt:serverTimestamp()};
     try{
       await setDoc(doc(db,"qb_rooms",code),room);
@@ -2385,9 +2561,10 @@ const A={
     if(!text)return;
     if(text.length>300){toast("الرسالة طويلة");return}
     try{
-      // من غير avatar في الرسالة — الصورة من players في الغرفة (عشان متكبرش الدوكيومنت)
+      const av=S.profile&&S.profile.avatar&&String(S.profile.avatar).startsWith("http")?S.profile.avatar:null;
       await addDoc(collection(db,"qb_rooms",code,"chat"),{
         uid:S.user.uid,name:(S.profile.name||"طالب").split(" ")[0],
+        avatar:av||null,
         text,createdAt:serverTimestamp()
       });
       if(inp)inp.value="";
@@ -3291,7 +3468,7 @@ ${addPanel}
       ${!mine?`<div style="font-size:11px;opacity:.8">${esc(m.fromName||"?")}</div>`:""}
       ${m.text&&m.kind!=="audio"&&m.kind!=="image"?`<div dir="auto">${esc(m.text)}</div>`:""}
       ${m.img?mediaEmbed(m.img,m.kind):""}
-      <span class="when">${m.createdAt?fmt(m.createdAt):""}</span>
+      <span class="when">${m.createdAt?fmt(m.createdAt):""}</span>${reactsHtml("grp",m.id,m.reacts)}
     </div>`;
   }).join(""):`<div class="mut" style="text-align:center;margin:auto">اول رسالة في الجروب… اكتب تحت 👇</div>`}</div>
 </div>

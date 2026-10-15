@@ -1,5 +1,5 @@
 /* Service Worker — تحديث تلقائي عند فتح التطبيق */
-const CACHE = "eltafawoq-v4";
+const CACHE = "eltafawoq-v5";
 const ASSETS = ["./", "./index.html", "./manifest.json"];
 
 self.addEventListener("install", (e) => {
