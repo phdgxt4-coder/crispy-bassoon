@@ -487,6 +487,24 @@ function ensureFadaye7Listen(){
     if(S.view==="fadaye7")scheduleRender();
   },err=>console.warn("fad",err));
 }
+function ensureBooksListen(){
+  if(window.__bookUnsub||!db)return;
+  window.__bookUnsub=onSnapshot(query(collection(db,"books"),limit(50)),s=>{
+    S.books=s.docs.map(d=>({id:d.id,...d.data()}));
+    try{localStorage.setItem("books_cache_v1",JSON.stringify(S.books.slice(0,40).map(b=>({id:b.id,title:b.title,url:b.url,subject:b.subject}))))}catch(_){}
+    if(S.view==="books"||(S.view==="admin"&&S.tab==="books"))scheduleRender();
+  },err=>console.warn("books",err));
+}
+function ensureAsmsListen(){
+  if(window.__asmUnsub||!db)return;
+  window.__asmUnsub=onSnapshot(collection(db,"assessments"),s=>{
+    const all=s.docs.map(d=>({id:d.id,...d.data()}));
+    if(S.isAdmin)S.asms=all.sort((a,b)=>tms(b)-tms(a));
+    else S.asms=all.filter(a=>a.published).sort((a,b)=>tms(b)-tms(a));
+    if(S.view==="asmList"||S.view==="asm"||S.view==="home"||(S.view==="admin"&&S.tab==="asms"))scheduleRender();
+  },err=>console.warn("asms",err));
+}
+
 function ensureGalleriesListen(){
   if(__galUnsub||!db)return;
   __galUnsub=onSnapshot(query(collection(db,"galleries"),limit(80)),s=>{
@@ -630,8 +648,8 @@ function authErr(e){
 function stopSubs(){
   subs.forEach(u=>{try{u()}catch(_){}});
   subs=[];
-  // قفل أي listener خاص بشاشة
-  ["__dmUnsub","__dmMetaUnsub","__grpUnsub","__grpListUnsub","__chatsUnsub","__openRoomsUnsub","__callListen"].forEach(k=>{
+  // قفل أي listener خاص بشاشة + أقسام lazy
+  ["__dmUnsub","__dmMetaUnsub","__grpUnsub","__grpListUnsub","__chatsUnsub","__openRoomsUnsub","__callListen","__fadUnsub","__galUnsub","__cmtUnsub","__bookUnsub","__asmUnsub"].forEach(k=>{
     try{if(window[k]){window[k]();window[k]=null}}catch(_){}
   });
   try{if(S.qbSub){S.qbSub();S.qbSub=null}}catch(_){}
@@ -1015,14 +1033,9 @@ async function startSession(u){
         f1=false;S.results=s.docs.map(d=>({id:d.id,...d.data()}));
         if(S.view==="admin"&&["dash","results","students","live"].includes(S.tab)){const n=Date.now();if(n-__resT<2000)return;__resT=n;scheduleRender()}
       }));
-      subs.push(onSnapshot(collection(db,"assessments"),s=>{S.asms=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));scheduleRender()}));
-      subs.push(onSnapshot(query(collection(db,"fadaye7"),limit(40)),s=>{S.fadaye7=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt));if(S.view==="admin"&&S.tab==="fadaye7")scheduleRender();}));
+      // assessments: ensureAsmsListen عند تبويب التقييمات
 
-      subs.push(onSnapshot(query(collection(db,"books"),limit(50)),s=>{
-        S.books=s.docs.map(d=>({id:d.id,...d.data()}));
-        try{localStorage.setItem("books_cache_v1",JSON.stringify(S.books.slice(0,40).map(b=>({id:b.id,title:b.title,url:b.url,subject:b.subject}))))}catch(_){}
-        if((S.view==="admin"&&S.tab==="books")||S.view==="books"||S.view==="home")scheduleRender();
-      }));
+      // lazy fadaye7 + books: عند فتح التبويب
       subs.push(onSnapshot(collection(db,"students"),s=>{
         S.students=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));
         if(S.view!=="admin")return;
@@ -1074,12 +1087,8 @@ async function startSession(u){
             scheduleRender();
         }
       }));
-      subs.push(onSnapshot(collection(db,"assessments"),s=>{
-        S.asms=s.docs.map(d=>({id:d.id,...d.data()})).filter(a=>a.published).sort((a,b)=>tms(b)-tms(a));
-        if(S.view==="asmList"||S.view==="asm"||S.view==="home")scheduleRender();
-      }));
-      listenMyChats();
-      // lazy: fadaye7/galleries on open
+      // lazy: assessments / chats / fadaye7 / books / galleries عند فتح القسم فقط
+      // (أول فتح = بروفايل + امتحانات فقط → أسرع)
 
       getIp().then(ip=>{
         updateDoc(doc(db,"students",u.uid),{lastLogin:serverTimestamp(),ip:ip||"",device:device()}).catch(()=>{});
@@ -1130,6 +1139,8 @@ async function startSession(u){
         }
         __seenExams=new Set(list.map(e=>e.id));
         S.examsLoaded=true;S.exams=list;if(["home","subject","exam","search","ai"].includes(S.view))scheduleRender();maybeResume();
+        // بعد ما الامتحانات تستقر: التقييمات في الخلفية (مش على المسار الحرج)
+        try{(window.requestIdleCallback||(f=>setTimeout(f,2500)))(function(){try{if(S.user&&!S.isAdmin)ensureAsmsListen()}catch(_){}})}catch(_){}
       },err=>{console.warn("exams",err);S.exams=Array.isArray(S.exams)?S.exams:[];S.examsLoaded=true;render();}));
       subs.push(onSnapshot(query(collection(db,"results"),where("uid","==",u.uid)),s=>{
         S.myList=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(a)-tms(b));S.attempts=groupAttempts(S.myList);S._resultsReady=true;if(["home","progress","result","me"].includes(S.view))scheduleRender();maybeResume();syncMyLeaderboard();
@@ -3088,7 +3099,7 @@ const A={
 
   
   openAsmAdmin(){S.view="asmAdmin";S.tab="asm";render(true)},
-  openBooks(){S.view="books";render(true)},
+  openBooks(){ensureBooksListen();S.view="books";render(true)},
   async addBook(){
     if(!S.isAdmin)return;
     const title=($("#bookTitle")?.value||"").trim();
@@ -3827,7 +3838,7 @@ const A={
   },
   qbAnswer(d){qbOnAnswer(+d.i)},
 
-  openAsms(){S.view="asmList";render(true)},
+  openAsms(){ensureAsmsListen();S.view="asmList";render(true)},
   
   openGallery(d){
     if(typeof ensureGalleriesListen==="function")ensureGalleriesListen();
@@ -4279,7 +4290,7 @@ const A={
       toast("دخلت الغرفة ✓",true);
     }catch(e){toast("مقدرتش أدخل: "+(e.code||e.message||""))}
   },
-  openAsm(d){S.asm={id:d.id,loading:true,q:[],s:[],solText:""};S.view="asm";render(true);loadAsm(d.id)},
+  openAsm(d){ensureAsmsListen();S.asm={id:d.id,loading:true,q:[],s:[],solText:""};S.view="asm";render(true);loadAsm(d.id)},
   zoom(d,el){
     const o=document.createElement("div");o.className="lb";
     o.innerHTML=`<button class="btn sm" type="button">إغلاق ✕</button><img src="${el.src}" alt="">`;
@@ -4397,7 +4408,18 @@ const A={
     if(endAt&&Date.now()>=endAt){toast("وقت الامتحان كان خلص.");submitExam(true)}
   },
   submit(){submitExam(false)},
-  tab(d){S.tab=d.id;if(d.id==="results")S.unread=0;if(d.id==="alerts")S.unreadAlerts=0;if(d.id==="suspicious"){S.unreadSuspicious=0;(S.suspicious||[]).forEach(x=>{if(!x.seen&&x.id)updateDoc(doc(db,"suspicious",x.id),{seen:true}).catch(()=>{})});}updTitle();render(true)},
+  tab(d){
+    S.tab=d.id;
+    if(d.id==="results")S.unread=0;
+    if(d.id==="alerts")S.unreadAlerts=0;
+    if(d.id==="suspicious"){S.unreadSuspicious=0;(S.suspicious||[]).forEach(x=>{if(!x.seen&&x.id)updateDoc(doc(db,"suspicious",x.id),{seen:true}).catch(()=>{})});}
+    // lazy: حمّل بيانات التبويب عند فتحه فقط
+    if(d.id==="tanagha"&&typeof ensureGalleriesListen==="function")ensureGalleriesListen();
+    if(d.id==="fadaye7"&&typeof ensureFadaye7Listen==="function")ensureFadaye7Listen();
+    if(d.id==="books"&&typeof ensureBooksListen==="function")ensureBooksListen();
+    if((d.id==="asms"||d.id==="assessments")&&typeof ensureAsmsListen==="function")ensureAsmsListen();
+    updTitle();render(true)
+  },
   filter(d,el){S.filter=el.value;render()},
   newExam(){S.editing={id:null,exam:null};S.view="editExam";render(true)},
   editExam(d){S.editing={id:d.id,exam:S.exams.find(e=>e.id===d.id)};S.view="editExam";render(true)},
