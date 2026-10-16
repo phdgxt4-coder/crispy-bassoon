@@ -467,6 +467,25 @@ const tsMs = v => {
 };
 const tms = r => Math.floor(tsMs(r&&(r.createdAt||r.updatedAt||r.lastAt||r))/1000);
 
+let __cmtUnsub=null;
+function ensureCommentsListen(){
+  if(__cmtUnsub||!db)return;
+  try{
+    __cmtUnsub=onSnapshot(query(collection(db,"comments"),orderBy("createdAt","desc"),limit(120)),s=>{
+      S.comments=s.docs.map(d=>({id:d.id,...d.data()}));
+      // تحديث خفيف: لو في صفحة تعليقات فقط
+      if(S.view==="fadaye7"||S.view==="gallery")render();
+    },err=>{
+      console.warn("comments",err);
+      // بدون index: استعلام أبسط
+      if(__cmtUnsub){try{__cmtUnsub()}catch(_){}}
+      __cmtUnsub=onSnapshot(query(collection(db,"comments"),limit(120)),s=>{
+        S.comments=s.docs.map(d=>({id:d.id,...d.data()}));
+        if(S.view==="fadaye7"||S.view==="gallery")render();
+      },e=>console.warn("comments2",e));
+    });
+  }catch(e){console.warn(e)}
+}
 function commentsFor(type,id){
   return (S.comments||[]).filter(c=>c.targetType===type&&c.targetId===id)
     .sort((a,b)=>tsMs(a.createdAt)-tsMs(b.createdAt));
@@ -536,10 +555,9 @@ const S = {asms:[],asm:null,editingAsm:null,logins:{},sq:"",starts:[],examsLoade
   adminLogin:false,mode:"login",error:"",filter:"",unread:0,unreadAlerts:0,registering:false,taps:[],
   qb:null,qbSub:null,qbChatSub:null,qbChat:[],board:[],notifs:[],unreadNotif:0,activity:[],activityLoaded:false,
   fadaye7:[],suspicious:[],adminRooms:[],adminConvs:[]};
-const __seenSplash=(()=>{try{return sessionStorage.getItem("splash_ok")==="1"}catch(_){return false}})();
 // زيارة تانية: مفيش انتظار. أول زيارة: 200ms بس
-const splashUntil=__seenSplash?Date.now():Date.now()+200;
-try{sessionStorage.setItem("splash_ok","1")}catch(_){}
+const splashUntil=Date.now()+2400;
+
 const vis=e=>!e.publishAt||Date.now()>=e.publishAt;
 const todayKey=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
 const dkey=sec=>{const d=new Date(sec*1000);return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
@@ -960,7 +978,7 @@ async function startSession(u){
       }));
       subs.push(onSnapshot(collection(db,"assessments"),s=>{S.asms=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));render()}));
       subs.push(onSnapshot(query(collection(db,"fadaye7"),limit(40)),s=>{S.fadaye7=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt));if(S.view==="admin"&&S.tab==="fadaye7")render();}));
-      subs.push(onSnapshot(query(collection(db,"comments"),limit(200)),s=>{S.comments=s.docs.map(d=>({id:d.id,...d.data()}));},err=>console.warn("comments",err)));
+
       subs.push(onSnapshot(query(collection(db,"books"),limit(50)),s=>{
         S.books=s.docs.map(d=>({id:d.id,...d.data()}));
         try{localStorage.setItem("books_cache_v1",JSON.stringify(S.books.slice(0,40).map(b=>({id:b.id,title:b.title,url:b.url,subject:b.subject}))))}catch(_){}
@@ -1019,10 +1037,7 @@ async function startSession(u){
       listenMyChats();
       subs.push(onSnapshot(query(collection(db,"fadaye7"),limit(40)),s=>{S.fadaye7=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt));if(S.view==="fadaye7"||S.view==="home")render();}));
       subs.push(onSnapshot(query(collection(db,"galleries"),limit(80)),s=>{S.galleries=s.docs.map(d=>({id:d.id,...d.data()}));if(S.view==="gallery"||S.view==="tanagha"||S.view==="home")render();},err=>console.warn("gal",err)));
-      subs.push(onSnapshot(query(collection(db,"comments"),limit(200)),s=>{
-        S.comments=s.docs.map(d=>({id:d.id,...d.data()}));
-        if(S.view==="fadaye7"||S.view==="gallery"||S.view==="tanagha")render();
-      },err=>console.warn("comments",err)));
+
       getIp().then(ip=>{
         updateDoc(doc(db,"students",u.uid),{lastLogin:serverTimestamp(),ip:ip||"",device:device()}).catch(()=>{});
         let ok=true;try{const k="lg_"+u.uid,l=+localStorage.getItem(k)||0;if(Date.now()-l<1800000)ok=false;else localStorage.setItem(k,String(Date.now()))}catch(e){}
@@ -1139,7 +1154,7 @@ if(configured){
         render(true);
       }
     };
-    const w=Math.min(Math.max(0,splashUntil-Date.now()),1200);
+    const w=Math.max(0,splashUntil-Date.now());
     w>0?setTimeout(run,w):run();
   });
   // لو التحميل طول: متودّيش لشاشة الدخول لو في مستخدم
@@ -3624,7 +3639,7 @@ const A={
   openAsms(){S.view="asmList";render(true)},
   
   openTanagha(){S.view="tanagha";render(true)},
-  openGallery(d){S.galleryKind=d.kind||"shilla";S.view="gallery";render(true)},
+  openGallery(d){ensureCommentsListen();S.galleryKind=d.kind||"shilla";S.view="gallery";render(true)},
   adminGalKind(d){S.adminGalKind=d.kind||"shilla";render(true)},
   async submitGallery(){
     if(!S.user)return;
@@ -3690,17 +3705,26 @@ const A={
     const text=(el&&el.value||"").trim();
     if(!text){toast("اكتب تعليق");return}
     if(text.length>400){toast("التعليق طويل");return}
+    const parent=(S.commentReply&&S.commentReply.targetId===d.id&&S.commentReply.targetType===d.type)?S.commentReply.parentId:null;
+    const tempId="local_"+Date.now();
+    const local={id:tempId,targetType:d.type,targetId:d.id,parentId:parent||null,uid:S.user.uid,name:(S.profile&&S.profile.name||"طالب").split(" ")[0],text,createdAt:Date.now()};
+    S.comments=(S.comments||[]).concat([local]);
+    if(el)el.value="";
+    S.commentReply=null;
+    render(true); // يظهر فورًا
     try{
-      const parent=(S.commentReply&&S.commentReply.targetId===d.id&&S.commentReply.targetType===d.type)?S.commentReply.parentId:null;
+      ensureCommentsListen();
       await addDoc(collection(db,"comments"),{
         targetType:d.type, targetId:d.id, parentId:parent||null,
-        uid:S.user.uid, name:(S.profile&&S.profile.name||"طالب").split(" ")[0],
-        text, createdAt:serverTimestamp()
+        uid:S.user.uid, name:local.name, text, createdAt:serverTimestamp()
       });
-      if(el)el.value="";
-      S.commentReply=null;
-      toast("اتنشر التعليق ✓",true);
-    }catch(e){console.error(e);toast("فشل التعليق — انشر Rules")}
+      // السnapshot هينظف النسخة المحلية
+    }catch(e){
+      console.error(e);
+      S.comments=(S.comments||[]).filter(c=>c.id!==tempId);
+      render(true);
+      toast("فشل التعليق — تأكد من نشر Rules");
+    }
   },
   async delComment(d){
     if(!d.cid)return;
@@ -3711,7 +3735,7 @@ const A={
     try{await deleteDoc(doc(db,"comments",d.cid));toast("اتحذف")}catch(e){toast("فشل")}
   },
 
-  openFadaye7(){S.view="fadaye7";render(true)},
+  openFadaye7(){ensureCommentsListen();S.view="fadaye7";render(true)},
   async addFadaye7(){
     if(!S.isAdmin)return;
     const title=($("#fadTitle")?.value||"").trim()||"فضيحة";
@@ -5818,7 +5842,7 @@ document.addEventListener("submit",e=>{e.preventDefault();const f=e.target.datas
 
 /* ---------- شاشة الافتتاح ---------- */
 (function(){
-  const SPLASH_MS = 2400;
+  const SPLASH_MS = 2400; // brand duration
   const el = document.getElementById("splash");
   if(!el) return;
   const start = performance.now();
@@ -5838,7 +5862,7 @@ document.addEventListener("submit",e=>{e.preventDefault();const f=e.target.datas
       const t = appEl.textContent || "";
       if(t && !t.includes("جاري التحميل")){
         mo.disconnect();
-        const minShow = 1200;
+        const minShow = 2400;
         setTimeout(finish, Math.max(0, minShow - (performance.now() - start)));
       }
     });
@@ -5854,23 +5878,28 @@ if(!configured)render(true);
 </script>
 <script>
 
-// شاشة البداية: تفضل لحد ما المنصة تظهر فعلاً، ولو فشل التحميل تظهر رسالة بدل الشاشة البيضاء
+// شاشة البداية: تظهر 2.4 ثانية على الأقل، وبعدها تختفي لما المحتوى جاهز
 (function(){
   var done=false;
+  var minMs=2400;
+  var t0=Date.now();
   function hideSplash(){
     if(done)return; done=true;
     var el=document.getElementById("splash");
     if(!el)return;
     el.classList.add("hide");
-    setTimeout(function(){try{el.remove()}catch(e){}},600);
+    setTimeout(function(){try{el.remove()}catch(e){}},500);
   }
-  function appReady(){var a=document.getElementById("app");return !!(a&&a.firstElementChild)}
-  function check(){if(appReady()){hideSplash();return true}return false}
-  var t0=Date.now();
+  function appReady(){var a=document.getElementById("app");return !!(a&&a.firstElementChild&&(a.innerText||"").length>8)}
+  function tryHide(){
+    if(Date.now()-t0<minMs)return false;
+    if(appReady()){hideSplash();return true}
+    return false;
+  }
   var iv=setInterval(function(){
-    if(check()){clearInterval(iv);return}
+    if(tryHide()){clearInterval(iv);return}
     if(Date.now()-t0>12000){clearInterval(iv);showFail()}
-  },150);
+  },100);
   function showFail(){
     if(done)return;
     var el=document.getElementById("splash");
