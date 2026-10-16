@@ -1008,12 +1008,12 @@ async function startSession(u){
       subs.push(onSnapshot(query(collection(db,"books"),limit(50)),s=>{
         S.books=s.docs.map(d=>({id:d.id,...d.data()}));
         try{localStorage.setItem("books_cache_v1",JSON.stringify(S.books.slice(0,40).map(b=>({id:b.id,title:b.title,url:b.url,subject:b.subject}))))}catch(_){}
-        if((S.view==="admin"&&S.tab==="books")||S.view==="books"||S.view==="home")(typeof scheduleRender==="function"?scheduleRender():render());
+        if((S.view==="admin"&&S.tab==="books")||S.view==="books"||S.view==="home")scheduleRender();
       }));
       subs.push(onSnapshot(collection(db,"students"),s=>{
         S.students=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));
         if(S.view==="admin"&&(S.tab==="students"||S.tab==="dash"||S.tab==="live"))
-          (typeof scheduleRender==="function"?scheduleRender():render());
+          scheduleRender();
       }));
       subs.push(onSnapshot(query(collection(db,"alerts"),orderBy("createdAt","desc"),limit(200)),s=>{
         if(!f2)s.docChanges().forEach(c=>{if(c.type==="added"&&c.doc.data().createdAt){const a=c.doc.data();toast(`⚠ ${a.name} (${a.phone}) خرج من الامتحان: ${a.examTitle}`,true);if(S.tab!=="alerts"){S.unreadAlerts++;updTitle()}}});
@@ -1035,7 +1035,7 @@ async function startSession(u){
         S.adminConvs=s.docs.map(d=>({id:d.id,...d.data()}));
         if(S.view==="admin"&&S.tab==="live")render();
       },err=>console.warn("adminConvs",err)));
-      const iv=setInterval(()=>{if(S.view==="admin"&&S.tab==="live")(typeof scheduleRender==="function"?scheduleRender():render())},30000);subs.push(()=>clearInterval(iv));
+      const iv=setInterval(()=>{if(S.view==="admin"&&S.tab==="live")scheduleRender()},30000);subs.push(()=>clearInterval(iv));
     }else{
       const p=await getDoc(doc(db,"students",u.uid));
       S.profile=p.exists()?{name:"طالب",phone:"",...p.data()}:{name:"طالب",phone:""};if(!S.profile.name)S.profile.name="طالب";
@@ -1053,12 +1053,12 @@ async function startSession(u){
         if(s.exists()){
           S.profile=s.data();
           if(["home","me","profile","progress"].includes(S.view))
-            (typeof scheduleRender==="function"?scheduleRender():render());
+            scheduleRender();
         }
       }));
       subs.push(onSnapshot(collection(db,"assessments"),s=>{
         S.asms=s.docs.map(d=>({id:d.id,...d.data()})).filter(a=>a.published).sort((a,b)=>tms(b)-tms(a));
-        if(S.view==="asmList"||S.view==="asm"||S.view==="home")(typeof scheduleRender==="function"?scheduleRender():render());
+        if(S.view==="asmList"||S.view==="asm"||S.view==="home")scheduleRender();
       }));
       listenMyChats();
       // lazy: fadaye7/galleries on open
@@ -1068,7 +1068,7 @@ async function startSession(u){
         let ok=true;try{const k="lg_"+u.uid,l=+localStorage.getItem(k)||0;if(Date.now()-l<1800000)ok=false;else localStorage.setItem(k,String(Date.now()))}catch(e){}
         if(ok)addDoc(collection(db,"students",u.uid,"logins"),{ip:ip||"",device:device(),screen:screen.width+"×"+screen.height,lang:navigator.language||"",tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||""),createdAt:serverTimestamp()}).catch(()=>{});
       });
-      const iv2=setInterval(()=>{if(S.user&&!S.isAdmin&&(S.view==="home"||S.view==="subject"))(typeof scheduleRender==="function"?scheduleRender():null)},180000);subs.push(()=>clearInterval(iv2));
+      const iv2=setInterval(()=>{if(S.user&&!S.isAdmin&&(S.view==="home"||S.view==="subject"))scheduleRender()},180000);subs.push(()=>clearInterval(iv2));
       let __resumeTried=false,__seenExams=null;
       const maybeResume=()=>{
         if(__resumeTried||!S.examsLoaded||!S.user)return;
@@ -1111,21 +1111,21 @@ async function startSession(u){
           });
         }
         __seenExams=new Set(list.map(e=>e.id));
-        S.examsLoaded=true;S.exams=list;render();maybeResume();
+        S.examsLoaded=true;S.exams=list;if(["home","subject","exam","search","ai"].includes(S.view))scheduleRender();maybeResume();
       },err=>{console.warn("exams",err);S.exams=Array.isArray(S.exams)?S.exams:[];S.examsLoaded=true;render();}));
       subs.push(onSnapshot(query(collection(db,"results"),where("uid","==",u.uid)),s=>{
-        S.myList=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(a)-tms(b));S.attempts=groupAttempts(S.myList);S._resultsReady=true;render();maybeResume();syncMyLeaderboard();
+        S.myList=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(a)-tms(b));S.attempts=groupAttempts(S.myList);S._resultsReady=true;if(["home","progress","result","me"].includes(S.view))scheduleRender();maybeResume();syncMyLeaderboard();
       }));
       subs.push(onSnapshot(query(collection(db,"leaderboard"),orderBy("examsDone","desc"),limit(20)),s=>{
         S.board=s.docs.map(d=>({id:d.id,...d.data()}));
-        if(S.view==="progress")(typeof scheduleRender==="function"?scheduleRender():render());
+        if(S.view==="progress")scheduleRender();
       },err=>console.warn("leaderboard",err)));
       subs.push(onSnapshot(query(collection(db,"notifications"),where("uid","==",u.uid),orderBy("createdAt","desc"),limit(30)),s=>{
         S.notifs=s.docs.map(d=>({id:d.id,...d.data()}));
         S.unreadNotif=(Array.isArray(S.notifs)?S.notifs:[]).filter(n=>!n.read).length+(S.unreadNotif>0&&!S.notifs.length?S.unreadNotif:0);
         // prefer count from docs when available
         S.unreadNotif=(Array.isArray(S.notifs)?S.notifs:[]).filter(n=>!n.read).length;
-        if(S.view==="progress"||S.view==="home")(typeof scheduleRender==="function"?scheduleRender():render());
+        if(S.view==="progress"||S.view==="home")scheduleRender();
       },err=>console.warn("notifs",err)));
     }
   }catch(e){
