@@ -415,7 +415,7 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,updatePassword} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,updatePassword,setPersistence,browserLocalPersistence} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,deleteField,collection,onSnapshot,query,where,orderBy,limit,getDocs,writeBatch,serverTimestamp,arrayUnion,arrayRemove} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {getStorage,ref as storageRef,uploadBytes,getDownloadURL} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
@@ -553,7 +553,8 @@ const configured = !firebaseConfig.apiKey.startsWith("PASTE");
 let messaging=null, __msgMod=null;
 if(configured){
   const app=initializeApp(firebaseConfig);
-  auth=getAuth(app);db=getFirestore(app);storage=getStorage(app);getIp();
+  auth=getAuth(app);db=getFirestore(app);storage=getStorage(app);
+  try{setPersistence(auth,browserLocalPersistence).catch(function(){})}catch(_){}getIp();
   // FCM اختياري — لو فشل ميمنعش تشغيل المنصة
   (async()=>{
     try{
@@ -1104,35 +1105,50 @@ if(configured){
     if(S.view==="auth"&&was===S.site.maintenance)return;
     render();
   },()=>{S.site={maintenance:true,message:"في مشكلة مؤقتة. جرّب بعد شوية."};render()});
+  // جلسة ثابتة: مفيش خروج غير لما الطالب يدوس «تسجيل خروج»
+  let __authBoot=true;
   onAuthStateChanged(auth,u=>{
     if(S.registering)return;
     const run=()=>{
       try{
         if(u){
+          __authBoot=false;
           Promise.resolve(startSession(u)).catch(e=>{
             console.error(e);
-            S.user=u;S.profile=S.profile||{name:"طالب",phone:""};S.view="home";render(true);
+            // حتى لو التحميل فشل — متخرجوش من الحساب
+            S.user=u;S.profile=S.profile||{name:"طالب",phone:""};
+            if(!S.view||S.view==="loading"||S.view==="auth")S.view="home";
+            render(true);
           });
         }else{
-          stopSubs();S.user=null;S.isAdmin=false;S.profile=null;S.myList=[];S.attempts={};S.view="auth";render(true);
+          // أول مرة null بعد الإقلاع = مش مسجّل؛ بعد كده null = خرج فعلًا
+          stopSubs();
+          S.user=null;S.isAdmin=false;S.profile=null;S.myList=[];S.attempts={};
+          S.view="auth";
+          __authBoot=false;
+          render(true);
         }
       }catch(e){
         console.error("auth run",e);
-        S.view=u?"home":"auth";
-        if(u){S.user=u;S.profile=S.profile||{name:"طالب",phone:""}}
+        if(u){
+          S.user=u;S.profile=S.profile||{name:"طالب",phone:""};
+          S.view="home";
+        }else if(!S.user){
+          S.view="auth";
+        }
         render(true);
       }
     };
-    const w=Math.min(Math.max(0,splashUntil-Date.now()),800);
+    const w=Math.min(Math.max(0,splashUntil-Date.now()),1200);
     w>0?setTimeout(run,w):run();
   });
-  // لو Firebase اتأخر: أظهر شاشة الدخول بعد ثانيتين
+  // لو التحميل طول: متودّيش لشاشة الدخول لو في مستخدم
   setTimeout(function(){
-    if(S.view==="loading"){
+    if(S.view==="loading"&&!S.user){
       S.view="auth";
       render(true);
     }
-  },500);
+  },4000);
 }else{S.site={maintenance:true,message:"المنصة تحت التعديل."};S.view="auth"}
 
 /* ---------- العرض ---------- */
@@ -1232,7 +1248,7 @@ function authView(){
 <h2>${S.adminLogin?"دخول الأدمن":reg?"إنشاء حساب جديد":"تسجيل الدخول"}</h2>
 ${reg?`<label class="f" for="nm">الاسم بالكامل</label><input id="nm" type="text" autocomplete="name" required>`:""}
 <label class="f" for="id">رقم التليفون</label>
-<input id="id" class="ltr" type="tel" inputmode="numeric" autocomplete="username" placeholder="01xxxxxxxxx" required>
+<input id="id" class="ltr" type="tel" inputmode="numeric" autocomplete="username" placeholder="01xxxxxxxxx" required value="${esc((()=>{try{return localStorage.getItem("last_phone")||""}catch(_){return""}})())}">
 <label class="f" for="pw">كلمة السر</label>
 <input id="pw" class="ltr" type="password" autocomplete="${reg?"new-password":"current-password"}" required>
 ${S.error?`<div class="err">${esc(S.error)}</div>`:""}
@@ -2763,7 +2779,13 @@ const A={
   mode(){S.mode=S.mode==="login"?"register":"login";S.error="";render(true)},
   logoTap(){const n=Date.now();S.taps=S.taps.filter(t=>n-t<2500);S.taps.push(n);if(S.taps.length>=3){S.taps=[];S.adminLogin=true;S.error="";render(true)}},
   studentLink(){S.adminLogin=false;S.error="";render(true)},
-  async logout(){await signOut(auth)},
+  async logout(){
+    if(!confirm("تسجيل خروج من التفوق؟\nهتحتاج تسجّل تاني لما ترجع."))return;
+    try{
+      await signOut(auth);
+    }catch(e){toast("فشل الخروج");return}
+    stopSubs();S.user=null;S.isAdmin=false;S.profile=null;S.view="auth";render(true);
+  },
   home(){S.view="home";render(true)},
   async rebuildBoard(){
     if(!S.isAdmin)return;
@@ -4228,7 +4250,7 @@ const A={
     if(!configured){S.error="المنصة تحت التعديل.";render(true);return}
     const idv=norm($("#id").value),pw=$("#pw").value;
     $("#go").disabled=true;S.error="";
-    try{await signInWithEmailAndPassword(auth,idv+DOMAIN,pw)}catch(e){S.error=authErr(e);render(true)}
+    try{await signInWithEmailAndPassword(auth,idv+DOMAIN,pw);try{localStorage.setItem("last_phone",idv)}catch(_){}}catch(e){S.error=authErr(e);render(true)}
   },
   async doRegister(){
     if(!configured){S.error="المنصة تحت التعديل.";render(true);return}
