@@ -1,4 +1,4 @@
-/* التفوق SW — v36 — شبكة أولاً + كاش آمن + Offline صريح */
+/* التفوق SW — v35 — شبكة أولاً + كاش آمن + Offline صريح */
 const CACHE = "eltafawoq-v36";
 const BUILD = "20261016-v36";
 
@@ -100,18 +100,6 @@ self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") { e.respondWith(fetch(e.request)); return; }
   const url = new URL(e.request.url);
 
-  if (url.hostname === "www.gstatic.com" && url.pathname.indexOf("/firebasejs/") === 0) {
-    e.respondWith(
-      caches.open(CACHE).then((c) =>
-        c.match(e.request).then((hit) => hit || fetch(e.request).then((res) => {
-          if (res && res.ok) c.put(e.request, res.clone()).catch(() => {});
-          return res;
-        }))
-      )
-    );
-    return;
-  }
-
   if (
     url.hostname.includes("ipify") ||
     url.hostname.includes("firestore") ||
@@ -141,21 +129,22 @@ self.addEventListener("fetch", (e) => {
 
   if (isNav) {
     e.respondWith(
-      caches.match("./index.html").then((cached) => {
-        const net = fetch(e.request, { cache: "no-cache" })
-          .then((res) => {
-            if (isHtmlResponse(res)) {
-              const copy = res.clone();
-              caches.open(CACHE).then((c) => c.put("./index.html", copy)).catch(() => {});
-            }
-            return res;
+      fetch(e.request, { cache: "no-store" })
+        .then((res) => {
+          if (isHtmlResponse(res)) {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => { c.put("./index.html", copy); }).catch(() => {});
+          }
+          return res;
+        })
+        .catch(() =>
+          caches.match("./index.html").then((c) => {
+            if (c) return c;
+            return new Response("<h1>التفوق</h1><p>مفيش نت — افتح تاني</p>", {
+              headers: { "Content-Type": "text/html; charset=utf-8" }
+            });
           })
-          .catch(() => null);
-        if (cached) { e.waitUntil(net); return cached; }
-        return net.then((res) => res || new Response("<h1>التفوق</h1><p>مفيش نت — افتح تاني</p>", {
-          headers: { "Content-Type": "text/html; charset=utf-8" }
-        }));
-      })
+        )
     );
     return;
   }
