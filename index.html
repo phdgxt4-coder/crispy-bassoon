@@ -5060,6 +5060,14 @@ ${addPanel}
 </div>${studentNav()}`;
 }
 
+async function packImageToStorage(file, path){
+  try{
+    const dataUrl=await packImage(file,900,0.78,500000);
+    const blob=await (await fetch(dataUrl)).blob();
+    const url=await uploadMedia(new File([blob],"p.jpg",{type:"image/jpeg"}), path);
+    return url||null;
+  }catch(e){console.warn("storage img",e);return null}
+}
 async function uploadMedia(file, path){
   if(!storage)throw new Error("Storage مش متاح");
   const r=storageRef(storage, path);
@@ -5073,18 +5081,29 @@ function listenMyChats(){
   window.__chatsUnsub=onSnapshot(query(collection(db,"conversations"),where("participants","array-contains",S.user.uid),limit(40)),async snap=>{
     const rows=snap.docs.map(d=>({id:d.id,...d.data()}));
     rows.sort((a,b)=>tms(b.updatedAt||b.lastAt)-tms(a.updatedAt||a.lastAt));
+    if(!window.__peers)window.__peers={};
     S.chats=await Promise.all(rows.map(async c=>{
       const otherUid=(c.participants||[]).find(u=>u!==S.user.uid);
       let otherName=(c.names&&c.names[otherUid])||"زميل",otherAvatar=null;
-      try{
-        const st=await getDoc(doc(db,"students",otherUid));
-        if(st.exists()){otherName=st.data().name||otherName;otherAvatar=st.data().avatar||null}
-      }catch(_){}
+      if(otherUid&&window.__peers[otherUid]){
+        otherName=window.__peers[otherUid].name||otherName;
+        otherAvatar=window.__peers[otherUid].avatar||null;
+      }else if(otherUid){
+        try{
+          const st=await getDoc(doc(db,"students",otherUid));
+          if(st.exists()){
+            const d=st.data();
+            otherName=d.name||otherName;
+            otherAvatar=d.avatarThumb||d.avatar||null;
+            window.__peers[otherUid]={name:otherName,avatar:otherAvatar};
+          }
+        }catch(_){}
+      }
       const unread=(c.lastFrom&&c.lastFrom!==S.user.uid && !(c.readBy&&c.readBy[S.user.uid] && tsMs(c.readBy[S.user.uid])>=tsMs(c.lastAt||c.updatedAt)))?1:0;
       return {id:c.id,otherUid,otherName,otherAvatar,lastText:c.lastText,lastAt:c.lastAt||c.updatedAt,unread};
     }));
     S.unreadChat=S.chats.reduce((a,c)=>a+(c.unread||0),0);
-    if(S.view==="chatList"||S.view==="home")render();
+    if(S.view==="chatList"||S.view==="home")scheduleRender();
     else {
       // حدّث الشارة فقط
       const nav=document.querySelector('nav.bot');
@@ -5961,7 +5980,8 @@ document.addEventListener("change",e=>{
       let n=0;for(const f of files){
         if(!/^image\//.test(f.type)){toast("صورة فقط");continue}
         toast("جاري رفع الصورة "+(n+1)+" من "+files.length+"…");
-        const data=await packImage(f,900,0.82,750000);
+        let data=await packImageToStorage(f,"groups/"+S.groupId+"/"+Date.now()+"_"+n+".jpg");
+        if(!data) data=await packImage(f,720,0.75,450000);
         await addDoc(collection(db,"groups",S.groupId,"msgs"),{
           fromUid:S.user.uid,fromName:(S.profile.name||"طالب").split(" ")[0],
           text:"🖼 صورة",img:data,kind:"image",createdAt:serverTimestamp()
@@ -5979,7 +5999,8 @@ document.addEventListener("change",e=>{
       let n=0;for(const f of files){
         if(!/^image\//.test(f.type)){toast("صورة فقط — للفيديو استخدم زر 🔗 رابط");continue}
         toast("جاري رفع الصورة "+(n+1)+" من "+files.length+"…");
-        const data=await packImage(f,900,0.82,750000);
+        let data=await packImageToStorage(f,"chat/"+S.user.uid+"/"+Date.now()+"_"+n+".jpg");
+        if(!data) data=await packImage(f,720,0.75,450000);
         await sendDm(S.chatThread.uid,"🖼 صورة",data,{kind:"image"});
         n++;}
         toast(n>1?"اتبعتت "+n+" صور ✓":"اتبعتت ✓");
@@ -5995,10 +6016,14 @@ document.addEventListener("change",e=>{
     (async()=>{
       try{
         if(!/^image\//.test(f.type)||f.size>8*1024*1024){toast("صورة فقط");return}
-        const data=await packImage(f,1000,0.88,900000);
-        if(data.length>950000){toast("الصورة كبيرة — اختار أوضح أصغر");return}
-        await updateDoc(doc(db,"students",S.user.uid),{avatar:data});
-        S.profile={...S.profile,avatar:data};
+        const data=await packImage(f,800,0.8,500000);
+        let url=null;
+        try{url=await packImageToStorage(f,"avatars/"+S.user.uid+".jpg")}catch(_){}
+        const thumb=await packImage(f,96,0.7,40000);
+        const av=url||data;
+        await updateDoc(doc(db,"students",S.user.uid),{avatar:av,avatarThumb:thumb});
+        S.profile={...S.profile,avatar:av,avatarThumb:thumb};
+        if(window.__peers)window.__peers[S.user.uid]={name:S.profile.name,avatar:thumb};
         toast("اتحفظت الصورة ✓");
         if(S.view==="me")render(true);
       }catch(err){toast("فشل رفع الصورة")}

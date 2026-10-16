@@ -1,6 +1,6 @@
 /* التفوق SW — v12 — إشعارات مكالمات أقوى + تحديث تلقائي */
-const CACHE = "eltafawoq-v32";
-const BUILD = "20261016-v32";
+const CACHE = "eltafawoq-v33";
+const BUILD = "20261016-v33";
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
@@ -110,7 +110,7 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  // الصفحات: شبكة أولاً عشان التحديث يوصل فوراً
+  // HTML: stale-while-revalidate — فتح فوري من الكاش + تحديث في الخلفية
   if (
     e.request.mode === "navigate" ||
     url.pathname.endsWith(".html") ||
@@ -118,13 +118,21 @@ self.addEventListener("fetch", (e) => {
     url.pathname.endsWith("crispy-bassoon")
   ) {
     e.respondWith(
-      fetch(e.request, { cache: "no-store" })
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
-          return res;
-        })
-        .catch(() => caches.match("./index.html").then((r) => r || caches.match(e.request)))
+      caches.match("./index.html").then((cached) => {
+        const net = fetch(e.request, { cache: "no-store" })
+          .then((res) => {
+            if (res && res.ok) {
+              const copy = res.clone();
+              caches.open(CACHE).then((c) => {
+                c.put(e.request, copy);
+                c.put("./index.html", res.clone());
+              }).catch(() => {});
+            }
+            return res;
+          })
+          .catch(() => cached);
+        return cached || net;
+      })
     );
     return;
   }
