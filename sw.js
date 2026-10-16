@@ -1,6 +1,6 @@
-/* التفوق SW — v12 — إشعارات مكالمات أقوى + تحديث تلقائي */
-const CACHE = "eltafawoq-v33";
-const BUILD = "20261016-v33";
+/* التفوق SW — v34 — لا تخزّن غير HTML كصفحة + شبكة أولاً للـ API */
+const CACHE = "eltafawoq-v34";
+const BUILD = "20261016-v34";
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
@@ -22,7 +22,6 @@ try {
     const body = (payload.notification && payload.notification.body)
       || data.body
       || (isCall ? ((data.fromName || "شخص") + " بيرن عليك") : "إشعار");
-
     const opts = {
       body,
       icon: "./icons/icon-192.png",
@@ -33,10 +32,7 @@ try {
       renotify: !!isCall,
       vibrate: isCall ? [400, 120, 400, 120, 400] : [200, 80, 200],
       actions: isCall
-        ? [
-            { action: "answer", title: "رد" },
-            { action: "reject", title: "رفض" }
-          ]
+        ? [{ action: "answer", title: "رد" }, { action: "reject", title: "رفض" }]
         : []
     };
     self.registration.showNotification(title, opts);
@@ -48,10 +44,8 @@ self.addEventListener("notificationclick", (e) => {
   const data = (e.notification && e.notification.data) || {};
   const isCall = data.type === "call" || data.callId;
   const action = e.action || "";
-
   e.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
-      // لو في تبويب مفتوح → ركّز عليه وابعت الرسالة
       for (const c of list) {
         if (c.url && "focus" in c) {
           c.focus();
@@ -67,11 +61,8 @@ self.addEventListener("notificationclick", (e) => {
           return;
         }
       }
-      // مفيش تبويب → افتح المنصة
       let url = "./";
-      if (isCall && data.callId) {
-        url = "./?call=" + encodeURIComponent(data.callId);
-      }
+      if (isCall && data.callId) url = "./?call=" + encodeURIComponent(data.callId);
       if (clients.openWindow) return clients.openWindow(url);
     })
   );
@@ -80,73 +71,95 @@ self.addEventListener("notificationclick", (e) => {
 self.addEventListener("install", (e) => {
   self.skipWaiting();
   e.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(["./", "./index.html", "./manifest.json"]).catch(() => {}))
+    caches.open(CACHE).then((c) => c.addAll(["./index.html", "./manifest.json"]).catch(() => {}))
   );
 });
 
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
+      Promise.all(keys.map((k) => (k !== CACHE ? caches.delete(k) : null)))
     ).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener("message", (e) => {
   if (e.data && e.data.type === "SKIP_WAITING") self.skipWaiting();
+  if (e.data && e.data.type === "CLEAR_CACHE") {
+    e.waitUntil(caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))));
+  }
 });
+
+function isHtmlResponse(res) {
+  if (!res || !res.ok) return false;
+  const ct = (res.headers.get("content-type") || "").toLowerCase();
+  return ct.includes("text/html");
+}
 
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
 
-  // Firebase / Google دائماً من الشبكة
+  // APIs خارجية — شبكة فقط، ممنوع الكاش (سبب شاشة الـ IP)
   if (
+    url.hostname.includes("ipify") ||
     url.hostname.includes("firestore") ||
     url.hostname.includes("firebase") ||
     url.hostname.includes("googleapis") ||
-    url.hostname.includes("gstatic")
+    url.hostname.includes("gstatic") ||
+    url.hostname.includes("cloudfunctions")
   ) {
     e.respondWith(fetch(e.request));
     return;
   }
 
-  // HTML: stale-while-revalidate — فتح فوري من الكاش + تحديث في الخلفية
-  if (
+  // تنقّل / HTML فقط
+  const isNav =
     e.request.mode === "navigate" ||
-    url.pathname.endsWith(".html") ||
-    url.pathname.endsWith("/") ||
-    url.pathname.endsWith("crispy-bassoon")
-  ) {
+    (e.request.destination === "document") ||
+    (url.origin === self.location.origin &&
+      (url.pathname.endsWith(".html") ||
+        url.pathname.endsWith("/") ||
+        /\/crispy-bassoon\/?$/.test(url.pathname)));
+
+  if (isNav) {
     e.respondWith(
-      caches.match("./index.html").then((cached) => {
-        const net = fetch(e.request, { cache: "no-store" })
-          .then((res) => {
-            if (res && res.ok) {
-              const copy = res.clone();
-              caches.open(CACHE).then((c) => {
-                c.put(e.request, copy);
-                c.put("./index.html", res.clone());
-              }).catch(() => {});
-            }
-            return res;
+      fetch(e.request, { cache: "no-store" })
+        .then((res) => {
+          if (isHtmlResponse(res)) {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => {
+              c.put("./index.html", copy);
+            }).catch(() => {});
+          }
+          return res;
+        })
+        .catch(() =>
+          caches.match("./index.html").then((c) => {
+            if (c) return c;
+            return new Response("<h1>التفوق</h1><p>مفيش نت — افتح تاني</p>", {
+              headers: { "Content-Type": "text/html; charset=utf-8" }
+            });
           })
-          .catch(() => cached);
-        return cached || net;
-      })
+        )
     );
     return;
   }
 
-  // باقي الملفات: شبكة + كاش احتياطي
-  e.respondWith(
-    fetch(e.request)
-      .then((res) => {
-        if (res && res.ok && e.request.method === "GET") {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
-        }
-        return res;
-      })
-      .catch(() => caches.match(e.request))
-  );
+  // باقي الملفات من نفس الأصل فقط
+  if (url.origin === self.location.origin && e.request.method === "GET") {
+    e.respondWith(
+      fetch(e.request)
+        .then((res) => {
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+          }
+          return res;
+        })
+        .catch(() => caches.match(e.request))
+    );
+    return;
+  }
+
+  e.respondWith(fetch(e.request));
 });

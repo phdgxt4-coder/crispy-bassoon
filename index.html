@@ -2231,7 +2231,7 @@ ${ok.length?ok.map(g=>`<div class="row" style="padding:10px 0;border-bottom:1px 
 <div class="card"><h3 style="margin-top:0">🔓 استثناء الحفظ (مسموح ينزّل)</h3>
 <p class="mut">افتراضيًا ممنوع الحفظ/السكرين على الكل — فعّل لطالب لو حابب</p>
 ${students.map(s=>`<div class="row" style="padding:6px 0"><span>${esc(s.name||s.phone||s.id)}</span>
-<button class="btn ${s.tanaghaSave?"":"ghost "}sm" data-act="toggleTanaghaSave" data-uid="${s.id}">${s.tanaghaSave?"مسموح ✓":"ممنوع"}</button></div>`).join("")||`<div class="mut">مفيش طلاب</div>`}
+<button class="btn ${s.tanaghaSave?"":"ghost "}sm" data-act="toggleTanaghaSave" data-uid="${s.id}">${s.tanaghaSave?"✓ مسموح يحفظ":"ممنوع الحفظ"}</button></div>`).join("")||`<div class="mut">مفيش طلاب</div>`}
 </div>
 <div class="card"><h3 style="margin-top:0">إخفاء القسم عن شخص</h3>
 ${students.map(s=>{const off=Array.isArray(s.hiddenSections)&&s.hiddenSections.includes(secKey);
@@ -3131,12 +3131,14 @@ const A={
   },
   async toggleTanaghaSave(d){
     if(!S.isAdmin||!d.uid)return;
+    const st=(S.students||[]).find(x=>x.id===d.uid);
+    const next=!(st&&st.tanaghaSave);
     try{
-      const st=await getDoc(doc(db,"students",d.uid));
-      const on=!(st.exists()&&st.data().tanaghaSave);
-      await updateDoc(doc(db,"students",d.uid),{tanaghaSave:on});
-      toast(on?"مسموح يحفظ من التناغه ✓":"اتقفل الحفظ",true);
-    }catch(e){toast("فشل")}
+      await updateDoc(doc(db,"students",d.uid),{tanaghaSave:next});
+      if(st)st.tanaghaSave=next;
+      toast(next?"✓ مسموح له يحفظ صور التناغه":"✓ اتمنع من حفظ صور التناغه",true);
+      if(S.view==="admin"&&S.tab==="tanagha")render(true);
+    }catch(e){toast("فشل: "+(e.code||e.message||""))}
   },
   async grantAsmRole(d){
     if(!S.isAdmin||!d.uid)return;
@@ -6166,6 +6168,14 @@ if('serviceWorker' in navigator){
       if(reg.waiting){
         try{reg.waiting.postMessage({type:"SKIP_WAITING"})}catch(e){}
       }
+      // تنظيف كاش قديم كان ممكن يخزّن رد IP بالغلط
+      try{
+        if(!localStorage.getItem("sw_v34_cleared")){
+          localStorage.setItem("sw_v34_cleared","1");
+          if(reg.active)reg.active.postMessage({type:"CLEAR_CACHE"});
+          caches.keys().then(function(ks){ks.forEach(function(k){if(k.indexOf("eltafawoq-v34")<0)caches.delete(k)})});
+        }
+      }catch(e){}
     }).catch(function(){});
   });
   // تحديث هادي: لما SW جديد يمسك، نحدّث مرة واحدة فقط
