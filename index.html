@@ -1047,7 +1047,7 @@ async function startSession(u){
       }));
       listenMyChats();
       subs.push(onSnapshot(query(collection(db,"fadaye7"),limit(40)),s=>{S.fadaye7=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt));if(S.view==="fadaye7"||S.view==="home")render();}));
-      subs.push(onSnapshot(query(collection(db,"galleries"),limit(80)),s=>{S.galleries=s.docs.map(d=>({id:d.id,...d.data()}));if(S.view==="gallery"||S.view==="tanagha"||S.view==="home")render();},err=>console.warn("gal",err)));
+      subs.push(onSnapshot(query(collection(db,"galleries"),limit(80)),s=>{S.galleries=s.docs.map(d=>({id:d.id,...d.data()}));if(S.view==="gallery"||S.view==="tanagha")render();},err=>console.warn("gal",err)));
 
       getIp().then(ip=>{
         updateDoc(doc(db,"students",u.uid),{lastLogin:serverTimestamp(),ip:ip||"",device:device()}).catch(()=>{});
@@ -1187,8 +1187,16 @@ function scheduleRender(force){
   __renderT=setTimeout(()=>render(!!force), force?0:120);
 }
 
+let __rendPend=false,__rendT=0;
 function render(force){
   if(!force&&(S.view==="exam"||S.view==="editExam"||S.view==="editAsm"))return;
+  if(!force){
+    if(__rendPend)return;
+    __rendPend=true;
+    __rendT=requestAnimationFrame(function(){__rendPend=false;render(true)});
+    return;
+  }
+
   if(S.view!=="exam"){clearInterval(timer);clearInterval(hb)}
   try{
     if(window.__lastView&&window.__lastView!==S.view&&typeof stopViewSubs==="function")stopViewSubs();
@@ -2034,7 +2042,31 @@ function aiLocalReply(q){
     return visEx.length?hi+"في امتحانات متاحة زي:\n"+visEx.slice(0,8).map(e=>"• "+(e.title||"")+" ("+(e.subject||"")+")").join("\n")+"\nمن **المواد** تقدر تبدأ.":hi+"مفيش امتحانات ظاهرة لك دلوقتي. لو المدرس لسه ما نشرش، استنى أو كلّمه.";
   }
 
-  return hi+"أنا 么 — دورّت في الامتحانات والكتب المتاحة وما لقيتش تطابق قوي.\nجرّب:\n• نص سؤال من امتحان\n• اسم درس أو كتاب\n• «ازاي أبدأ امتحان؟» / «ازاي الشات؟» / «ازاي الألعاب؟»\nولو المدرس مفعّل الرابط الذكي، الإجابات بتبقى أوسع.";
+  return (function(){
+    const exams=Array.isArray(S.exams)?S.exams:[];
+    const words=s.split(/\s+/).filter(function(w){return w.length>2}).slice(0,10);
+    var hits=[];
+    for(var ei=0;ei<exams.length;ei++){
+      var ex=exams[ei];
+      var qs=ex.questions||[];
+      for(var qi=0;qi<qs.length;qi++){
+        var qq=qs[qi];
+        var qt=normalizeAr(String(qq.q||""));
+        var ok=false;
+        for(var wi=0;wi<words.length;wi++){ if(qt.indexOf(words[wi])>=0){ok=true;break;} }
+        if(ok){
+          var ans=(typeof qq.a==="number"&&qq.o)?qq.o[qq.a]:"";
+          hits.push("• "+(ex.title||"امتحان")+": "+String(qq.q||"").slice(0,140)+(ans?(" — الإجابة: "+ans):""));
+          if(hits.length>=5)break;
+        }
+      }
+      if(hits.length>=5)break;
+    }
+    if(hits.length) return hi+"لقيت أسئلة قريبة:\n"+hits.join("\n")+"\n\nلو مش المطلوب، انسخ السؤال كامل من الامتحان.";
+    if(/امتحان|ذاكر|درس|شرح|معنى|قانون|اعرب|حل/.test(s))
+      return hi+"مفيش نص مطابق في الامتحانات المحمّلة دلوقتي. اكتب السؤال كامل أو حدّد الدرس/المادة.";
+    return hi+"وضّح أكتر: امتحان، شرح درس، ولا خطوة في المنصة؟ مثال: «ازاي أبدأ امتحان؟»";
+  })();
 }
 
 function booksView(){
@@ -2632,8 +2664,7 @@ function adminStudents(){
 <input id="sq" type="text" placeholder="ابحث بالاسم أو رقم التليفون" value="${esc(S.sq||"")}" style="margin-bottom:12px">
 <div id="stbl">${studentsTable()}</div>
 <p class="mut">علامة "مشترك" معناها إن نفس الـ IP استخدمه أكتر من حساب (ممكن أخوات في نفس البيت، أو حساب واحد بيتشارك). الـ IP ممكن يبقى فاضي أو غير دقيق مع VPN أو مانع إعلانات. لمسح حساب أو تغيير كلمة سر: Firebase Console ← Authentication.</p>`}
-function studentDetail(){/* grantAsmRole available via data-act */}
-function studentDetail_orig_disabled(){
+function studentDetail(){
   const s=S.students.find(x=>x.id===S.studentId)||{id:"",name:"؟",phone:""};
   const rs=(Array.isArray(S.results)?S.results:[]).filter(r=>r.uid===s.id),avg=rs.length?Math.round(rs.reduce((a,r)=>a+pctOf(r),0)/rs.length):null;
   const w=rs.filter(r=>r.passMark>0),lg=S.logins[s.id],al=S.alerts.filter(a=>a.uid===s.id),lv=S.starts.filter(x=>x.uid===s.id);
@@ -2646,8 +2677,14 @@ function studentDetail_orig_disabled(){
   al.forEach(a=>{if(a.createdAt&&a.createdAt.seconds)ev.push({t:a.createdAt.seconds,i:"⚠",x:`خرج من الامتحان ${a.examTitle} (المرة ${a.count})`})});
   lv.forEach(x=>ev.push({t:Math.floor(x.t/1000),i:"▶",x:`بدأ ${x.examTitle||""} (م${x.n}) وجاوب ${x.answered||0} من ${x.total||"؟"}${x.away?" · خارج الصفحة دلوقتي":""}`}));
   ev.sort((a,b)=>b.t-a.t);
+  const isAsm=Array.isArray(s.roles)&&s.roles.includes("asm");
+  const roleBtns=`<div class="card"><b>صلاحيات خاصة</b><div class="row" style="margin-top:8px;gap:8px;flex-wrap:wrap">
+    <button type="button" class="btn ${isAsm?"":"ghost "}sm" data-act="grantAsmRole" data-uid="${s.id}">${isAsm?"✓ مسؤول تقييمات":"تعيين مسؤول تقييمات"}</button>
+    <button type="button" class="btn ${s.tanaghaSave?"":"ghost "}sm" data-act="toggleTanaghaSave" data-uid="${s.id}">${s.tanaghaSave?"✓ حفظ التناغه":"سماح حفظ التناغه"}</button>
+  </div></div>`;
   const wa=s.phone&&/^01\d{9}$/.test(s.phone)?`https://wa.me/20${s.phone.slice(1)}`:"";
   return `<div class="wrap wide">${header(`<button class="btn ghost sm" data-act="backAdmin">رجوع</button>`)}
+${roleBtns}
 <div class="card"><div class="row" style="flex-wrap:nowrap;gap:14px;justify-content:flex-start"><div class="av">${esc((s.name||"؟").trim().charAt(0))}</div>
 <div style="flex:1"><h2 style="margin:0">${esc(s.name)} ${s.blocked?pill("موقوف","r"):pill("نشط","g")}</h2><div class="mut" dir="auto">${esc(s.phone)}</div></div></div>
 <div class="row" style="margin-top:12px;justify-content:flex-start">${s.phone?`<a class="btn ghost sm" href="tel:${esc(s.phone)}">📞 اتصال</a>`:""}${wa?`<a class="btn ghost sm" href="${wa}" target="_blank" rel="noopener">💬 واتساب</a>`:""}<button class="btn ${s.blocked?"":"danger"} sm" data-act="${s.blocked?"unblock":"block"}" data-id="${s.id}">${s.blocked?"فك الحظر":"حظر"}</button>
@@ -3087,6 +3124,13 @@ const A={
     const go=confirm("فتح Firebase Console الآن؟\\nUsers → ابحث عن:\\n"+email);
     if(go) window.open("https://console.firebase.google.com/project/eltafawoq-8b700/authentication/users","_blank");
   },
+  async saveAiChat(){
+    if(!S.user||!db)return;
+    try{
+      const msgs=(S.aiMsgs||[]).slice(-40);
+      await setDoc(doc(db,"aiChats",S.user.uid),{msgs,updatedAt:serverTimestamp()},{merge:true});
+    }catch(e){console.warn("ai save",e)}
+  },
   openAI(){
     S.view="ai";
     S.aiMsgs=S.aiMsgs||[{role:"bot",text:"أهلاً! أنا 么 🤖\nأقدر أوجّهك لأي جزء في المنصة وأراجع الامتحانات والكتب.\nاسأل بأي صيغة."}];
@@ -3132,7 +3176,7 @@ const A={
     render();
     requestAnimationFrame(()=>{const el=$("#aiLog");if(el)el.scrollTop=el.scrollHeight});
     // تأخير بسيط للواقعية
-    await new Promise(r=>setTimeout(r,400+Math.random()*500));
+    await new Promise(r=>setTimeout(r,80));
 
     try{
       const sn=normalizeAr(fullQ);
@@ -3715,7 +3759,7 @@ const A={
       const images=[];
       for(const f of files){
         if(!/^image\//.test(f.type))continue;
-        images.push(await packImage(f,1000,0.85,850000));
+        images.push(await packImage(f,720,0.72,450000));
       }
       if(!images.length){toast("مفيش صور صالحة");return}
       await addDoc(collection(db,"galleries"),{
@@ -3744,7 +3788,7 @@ const A={
   async delGal(d){
     if(!S.isAdmin||!d.id)return;
     if(!confirm("حذف؟"))return;
-    try{await deleteDoc(doc(db,"galleries",d.id));toast("اتحذف")}catch(e){toast("فشل")}
+    const prev=S.galleries;S.galleries=(S.galleries||[]).filter(x=>x.id!==d.id);render(true);try{await deleteDoc(doc(db,"galleries",d.id));toast("اتحذف",true)}catch(e){S.galleries=prev;render(true);toast("فشل")}
   },
   async pinGal(d){
     if(!S.isAdmin||!d.id)return;
@@ -3858,7 +3902,7 @@ const A={
   async delFadaye7(d){
     if(!S.isAdmin||!d.id)return;
     if(!confirm("تمسح الفضيحة دي؟"))return;
-    try{await deleteDoc(doc(db,"fadaye7",d.id));toast("اتمسحت")}catch(e){toast("فشل الحذف")}
+    const prev=S.fadaye7;S.fadaye7=(S.fadaye7||[]).filter(x=>x.id!==d.id);render(true);try{await deleteDoc(doc(db,"fadaye7",d.id));toast("اتمسحت",true)}catch(e){S.fadaye7=prev;render(true);toast("فشل الحذف")}
   },
   async submitFadaye7(){
     if(!S.user||S.isAdmin)return;
