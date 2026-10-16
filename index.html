@@ -122,6 +122,16 @@ textarea{min-height:320px;line-height:1.8;font-size:15px}
 .badge{display:inline-block;background:var(--gold);color:#2b2000;border-radius:99px;padding:0 8px;font-size:13px;margin-inline-start:6px;animation:bp 1.8s ease-in-out infinite}
 @keyframes bp{50%{transform:scale(1.18)}}
 
+.no-save,.no-save img,.gal-lock img{
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  pointer-events:none;
+}
+.gal-lock{position:relative}
+.gal-lock::after{
+  content:"";position:absolute;inset:0;background:transparent;
+}
+.gal-protect-banner{font-size:12px;color:var(--mut);margin:6px 0 10px}
+body.gal-secure img{ -webkit-user-select:none;user-select:none;-webkit-touch-callout:none; }
 .cmt-box{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
 .cmt{padding:8px 0;border-bottom:1px solid color-mix(in srgb,var(--line) 70%,transparent);font-size:14px}
 .cmt .cn{font-weight:700;color:var(--pri);margin-left:6px}
@@ -239,8 +249,9 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 .splash-line{width:0;height:3px;background:var(--gold);margin:14px auto 12px;border-radius:2px;
   animation:spLine .6s ease .55s forwards}
 .splash-sub{color:rgba(255,255,255,.78);font-size:15px;opacity:0;animation:spIn .6s ease .7s forwards}
-.splash-bar{width:120px;height:3px;background:rgba(255,255,255,.2);border-radius:99px;margin:28px auto 0;overflow:hidden}
-.splash-bar i{display:block;height:100%;width:0;background:var(--gold);border-radius:99px;animation:spBar 2.2s ease .3s forwards}
+.splash-bar{width:140px;height:4px;background:rgba(255,255,255,.22);border-radius:99px;margin:28px auto 0;overflow:hidden}
+.splash-bar i{display:block;height:100%;width:0;background:#E3A81C;border-radius:99px;animation:spBar 2.4s linear .2s forwards;box-shadow:0 0 12px rgba(227,168,28,.55)}
+.splash-line{background:#E3A81C!important}
 @keyframes spIn{to{opacity:1;transform:none}}
 @keyframes spLine{to{width:56px}}
 @keyframes spBar{to{width:100%}}
@@ -1214,6 +1225,10 @@ function render(force){
     <button class="btn ghost" data-act="logout" style="margin-top:8px">تسجيل خروج</button></div></div>`;
   }
   if(!app)return;
+  try{
+    const secure=S.view==="gallery"||S.view==="tanagha";
+    document.body.classList.toggle("gal-secure",!!secure);
+  }catch(_){}
   app.innerHTML=h||`<div class="wrap"><div class="card mut">جاري التحميل…</div></div>`;
   try{app.querySelectorAll("img:not([loading])").forEach(function(im){im.loading="lazy";im.decoding="async"})}catch(_){}
   if(S.view==="chatThread"||S.view==="groupThread"){
@@ -2094,6 +2109,7 @@ function galleryView(){
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openTanagha">رجوع</button>`)}
 <h2>${title}</h2>
 ${kind==="sourna"?`<p class="mut">هنا تقدر تحفظ صورك منغير ما تضيع 🥳</p>`:`<p class="mut">اللقطات المعتمدة تظهر هنا فوق</p>`}
+<p class="gal-protect-banner">🔒 الحفظ والسكرين مقفولين إلا بإذن الأدمن</p>
 <div class="card">
   <b>رفع صور ${S.isAdmin?"(أدمن)":"(بموافقة الأدمن)"}</b>
   <label class="f">وصف</label>
@@ -2105,7 +2121,12 @@ ${kind==="sourna"?`<p class="mut">هنا تقدر تحفظ صورك منغير �
 ${list.length?list.map(g=>`<div class="card">
   <b>${esc(g.title||"")}</b>
   <div class="mut">${esc(g.authorName||"")} · ${fmt(g.createdAt)}${g.pinned?" · 📌":""}</div>
-  ${(g.images||[g.url]).filter(Boolean).map(u=>mediaEmbed(u,"image")).join("")}
+  ${(function(){
+    const allow=S.isAdmin||(S.profile&&S.profile.tanaghaSave)||(S.site&&Array.isArray(S.site.tanaghaAllow)&&S.user&&S.site.tanaghaAllow.includes(S.user.uid));
+    const imgs=(g.images||[g.url]).filter(Boolean);
+    if(allow) return imgs.map(u=>mediaEmbed(u,"image")).join("");
+    return `<div class="gal-lock no-save">${imgs.map(u=>mediaEmbed(u,"image")).join("")}</div>`;
+  })()}
   ${commentsBlock("gallery",g.id)}
 </div>`).join(""):`<div class="card mut">لسه مفيش صور معتمدة.</div>`}
 ${mine.length?`<h3>طلباتك</h3>${mine.map(g=>`<div class="card"><b>${esc(g.title||"")}</b> <span class="pill ${g.status==="approved"||g.status==="published"?"g":g.status==="rejected"?"r":"y"}">${g.status==="approved"||g.status==="published"?"تمت الموافقة":g.status==="rejected"?"مرفوض":"بانتظار الموافقة"}</span></div>`).join("")}`:""}
@@ -2118,26 +2139,39 @@ function adminTanagha(){
   const ok=all.filter(g=>g.status==="approved"||g.status==="published");
   const students=(S.students||[]).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));
   const secKey="gal_"+kind;
-  return `<div class="row" style="gap:8px;margin-bottom:12px">
+  return `<div class="card" style="background:linear-gradient(135deg,color-mix(in srgb,#BE185D 12%,var(--card)),var(--card))">
+  <h3 style="margin-top:0">خاص لأولاد التناغه 😂💗</h3>
+  <p class="mut" style="margin:0">إدارة أجمل شلة وصورنا · الصور محمية من الحفظ افتراضيًا</p>
+</div>
+<div class="tabs" style="margin:12px 0">
   <button class="tab ${kind==="shilla"?"on":""}" data-act="adminGalKind" data-kind="shilla">أجمل شلة 💗</button>
   <button class="tab ${kind==="sourna"?"on":""}" data-act="adminGalKind" data-kind="sourna">صورنا 📸</button>
 </div>
-<div class="card"><h3 style="margin-top:0">طلبات موافقة (${pend.length})</h3>
-${pend.length?pend.map(g=>`<div style="padding:10px 0;border-bottom:1px solid var(--line)">
-  <b>${esc(g.title||"")}</b>
-  <div class="mut">من ${esc(g.authorName||"?")}</div>
-  ${(g.images||[]).map(u=>mediaEmbed(u,"image")).join("")}
-  <div class="row" style="margin-top:8px">
-    <button class="btn sm" data-act="approveGal" data-id="${g.id}">موافقة</button>
-    <button class="btn danger sm" data-act="rejectGal" data-id="${g.id}">رفض</button>
-  </div></div>`).join(""):`<div class="mut">مفيش طلبات</div>`}
+<div class="grid" style="grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+  <div class="card" style="margin:0;text-align:center"><b style="font-size:22px">${pend.length}</b><div class="mut">بانتظار الموافقة</div></div>
+  <div class="card" style="margin:0;text-align:center"><b style="font-size:22px">${ok.length}</b><div class="mut">منشور</div></div>
 </div>
-<div class="card"><h3 style="margin-top:0">المنشور (${ok.length})</h3>
-${ok.map(g=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)">
-  <div style="flex:1"><b>${esc(g.title||"")}</b><div class="mut">${esc(g.authorName||"")}</div></div>
-  <button class="btn ghost sm" data-act="pinGal" data-id="${g.id}">${g.pinned?"إلغاء تثبيت":"📌"}</button>
+<div class="card"><h3 style="margin-top:0">⬆ طلبات موافقة</h3>
+${pend.length?pend.map(g=>`<div style="padding:12px 0;border-bottom:1px solid var(--line)">
+  <b>${esc(g.title||"")}</b>
+  <div class="mut">من ${esc(g.authorName||"?")} · ${fmt(g.createdAt)}</div>
+  <div class="gal-lock no-save" style="margin-top:8px">${(g.images||[]).map(u=>mediaEmbed(u,"image")).join("")}</div>
+  <div class="row" style="margin-top:10px;gap:8px">
+    <button class="btn sm" data-act="approveGal" data-id="${g.id}">موافقة ✓</button>
+    <button class="btn danger sm" data-act="rejectGal" data-id="${g.id}">رفض</button>
+  </div></div>`).join(""):`<div class="mut">مفيش طلبات جديدة</div>`}
+</div>
+<div class="card"><h3 style="margin-top:0">المنشور</h3>
+${ok.length?ok.map(g=>`<div class="row" style="padding:10px 0;border-bottom:1px solid var(--line);align-items:flex-start">
+  <div style="flex:1"><b>${esc(g.title||"")}</b><div class="mut">${esc(g.authorName||"")} · ${g.pinned?"📌 ":""}${fmt(g.createdAt)}</div></div>
+  <button class="btn ghost sm" data-act="pinGal" data-id="${g.id}">${g.pinned?"إلغاء تثبيت":"تثبيت"}</button>
   <button class="btn danger sm" data-act="delGal" data-id="${g.id}">حذف</button>
-</div>`).join("")||`<div class="mut">فاضي</div>`}
+</div>`).join(""):`<div class="mut">فاضي</div>`}
+</div>
+<div class="card"><h3 style="margin-top:0">🔓 استثناء الحفظ (مسموح ينزّل)</h3>
+<p class="mut">افتراضيًا ممنوع الحفظ/السكرين على الكل — فعّل لطالب لو حابب</p>
+${students.map(s=>`<div class="row" style="padding:6px 0"><span>${esc(s.name||s.phone||s.id)}</span>
+<button class="btn ${s.tanaghaSave?"":"ghost "}sm" data-act="toggleTanaghaSave" data-uid="${s.id}">${s.tanaghaSave?"مسموح ✓":"ممنوع"}</button></div>`).join("")||`<div class="mut">مفيش طلاب</div>`}
 </div>
 <div class="card"><h3 style="margin-top:0">إخفاء القسم عن شخص</h3>
 ${students.map(s=>{const off=Array.isArray(s.hiddenSections)&&s.hiddenSections.includes(secKey);
@@ -2313,12 +2347,21 @@ function adminPerfCard(){
 
 function adminView(){
   const t=S.tab;
-  const tabs=[["dash","الرئيسية"],["live","مباشر"],["status","حالة المنصة"],["activity","نشاط المنصة"],["exams","الامتحانات"],["asm","التقييمات"],["fadaye7","فضايح 😂"],["tanagha","التناغه 💗"],["books","الكتب"],["students","الطلاب"],["results","النتايج"],["alerts","التنبيهات"],["suspicious","احتيالي ⚠"],["settings","الإعدادات"]];
+  const groups=[
+    {title:"تشغيل", items:[["dash","الرئيسية"],["live","مباشر"],["status","حالة المنصة"],["activity","نشاط"]]},
+    {title:"محتوى", items:[["exams","امتحانات"],["asm","تقييمات"],["books","كتب"]]},
+    {title:"مجتمع", items:[["fadaye7","فضايح 😂"],["tanagha","التناغه 💗"],["students","طلاب"]]},
+    {title:"رقابة", items:[["results","نتايج"],["alerts","تنبيهات"],["suspicious","احتيالي"]]},
+    {title:"إعدادات", items:[["settings","إعدادات"]]}
+  ];
   const bd={results:S.unread,alerts:S.unreadAlerts,live:liveActive().length,suspicious:(S.suspicious||[]).filter(x=>!x.seen).length};
   return `<div class="wrap wide">${header(`${pill("أدمن","i")}<button class="btn ghost sm" data-act="logout">خروج</button>`)}
 ${S.site.maintenance?`<div class="err" style="margin:0 0 12px">وضع الصيانة شغّال. الطلاب شايفين "المنصة تحت التعديل".</div>`:""}
-<div class="tabs">${tabs.map(([k,v])=>`<button class="tab ${t===k?"on":""}" data-act="tab" data-id="${k}">${v}${bd[k]?`<span class="badge">${bd[k]}</span>`:""}</button>`).join("")}</div>
-${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,tanagha:adminTanagha,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,suspicious:adminSuspicious,settings:adminSettings}[t])()}
+${groups.map(g=>`<div style="margin-bottom:10px">
+  <div class="mut" style="font-size:11px;font-weight:700;margin-bottom:4px;opacity:.75">${g.title}</div>
+  <div class="tabs" style="margin-bottom:0">${g.items.map(([k,v])=>`<button class="tab ${t===k?"on":""}" data-act="tab" data-id="${k}">${v}${bd[k]?`<span class="badge">${bd[k]}</span>`:""}</button>`).join("")}</div>
+</div>`).join("")}
+${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,tanagha:adminTanagha,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,suspicious:adminSuspicious,settings:adminSettings}[t]||adminDash)()}
 ${t==="exams"?`<button class="fab" data-act="newExam" aria-label="امتحان جديد">+</button>`:""}</div>`}
 const chart=(days,vals,cls)=>{const mx=Math.max(1,...vals);return `<div class="bars">${vals.map((v,i)=>`<div>${v||""}<i class="${cls||""}" style="height:${Math.max(3,v/mx*68)}%"></i><span>${days[i].l}</span></div>`).join("")}</div>`};
 
@@ -2990,6 +3033,15 @@ const A={
       toast("اتحظر ✓",true);
     }catch(e){toast("فشل الحظر")}
   },
+  async toggleTanaghaSave(d){
+    if(!S.isAdmin||!d.uid)return;
+    try{
+      const st=await getDoc(doc(db,"students",d.uid));
+      const on=!(st.exists()&&st.data().tanaghaSave);
+      await updateDoc(doc(db,"students",d.uid),{tanaghaSave:on});
+      toast(on?"مسموح يحفظ من التناغه ✓":"اتقفل الحفظ",true);
+    }catch(e){toast("فشل")}
+  },
   async grantAsmRole(d){
     if(!S.isAdmin||!d.uid)return;
     try{
@@ -3638,8 +3690,18 @@ const A={
 
   openAsms(){S.view="asmList";render(true)},
   
-  openTanagha(){S.view="tanagha";render(true)},
-  openGallery(d){ensureCommentsListen();S.galleryKind=d.kind||"shilla";S.view="gallery";render(true)},
+  openGallery(d){
+    ensureCommentsListen();
+    S.galleryKind=d.kind||"shilla";
+    S.view="gallery";
+    document.body.classList.add("gal-secure");
+    render(true);
+  },
+  openTanagha(){
+    S.view="tanagha";
+    document.body.classList.add("gal-secure");
+    render(true);
+  },
   adminGalKind(d){S.adminGalKind=d.kind||"shilla";render(true)},
   async submitGallery(){
     if(!S.user)return;
@@ -5736,6 +5798,16 @@ document.addEventListener("pointerdown",e=>{
   x.className="rip";x.style.cssText=`width:${z}px;height:${z}px;left:${e.clientX-r.left-z/2}px;top:${e.clientY-r.top-z/2}px`;
   b.appendChild(x);setTimeout(()=>x.remove(),600);
 });
+document.addEventListener("contextmenu",e=>{
+  if(document.body.classList.contains("gal-secure")){
+    const allow=S.isAdmin||(S.profile&&S.profile.tanaghaSave);
+    if(!allow){e.preventDefault();toast("حفظ الصور مقفول في القسم ده")}
+  }
+},true);
+document.addEventListener("dragstart",e=>{
+  if(document.body.classList.contains("gal-secure")&&!S.isAdmin)e.preventDefault();
+},true);
+// gal-secure-context
 document.addEventListener("click",e=>{
   const b=e.target.closest("[data-act]");
   if(!b)return;
@@ -5891,15 +5963,13 @@ if(!configured)render(true);
     setTimeout(function(){try{el.remove()}catch(e){}},500);
   }
   function appReady(){var a=document.getElementById("app");return !!(a&&a.firstElementChild&&(a.innerText||"").length>8)}
-  function tryHide(){
-    if(Date.now()-t0<minMs)return false;
-    if(appReady()){hideSplash();return true}
-    return false;
-  }
+  // انتظر 2.4 ثانية دائمًا (شريط أصفر)، وبعدها اختفِ لو جاهز أو بعد مهلة
   var iv=setInterval(function(){
-    if(tryHide()){clearInterval(iv);return}
-    if(Date.now()-t0>12000){clearInterval(iv);showFail()}
-  },100);
+    var elapsed=Date.now()-t0;
+    if(elapsed<minMs)return;
+    if(appReady()||elapsed>minMs+8000){clearInterval(iv);hideSplash();return}
+    if(elapsed>12000){clearInterval(iv);showFail()}
+  },80);
   function showFail(){
     if(done)return;
     var el=document.getElementById("splash");
