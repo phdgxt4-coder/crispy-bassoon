@@ -616,7 +616,7 @@ if(configured){
 }
 
 /* ---------- أدوات ---------- */
-function toast(msg,gold){const t=$("#toast");if(!t)return;t.textContent=msg;t.className=(gold?"gold ":"")+"show";clearTimeout(toast.h);toast.h=setTimeout(()=>t.className=gold?"gold":"",gold?7000:3500)}
+function toast(msg,gold,ms){const t=$("#toast");if(!t)return;t.textContent=msg;t.className=(gold?"gold ":"")+"show";clearTimeout(toast.h);toast.h=setTimeout(()=>t.className=gold?"gold":"",ms!=null?ms:2500)}
 function updTitle(){const n=S.unread+S.unreadAlerts;document.title=(n?`(${n}) `:"")+"التفوق"}
 function authErr(e){
   const c=e&&e.code||"";
@@ -1253,7 +1253,10 @@ function render(force){
     const secure=S.view==="gallery"||S.view==="tanagha";
     document.body.classList.toggle("gal-secure",!!secure);
   }catch(_){}
+  const __ae=document.activeElement;const __aeId=__ae&&__ae.id;const __aePos=(__ae&&(__ae.id==="dmIn"||__ae.id==="grpIn"||__ae.id==="qbChatIn"||__ae.id==="aiIn")&&typeof __ae.selectionStart==="number")?__ae.selectionStart:null;const __aeVal=__aeId&&(__aeId==="dmIn"||__aeId==="grpIn"||__aeId==="aiIn")?__ae.value:null;
   app.innerHTML=h||`<div class="wrap"><div class="card mut">جاري التحميل…</div></div>`;
+  if(__aeId){const el=document.getElementById(__aeId);if(el){if(__aeVal!=null&&"value" in el)el.value=__aeVal;el.focus();if(__aePos!=null)try{el.setSelectionRange(__aePos,__aePos)}catch(_){}}}
+
   try{app.querySelectorAll("img:not([loading])").forEach(function(im){im.loading="lazy";im.decoding="async"})}catch(_){}
   if(S.view==="chatThread"||S.view==="groupThread"){
     bindChatScroll();
@@ -2702,7 +2705,7 @@ function studentsTable(){
   S.students.forEach(x=>{if(x.ip)cnt[x.ip]=(cnt[x.ip]||0)+1});
   const rows=studentRows().filter(x=>!q||(x.s.name||"").toLowerCase().includes(q)||(x.s.phone||"").includes(q));
   return rows.length?`<div class="tw card" style="padding:0"><table><tr><th>الاسم</th><th>التليفون</th><th>آخر دخول</th><th>آخر IP</th><th>الجهاز</th><th>المحاولات</th><th>المتوسط</th><th>خروج</th><th></th></tr>
-${rows.map(x=>`<tr><td>${esc(x.s.name)} ${x.s.blocked?pill("موقوف","r"):""}</td><td dir="ltr">${esc(x.s.phone)}</td><td>${fmt(x.s.lastLogin)||"-"}</td><td dir="ltr">${esc(x.s.ip||"-")} ${x.s.ip&&cnt[x.s.ip]>1?pill("مشترك","y"):""}</td><td>${esc(x.s.device||"-")}</td><td>${x.rs.length}</td><td>${x.avg==null?"-":x.avg+"%"}</td><td>${x.tabs?pill(x.tabs,"r"):0}</td><td><button class="btn sm" data-act="student" data-id="${x.s.id}">فتح الملف</button> <button class="btn ${x.s.blocked?"ghost":"danger"} sm" data-act="${x.s.blocked?"unblock":"block"}" data-id="${x.s.id}">${x.s.blocked?"فك الحظر":"حظر"}</button></td></tr>`).join("")}</table></div>`:`<div class="card mut">مفيش طلاب بالمواصفات دي.</div>`;
+${rows.map(x=>`<tr><td>${esc(x.s.name)} ${x.s.blocked?pill("موقوف","r"):""}</td><td dir="ltr">${esc(x.s.phone)}</td><td>${fmt(x.s.lastLogin)||"-"}</td><td dir="ltr">${esc(x.s.ip||"-")} ${x.s.ip&&cnt[x.s.ip]>1?pill("مشترك","y"):""}</td><td>${esc(x.s.device||"-")}</td><td>${x.rs.length}</td><td>${x.avg==null?"-":x.avg+"%"}</td><td>${x.tabs?pill(x.tabs,"r"):0}</td><td><button class="btn sm" data-act="student" data-id="${x.s.id}">فتح الملف</button> <button class="btn ${x.s.blocked?"ghost":"danger"} sm" data-act="${x.s.blocked?"unblock":"block"}" data-id="${x.s.id}">${x.s.blocked?"فك الحظر":"حظر نهائي"}</button></td></tr>`).join("")}</table></div>`:`<div class="card mut">مفيش طلاب بالمواصفات دي.</div>`;
 }
 function adminStudents(){
   return `<div class="stats"><div class="card stat"><b>${S.students.length}</b><span class="mut">طالب مسجّل</span></div></div>
@@ -2732,7 +2735,8 @@ function studentDetail(){
 ${roleBtns}
 <div class="card"><div class="row" style="flex-wrap:nowrap;gap:14px;justify-content:flex-start"><div class="av">${esc((s.name||"؟").trim().charAt(0))}</div>
 <div style="flex:1"><h2 style="margin:0">${esc(s.name)} ${s.blocked?pill("موقوف","r"):pill("نشط","g")}</h2><div class="mut" dir="auto">${esc(s.phone)}</div></div></div>
-<div class="row" style="margin-top:12px;justify-content:flex-start">${s.phone?`<a class="btn ghost sm" href="tel:${esc(s.phone)}">📞 اتصال</a>`:""}${wa?`<a class="btn ghost sm" href="${wa}" target="_blank" rel="noopener">💬 واتساب</a>`:""}<button class="btn ${s.blocked?"":"danger"} sm" data-act="${s.blocked?"unblock":"block"}" data-id="${s.id}">${s.blocked?"فك الحظر":"حظر"}</button>
+<div class="row" style="margin-top:12px;justify-content:flex-start">${s.phone?`<a class="btn ghost sm" href="tel:${esc(s.phone)}">📞 اتصال</a>`:""}${wa?`<a class="btn ghost sm" href="${wa}" target="_blank" rel="noopener">💬 واتساب</a>`:""}${s.blocked?pill("⛔ موقوف — مش هيقدر يدخل المنصة","r"):""}${(s.hiddenSections&&s.hiddenSections.length)?pill("🙈 مخفي عنه "+s.hiddenSections.length+" قسم (يدخل بس مش بيشوف القسم)","y"):""}
+<button class="btn ${s.blocked?"":"danger"} sm" data-act="${s.blocked?"unblock":"block"}" data-id="${s.id}">${s.blocked?"✅ فك الحظر (يرجع يستخدم المنصة)":"⛔ حظر نهائي (يقفل الحساب)"}</button>
 <button class="btn ghost sm" data-act="adminResetPass" data-id="${s.id}" data-phone="${esc(s.phone||"")}">🔑 كلمة سر جديدة</button></div></div>
 <div class="card" id="resetPassBox" style="display:none"><h3>تعيين كلمة سر جديدة</h3>
 <p class="mut">للإيميل في Firebase: <b dir="ltr">${esc((s.phone||"")+"@eltafawoq.app")}</b></p>
@@ -4558,7 +4562,12 @@ async function sendDm(toUid,text,img,extra){
   const local={...payload,id:"local_"+Date.now(),createdAt:{seconds:Date.now()/1000},_local:true};
   S.chatMsgs=(S.chatMsgs||[]).concat([local]);
   S.chatStickBottom=true;
-  if(S.view==="chatThread"){render();scrollChatBottom(true)}
+  if(S.view==="chatThread"){
+    const log=$("#dmChatLog");
+    if(log&&typeof dmBubbleHtml==="function"){
+      try{log.innerHTML=S.chatMsgs.map(dmBubbleHtml).join("");scrollChatBottom(true)}catch(_){render(true);scrollChatBottom(true)}
+    }else{render(true);scrollChatBottom(true)}
+  }
   try{
     await Promise.all([
       addDoc(collection(db,"conversations",cid,"msgs"),payload),
@@ -5182,7 +5191,7 @@ function listenDmThread(cid,otherUid){
       });
       msgs.sort((a,b)=>tsMs(a.createdAt)-tsMs(b.createdAt));
     }
-    const sig=msgs.map(m=>m.id+":"+(m.read?1:0)+":"+(m.deleted?1:0)+":"+Object.keys(m.reacts||{}).join("")).join("|");
+    const sig=msgs.map(m=>m.id+":"+(m.read?1:0)+":"+(m.deleted?1:0)+":"+Object.entries(m.reacts||{}).map(([k,v])=>k+"="+(Array.isArray(v)?v.length:0)+((Array.isArray(v)&&S.user&&v.includes(S.user.uid))?"*":"")).join(",")+":"+(m.img?1:0)+":"+String(m.text||"").length).join("|");
     if(sig===window.__dmSig&&S.view==="chatThread"){
       // مفيش تغيير حقيقي
       return;
