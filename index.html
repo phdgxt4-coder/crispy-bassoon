@@ -122,6 +122,14 @@ textarea{min-height:320px;line-height:1.8;font-size:15px}
 .badge{display:inline-block;background:var(--gold);color:#2b2000;border-radius:99px;padding:0 8px;font-size:13px;margin-inline-start:6px;animation:bp 1.8s ease-in-out infinite}
 @keyframes bp{50%{transform:scale(1.18)}}
 
+.cmt-box{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+.cmt{padding:8px 0;border-bottom:1px solid color-mix(in srgb,var(--line) 70%,transparent);font-size:14px}
+.cmt .cn{font-weight:700;color:var(--pri);margin-left:6px}
+.cmt .ct{margin-top:2px;white-space:pre-wrap}
+.cmt .cr{font-size:12px;color:var(--mut);cursor:pointer;margin-top:4px}
+.cmt.reply{margin-inline-start:18px;border-inline-start:2px solid var(--line);padding-inline-start:10px}
+.cmt-form{display:flex;gap:6px;margin-top:8px}
+.cmt-form input{flex:1}
 .empty{text-align:center;padding:28px 16px}
 .empty .ei{font-size:42px;line-height:1;margin-bottom:8px;opacity:.9}
 .empty b{display:block;margin-bottom:4px}
@@ -458,6 +466,41 @@ const tsMs = v => {
   return 0;
 };
 const tms = r => Math.floor(tsMs(r&&(r.createdAt||r.updatedAt||r.lastAt||r))/1000);
+
+function commentsFor(type,id){
+  return (S.comments||[]).filter(c=>c.targetType===type&&c.targetId===id)
+    .sort((a,b)=>tsMs(a.createdAt)-tsMs(b.createdAt));
+}
+function commentsBlock(type,id){
+  if(type==="avatar"||type==="profile")return ""; // ممنوع التعليق على صورة الملف الشخصي
+  const all=commentsFor(type,id);
+  const roots=all.filter(c=>!c.parentId);
+  const kids=pid=>all.filter(c=>c.parentId===pid);
+  const row=(c,isReply)=>{
+    const canDel=S.isAdmin||(S.user&&c.uid===S.user.uid);
+    return `<div class="cmt ${isReply?"reply":""}">
+      <span class="cn">${esc(c.name||"طالب")}</span>
+      <span class="mut" style="font-size:11px">${fmt(c.createdAt)}</span>
+      <div class="ct">${esc(c.text||"")}</div>
+      <div style="display:flex;gap:10px;align-items:center">
+        ${!isReply?`<span class="cr" data-act="replyComment" data-type="${type}" data-id="${id}" data-parent="${c.id}">رد</span>`:""}
+        ${canDel?`<span class="cr" style="color:var(--bad)" data-act="delComment" data-cid="${c.id}">حذف</span>`:""}
+      </div>
+    </div>`;
+  };
+  let html=roots.map(c=>row(c,false)+kids(c.id).map(k=>row(k,true)).join("")).join("")||`<div class="mut" style="font-size:13px">مفيش تعليقات — كن أول واحد</div>`;
+  const replyTo=S.commentReply&&S.commentReply.targetId===id&&S.commentReply.targetType===type?S.commentReply:null;
+  return `<div class="cmt-box">
+    <b style="font-size:13px">💬 تعليقات (${all.length})</b>
+    ${html}
+    ${replyTo?`<div class="mut" style="font-size:12px;margin-top:6px">رد على تعليق… <a href="#" data-act="cancelReply">إلغاء</a></div>`:""}
+    <div class="cmt-form">
+      <input id="cmt_${type}_${id}" type="text" maxlength="400" placeholder="${replyTo?"اكتب ردك…":"اكتب تعليق…"}">
+      <button class="btn sm" data-act="postComment" data-type="${type}" data-id="${id}">إرسال</button>
+    </div>
+  </div>`;
+}
+
 function emptyBox(icon,title,sub){
   return `<div class="card empty"><div class="ei">${icon||"📭"}</div><b>${title||"فاضي"}</b><div class="mut">${sub||""}</div></div>`;
 }
@@ -916,6 +959,7 @@ async function startSession(u){
       }));
       subs.push(onSnapshot(collection(db,"assessments"),s=>{S.asms=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));render()}));
       subs.push(onSnapshot(query(collection(db,"fadaye7"),limit(40)),s=>{S.fadaye7=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt));if(S.view==="admin"&&S.tab==="fadaye7")render();}));
+      subs.push(onSnapshot(query(collection(db,"comments"),limit(200)),s=>{S.comments=s.docs.map(d=>({id:d.id,...d.data()}));},err=>console.warn("comments",err)));
       subs.push(onSnapshot(query(collection(db,"books"),limit(50)),s=>{
         S.books=s.docs.map(d=>({id:d.id,...d.data()}));
         try{localStorage.setItem("books_cache_v1",JSON.stringify(S.books.slice(0,40).map(b=>({id:b.id,title:b.title,url:b.url,subject:b.subject}))))}catch(_){}
@@ -974,6 +1018,10 @@ async function startSession(u){
       listenMyChats();
       subs.push(onSnapshot(query(collection(db,"fadaye7"),limit(40)),s=>{S.fadaye7=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt));if(S.view==="fadaye7"||S.view==="home")render();}));
       subs.push(onSnapshot(query(collection(db,"galleries"),limit(80)),s=>{S.galleries=s.docs.map(d=>({id:d.id,...d.data()}));if(S.view==="gallery"||S.view==="tanagha"||S.view==="home")render();},err=>console.warn("gal",err)));
+      subs.push(onSnapshot(query(collection(db,"comments"),limit(200)),s=>{
+        S.comments=s.docs.map(d=>({id:d.id,...d.data()}));
+        if(S.view==="fadaye7"||S.view==="gallery"||S.view==="tanagha")render();
+      },err=>console.warn("comments",err)));
       getIp().then(ip=>{
         updateDoc(doc(db,"students",u.uid),{lastLogin:serverTimestamp(),ip:ip||"",device:device()}).catch(()=>{});
         let ok=true;try{const k="lg_"+u.uid,l=+localStorage.getItem(k)||0;if(Date.now()-l<1800000)ok=false;else localStorage.setItem(k,String(Date.now()))}catch(e){}
@@ -2027,6 +2075,7 @@ ${list.length?list.map(g=>`<div class="card">
   <b>${esc(g.title||"")}</b>
   <div class="mut">${esc(g.authorName||"")} · ${fmt(g.createdAt)}${g.pinned?" · 📌":""}</div>
   ${(g.images||[g.url]).filter(Boolean).map(u=>mediaEmbed(u,"image")).join("")}
+  ${commentsBlock("gallery",g.id)}
 </div>`).join(""):`<div class="card mut">لسه مفيش صور معتمدة.</div>`}
 ${mine.length?`<h3>طلباتك</h3>${mine.map(g=>`<div class="card"><b>${esc(g.title||"")}</b> <span class="pill ${g.status==="approved"||g.status==="published"?"g":g.status==="rejected"?"r":"y"}">${g.status==="approved"||g.status==="published"?"تمت الموافقة":g.status==="rejected"?"مرفوض":"بانتظار الموافقة"}</span></div>`).join("")}`:""}
 </div>${studentNav()}`;
@@ -2069,38 +2118,48 @@ ${students.map(s=>{const off=Array.isArray(s.hiddenSections)&&s.hiddenSections.i
 function fadaye7View(){
   const uid=S.user&&S.user.uid;
   if(!S.isAdmin&&S.profile&&Array.isArray(S.profile.hiddenSections)&&S.profile.hiddenSections.includes("fadaye7")){
-    return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}<div class="card mut">القسم ده مش متاح ليك دلوقتي.</div></div>${studentNav()}`;
+    return `<div class="wrap screen">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}<div class="card mut">القسم ده مش متاح ليك دلوقتي.</div></div>${studentNav()}`;
   }
-  const list=(S.fadaye7||[]).filter(f=>{
+  const tab=S.fadTab||"all";
+  const base=(S.fadaye7||[]).filter(f=>{
     if(f.published===false||f.status==="pending"||f.status==="rejected")return false;
     if(uid&&Array.isArray(f.hideFrom)&&f.hideFrom.includes(uid))return false;
     return true;
   });
-  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
+  const list=tab==="mine"?base.filter(f=>f.authorUid===uid):base;
+  const card=f=>{
+    const by=f.fromAdmin?("من الأدمن"):(f.authorName?("من "+f.authorName):"");
+    const imgs=(f.images&&f.images.length)?f.images:(f.url?[f.url]:[]);
+    const media=imgs.map(u=>mediaEmbed(u,f.kind||"image")).join("")||(f.url?mediaEmbed(f.url,f.kind):"");
+    const dl=imgs[0]&&(String(imgs[0]).startsWith("data:image")||/\.(jpe?g|png|gif|webp)(\?|$)/i.test(imgs[0]))
+      ?`<a class="btn ghost sm" href="${esc(imgs[0])}" download="fadiha.jpg">⬇ تحميل</a>`:"";
+    return `<div class="card">
+  <div class="row"><b>${esc(f.title||"فضيحة")}</b>${by?pill(by,f.fromAdmin?"i":"g"):""}</div>
+  <div class="mut" style="margin:4px 0 8px">${fmt(f.createdAt)}</div>
+  ${media}
+  ${dl?`<div style="margin-top:8px">${dl}</div>`:""}
+  ${commentsBlock("fadaye7",f.id)}
+</div>`;
+  };
+  return `<div class="wrap screen">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
 <h2>فضايح 😂</h2>
-<p class="mut">لقطات من الأدمن والطلاب</p>
+<p class="mut">انشر وشوف تعليقات الكل — الحذف للأدمن فقط</p>
+<div class="tabs" style="margin-bottom:10px">
+  <button type="button" class="tab ${tab==="all"?"on":""}" data-act="fadTab" data-tab="all">الكل</button>
+  <button type="button" class="tab ${tab==="mine"?"on":""}" data-act="fadTab" data-tab="mine">منشوراتي</button>
+</div>
 <div class="card">
-  <b>اقترح فضيحة</b>
-  <p class="mut" style="margin:4px 0 8px">بتتنشر على طول من غير موافقة 😂</p>
-  <label class="f">وصف / تعليق</label>
-  <input id="stuFadTitle" type="text" maxlength="120" placeholder="اكتب وصف قصير…">
-  <label class="f">صور (تقدر تختار أكتر من صورة)</label>
+  <b>انشر فضيحة</b>
+  <p class="mut" style="margin:4px 0 8px">بتنزل على طول · تقدر تختار أكتر من صورة</p>
+  <label class="f">وصف</label>
+  <input id="stuFadTitle" type="text" maxlength="120" placeholder="وصف قصير…">
+  <label class="f">صور</label>
   <input id="stuFadFile" type="file" accept="image/*" multiple>
-  <label class="f">أو رابط فيديو/صورة</label>
+  <label class="f">أو رابط</label>
   <input id="stuFadLink" class="ltr" type="url" placeholder="https://…">
   <button class="btn sm" style="margin-top:10px" data-act="submitFadaye7">نشر</button>
 </div>
-${list.length?list.map(f=>{
-  const by=f.fromAdmin?("من الأدمن"):(f.authorName?("من "+f.authorName):"من الأدمن");
-  const dl=f.url&&(f.url.startsWith("data:image")||/\.(jpe?g|png|gif|webp)(\?|$)/i.test(f.url)||f.kind==="image")
-    ?`<a class="btn ghost sm" href="${esc(f.url)}" download="fadiha.jpg">⬇ تحميل</a>`:"";
-  return `<div class="card">
-  <div class="row"><b>${esc(f.title||"فضيحة")}</b>${pill(by,f.fromAdmin?"i":"g")}</div>
-  <div class="mut" style="margin:4px 0 8px">${fmt(f.createdAt)}</div>
-  ${f.url?mediaEmbed(f.url,f.kind):""}
-  ${dl||(uid&&f.authorUid===uid)?`<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">${dl}${uid&&f.authorUid===uid?`<button class="btn danger sm" data-act="delMyFadaye7" data-id="${f.id}">حذف بتاعي</button>`:""}</div>`:""}
-</div>`;
-}).join(""):`<div class="card mut">لسه مفيش فضايح منشورة.</div>`}
+${list.length?list.map(card).join(""):(tab==="mine"?emptyBox("📝","مفيش منشورات ليك","انشر أول فضيحة من فوق"):emptyBox("😂","لسه مفيش فضايح","كن أول من ينشر"))}
 </div>${studentNav()}`;
 }
 
@@ -3594,6 +3653,42 @@ const A={
     try{await updateDoc(doc(db,"galleries",d.id),{pinned:!g||!g.pinned});}catch(e){toast("فشل")}
   },
 
+  
+  fadTab(d){S.fadTab=d.tab||"all";render(true)},
+  cancelReply(){S.commentReply=null;render(true)},
+  replyComment(d){
+    S.commentReply={targetType:d.type,targetId:d.id,parentId:d.parent};
+    render(true);
+    setTimeout(()=>{const el=document.getElementById("cmt_"+d.type+"_"+d.id);if(el)el.focus()},50);
+  },
+  async postComment(d){
+    if(!S.user||!d.type||!d.id)return;
+    if(d.type==="avatar"||d.type==="profile"){toast("مينفعش التعليق على صورة الملف الشخصي");return}
+    const el=document.getElementById("cmt_"+d.type+"_"+d.id);
+    const text=(el&&el.value||"").trim();
+    if(!text){toast("اكتب تعليق");return}
+    if(text.length>400){toast("التعليق طويل");return}
+    try{
+      const parent=(S.commentReply&&S.commentReply.targetId===d.id&&S.commentReply.targetType===d.type)?S.commentReply.parentId:null;
+      await addDoc(collection(db,"comments"),{
+        targetType:d.type, targetId:d.id, parentId:parent||null,
+        uid:S.user.uid, name:(S.profile&&S.profile.name||"طالب").split(" ")[0],
+        text, createdAt:serverTimestamp()
+      });
+      if(el)el.value="";
+      S.commentReply=null;
+      toast("اتنشر التعليق ✓",true);
+    }catch(e){console.error(e);toast("فشل التعليق — انشر Rules")}
+  },
+  async delComment(d){
+    if(!d.cid)return;
+    const c=(S.comments||[]).find(x=>x.id===d.cid);
+    if(!c)return;
+    if(!S.isAdmin&&c.uid!==(S.user&&S.user.uid)){toast("مش مسموح");return}
+    if(!confirm("حذف التعليق؟"))return;
+    try{await deleteDoc(doc(db,"comments",d.cid));toast("اتحذف")}catch(e){toast("فشل")}
+  },
+
   openFadaye7(){S.view="fadaye7";render(true)},
   async addFadaye7(){
     if(!S.isAdmin)return;
@@ -3686,9 +3781,7 @@ const A={
     }catch(e){console.error(e);toast((e.code||"").includes("permission")?"انشر firestore.rules الجديدة من Firebase":"فشل النشر")}
   },
   async delMyFadaye7(d){
-    if(!S.user||!d.id)return;
-    if(!confirm("تمسح بوستك ده؟"))return;
-    try{await deleteDoc(doc(db,"fadaye7",d.id));toast("اتمسحت")}catch(e){toast("فشل الحذف")}
+    toast("الحذف للأدمن فقط");
   },
   async toggleSecHide(d){
     if(!S.isAdmin||!d.uid||!d.sec)return;
