@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v35-s1">
+<meta name="sw-build" content="v36-s1">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <meta name="mobile-web-app-capable" content="yes">
@@ -29,9 +29,9 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 'IBM Plex Sans Arabic',system-ui,sans-serif;-webkit-text-size-adjust:100%;transition:background-color .35s,color .35s}
 .bgfx{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
-.bgfx i{position:absolute;width:60vmax;height:60vmax;border-radius:50%;opacity:.4;animation:drift 30s ease-in-out infinite alternate;will-change:transform}
+.bgfx i{position:absolute;width:60vmax;height:60vmax;border-radius:50%;opacity:.4;}
 .bgfx i:nth-child(1){background:radial-gradient(circle,color-mix(in srgb,var(--pri) 38%,transparent),transparent 66%);top:-22vmax;inset-inline-end:-18vmax}
-.bgfx i:nth-child(2){background:radial-gradient(circle,color-mix(in srgb,var(--ind) 30%,transparent),transparent 66%);bottom:-28vmax;inset-inline-start:-22vmax;animation-duration:38s}
+.bgfx i:nth-child(2){background:radial-gradient(circle,color-mix(in srgb,var(--ind) 30%,transparent),transparent 66%);bottom:-28vmax;inset-inline-start:-22vmax}
 @keyframes drift{to{transform:translate(7vmax,5vmax) scale(1.12)}}
 .wrap{max-width:720px;margin:0 auto;padding:16px 16px 100px}
 .wrap.wide{max-width:1000px}
@@ -427,8 +427,7 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,updatePassword,setPersistence,browserLocalPersistence} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,deleteField,collection,onSnapshot,query,where,orderBy,limit,getDocs,writeBatch,serverTimestamp,arrayUnion,arrayRemove} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import {getStorage,ref as storageRef,uploadBytes,getDownloadURL} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,deleteField,collection,onSnapshot,query,where,orderBy,limit,getDocs,writeBatch,serverTimestamp,arrayUnion,arrayRemove} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ============ إعدادات Firebase ============ */
 const firebaseConfig = {
@@ -615,7 +614,7 @@ const configured = !firebaseConfig.apiKey.startsWith("PASTE");
 let messaging=null, __msgMod=null;
 if(configured){
   const app=initializeApp(firebaseConfig);
-  auth=getAuth(app);db=getFirestore(app);storage=getStorage(app);
+  auth=getAuth(app);window.__fbApp=app;try{db=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})})}catch(e){db=initializeFirestore(app,{})}
   try{setPersistence(auth,browserLocalPersistence).catch(function(){})}catch(_){}getIp();
   // FCM اختياري — لو فشل ميمنعش تشغيل المنصة
   (async()=>{
@@ -852,7 +851,7 @@ async function pingClientPresence(){
 }
 // نبض تواجد كل 40 ثانية
 if(!window.__presenceIv){
-  window.__presenceIv=setInterval(()=>{try{pingClientPresence()}catch(_){}},60000);
+  window.__presenceIv=setInterval(()=>{try{if(!document.hidden)pingClientPresence()}catch(_){}},300000);
   document.addEventListener("visibilitychange",()=>{
     if(!document.hidden)pingClientPresence();
   });
@@ -1028,7 +1027,7 @@ async function startSession(u){
       S.exams=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));
       try{if(S.exams.length)localStorage.setItem("exams_cache_v1",JSON.stringify(S.exams.map(e=>({id:e.id,title:e.title,subject:e.subject,minutes:e.minutes,passMark:e.passMark,published:e.published}))))}catch(_){}
       if(S.view==="admin"&&["dash","exams","editExam"].includes(S.tab)){const n=Date.now();if(n-__exaT<1500)return;__exaT=n;scheduleRender()}}));
-      subs.push(onSnapshot(query(collection(db,"results"),orderBy("createdAt","desc")),s=>{
+      subs.push(onSnapshot(query(collection(db,"results"),orderBy("createdAt","desc"),limit(400)),s=>{
         if(!f1)s.docChanges().forEach(c=>{if(c.type==="added"&&c.doc.data().createdAt){const r=c.doc.data();toast(`${r.name} امتحن ${r.examTitle} (محاولة ${r.attempt||1}) وجاب ${r.score}/${r.total}`,true);if(S.tab!=="results"){S.unread++;updTitle()}}});
         f1=false;S.results=s.docs.map(d=>({id:d.id,...d.data()}));
         if(S.view==="admin"&&["dash","results","students","live"].includes(S.tab)){const n=Date.now();if(n-__resT<2000)return;__resT=n;scheduleRender()}
@@ -1060,7 +1059,7 @@ async function startSession(u){
       },err=>console.warn("activity",err)));
       subs.push(onSnapshot(collection(db,"qb_rooms"),s=>{
         S.adminRooms=s.docs.map(d=>({id:d.id,code:d.id,...d.data()}));
-        if(S.view==="admin"&&(S.tab==="activity"||S.tab==="live"))render();
+        if(S.view==="admin"&&(S.tab==="activity"||S.tab==="live"))scheduleRender();
       },err=>console.warn("adminRooms",err)));
       subs.push(onSnapshot(query(collection(db,"conversations"),limit(50)),s=>{
         S.adminConvs=s.docs.map(d=>({id:d.id,...d.data()}));
@@ -1082,8 +1081,11 @@ async function startSession(u){
       }catch(_){}
       subs.push(onSnapshot(doc(db,"students",u.uid),s=>{
         if(s.exists()){
-          S.profile=s.data();
-          if(["home","me","profile","progress"].includes(S.view))
+          const __np=s.data(),__op=S.profile;
+          S.profile=__np;
+          const __keys=["name","xp","streak","level","title","badges","avatar","blocked","roles","chatName","note"];
+          const __chg=!__op||__keys.some(k=>JSON.stringify(__op[k])!==JSON.stringify(__np[k]));
+          if(__chg&&["home","me","profile","progress"].includes(S.view))
             scheduleRender();
         }
       }));
@@ -1095,7 +1097,7 @@ async function startSession(u){
         let ok=true;try{const k="lg_"+u.uid,l=+localStorage.getItem(k)||0;if(Date.now()-l<1800000)ok=false;else localStorage.setItem(k,String(Date.now()))}catch(e){}
         if(ok)addDoc(collection(db,"students",u.uid,"logins"),{ip:ip||"",device:device(),screen:screen.width+"×"+screen.height,lang:navigator.language||"",tz:(Intl.DateTimeFormat().resolvedOptions().timeZone||""),createdAt:serverTimestamp()}).catch(()=>{});
       });
-      const iv2=setInterval(()=>{if(S.user&&!S.isAdmin&&(S.view==="home"||S.view==="subject"))scheduleRender()},180000);subs.push(()=>clearInterval(iv2));
+      
       let __resumeTried=false,__seenExams=null;
       const maybeResume=()=>{
         if(__resumeTried||!S.examsLoaded||!S.user)return;
@@ -1127,7 +1129,7 @@ async function startSession(u){
           try{restoreNavState()}catch(_){}
         }
       };
-      subs.push(onSnapshot(collection(db,"exams"),s=>{
+      subs.push(onSnapshot(query(collection(db,"exams"),where("published","==",true)),s=>{
         const list=s.docs.map(d=>({id:d.id,...d.data()})).filter(e=>e.published).sort((a,b)=>tms(b)-tms(a));
         if(__seenExams){
           list.forEach(e=>{
@@ -5257,10 +5259,10 @@ async function packImageToStorage(file, path){
   }catch(e){console.warn("storage img",e);return null}
 }
 async function uploadMedia(file, path){
-  if(!storage)throw new Error("Storage مش متاح");
-  const r=storageRef(storage, path);
-  await uploadBytes(r, file, {contentType:file.type||undefined});
-  return await getDownloadURL(r);
+  const M=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js");
+  const r=M.ref(M.getStorage(window.__fbApp), path);
+  await M.uploadBytes(r, file, {contentType:file.type||undefined});
+  return await M.getDownloadURL(r);
 }
 function listenMyChats(){
   if(!S.user||S.isAdmin)return;
@@ -6318,7 +6320,7 @@ if('serviceWorker' in navigator){
         if(!localStorage.getItem("sw_v35_cleared")){
           localStorage.setItem("sw_v35_cleared","1");
           if(reg.active)reg.active.postMessage({type:"CLEAR_CACHE"});
-          caches.keys().then(function(ks){ks.forEach(function(k){if(k.indexOf("eltafawoq-v35")<0)caches.delete(k)})});
+          caches.keys().then(function(ks){ks.forEach(function(k){if(k.indexOf("eltafawoq-v36")<0)caches.delete(k)})});
         }
       }catch(e){}
     }).catch(function(){});
