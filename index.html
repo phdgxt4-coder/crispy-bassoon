@@ -479,6 +479,21 @@ const tsMs = v => {
 const tms = r => Math.floor(tsMs(r&&(r.createdAt||r.updatedAt||r.lastAt||r))/1000);
 
 let __cmtUnsub=null;
+let __fadUnsub=null,__galUnsub=null;
+function ensureFadaye7Listen(){
+  if(__fadUnsub||!db)return;
+  __fadUnsub=onSnapshot(query(collection(db,"fadaye7"),limit(40)),s=>{
+    S.fadaye7=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt));
+    if(S.view==="fadaye7")scheduleRender();
+  },err=>console.warn("fad",err));
+}
+function ensureGalleriesListen(){
+  if(__galUnsub||!db)return;
+  __galUnsub=onSnapshot(query(collection(db,"galleries"),limit(60)),s=>{
+    S.galleries=s.docs.map(d=>({id:d.id,...d.data()}));
+    if(S.view==="gallery"||S.view==="tanagha")scheduleRender();
+  },err=>console.warn("gal",err));
+}
 function ensureCommentsListen(){
   if(__cmtUnsub||!db)return;
   try{
@@ -1046,8 +1061,7 @@ async function startSession(u){
         if(S.view==="asmList"||S.view==="asm"||S.view==="home")(typeof scheduleRender==="function"?scheduleRender():render());
       }));
       listenMyChats();
-      subs.push(onSnapshot(query(collection(db,"fadaye7"),limit(40)),s=>{S.fadaye7=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt));if(S.view==="fadaye7"||S.view==="home")render();}));
-      subs.push(onSnapshot(query(collection(db,"galleries"),limit(80)),s=>{S.galleries=s.docs.map(d=>({id:d.id,...d.data()}));if(S.view==="gallery"||S.view==="tanagha")render();},err=>console.warn("gal",err)));
+      // lazy: fadaye7/galleries on open
 
       getIp().then(ip=>{
         updateDoc(doc(db,"students",u.uid),{lastLogin:serverTimestamp(),ip:ip||"",device:device()}).catch(()=>{});
@@ -1209,7 +1223,9 @@ function render(force){
   else if(S.site.maintenance&&!S.isAdmin&&!S.adminLogin)h=maintenance();
   else if(!S.user)h=authView();
   else if(S.isAdmin){
-    h=S.view==="editExam"?editor():S.view==="editAsm"&&(S.isAdmin||isAsmManager())?asmEditor():S.view==="studentDetail"?studentDetail():S.view==="review"?reviewView():adminView();
+    h=S.view==="editExam"?editor():S.view==="editAsm"?asmEditor():S.view==="studentDetail"?studentDetail():S.view==="review"?reviewView():adminView();
+  }else if(typeof isAsmManager==="function"&&isAsmManager()&&(S.view==="editAsm"||S.view==="asmAdmin")){
+    h=S.view==="editAsm"?asmEditor():adminAsm();
   }else if(S.profile&&S.profile.blocked){h=blockedView()}
   else{
     const m={games:gamesView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View,tanagha:tanaghaView,gallery:galleryView,groups:groupsView,groupThread:groupThreadView,ai:aiView,books:booksView};
@@ -1310,7 +1326,7 @@ function homeView(){ /* stage1 polish */
   return `<div class="wrap screen">${header(`<button class="btn ghost sm" data-act="logout">خروج</button>`)}
 <h2>أهلاً يا ${esc(((S.profile&&S.profile.name)||"طالب").split(" ")[0])}</h2><p class="mut">اختار المادة اللي عايز تمتحن فيها.</p>${inst||""}${an}${resume}
 <div class="grid">${S.examsLoaded?SUBJECTS.map(s=>{const l=ex.filter(e=>e.subject===s.id),done=l.filter(e=>(S.attempts[e.id]||[]).length).length,p=l.length?Math.round(done/l.length*100):0;
-  return `<button class="subj" style="background:linear-gradient(135deg,${s.c},${s.c2})" data-act="openSubject" data-id="${s.id}"><span class="g">${s.g}</span><b>${s.name}</b><small>${l.length?l.length+" امتحان · خلصت "+done:"مفيش امتحانات لسه"}</small><div class="sp"><i style="--w:${p}%"></i></div></button>`}).join("")+`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#0B5D57)" data-act="openAsms"><span class="g">A+</span><div><b>التقييمات</b><br><small>${S.asms.length?S.asms.length+" تقييم · حلول ونماذج":"مفيش تقييمات لسه"}</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#166534,#B45309)" data-act="openGames"><span class="g">🎮</span><div><b>الألعاب</b><br><small>العب ضد الروبوت أو ضد صاحبك</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#9D174D,#BE185D)" data-act="openFadaye7"><span class="g">😂</span><div><b>فضايح</b><br><small>${(S.fadaye7||[]).length?((Array.isArray(S.fadaye7)?S.fadaye7:[]).length)+" لقطة":"صور وفيديوهات من الأدمن"}</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#1e3a5f,#0B5D57)" data-act="openBooks"><span class="g">📚</span><div><b>الكتب</b><br><small>PDF وملفات للتحميل</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#BE185D,#F472B6)" data-act="openTanagha"><span class="g">💗</span><div><b>خاص لأولاد التناغه</b><br><small>أجمل شلة · صورنا</small></div></button>`:SUBJECTS.map(()=>`<div class="sk"></div>`).join("")}</div>
+  return `<button class="subj" style="background:linear-gradient(135deg,${s.c},${s.c2})" data-act="openSubject" data-id="${s.id}"><span class="g">${s.g}</span><b>${s.name}</b><small>${l.length?l.length+" امتحان · خلصت "+done:"مفيش امتحانات لسه"}</small><div class="sp"><i style="--w:${p}%"></i></div></button>`}).join("")+`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#0B5D57)" data-act="openAsms"><span class="g">A+</span><div><b>التقييمات</b><br><small>${S.asms.length?S.asms.length+" تقييم · حلول ونماذج":"مفيش تقييمات لسه"}</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#166534,#B45309)" data-act="openGames"><span class="g">🎮</span><div><b>الألعاب</b><br><small>العب ضد الروبوت أو ضد صاحبك</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#9D174D,#BE185D)" data-act="openFadaye7"><span class="g">😂</span><div><b>فضايح</b><br><small>${(S.fadaye7||[]).length?((Array.isArray(S.fadaye7)?S.fadaye7:[]).length)+" لقطة":"صور وفيديوهات من الأدمن"}</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#1e3a5f,#0B5D57)" data-act="openBooks"><span class="g">📚</span><div><b>الكتب</b><br><small>PDF وملفات للتحميل</small></div></button>${(typeof isAsmManager==="function"&&isAsmManager()&&!S.isAdmin)?`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#6366F1)" data-act="openAsmAdmin"><span class="g">📝</span><div><b>إدارة التقييمات</b><br><small>مسؤول تقييمات</small></div></button>`:""}<button class="subj wide" style="background:linear-gradient(135deg,#BE185D,#F472B6)" data-act="openTanagha"><span class="g">💗</span><div><b>خاص لأولاد التناغه</b><br><small>أجمل شلة · صورنا</small></div></button>`:SUBJECTS.map(()=>`<div class="sk"></div>`).join("")}</div>
 </div>${studentNav()}`}
 function subjectView(){
   const s=SUBJECTS.find(x=>x.id===S.subject),ex=(Array.isArray(S.exams)?S.exams:[]).filter(e=>e&&e.subject===s.id&&vis(e));
@@ -2384,7 +2400,7 @@ function adminView(){
     {title:"محتوى", items:[["exams","امتحانات"],["asm","تقييمات"],["books","كتب"]]},
     {title:"مجتمع", items:[["fadaye7","فضايح 😂"],["tanagha","التناغه 💗"],["students","طلاب"]]},
     {title:"رقابة", items:[["results","نتايج"],["alerts","تنبيهات"],["suspicious","احتيالي"]]},
-    {title:"إعدادات", items:[["settings","إعدادات"]]}
+    {title:"إدارة", items:[["managers","المسؤولين"],["settings","إعدادات"]]}
   ];
   const bd={results:S.unread,alerts:S.unreadAlerts,live:liveActive().length,suspicious:(S.suspicious||[]).filter(x=>!x.seen).length};
   return `<div class="wrap wide">${header(`${pill("أدمن","i")}<button class="btn ghost sm" data-act="logout">خروج</button>`)}
@@ -2393,7 +2409,7 @@ ${groups.map(g=>`<div style="margin-bottom:10px">
   <div class="mut" style="font-size:11px;font-weight:700;margin-bottom:4px;opacity:.75">${g.title}</div>
   <div class="tabs" style="margin-bottom:0">${g.items.map(([k,v])=>`<button class="tab ${t===k?"on":""}" data-act="tab" data-id="${k}">${v}${bd[k]?`<span class="badge">${bd[k]}</span>`:""}</button>`).join("")}</div>
 </div>`).join("")}
-${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,tanagha:adminTanagha,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,suspicious:adminSuspicious,settings:adminSettings}[t]||adminDash)()}
+${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,tanagha:adminTanagha,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,suspicious:adminSuspicious,managers:adminManagers,settings:adminSettings}[t]||adminDash)()}
 ${t==="exams"?`<button class="fab" data-act="newExam" aria-label="امتحان جديد">+</button>`:""}</div>`}
 const chart=(days,vals,cls)=>{const mx=Math.max(1,...vals);return `<div class="bars">${vals.map((v,i)=>`<div>${v||""}<i class="${cls||""}" style="height:${Math.max(3,v/mx*68)}%"></i><span>${days[i].l}</span></div>`).join("")}</div>`};
 
@@ -2490,6 +2506,35 @@ function adminDash(){
 ${st.per.map(p=>`<tr><td>${esc(p.e.title)}</td><td>${subName(p.e.subject)}</td><td>${p.n}</td><td>${p.n?p.avg+"%":"-"}</td><td>${p.pass==null?"-":p.pass+"%"}</td><td>${p.secs==null?"-":dur(p.secs)}</td></tr>`).join("")||`<tr><td colspan="6" class="mut">مفيش امتحانات</td></tr>`}</table></div></div>
 <div class="card"><h3>أصعب الأسئلة</h3>${ql(st.hard,"r")}</div>
 <div class="card"><h3>أسهل الأسئلة</h3>${ql(st.easy,"g")}</div>`}
+
+
+function adminManagers(){
+  const students=(S.students||[]).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));
+  const asmMgrs=students.filter(s=>Array.isArray(s.roles)&&s.roles.includes("asm"));
+  const q=(S.mgrQ||"").trim();
+  const filtered=!q?students:students.filter(s=>((s.name||"")+" "+(s.phone||"")).includes(q));
+  return `<div class="card" style="background:linear-gradient(135deg,color-mix(in srgb,var(--ind) 12%,var(--card)),var(--card))">
+  <h3 style="margin-top:0">المسؤولين</h3>
+  <p class="mut" style="margin:0">تعيين مسؤولين لأقسام المنصة — حاليًا: التقييمات</p>
+</div>
+<div class="card">
+  <h3 style="margin-top:0">📋 مسؤولو التقييمات</h3>
+  <p class="mut">يرفعوا ويعدّلوا التقييمات والحلول (قسم التقييمات فقط).</p>
+  <div class="mut" style="margin:8px 0">الحاليون (${asmMgrs.length}): ${asmMgrs.map(s=>esc(s.name||s.phone||s.id)).join(" · ")||"مفيش لسه"}</div>
+  <label class="f">بحث</label>
+  <input id="mgrQ" type="search" value="${esc(S.mgrQ||"")}" placeholder="اسم أو رقم…" data-change="mgrSearch">
+  <div style="max-height:380px;overflow:auto;margin-top:10px">
+  ${filtered.slice(0,100).map(s=>{
+    const on=Array.isArray(s.roles)&&s.roles.includes("asm");
+    return `<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)">
+      <div style="flex:1"><b>${esc(s.name||"طالب")}</b><div class="mut">${esc(s.phone||"")}</div></div>
+      <button type="button" class="btn ${on?"":"ghost "}sm" data-act="grantAsmRole" data-uid="${s.id}">${on?"✓ مسؤول تقييمات":"تعيين"}</button>
+    </div>`;
+  }).join("")||`<div class="mut">مفيش طلاب</div>`}
+  </div>
+</div>
+<div class="card mut"><b>قريبًا في نفس التبويب</b><div style="margin-top:6px">مسؤولو الكتب · الفضائح · الجروبات</div></div>`;
+}
 
 function adminAsm(){
   return `<div class="row" style="margin-bottom:12px"><div class="mut">${S.asms.length} تقييم</div><button class="btn" data-act="newAsm">تقييم جديد</button></div>
@@ -3001,6 +3046,7 @@ const A={
   },
 
   
+  openAsmAdmin(){S.view="asmAdmin";S.tab="asm";render(true)},
   openBooks(){S.view="books";render(true)},
   async addBook(){
     if(!S.isAdmin)return;
@@ -3735,13 +3781,14 @@ const A={
   openAsms(){S.view="asmList";render(true)},
   
   openGallery(d){
-    ensureCommentsListen();
+    ensureGalleriesListen();ensureCommentsListen();
     S.galleryKind=d.kind||"shilla";
     S.view="gallery";
     document.body.classList.add("gal-secure");
     render(true);
   },
   openTanagha(){
+    ensureGalleriesListen();
     S.view="tanagha";
     document.body.classList.add("gal-secure");
     render(true);
@@ -3841,7 +3888,7 @@ const A={
     try{await deleteDoc(doc(db,"comments",d.cid));toast("اتحذف")}catch(e){toast("فشل")}
   },
 
-  openFadaye7(){ensureCommentsListen();S.view="fadaye7";render(true)},
+  openFadaye7(){ensureFadaye7Listen();ensureCommentsListen();S.view="fadaye7";render(true)},
   async addFadaye7(){
     if(!S.isAdmin)return;
     const title=($("#fadTitle")?.value||"").trim()||"فضيحة";
