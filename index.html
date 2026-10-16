@@ -997,12 +997,12 @@ async function startSession(u){
       S.view="admin";S.tab="dash";
       let f1=true,f2=true,f3=true;
       subs.push(onSnapshot(collection(db,"exams"),s=>{try{if(S.exams&&S.exams.length)localStorage.setItem("exams_cache_v1",JSON.stringify(S.exams.map(e=>({id:e.id,title:e.title,subject:e.subject,minutes:e.minutes,passMark:e.passMark,published:e.published}))))}catch(_){}
-      S.exams=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));render()}));
+      S.exams=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));scheduleRender()}));
       subs.push(onSnapshot(query(collection(db,"results"),orderBy("createdAt","desc")),s=>{
         if(!f1)s.docChanges().forEach(c=>{if(c.type==="added"&&c.doc.data().createdAt){const r=c.doc.data();toast(`${r.name} امتحن ${r.examTitle} (محاولة ${r.attempt||1}) وجاب ${r.score}/${r.total}`,true);if(S.tab!=="results"){S.unread++;updTitle()}}});
-        f1=false;S.results=s.docs.map(d=>({id:d.id,...d.data()}));render();
+        f1=false;S.results=s.docs.map(d=>({id:d.id,...d.data()}));scheduleRender();
       }));
-      subs.push(onSnapshot(collection(db,"assessments"),s=>{S.asms=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));render()}));
+      subs.push(onSnapshot(collection(db,"assessments"),s=>{S.asms=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));scheduleRender()}));
       subs.push(onSnapshot(query(collection(db,"fadaye7"),limit(40)),s=>{S.fadaye7=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt));if(S.view==="admin"&&S.tab==="fadaye7")scheduleRender();}));
 
       subs.push(onSnapshot(query(collection(db,"books"),limit(50)),s=>{
@@ -1017,11 +1017,11 @@ async function startSession(u){
       }));
       subs.push(onSnapshot(query(collection(db,"alerts"),orderBy("createdAt","desc"),limit(200)),s=>{
         if(!f2)s.docChanges().forEach(c=>{if(c.type==="added"&&c.doc.data().createdAt){const a=c.doc.data();toast(`⚠ ${a.name} (${a.phone}) خرج من الامتحان: ${a.examTitle}`,true);if(S.tab!=="alerts"){S.unreadAlerts++;updTitle()}}});
-        f2=false;S.alerts=s.docs.map(d=>({id:d.id,...d.data()}));render();
+        f2=false;S.alerts=s.docs.map(d=>({id:d.id,...d.data()}));scheduleRender();
       }));
       subs.push(onSnapshot(collection(db,"starts"),s=>{
         if(!f3)s.docChanges().forEach(c=>{if(c.type==="added"){const a=c.doc.data();toast(`🟢 ${a.name||"طالب"} بدأ امتحان ${a.examTitle||""}`,true)}});
-        f3=false;S.starts=s.docs.map(d=>({id:d.id,...d.data()}));render();
+        f3=false;S.starts=s.docs.map(d=>({id:d.id,...d.data()}));scheduleRender();
       }));
       subs.push(onSnapshot(query(collection(db,"activity"),orderBy("createdAt","desc"),limit(150)),s=>{
         S.activity=s.docs.map(d=>({id:d.id,...d.data()}));S.activityLoaded=true;
@@ -1321,13 +1321,18 @@ function homeView(){ /* stage1 polish */
   if(!S.profile)S.profile={name:"طالب",phone:""};
   if(!Array.isArray(S.exams))S.exams=[];
 
+  const loading=!S.examsLoaded&&!(Array.isArray(S.exams)&&S.exams.length);
+  const skel=loading?`<div class="card"><div class="mut">جاري تحميل المواد…</div>
+  <div style="height:14px;background:var(--line);border-radius:8px;margin:10px 0;opacity:.5"></div>
+  <div style="height:14px;width:70%;background:var(--line);border-radius:8px;opacity:.35"></div></div>`:"";
+
   const ex=(Array.isArray(S.exams)?S.exams:[]).filter(vis);
   const an=S.site.announceOn&&S.site.announce?`<div class="card ann"><b>📢 إعلان</b><div style="white-space:pre-wrap;margin-top:4px">${esc(S.site.announce)}</div></div>`:"";
   const inst=installBanner();
   const sess=peekExamSession();
   const resume=sess?`<div class="card" style="border-color:var(--gold);background:var(--ybg)"><b>▶ عندك امتحان متوقف</b><div class="mut" style="margin:4px 0">تقدر تكمّل من حيث وقفت — الإجابات محفوظة</div><button class="btn sm gold" data-act="resumeExam">استئناف الامتحان</button></div>`:"";
   return `<div class="wrap screen">${header(`<button class="btn ghost sm" data-act="logout">خروج</button>`)}
-<h2>أهلاً يا ${esc(((S.profile&&S.profile.name)||"طالب").split(" ")[0])}</h2><p class="mut">اختار المادة اللي عايز تمتحن فيها.</p>${inst||""}${an}${resume}
+<h2>أهلاً يا ${esc(((S.profile&&S.profile.name)||"طالب").split(" ")[0])}</h2><p class="mut">اختار المادة اللي عايز تمتحن فيها.</p>${inst||""}${skel}${an}${resume}
 <div class="grid">${S.examsLoaded?SUBJECTS.map(s=>{const l=ex.filter(e=>e.subject===s.id),done=l.filter(e=>(S.attempts[e.id]||[]).length).length,p=l.length?Math.round(done/l.length*100):0;
   return `<button class="subj" style="background:linear-gradient(135deg,${s.c},${s.c2})" data-act="openSubject" data-id="${s.id}"><span class="g">${s.g}</span><b>${s.name}</b><small>${l.length?l.length+" امتحان · خلصت "+done:"مفيش امتحانات لسه"}</small><div class="sp"><i style="--w:${p}%"></i></div></button>`}).join("")+`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#0B5D57)" data-act="openAsms"><span class="g">A+</span><div><b>التقييمات</b><br><small>${S.asms.length?S.asms.length+" تقييم · حلول ونماذج":"مفيش تقييمات لسه"}</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#166534,#B45309)" data-act="openGames"><span class="g">🎮</span><div><b>الألعاب</b><br><small>العب ضد الروبوت أو ضد صاحبك</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#9D174D,#BE185D)" data-act="openFadaye7"><span class="g">😂</span><div><b>فضايح</b><br><small>${(S.fadaye7||[]).length?((Array.isArray(S.fadaye7)?S.fadaye7:[]).length)+" لقطة":"صور وفيديوهات من الأدمن"}</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#1e3a5f,#0B5D57)" data-act="openBooks"><span class="g">📚</span><div><b>الكتب</b><br><small>PDF وملفات للتحميل</small></div></button>${(typeof isAsmManager==="function"&&isAsmManager()&&!S.isAdmin)?`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#6366F1)" data-act="openAsmAdmin"><span class="g">📝</span><div><b>إدارة التقييمات</b><br><small>مسؤول تقييمات</small></div></button>`:""}<button class="subj wide" style="background:linear-gradient(135deg,#BE185D,#F472B6)" data-act="openTanagha"><span class="g">💗</span><div><b>خاص لأولاد التناغه</b><br><small>أجمل شلة · صورنا</small></div></button>`:SUBJECTS.map(()=>`<div class="sk"></div>`).join("")}</div>
 </div>${studentNav()}`}
