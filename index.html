@@ -500,14 +500,14 @@ function ensureCommentsListen(){
     __cmtUnsub=onSnapshot(query(collection(db,"comments"),orderBy("createdAt","desc"),limit(120)),s=>{
       S.comments=s.docs.map(d=>({id:d.id,...d.data()}));
       // تحديث خفيف: لو في صفحة تعليقات فقط
-      if(S.view==="fadaye7"||S.view==="gallery")render();
+      if(S.view==="fadaye7"||S.view==="gallery")scheduleRender();
     },err=>{
       console.warn("comments",err);
       // بدون index: استعلام أبسط
       if(__cmtUnsub){try{__cmtUnsub()}catch(_){}}
       __cmtUnsub=onSnapshot(query(collection(db,"comments"),limit(120)),s=>{
         S.comments=s.docs.map(d=>({id:d.id,...d.data()}));
-        if(S.view==="fadaye7"||S.view==="gallery")render();
+        if(S.view==="fadaye7"||S.view==="gallery")scheduleRender();
       },e=>console.warn("comments2",e));
     });
   }catch(e){console.warn(e)}
@@ -1003,7 +1003,7 @@ async function startSession(u){
         f1=false;S.results=s.docs.map(d=>({id:d.id,...d.data()}));render();
       }));
       subs.push(onSnapshot(collection(db,"assessments"),s=>{S.asms=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));render()}));
-      subs.push(onSnapshot(query(collection(db,"fadaye7"),limit(40)),s=>{S.fadaye7=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt));if(S.view==="admin"&&S.tab==="fadaye7")render();}));
+      subs.push(onSnapshot(query(collection(db,"fadaye7"),limit(40)),s=>{S.fadaye7=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt));if(S.view==="admin"&&S.tab==="fadaye7")scheduleRender();}));
 
       subs.push(onSnapshot(query(collection(db,"books"),limit(50)),s=>{
         S.books=s.docs.map(d=>({id:d.id,...d.data()}));
@@ -1025,7 +1025,7 @@ async function startSession(u){
       }));
       subs.push(onSnapshot(query(collection(db,"activity"),orderBy("createdAt","desc"),limit(150)),s=>{
         S.activity=s.docs.map(d=>({id:d.id,...d.data()}));S.activityLoaded=true;
-        if(S.view==="admin"&&S.tab==="activity")render();
+        if(S.view==="admin"&&S.tab==="activity")scheduleRender();
       },err=>console.warn("activity",err)));
       subs.push(onSnapshot(collection(db,"qb_rooms"),s=>{
         S.adminRooms=s.docs.map(d=>({id:d.id,code:d.id,...d.data()}));
@@ -1033,7 +1033,7 @@ async function startSession(u){
       },err=>console.warn("adminRooms",err)));
       subs.push(onSnapshot(query(collection(db,"conversations"),limit(50)),s=>{
         S.adminConvs=s.docs.map(d=>({id:d.id,...d.data()}));
-        if(S.view==="admin"&&S.tab==="live")render();
+        if(S.view==="admin"&&S.tab==="live")scheduleRender();
       },err=>console.warn("adminConvs",err)));
       const iv=setInterval(()=>{if(S.view==="admin"&&S.tab==="live")scheduleRender()},30000);subs.push(()=>clearInterval(iv));
     }else{
@@ -2877,7 +2877,7 @@ async function loadAsm(id){
       x.s=all.filter(isFile).sort(byOrder);const t=all.find(f=>f.kind==="text");x.solText=t?t.text:"";x.solDone=true;
     }
   }catch(e){x.err=true;x.qDone=true;if(a&&a.showSolution)x.solDone=true}
-  x.loading=false;if(S.view==="asm"&&S.asm===x)render();
+  x.loading=false;if(S.view==="asm"&&S.asm===x)scheduleRender();
 }
 function ensureSol(){
   const x=S.asm;if(S.view!=="asm"||!x||S.isAdmin)return;
@@ -2991,7 +2991,7 @@ const A={
   async student(d){
     S.studentId=d.id;S.logins[d.id]=null;S.view="studentDetail";render(true);
     try{const sn=await getDocs(query(collection(db,"students",d.id,"logins"),orderBy("createdAt","desc"),limit(30)));S.logins[d.id]=sn.docs.map(x=>({id:x.id,...x.data()}))}catch(e){S.logins[d.id]=[]}
-    if(S.view==="studentDetail"&&S.studentId===d.id)render();
+    if(S.view==="studentDetail"&&S.studentId===d.id)scheduleRender();
   },
   openGames(){
     if(S.qb&&S.qb.roomCode&&(S.view==="qbPlay"||S.view==="qbLobby"||S.view==="qbResult")){
@@ -3406,7 +3406,7 @@ const A={
       await updateDoc(doc(db,"conversations",cid,"msgs",d.id),{deleted:true,text:"",img:null});
       const m=(S.chatMsgs||[]).find(x=>x.id===d.id);
       if(m){m.deleted=true;m.text="";m.img=null}
-      if(S.view==="chatThread")render(true);
+      if(S.view==="chatThread")scheduleRender();
       toast("اتمسحت");
     }catch(e){console.error(e);toast("مقدرش أحذف — تأكد من القواعد")}
   },
@@ -3451,7 +3451,7 @@ const A={
       S.viewProfile={id:uid,name:"طالب",loading:false,recent:[]};
       toast("مقدرتش أحمّل الملف");
     }
-    if(S.view==="profile")render(true);
+    if(S.view==="profile")scheduleRender();
   },
   async searchFriend(){
     const q=($("#friendQ")?.value||"").trim();
@@ -3810,7 +3810,7 @@ const A={
       const images=[];
       for(const f of files){
         if(!/^image\//.test(f.type))continue;
-        images.push(await packImage(f,720,0.72,450000));
+        images.push(await packImage(f,640,0.7,280000));
       }
       if(!images.length){toast("مفيش صور صالحة");return}
       await addDoc(collection(db,"galleries"),{
@@ -4284,14 +4284,14 @@ const A={
       toast("الكود: "+code+" (صالح 24 ساعة)");
       // refresh local
       const st=S.students.find(x=>x.id===d.id);if(st){st.pwResetCode=code;st.pwResetUntil=until}
-      if(S.view==="studentDetail")render(true);
+      if(S.view==="studentDetail")scheduleRender();
     }catch(e){toast("فشل توليد الكود")}
   },
   async adminClearReset(d){
     try{
       await updateDoc(doc(db,"students",d.id),{pwResetCode:deleteField(),pwResetUntil:deleteField()});
       const st=S.students.find(x=>x.id===d.id);if(st){delete st.pwResetCode;delete st.pwResetUntil}
-      toast("اتمسح الكود");if(S.view==="studentDetail")render(true);
+      toast("اتمسح الكود");if(S.view==="studentDetail")scheduleRender();
     }catch(e){toast("فشل")}
   },
   backAdmin(){S.view="admin";render(true)},
@@ -4995,7 +4995,7 @@ function loadMyGroups(){
   try{
     window.__grpListUnsub=onSnapshot(query(collection(db,"groups"),where("members","array-contains",S.user.uid),limit(30)),snap=>{
       S.groups=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsMs(b.updatedAt)-tsMs(a.updatedAt));
-      if(S.view==="chatList"||S.view==="groups")render();
+      if(S.view==="chatList"||S.view==="groups")scheduleRender();
     },err=>console.warn("groups",err));
   }catch(e){console.warn(e)}
 }
@@ -5061,6 +5061,8 @@ ${addPanel}
 }
 
 async function packImageToStorage(file, path){
+  // Storage مش مجاني عندنا — نرجع null ونستخدم Base64 مضغوط
+  if(!window.__useStorage)return null;
   try{
     const dataUrl=await packImage(file,900,0.78,500000);
     const blob=await (await fetch(dataUrl)).blob();
@@ -5196,9 +5198,9 @@ function listenDmThread(cid,otherUid){
       }
     }
   },()=>{});
-  window.__dmUnsub=onSnapshot(query(collection(db,"conversations",cid,"msgs"),orderBy("createdAt","asc"),limit(100)),snap=>{
+  window.__dmUnsub=onSnapshot(query(collection(db,"conversations",cid,"msgs"),orderBy("createdAt","desc"),limit(50)),snap=>{
     const prev=(S.chatMsgs||[]).length;
-    let msgs=snap.docs.map(d=>({id:d.id,...d.data()}));
+    let msgs=snap.docs.map(d=>({id:d.id,...d.data()})).reverse();
     // احتفظ بالرسائل المحلية لحد ما توصل من السيرفر (صور فورية)
     const locals=(S.chatMsgs||[]).filter(m=>m._local);
     if(locals.length){
@@ -5235,6 +5237,7 @@ function listenDmThread(cid,otherUid){
     msgs.filter(m=>m.toUid===S.user.uid&&!m.read&&!m._local).forEach(m=>{
       updateDoc(doc(db,"conversations",cid,"msgs",m.id),{read:true}).catch(()=>{});
     });
+    // لا render كامل هنا — التحديث الجزئي فوق يكفي
   },err=>{
     console.warn("dm",err);
     window.__dmUnsub=onSnapshot(collection(db,"conversations",cid,"msgs"),snap=>{
@@ -5260,7 +5263,7 @@ function loadOpenRooms(){
         }
         return r.public&&r.status==="lobby"&&n>0;
       });
-      if(S.view==="games")render();
+      if(S.view==="games")scheduleRender();
     },err=>console.warn("openRooms",err));
   }catch(e){console.warn(e)}
 }
@@ -5981,7 +5984,7 @@ document.addEventListener("change",e=>{
         if(!/^image\//.test(f.type)){toast("صورة فقط");continue}
         toast("جاري رفع الصورة "+(n+1)+" من "+files.length+"…");
         let data=await packImageToStorage(f,"groups/"+S.groupId+"/"+Date.now()+"_"+n+".jpg");
-        if(!data) data=await packImage(f,720,0.75,450000);
+        if(!data) data=await packImage(f,640,0.72,320000);
         await addDoc(collection(db,"groups",S.groupId,"msgs"),{
           fromUid:S.user.uid,fromName:(S.profile.name||"طالب").split(" ")[0],
           text:"🖼 صورة",img:data,kind:"image",createdAt:serverTimestamp()
@@ -6000,7 +6003,7 @@ document.addEventListener("change",e=>{
         if(!/^image\//.test(f.type)){toast("صورة فقط — للفيديو استخدم زر 🔗 رابط");continue}
         toast("جاري رفع الصورة "+(n+1)+" من "+files.length+"…");
         let data=await packImageToStorage(f,"chat/"+S.user.uid+"/"+Date.now()+"_"+n+".jpg");
-        if(!data) data=await packImage(f,720,0.75,450000);
+        if(!data) data=await packImage(f,640,0.72,320000);
         await sendDm(S.chatThread.uid,"🖼 صورة",data,{kind:"image"});
         n++;}
         toast(n>1?"اتبعتت "+n+" صور ✓":"اتبعتت ✓");
@@ -6016,16 +6019,13 @@ document.addEventListener("change",e=>{
     (async()=>{
       try{
         if(!/^image\//.test(f.type)||f.size>8*1024*1024){toast("صورة فقط");return}
-        const data=await packImage(f,800,0.8,500000);
-        let url=null;
-        try{url=await packImageToStorage(f,"avatars/"+S.user.uid+".jpg")}catch(_){}
-        const thumb=await packImage(f,96,0.7,40000);
-        const av=url||data;
+        const av=await packImage(f,480,0.72,180000);
+        const thumb=await packImage(f,96,0.65,28000);
         await updateDoc(doc(db,"students",S.user.uid),{avatar:av,avatarThumb:thumb});
         S.profile={...S.profile,avatar:av,avatarThumb:thumb};
         if(window.__peers)window.__peers[S.user.uid]={name:S.profile.name,avatar:thumb};
         toast("اتحفظت الصورة ✓");
-        if(S.view==="me")render(true);
+        if(S.view==="me")scheduleRender();
       }catch(err){toast("فشل رفع الصورة")}
     })();
   }
