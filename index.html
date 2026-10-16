@@ -391,7 +391,7 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,updatePassword} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,deleteField,collection,onSnapshot,query,where,orderBy,limit,getDocs,writeBatch,serverTimestamp,arrayUnion} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,deleteField,collection,onSnapshot,query,where,orderBy,limit,getDocs,writeBatch,serverTimestamp,arrayUnion,arrayRemove} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {getStorage,ref as storageRef,uploadBytes,getDownloadURL} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 /* ============ إعدادات Firebase ============ */
@@ -483,7 +483,7 @@ if(configured){
 }
 
 /* ---------- أدوات ---------- */
-function toast(msg,gold){const t=$("#toast");t.textContent=msg;t.className=(gold?"gold ":"")+"show";clearTimeout(toast.h);toast.h=setTimeout(()=>t.className=gold?"gold":"",gold?7000:3500)}
+function toast(msg,gold){const t=$("#toast");if(!t)return;t.textContent=msg;t.className=(gold?"gold ":"")+"show";clearTimeout(toast.h);toast.h=setTimeout(()=>t.className=gold?"gold":"",gold?7000:3500)}
 function updTitle(){const n=S.unread+S.unreadAlerts;document.title=(n?`(${n}) `:"")+"التفوق"}
 function authErr(e){
   const c=e&&e.code||"";
@@ -1089,6 +1089,7 @@ function render(force){
   }
   if(!app)return;
   app.innerHTML=h||`<div class="wrap"><div class="card mut">جاري التحميل…</div></div>`;
+  try{app.querySelectorAll("img:not([loading])").forEach(function(im){im.loading="lazy";im.decoding="async"})}catch(_){}
   if(S.view==="chatThread"||S.view==="groupThread"){
     bindChatScroll();
     if(S.chatStickBottom!==false)scrollChatBottom(false);
@@ -1146,6 +1147,7 @@ ${S.adminLogin?"":`<p class="mut" style="text-align:center;margin:14px 0 0">${re
 </form>${S.adminLogin?`<p style="text-align:center;margin:8px 0 0"><a href="#" data-act="studentLink" class="mut">رجوع</a></p>`:""}</div>`}
 
 /* ---------- الطالب ---------- */
+try{window.toast=toast}catch(_){}
 function homeView(){
   if(!S.profile)S.profile={name:"طالب",phone:""};
   if(!Array.isArray(S.exams))S.exams=[];
@@ -1700,7 +1702,7 @@ function chatThreadView(){
 ${replyBar}
 <form class="tk-compose" data-submit="dmSend">
   <button type="button" class="btn ghost sm" data-act="dmVoice" title="تسجيل صوت">🎙</button>
-  <label class="btn ghost sm" style="margin:0;cursor:pointer" title="صورة">🖼<input type="file" id="dmImg" accept="image/*" hidden></label>
+  <label class="btn ghost sm" style="margin:0;cursor:pointer" title="صورة">🖼<input type="file" id="dmImg" accept="image/*" multiple hidden></label>
   <input id="dmIn" type="text" maxlength="2000" placeholder="${S.replyTo?"اكتب ردك…":"اكتب رسالة…"}" autocomplete="off">
   <button class="btn sm" type="submit">➤</button>
 </form>
@@ -1936,6 +1938,9 @@ ${list.map(b=>`<div class="card row"><div style="flex:1"><b>${esc(b.title)}</b><
 
 function fadaye7View(){
   const uid=S.user&&S.user.uid;
+  if(!S.isAdmin&&S.profile&&Array.isArray(S.profile.hiddenSections)&&S.profile.hiddenSections.includes("fadaye7")){
+    return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}<div class="card mut">القسم ده مش متاح ليك دلوقتي.</div></div>${studentNav()}`;
+  }
   const list=(S.fadaye7||[]).filter(f=>{
     if(f.published===false||f.status==="pending"||f.status==="rejected")return false;
     if(uid&&Array.isArray(f.hideFrom)&&f.hideFrom.includes(uid))return false;
@@ -1943,17 +1948,17 @@ function fadaye7View(){
   });
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
 <h2>فضايح 😂</h2>
-<p class="mut">لقطات من الأدمن والطلاب (بعد الموافقة)</p>
+<p class="mut">لقطات من الأدمن والطلاب</p>
 <div class="card">
   <b>اقترح فضيحة</b>
-  <p class="mut" style="margin:4px 0 8px">هتوصل للأدمن للموافقة قبل ما تظهر للجميع</p>
+  <p class="mut" style="margin:4px 0 8px">بتتنشر على طول من غير موافقة 😂</p>
   <label class="f">وصف / تعليق</label>
   <input id="stuFadTitle" type="text" maxlength="120" placeholder="اكتب وصف قصير…">
-  <label class="f">صورة (اختياري)</label>
-  <input id="stuFadFile" type="file" accept="image/*">
+  <label class="f">صور (تقدر تختار أكتر من صورة)</label>
+  <input id="stuFadFile" type="file" accept="image/*" multiple>
   <label class="f">أو رابط فيديو/صورة</label>
   <input id="stuFadLink" class="ltr" type="url" placeholder="https://…">
-  <button class="btn sm" style="margin-top:10px" data-act="submitFadaye7">إرسال للأدمن</button>
+  <button class="btn sm" style="margin-top:10px" data-act="submitFadaye7">نشر</button>
 </div>
 ${list.length?list.map(f=>{
   const by=f.fromAdmin?("من الأدمن"):(f.authorName?("من "+f.authorName):"من الأدمن");
@@ -1963,7 +1968,7 @@ ${list.length?list.map(f=>{
   <div class="row"><b>${esc(f.title||"فضيحة")}</b>${pill(by,f.fromAdmin?"i":"g")}</div>
   <div class="mut" style="margin:4px 0 8px">${fmt(f.createdAt)}</div>
   ${f.url?mediaEmbed(f.url,f.kind):""}
-  ${dl?`<div style="margin-top:8px">${dl}</div>`:""}
+  ${dl||(uid&&f.authorUid===uid)?`<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">${dl}${uid&&f.authorUid===uid?`<button class="btn danger sm" data-act="delMyFadaye7" data-id="${f.id}">حذف بتاعي</button>`:""}</div>`:""}
 </div>`;
 }).join(""):`<div class="card mut">لسه مفيش فضايح منشورة.</div>`}
 </div>${studentNav()}`;
@@ -2215,13 +2220,22 @@ ${pend.length?`<div class="card" style="border:2px solid var(--gold);margin-bott
     <button class="btn danger sm" data-act="rejectFadaye7" data-id="${f.id}">رفض</button>
   </div></div>`).join("")}
 </div>`:""}
+<div class="card" style="margin-bottom:12px">
+  <h3 style="margin-top:0">🙈 إخفاء كل الفضايح عن شخص</h3>
+  <p class="mut" style="margin:0 0 8px">الطالب اللي تخفيه مش هيشوف قسم الفضايح خالص، وترجعه في أي وقت.</p>
+  <div style="max-height:260px;overflow:auto">
+  ${students.length?students.map(s=>{const off=Array.isArray(s.hiddenSections)&&s.hiddenSections.includes("fadaye7");
+    return `<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line);gap:10px"><span style="flex:1"><b>${esc(s.name||"?")}</b><div class="mut" dir="ltr">${esc(s.phone||"")}</div></span>
+    <button class="btn ${off?"":"ghost "}sm" data-act="toggleSecHide" data-uid="${s.id}" data-sec="fadaye7" data-on="${off?"0":"1"}">${off?"مخفي — إظهار":"إخفاء"}</button></div>`}).join(""):`<div class="mut">مفيش طلاب مسجّلين</div>`}
+  </div>
+</div>
 <div class="card">
   <h3 style="margin-top:0">إضافة فضيحة جديدة</h3>
   <p class="mut">صور: ارفع من الجهاز · فيديو: الصق رابط (يوتيوب / Drive)</p>
   <label class="f">عنوان / تعليق</label>
   <input id="fadTitle" type="text" placeholder="مثال: لما أحمد نسي الكود…" maxlength="120">
-  <label class="f">صورة من الجهاز (اختياري)</label>
-  <input id="fadFile" type="file" accept="image/*">
+  <label class="f">صور من الجهاز (أكتر من صورة مرة واحدة)</label>
+  <input id="fadFile" type="file" accept="image/*" multiple>
   <label class="f">أو رابط فيديو / صورة</label>
   <input id="fadLink" class="ltr" type="url" placeholder="https://…">
   <button class="btn" style="margin-top:12px" data-act="addFadaye7">نشر</button>
@@ -3391,25 +3405,24 @@ const A={
     if(!S.isAdmin)return;
     const title=($("#fadTitle")?.value||"").trim()||"فضيحة";
     const link=($("#fadLink")?.value||"").trim();
-    const file=$("#fadFile")?.files?.[0];
-    if(!file&&!link){toast("ارفع صورة أو الصق رابط فيديو/صورة");return}
+    const files=[...($("#fadFile")?.files||[])].slice(0,10);
+    if(!files.length&&!link){toast("ارفع صورة أو الصق رابط فيديو/صورة");return}
     try{
-      let url="", kind="image";
+      const batchId="b"+Date.now();
+      const base={title,status:"approved",published:true,fromAdmin:true,authorName:"الأدمن",authorUid:S.user.uid,batchId};
       if(link){
         if(!/^https?:\/\//i.test(link)){toast("الرابط لازم يبدأ بـ http");return}
-        url=link;
-        kind=(ytId(link)||/\.(mp4|webm|mov)(\?|$)/i.test(link)||/youtube|youtu\.be|vimeo|drive\.google/i.test(link))?"video":"image";
-      }else if(file){
-        if(!/^image\//.test(file.type)){toast("من الجهاز: صور فقط — الفيديو بالرابط");return}
-        toast("جاري تجهيز الصورة…");
-        url=await packImage(file,1200,0.82,700000);
-        kind="image";
+        const kind=(ytId(link)||/\.(mp4|webm|mov)(\?|$)/i.test(link)||/youtube|youtu\.be|vimeo|drive\.google/i.test(link))?"video":"image";
+        await addDoc(collection(db,"fadaye7"),{...base,url:link,kind,createdAt:serverTimestamp()});
       }
-      await addDoc(collection(db,"fadaye7"),{
-        title, url, kind, status:"approved", published:true, fromAdmin:true,
-        authorName:"الأدمن", authorUid:S.user.uid,
-        createdAt:serverTimestamp()
-      });
+      let n=0;
+      for(const f of files){
+        if(!/^image\//.test(f.type)){toast("من الجهاز: صور فقط — الفيديو بالرابط");continue}
+        toast("جاري تجهيز الصورة "+(n+1)+" من "+files.length+"…");
+        const url=await packImage(f,1200,0.82,700000);
+        await addDoc(collection(db,"fadaye7"),{...base,url,kind:"image",createdAt:serverTimestamp()});
+        n++;
+      }
       if($("#fadTitle"))$("#fadTitle").value="";
       if($("#fadFile"))$("#fadFile").value="";
       if($("#fadLink"))$("#fadLink").value="";
@@ -3454,29 +3467,41 @@ const A={
     if(!S.user||S.isAdmin)return;
     const title=($("#stuFadTitle")?.value||"").trim()||"فضيحة";
     const link=($("#stuFadLink")?.value||"").trim();
-    const file=$("#stuFadFile")?.files?.[0];
-    if(!file&&!link){toast("ارفع صورة أو الصق رابط");return}
+    const files=[...($("#stuFadFile")?.files||[])].slice(0,10);
+    if(!files.length&&!link){toast("ارفع صورة أو الصق رابط");return}
     try{
-      let url="", kind="image";
+      const batchId="b"+Date.now();
+      const base={title,status:"approved",published:true,fromAdmin:false,authorUid:S.user.uid,authorName:S.profile.name||"طالب",batchId};
       if(link){
         if(!/^https?:\/\//i.test(link)){toast("رابط غير صالح");return}
-        url=link;
-        kind=(ytId(link)||/\.(mp4|webm|mov)(\?|$)/i.test(link)||/youtube|youtu\.be/i.test(link))?"video":"image";
-      }else{
-        if(!/^image\//.test(file.type)){toast("صورة فقط من الجهاز");return}
-        toast("جاري تجهيز الطلب…");
-        url=await packImage(file,1200,0.85,850000);
+        const kind=(ytId(link)||/\.(mp4|webm|mov)(\?|$)/i.test(link)||/youtube|youtu\.be/i.test(link))?"video":"image";
+        await addDoc(collection(db,"fadaye7"),{...base,url:link,kind,createdAt:serverTimestamp()});
       }
-      await addDoc(collection(db,"fadaye7"),{
-        title,url,kind,status:"pending",published:false,fromAdmin:false,
-        authorUid:S.user.uid,authorName:S.profile.name||"طالب",
-        createdAt:serverTimestamp()
-      });
-      toast("اتبعتت للأدمن — هتظهر بعد الموافقة ✓",true);
+      let n=0;
+      for(const f of files){
+        if(!/^image\//.test(f.type)){toast("صورة فقط من الجهاز");continue}
+        toast("جاري رفع الصورة "+(n+1)+" من "+files.length+"…");
+        const url=await packImage(f,1200,0.82,700000);
+        await addDoc(collection(db,"fadaye7"),{...base,url,kind:"image",createdAt:serverTimestamp()});
+        n++;
+      }
+      toast("اتنشرت ✓",true);
       if($("#stuFadTitle"))$("#stuFadTitle").value="";
       if($("#stuFadFile"))$("#stuFadFile").value="";
       if($("#stuFadLink"))$("#stuFadLink").value="";
-    }catch(e){toast("فشل الإرسال")}
+    }catch(e){console.error(e);toast((e.code||"").includes("permission")?"انشر firestore.rules الجديدة من Firebase":"فشل النشر")}
+  },
+  async delMyFadaye7(d){
+    if(!S.user||!d.id)return;
+    if(!confirm("تمسح بوستك ده؟"))return;
+    try{await deleteDoc(doc(db,"fadaye7",d.id));toast("اتمسحت")}catch(e){toast("فشل الحذف")}
+  },
+  async toggleSecHide(d){
+    if(!S.isAdmin||!d.uid||!d.sec)return;
+    try{
+      await updateDoc(doc(db,"students",d.uid),{hiddenSections:d.on==="1"?arrayUnion(d.sec):arrayRemove(d.sec)});
+      toast(d.on==="1"?"اتخفى عنه ✓":"اترجع له ✓",true);
+    }catch(e){console.error(e);toast("فشل — انشر firestore.rules")}
   },
   async approveFadaye7(d){
     if(!S.isAdmin||!d.id)return;
@@ -4533,7 +4558,7 @@ ${addPanel}
 </div>
 <form class="tk-compose" data-submit="groupSend">
   <button type="button" class="btn ghost sm" data-act="groupVoice" title="تسجيل صوت">🎙</button>
-  <label class="btn ghost sm" style="margin:0;cursor:pointer" title="صورة">🖼<input type="file" id="grpImg" accept="image/*" hidden></label>
+  <label class="btn ghost sm" style="margin:0;cursor:pointer" title="صورة">🖼<input type="file" id="grpImg" accept="image/*" multiple hidden></label>
   <input id="grpIn" type="text" maxlength="2000" placeholder="اكتب رسالة…" autocomplete="off">
   <button class="btn sm" type="submit">➤</button>
 </form>
@@ -4835,7 +4860,7 @@ function qbChatHtml(){
   const msgs=S.qbChat||[];
   return `<div class="qb-chat"><div class="qb-chat-log" id="qbChatLog">${msgs.length?msgs.map(m=>`<div class="qb-chat-msg"><div class="qb-chat-head">${qbChatAvatar(m)}<button type="button" class="who" data-act="openProfile" data-uid="${esc(m.uid||"")}" style="background:none;border:0;padding:0;cursor:pointer;font:inherit;color:var(--pri);font-weight:700">${esc(m.name||"?")}</button><span class="when">${m.createdAt?fmt(m.createdAt):""}</span></div><div dir="auto" class="qb-chat-body">${esc(m.text||"")}</div>${m.img?mediaEmbed(m.img,m.kind):""}</div>`).join(""):`<div class="mut">الشات فوري — اكتب ورسالتك توصل للجميع حالاً</div>`}</div>
 <form class="qb-chat-form" data-submit="qbChatSend"><input id="qbChatIn" type="text" maxlength="300" placeholder="اكتب رسالة…" autocomplete="off"><button class="btn sm" type="submit">إرسال</button>
-<label class="btn ghost sm" style="margin:0;cursor:pointer;flex-shrink:0" title="صورة من الجهاز">🖼<input type="file" id="qbChatImg" accept="image/*" hidden></label>
+<label class="btn ghost sm" style="margin:0;cursor:pointer;flex-shrink:0" title="صورة من الجهاز">🖼<input type="file" id="qbChatImg" accept="image/*" multiple hidden></label>
 <button type="button" class="btn ghost sm" style="margin:0;flex-shrink:0" data-act="qbSendLink" title="رابط فيديو">🔗</button>
 <button type="button" class="btn ghost sm" style="margin:0;flex-shrink:0" data-act="qbVoice" title="تسجيل صوت">🎙</button>
 </form></div>`;
@@ -5408,45 +5433,51 @@ document.addEventListener("change",e=>{
   }
   if(e.target.type==="radio"&&S.view==="exam"){updProg();saveExamDraft();if(navigator.vibrate)navigator.vibrate(8)}
   if(e.target.id==="qbChatImg"&&e.target.files&&e.target.files[0]&&S.qb&&S.qb.roomCode){
-    const f=e.target.files[0];e.target.value="";
+    const files=[...e.target.files].slice(0,10);e.target.value="";
     (async()=>{
       try{
-        if(!/^image\//.test(f.type)){toast("صورة فقط — للفيديو استخدم زر 🔗 رابط");return}
-        toast("جاري رفع الصورة…");
+      let n=0;for(const f of files){
+        if(!/^image\//.test(f.type)){toast("صورة فقط — للفيديو استخدم زر 🔗 رابط");continue}
+        toast("جاري رفع الصورة "+(n+1)+" من "+files.length+"…");
         const data=await packImage(f,900,0.82,750000);
         await addDoc(collection(db,"qb_rooms",S.qb.roomCode,"chat"),{
           uid:S.user.uid,name:(S.profile.name||"طالب").split(" ")[0],
           text:"🖼 صورة",img:data,kind:"image",createdAt:serverTimestamp()
         });
-        toast("اتبعتت ✓");
+        n++;}
+        toast(n>1?"اتبعتت "+n+" صور ✓":"اتبعتت ✓");
       }catch(err){console.error(err);toast("فشل رفع الصورة")}
     })();
   }
   if(e.target.id==="grpImg"&&e.target.files&&e.target.files[0]&&S.groupId){
-    const f=e.target.files[0];e.target.value="";
+    const files=[...e.target.files].slice(0,10);e.target.value="";
     (async()=>{
       try{
-        if(!/^image\//.test(f.type)){toast("صورة فقط");return}
-        toast("جاري رفع الصورة…");
+      let n=0;for(const f of files){
+        if(!/^image\//.test(f.type)){toast("صورة فقط");continue}
+        toast("جاري رفع الصورة "+(n+1)+" من "+files.length+"…");
         const data=await packImage(f,900,0.82,750000);
         await addDoc(collection(db,"groups",S.groupId,"msgs"),{
           fromUid:S.user.uid,fromName:(S.profile.name||"طالب").split(" ")[0],
           text:"🖼 صورة",img:data,kind:"image",createdAt:serverTimestamp()
         });
         await updateDoc(doc(db,"groups",S.groupId),{lastText:"🖼 صورة",updatedAt:serverTimestamp()});
-        toast("اتبعتت ✓");
+        n++;}
+        toast(n>1?"اتبعتت "+n+" صور ✓":"اتبعتت ✓");
       }catch(err){console.error(err);toast("فشل رفع الصورة")}
     })();
   }
   if(e.target.id==="dmImg"&&e.target.files&&e.target.files[0]&&S.chatThread){
-    const f=e.target.files[0];e.target.value="";
+    const files=[...e.target.files].slice(0,10);e.target.value="";
     (async()=>{
       try{
-        if(!/^image\//.test(f.type)){toast("صورة فقط — للفيديو استخدم زر 🔗 رابط");return}
-        toast("جاري رفع الصورة…");
+      let n=0;for(const f of files){
+        if(!/^image\//.test(f.type)){toast("صورة فقط — للفيديو استخدم زر 🔗 رابط");continue}
+        toast("جاري رفع الصورة "+(n+1)+" من "+files.length+"…");
         const data=await packImage(f,900,0.82,750000);
         await sendDm(S.chatThread.uid,"🖼 صورة",data,{kind:"image"});
-        toast("اتبعتت ✓");
+        n++;}
+        toast(n>1?"اتبعتت "+n+" صور ✓":"اتبعتت ✓");
       }catch(err){console.error(err);toast("فشل إرسال الصورة")}
     })();
   }
@@ -5514,16 +5545,41 @@ if(!configured)render(true);
 </script>
 <script>
 
-// إخفاء شاشة البداية فقط (من غير ما نمسح محتوى المنصة)
+// شاشة البداية: تفضل لحد ما المنصة تظهر فعلاً، ولو فشل التحميل تظهر رسالة بدل الشاشة البيضاء
 (function(){
+  var done=false;
   function hideSplash(){
+    if(done)return; done=true;
     var el=document.getElementById("splash");
     if(!el)return;
     el.classList.add("hide");
     setTimeout(function(){try{el.remove()}catch(e){}},600);
   }
-  setTimeout(hideSplash, 180);
-  window.addEventListener("load", function(){ setTimeout(hideSplash, 50); });
+  function appReady(){var a=document.getElementById("app");return !!(a&&a.firstElementChild)}
+  function check(){if(appReady()){hideSplash();return true}return false}
+  var t0=Date.now();
+  var iv=setInterval(function(){
+    if(check()){clearInterval(iv);return}
+    if(Date.now()-t0>12000){clearInterval(iv);showFail()}
+  },150);
+  function showFail(){
+    if(done)return;
+    var el=document.getElementById("splash");
+    if(!el)return;
+    var box=el.querySelector(".splash-inner");
+    if(!box)return;
+    box.innerHTML='<div class="splash-logo">التفوق</div><div class="splash-sub" style="margin:14px 0">تعذّر تحميل المنصة، اتأكد من النت وجرب تاني</div>'
+      +'<button id="spRetry" style="padding:10px 22px;border-radius:12px;border:0;background:#2f6df6;color:#fff;font:inherit;font-weight:700;margin:4px">إعادة المحاولة</button>'
+      +'<button id="spClear" style="padding:10px 22px;border-radius:12px;border:1px solid #888;background:transparent;color:inherit;font:inherit;margin:4px">مسح الكاش وإعادة التحميل</button>';
+    document.getElementById("spRetry").onclick=function(){location.reload()};
+    document.getElementById("spClear").onclick=function(){
+      var jobs=[];
+      try{if(window.caches)jobs.push(caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}))}catch(e){}
+      try{if(navigator.serviceWorker)jobs.push(navigator.serviceWorker.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.unregister()}))}))}catch(e){}
+      Promise.all(jobs).catch(function(){}).then(function(){location.reload()});
+    };
+  }
+  window.addEventListener("load",function(){setTimeout(check,50)});
 })();
 
 if('serviceWorker' in navigator){
@@ -5554,7 +5610,7 @@ window.addEventListener('beforeinstallprompt',e=>{
 });
 window.addEventListener('appinstalled',()=>{
   window.__deferredPrompt=null;
-  toast('تم تثبيت تطبيق التفوق ✓',true);
+  try{window.toast&&window.toast('تم تثبيت تطبيق التفوق ✓',true)}catch(e){}
 });
 </script>
 </body>
