@@ -996,6 +996,16 @@ async function startSession(u){
   try{registerFcmToken()}catch(_){}
   try{handlePendingCall()}catch(_){}
   S.isAdmin=u.email===ADMIN_EMAIL;S.adminLogin=false;S.error="";
+  // منع أي طالب من الجلسة أثناء الصيانة (حتى لو كان مسجّل قبلها أو دخل من فورم الأدمن)
+  if(S.site&&S.site.maintenance&&!S.isAdmin){
+    try{await signOut(auth)}catch(_){}
+    S.user=null;S.profile=null;S.view="auth";S.adminLogin=false;
+    stopSubs();
+    toast("المنصة تحت الصيانة — للأدمن فقط");
+    render(true);
+    return;
+  }
+
   try{
     if(S.isAdmin){
       S.view="admin";S.tab="dash";
@@ -1145,6 +1155,14 @@ if(configured){
     const d=s.exists()?s.data():{};
     const was=S.site.maintenance;
     S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",vapidKey:d.vapidKey||""};
+    // ثغرة: طالب كان داخل قبل الصيانة → اطلعه فورًا
+    if(S.site.maintenance&&S.user&&!S.isAdmin&&S.user.email!==(typeof ADMIN_EMAIL!=="undefined"?ADMIN_EMAIL:"")){
+      try{signOut(auth)}catch(_){}
+      S.user=null;S.profile=null;S.isAdmin=false;S.view="auth";S.adminLogin=false;
+      stopSubs();
+      render(true);
+      return;
+    }
     if(S.view==="loading")return;
     if(S.view==="auth"&&was===S.site.maintenance)return;
     render();
@@ -3132,13 +3150,19 @@ const A={
   async toggleTanaghaSave(d){
     if(!S.isAdmin||!d.uid)return;
     const st=(S.students||[]).find(x=>x.id===d.uid);
-    const next=!(st&&st.tanaghaSave);
+    const prev=!!(st&&st.tanaghaSave);
+    const next=!prev;
+    // فوري على الشاشة
+    if(st)st.tanaghaSave=next;
+    if(S.view==="admin"&&S.tab==="tanagha")render(true);
+    toast(next?"✓ مسموح له يحفظ":"✓ اتمنع من الحفظ",true);
     try{
       await updateDoc(doc(db,"students",d.uid),{tanaghaSave:next});
-      if(st)st.tanaghaSave=next;
-      toast(next?"✓ مسموح له يحفظ صور التناغه":"✓ اتمنع من حفظ صور التناغه",true);
+    }catch(e){
+      if(st)st.tanaghaSave=prev;
       if(S.view==="admin"&&S.tab==="tanagha")render(true);
-    }catch(e){toast("فشل: "+(e.code||e.message||""))}
+      toast("فشل: "+(e.code||e.message||""));
+    }
   },
   async grantAsmRole(d){
     if(!S.isAdmin||!d.uid)return;
@@ -4472,11 +4496,18 @@ const A={
   async doLogin(){
     if(!configured){S.error="المنصة تحت التعديل.";render(true);return}
     const idv=norm($("#id").value),pw=$("#pw").value;
+    const email=idv+DOMAIN;
+    // صيانة: أدمن فقط
+    if(S.site&&S.site.maintenance&&email!==ADMIN_EMAIL){
+      S.error="المنصة تحت الصيانة — دخول الأدمن فقط";
+      render(true);return;
+    }
     $("#go").disabled=true;S.error="";
-    try{await signInWithEmailAndPassword(auth,idv+DOMAIN,pw);try{localStorage.setItem("last_phone",idv)}catch(_){}}catch(e){S.error=authErr(e);render(true)}
+    try{await signInWithEmailAndPassword(auth,email,pw);try{localStorage.setItem("last_phone",idv)}catch(_){}}catch(e){S.error=authErr(e);render(true)}
   },
   async doRegister(){
     if(!configured){S.error="المنصة تحت التعديل.";render(true);return}
+    if(S.site&&S.site.maintenance){S.error="التسجيل مقفول أثناء الصيانة";render(true);return}
     const name=$("#nm").value.trim().replace(/\s+/g," "),phone=norm($("#id").value),pw=$("#pw").value;
     if(name.length<3)return fail("اكتب اسمك بالكامل.");
     if(!/^01[0-9]{9}$/.test(phone))return fail("رقم التليفون لازم يبقى 11 رقم ويبدأ بـ 01.");
