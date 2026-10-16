@@ -491,6 +491,10 @@ function ensureGalleriesListen(){
   if(__galUnsub||!db)return;
   __galUnsub=onSnapshot(query(collection(db,"galleries"),limit(60)),s=>{
     S.galleries=s.docs.map(d=>({id:d.id,...d.data()}));
+      subs.push(onSnapshot(query(collection(db,"galleries"),limit(80)),s=>{
+        S.galleries=s.docs.map(d=>({id:d.id,...d.data()}));
+        if((S.view==="admin"&&S.tab==="tanagha")||S.view==="gallery"||S.view==="tanagha")scheduleRender();
+      },err=>console.warn("gal",err)));
     if(S.view==="gallery"||S.view==="tanagha")scheduleRender();
   },err=>console.warn("gal",err));
 }
@@ -3042,13 +3046,13 @@ const A={
         ref=doc(db,"groups",S.groupId,"msgs",d.id);
       }else if(d.col==="qb"&&S.qb&&S.qb.roomCode){
         ref=doc(db,"qb_rooms",S.qb.roomCode,"chat",d.id);
-      }else return;
+      }else{toast("مفيش محادثة مفتوحة");return}
       const snap=await getDoc(ref);
-      if(!snap.exists())return;
+      if(!snap.exists()){toast("الرسالة مش موجودة");return}
       const reacts={...(snap.data().reacts||{})};
       const arr=[...(reacts[d.emoji]||[])];
-      const i=arr.indexOf(S.user.uid);
-      if(i>=0)arr.splice(i,1);else arr.push(S.user.uid);
+      const ix=arr.indexOf(S.user.uid);
+      if(ix>=0)arr.splice(ix,1);else arr.push(S.user.uid);
       if(arr.length)reacts[d.emoji]=arr;else delete reacts[d.emoji];
       await updateDoc(ref,{reacts});
     }catch(e){console.error("toggleReact",e);toast((e&&e.code==="permission-denied")?"مفيش صلاحية للتفاعل — انشر قواعد Firestore":(e&&e.message)||"فشل التفاعل")}
@@ -3790,56 +3794,87 @@ const A={
   openAsms(){S.view="asmList";render(true)},
   
   openGallery(d){
-    ensureGalleriesListen();ensureCommentsListen();
+    if(typeof ensureGalleriesListen==="function")ensureGalleriesListen();
+    if(typeof ensureCommentsListen==="function")ensureCommentsListen();
     S.galleryKind=d.kind||"shilla";
     S.view="gallery";
     document.body.classList.add("gal-secure");
     render(true);
   },
   openTanagha(){
-    ensureGalleriesListen();
+    if(typeof ensureGalleriesListen==="function")ensureGalleriesListen();
     S.view="tanagha";
     document.body.classList.add("gal-secure");
     render(true);
   },
   adminGalKind(d){S.adminGalKind=d.kind||"shilla";render(true)},
   async submitGallery(){
-    if(!S.user)return;
+    if(!S.user){toast("سجّل دخول الأول");return}
+    if(typeof ensureGalleriesListen==="function")ensureGalleriesListen();
     const kind=S.galleryKind||"shilla";
     const title=($("#galTitle")&&$("#galTitle").value||"").trim()||"بدون وصف";
     const inp=$("#galFiles");
-    const files=inp&&inp.files?[...inp.files].slice(0,12):[];
+    const files=inp&&inp.files?[...inp.files].slice(0,3):[];
     if(!files.length){toast("اختار صورة واحدة على الأقل");return}
     try{
-      toast("جاري رفع "+files.length+" صورة…");
+      toast("جاري تجهيز الصور…");
       const images=[];
       for(const f of files){
         if(!/^image\//.test(f.type))continue;
-        images.push(await packImage(f,640,0.7,280000));
+        // صورة واحدة خفيفة عشان متعدّاش حد Firestore
+        images.push(await packImage(f,560,0.68,180000));
       }
       if(!images.length){toast("مفيش صور صالحة");return}
-      await addDoc(collection(db,"galleries"),{
-        kind, title, images, url:images[0],
-        authorUid:S.user.uid,
-        authorName:(S.profile&&S.profile.name||"طالب").split(" ")[0],
-        status:S.isAdmin?"approved":"pending",
-        fromAdmin:!!S.isAdmin,
-        pinned:false,
-        hideFrom:[],
-        createdAt:serverTimestamp()
-      });
-      toast(S.isAdmin?"اتنشرت ✓":"اتبعتت للموافقة ✓",true);
-      if($("#galTitle"))$("#galTitle").value="";
-      if(inp)inp.value="";
-    }catch(e){console.error(e);toast("فشل الرفع — انشر Rules")}
+      // كل صورة مستند لوحدها عشان الحجم
+      let ok=0, lastErr=null;
+      for(let i=0;i<images.length;i++){
+        try{
+          const payload={
+            kind, title: images.length>1?(title+" ("+(i+1)+")"):title,
+            images:[images[i]], url:images[i],
+            authorUid:S.user.uid,
+            authorName:(S.profile&&S.profile.name||(S.isAdmin?"أدمن":"طالب")).split(" ")[0],
+            status:S.isAdmin?"approved":"pending",
+            fromAdmin:!!S.isAdmin,
+            pinned:false,
+            hideFrom:[],
+            createdAt:serverTimestamp()
+          };
+          const ref=await addDoc(collection(db,"galleries"),payload);
+          S.galleries=(S.galleries||[]).concat([{id:ref.id,...payload,createdAt:Date.now()}]);
+          ok++;
+        }catch(err){lastErr=err;console.error("gal",err)}
+      }
+      if(ok){
+        toast(S.isAdmin?("اتنشر "+ok+" ✓"):("اتبعت "+ok+" للموافقة ✓"),true);
+        if($("#galTitle"))$("#galTitle").value="";
+        if(inp)inp.value="";
+        if(S.view==="gallery"||S.view==="tanagha"||(S.view==="admin"&&S.tab==="tanagha"))render(true);
+      }else{
+        const msg=(lastErr&&(lastErr.code||lastErr.message))||"";
+        if(String(msg).includes("permission"))toast("مرفوض — انشر firestore.rules من Firebase");
+        else if(String(msg).includes("size")||String(msg).includes("too large"))toast("الصورة كبيرة — اختار صورة أصغر");
+        else toast("فشل الرفع: "+String(msg).slice(0,80));
+      }
+    }catch(e){
+      console.error(e);
+      toast("فشل الرفع: "+((e&&e.message)||"خطأ").slice(0,80));
+    }
   },
+
   async approveGal(d){
     if(!S.isAdmin||!d.id)return;
-    try{await updateDoc(doc(db,"galleries",d.id),{status:"approved"});toast("موافق ✓",true)}catch(e){toast("فشل")}
+    const g=(S.galleries||[]).find(x=>x.id===d.id);
+    if(g)g.status="approved";
+    if(S.view==="admin")render(true);
+    try{await updateDoc(doc(db,"galleries",d.id),{status:"approved"});toast("موافق ✓",true)}
+    catch(e){if(g)g.status="pending";render(true);toast("فشل الموافقة: "+(e.code||e.message||""))}
   },
   async rejectGal(d){
     if(!S.isAdmin||!d.id)return;
-    try{await updateDoc(doc(db,"galleries",d.id),{status:"rejected"});toast("اترفض")}catch(e){toast("فشل")}
+    try{await updateDoc(doc(db,"galleries",d.id),{status:"rejected"});
+      S.galleries=(S.galleries||[]).filter(x=>x.id!==d.id);
+      render(true);toast("اترفض")}catch(e){toast("فشل: "+(e.code||""))}
   },
   async delGal(d){
     if(!S.isAdmin||!d.id)return;
@@ -5943,7 +5978,10 @@ document.addEventListener("click",e=>{
   const fn=A[act];
   if(typeof fn!=="function"){console.warn("Unknown act",act);return}
   e.preventDefault();
-  try{fn(b.dataset,b)}catch(err){console.error("act",act,err);try{toast("خطأ: "+act)}catch(_){}}
+  try{
+    const r=fn(b.dataset,b);
+    if(r&&typeof r.then==="function")r.catch(err=>{console.error("act",act,err);try{toast("خطأ: "+((err&&err.message)||act))}catch(_){}});
+  }catch(err){console.error("act",act,err);try{toast("خطأ: "+act)}catch(_){}}
 });
 document.addEventListener("change",e=>{
   const c=e.target.dataset&&e.target.dataset.change;if(c)A[c]?.(e.target.dataset,e.target);
