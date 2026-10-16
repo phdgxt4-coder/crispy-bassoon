@@ -1169,7 +1169,21 @@ if(configured){
   onSnapshot(doc(db,"config","site"),s=>{
     const d=s.exists()?s.data():{};
     const was=S.site.maintenance;
-    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",vapidKey:d.vapidKey||""};
+    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",vapidKey:d.vapidKey||"",cacheBust:d.cacheBust||0};
+    // أدمن طلب تسريع للجميع → امسح كاش الجهاز ده مرة
+    try{
+      const bust=Number(S.site.cacheBust)||0;
+      const done=Number(localStorage.getItem("cache_bust_done")||0);
+      if(bust&&bust>done&&!(window.__busting)){
+        window.__busting=true;
+        localStorage.setItem("cache_bust_done",String(bust));
+        clearLocalSpeedCache("remote").then(function(){
+          toast("تم تسريع المنصة ✓",true);
+          setTimeout(function(){location.reload()},600);
+        });
+      }
+    }catch(_){}
+
     // ثغرة: طالب كان داخل قبل الصيانة → اطلعه فورًا
     if(S.site.maintenance&&S.user&&!S.isAdmin&&S.user.email!==(typeof ADMIN_EMAIL!=="undefined"?ADMIN_EMAIL:"")){
       try{signOut(auth)}catch(_){}
@@ -1244,6 +1258,42 @@ function scheduleRender(force){
 }
 
 let __rendPend=false,__rendT=0;
+
+/** مسح كاش الجهاز الحالي — مش بيمسح حساب ولا بيانات Firebase */
+async function clearLocalSpeedCache(reason){
+  const keep=["last_phone","theme","sw_v35_cleared"];
+  try{
+    const phone=localStorage.getItem("last_phone");
+    const theme=localStorage.getItem("theme");
+    const keys=[];
+    for(let i=0;i<localStorage.length;i++)keys.push(localStorage.key(i));
+    keys.forEach(k=>{
+      if(!k)return;
+      if(k==="last_phone"||k==="theme")return;
+      // امسح كاش المنصة فقط
+      if(/^(exams_cache|books_cache|dmcache_|sw_v|lg_|__dm|eltaf)/i.test(k)||k.indexOf("dmcache_")==0||k.indexOf("exams_cache")==0||k.indexOf("books_cache")==0)
+        try{localStorage.removeItem(k)}catch(_){}
+    });
+    if(phone)try{localStorage.setItem("last_phone",phone)}catch(_){}
+    if(theme)try{localStorage.setItem("theme",theme)}catch(_){}
+  }catch(_){}
+  try{
+    if(window.caches&&caches.keys){
+      const ks=await caches.keys();
+      await Promise.all(ks.map(k=>caches.delete(k)));
+    }
+  }catch(_){}
+  try{
+    if(navigator.serviceWorker&&navigator.serviceWorker.controller)
+      navigator.serviceWorker.controller.postMessage({type:"CLEAR_CACHE"});
+    const regs=await navigator.serviceWorker.getRegistrations();
+    for(const r of regs){
+      try{if(r.active)r.active.postMessage({type:"CLEAR_CACHE"})}catch(_){}
+    }
+  }catch(_){}
+  try{localStorage.setItem("cache_bust_done",String(S.site&&S.site.cacheBust||Date.now()))}catch(_){}
+  return true;
+}
 function render(force){
   if(!force&&(S.view==="exam"||S.view==="editExam"||S.view==="editAsm"))return;
   if(!force){
@@ -1324,7 +1374,7 @@ function render(force){
 const splash=()=>``; // مفيش شاشة تحميل داخل #app — الـ HTML splash يكفي لجزء من الثانية
 const blockedView=()=>`<div class="wrap"><div class="center"><div class="logo" style="display:inline-block">التفوق</div><h1 style="margin-top:28px">حسابك موقوف</h1><p class="mut" style="max-width:360px;margin:8px auto 24px">تواصل مع المدرس لإعادة تفعيل الحساب.</p><button class="btn ghost" data-act="logout">تسجيل خروج</button></div></div>`;
 const logo=`<div class="logo">التفوق</div>`;
-const searchBtn=()=>S.user&&!S.isAdmin?`<button type="button" class="tg tg-icon" data-act="openAI" aria-label="么" title="مساعد 么">🤖</button><button type="button" class="tg tg-icon" data-act="openSearch" aria-label="بحث" title="بحث عن زميل">🔍</button>`:"";
+const searchBtn=()=>S.user?`<button type="button" class="tg tg-icon" data-act="openAI" aria-label="么" title="مساعد 么">🤖</button><button type="button" class="tg tg-icon" data-act="speedBoost" aria-label="تسريع المنصة" title="تسريع المنصة — مسح الكاش">⚡</button>${!S.isAdmin?`<button type="button" class="tg tg-icon" data-act="openSearch" aria-label="بحث" title="بحث عن زميل">🔍</button>`:""}`:"";
 const header=(extra)=>`<div class="top"><div class="row" style="gap:8px;flex:1;min-width:0">${logo}${searchBtn()}</div><div class="row">${extra||""}${themeBtn()}</div></div>`;
 const studentNav=()=>`<nav class="bot">
 <button class="${S.view==="home"||S.view==="subject"||S.view==="exam"||S.view==="result"?"on":""}" data-act="home">المواد</button>
@@ -2869,7 +2919,9 @@ function adminSettings(){
   return extra+`<div class="card"><h3>وضع الصيانة</h3>
 <p class="mut">لما تشغّله، الطلاب بيشوفوا "المنصة تحت التعديل". وإنت تدخل بحساب الأدمن بالضغط 3 مرات على كلمة "التفوق" اللي في نص الشاشة.</p>
 <label class="f" for="mmsg">الرسالة اللي هتظهر للطلاب</label><textarea id="mmsg" style="min-height:90px">${esc(S.site.message||"بنحدّث المنصة دلوقتي. ارجع بعد شوية.")}</textarea>
-<div class="row" style="margin-top:14px"><button class="btn ghost" data-act="rebuildBoard">🏆 بناء لوحة الشرف</button><button class="btn ${S.site.maintenance?"gold":"danger"}" data-act="toggleMaint">${S.site.maintenance?"إيقاف وضع الصيانة":"تشغيل وضع الصيانة"}</button><button class="btn ghost" data-act="saveMsg">حفظ الرسالة بس</button></div></div>
+<div class="row" style="margin-top:14px"><button class="btn ghost" data-act="rebuildBoard">🏆 بناء لوحة الشرف</button><button class="btn ${S.site.maintenance?"gold":"danger"}" data-act="toggleMaint">${S.site.maintenance?"إيقاف وضع الصيانة":"تشغيل وضع الصيانة"}</button><button class="btn ghost" data-act="saveMsg">حفظ الرسالة بس</button>
+<button class="btn gold" style="margin-top:10px;width:100%" data-act="adminSpeedAll">⚡ تسريع المنصة لكل الأجهزة</button>
+<p class="mut" style="font-size:12px;margin-top:6px">يبعت أمر مسح كاش لكل الطلاب أول ما يفتحوا المنصة — مش بيمسح امتحانات ولا حسابات.</p></div></div>
 <div class="card" style="border-color:var(--bad)"><h3 style="color:var(--bad)">⚠ ابدأ من الصفر</h3>
 <p class="mut">بيمسح <b>كل الامتحانات</b> و<b>كل نتايج الطلاب وتقدمهم</b> وسجل التنبيهات والمتابعة المباشرة. حسابات الطلاب نفسها (الاسم والرقم وكلمة السر) بتفضل زي ما هي. مفيش رجوع بعد المسح.</p>
 <button class="btn danger" data-act="wipe">مسح الامتحانات والنتايج</button></div>
@@ -3236,6 +3288,33 @@ const A={
       const msgs=(S.aiMsgs||[]).slice(-40);
       await setDoc(doc(db,"aiChats",S.user.uid),{msgs,updatedAt:serverTimestamp()},{merge:true});
     }catch(e){console.warn("ai save",e)}
+  },
+  async speedBoost(){
+    toast("جاري تسريع المنصة…");
+    try{
+      await clearLocalSpeedCache("manual");
+      toast("تم مسح الكاش — هتحدث ✓",true);
+      setTimeout(function(){location.reload()},500);
+    }catch(e){toast("تعذر المسح — حدّث الصفحة يدويًا")}
+  },
+  async adminSpeedAll(){
+    if(!S.isAdmin)return;
+    if(!confirm("تحديث إجباري لكل الأجهزة؟\nكل طالب هيمسح الكاش عنده أوتوماتيك أول ما يفتح المنصة."))return;
+    try{
+      const bust=Date.now();
+      await updateDoc(doc(db,"config","site"),{cacheBust:bust});
+      S.site.cacheBust=bust;
+      try{localStorage.setItem("cache_bust_done",String(bust))}catch(_){}
+      await clearLocalSpeedCache("admin");
+      toast("اتبعت تسريع لكل الأجهزة ✓",true);
+      setTimeout(function(){location.reload()},500);
+    }catch(e){
+      try{
+        await setDoc(doc(db,"config","site"),{cacheBust:Date.now()},{merge:true});
+        toast("اتبعت تسريع ✓",true);
+        setTimeout(function(){location.reload()},500);
+      }catch(e2){toast("فشل: "+(e2.message||""))}
+    }
   },
   openAI(){
     S.view="ai";
