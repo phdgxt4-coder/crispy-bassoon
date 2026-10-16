@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v31-s1">
+<meta name="sw-build" content="v35-s1">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <meta name="mobile-web-app-capable" content="yes">
@@ -489,13 +489,9 @@ function ensureFadaye7Listen(){
 }
 function ensureGalleriesListen(){
   if(__galUnsub||!db)return;
-  __galUnsub=onSnapshot(query(collection(db,"galleries"),limit(60)),s=>{
+  __galUnsub=onSnapshot(query(collection(db,"galleries"),limit(80)),s=>{
     S.galleries=s.docs.map(d=>({id:d.id,...d.data()}));
-      subs.push(onSnapshot(query(collection(db,"galleries"),limit(80)),s=>{
-        S.galleries=s.docs.map(d=>({id:d.id,...d.data()}));
-        if((S.view==="admin"&&S.tab==="tanagha")||S.view==="gallery"||S.view==="tanagha")scheduleRender();
-      },err=>console.warn("gal",err)));
-    if(S.view==="gallery"||S.view==="tanagha")scheduleRender();
+    if((S.view==="admin"&&S.tab==="tanagha")||S.view==="gallery"||S.view==="tanagha")scheduleRender();
   },err=>console.warn("gal",err));
 }
 function ensureCommentsListen(){
@@ -838,7 +834,7 @@ async function pingClientPresence(){
 }
 // نبض تواجد كل 40 ثانية
 if(!window.__presenceIv){
-  window.__presenceIv=setInterval(()=>{try{pingClientPresence()}catch(_){}},40000);
+  window.__presenceIv=setInterval(()=>{try{pingClientPresence()}catch(_){}},60000);
   document.addEventListener("visibilitychange",()=>{
     if(!document.hidden)pingClientPresence();
   });
@@ -990,13 +986,8 @@ async function startSession(u){
   }catch(_){}
 
 
-  pingClientPresence();
-  try{touchStreak()}catch(_){}
-  try{listenIncomingCalls()}catch(_){}
-  try{registerFcmToken()}catch(_){}
-  try{handlePendingCall()}catch(_){}
   S.isAdmin=u.email===ADMIN_EMAIL;S.adminLogin=false;S.error="";
-  // منع أي طالب من الجلسة أثناء الصيانة (حتى لو كان مسجّل قبلها أو دخل من فورم الأدمن)
+  // بوابة الصيانة قبل أي كتابة أو listener
   if(S.site&&S.site.maintenance&&!S.isAdmin){
     try{await signOut(auth)}catch(_){}
     S.user=null;S.profile=null;S.view="auth";S.adminLogin=false;
@@ -1005,16 +996,24 @@ async function startSession(u){
     render(true);
     return;
   }
+  pingClientPresence();
+  try{touchStreak()}catch(_){}
+  try{listenIncomingCalls()}catch(_){}
+  try{registerFcmToken()}catch(_){}
+  try{handlePendingCall()}catch(_){}
 
   try{
     if(S.isAdmin){
       S.view="admin";S.tab="dash";
-      let f1=true,f2=true,f3=true;
-      subs.push(onSnapshot(collection(db,"exams"),s=>{try{if(S.exams&&S.exams.length)localStorage.setItem("exams_cache_v1",JSON.stringify(S.exams.map(e=>({id:e.id,title:e.title,subject:e.subject,minutes:e.minutes,passMark:e.passMark,published:e.published}))))}catch(_){}
-      S.exams=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));scheduleRender()}));
+      let f1=true,f2=true,f3=true,__resT=0,__altT=0,__staT=0,__exaT=0;
+      subs.push(onSnapshot(collection(db,"exams"),s=>{
+      S.exams=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));
+      try{if(S.exams.length)localStorage.setItem("exams_cache_v1",JSON.stringify(S.exams.map(e=>({id:e.id,title:e.title,subject:e.subject,minutes:e.minutes,passMark:e.passMark,published:e.published}))))}catch(_){}
+      if(S.view==="admin"&&["dash","exams","editExam"].includes(S.tab)){const n=Date.now();if(n-__exaT<1500)return;__exaT=n;scheduleRender()}}));
       subs.push(onSnapshot(query(collection(db,"results"),orderBy("createdAt","desc")),s=>{
         if(!f1)s.docChanges().forEach(c=>{if(c.type==="added"&&c.doc.data().createdAt){const r=c.doc.data();toast(`${r.name} امتحن ${r.examTitle} (محاولة ${r.attempt||1}) وجاب ${r.score}/${r.total}`,true);if(S.tab!=="results"){S.unread++;updTitle()}}});
-        f1=false;S.results=s.docs.map(d=>({id:d.id,...d.data()}));scheduleRender();
+        f1=false;S.results=s.docs.map(d=>({id:d.id,...d.data()}));
+        if(S.view==="admin"&&["dash","results","students","live"].includes(S.tab)){const n=Date.now();if(n-__resT<2000)return;__resT=n;scheduleRender()}
       }));
       subs.push(onSnapshot(collection(db,"assessments"),s=>{S.asms=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));scheduleRender()}));
       subs.push(onSnapshot(query(collection(db,"fadaye7"),limit(40)),s=>{S.fadaye7=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt));if(S.view==="admin"&&S.tab==="fadaye7")scheduleRender();}));
@@ -1026,16 +1025,21 @@ async function startSession(u){
       }));
       subs.push(onSnapshot(collection(db,"students"),s=>{
         S.students=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));
-        if(S.view==="admin"&&(S.tab==="students"||S.tab==="dash"||S.tab==="live"))
-          scheduleRender();
+        if(S.view!=="admin")return;
+        if(S.tab==="students"){
+          try{const tb=document.getElementById("stbl");if(tb){tb.innerHTML=studentsTable();return}}catch(_){}
+        }
+        if(S.tab==="dash"||S.tab==="live"){const n=Date.now();if(n-__staT<4000)return;__staT=n;scheduleRender()}
       }));
       subs.push(onSnapshot(query(collection(db,"alerts"),orderBy("createdAt","desc"),limit(200)),s=>{
         if(!f2)s.docChanges().forEach(c=>{if(c.type==="added"&&c.doc.data().createdAt){const a=c.doc.data();toast(`⚠ ${a.name} (${a.phone}) خرج من الامتحان: ${a.examTitle}`,true);if(S.tab!=="alerts"){S.unreadAlerts++;updTitle()}}});
-        f2=false;S.alerts=s.docs.map(d=>({id:d.id,...d.data()}));scheduleRender();
+        f2=false;S.alerts=s.docs.map(d=>({id:d.id,...d.data()}));
+        if(S.view==="admin"&&S.tab==="alerts"){const n=Date.now();if(n-__altT<2000)return;__altT=n;scheduleRender()}
       }));
       subs.push(onSnapshot(collection(db,"starts"),s=>{
         if(!f3)s.docChanges().forEach(c=>{if(c.type==="added"){const a=c.doc.data();toast(`🟢 ${a.name||"طالب"} بدأ امتحان ${a.examTitle||""}`,true)}});
-        f3=false;S.starts=s.docs.map(d=>({id:d.id,...d.data()}));scheduleRender();
+        f3=false;S.starts=s.docs.map(d=>({id:d.id,...d.data()}));
+        if(S.view==="admin"&&S.tab==="live"){const n=Date.now();if(n-__staT<4000)return;__staT=n;scheduleRender()}
       }));
       subs.push(onSnapshot(query(collection(db,"activity"),orderBy("createdAt","desc"),limit(150)),s=>{
         S.activity=s.docs.map(d=>({id:d.id,...d.data()}));S.activityLoaded=true;
@@ -1174,6 +1178,11 @@ if(configured){
     const run=()=>{
       try{
         if(u){
+          if(S.site&&S.site.maintenance&&(u.email||"")!==ADMIN_EMAIL){
+            try{signOut(auth)}catch(_){}
+            stopSubs();S.user=null;S.isAdmin=false;S.profile=null;S.view="auth";S.adminLogin=false;
+            render(true);return;
+          }
           __authBoot=false;
           Promise.resolve(startSession(u)).catch(e=>{
             console.error(e);
@@ -1785,7 +1794,7 @@ ${hits.length?hits.map(h=>{
   <button type="button" data-act="openProfile" data-uid="${h.id}" style="background:none;border:0;padding:0;cursor:pointer">${av2}</button>
   <div style="flex:1">
     <button type="button" data-act="openProfile" data-uid="${h.id}" style="background:none;border:0;padding:0;cursor:pointer;font:inherit;color:var(--pri);font-weight:700;text-align:start">${esc(h.name||"طالب")}</button>
-    <div class="mut">${esc(h.phone||"")}</div>
+    
     <div style="margin-top:6px;font-size:13px">${h.rank?pill("#"+h.rank,"i"):""} ${h.examsDone!=null?pill(h.examsDone+" امتحان","g"):""} ${h.pct!=null?pill(h.pct+"%","y"):""}</div>
   </div>
   </div>
@@ -3000,6 +3009,7 @@ const A={
     // keep starts doc alive so resume works
   },
   async resumeExam(){
+    if(S.site&&S.site.maintenance&&!S.isAdmin){toast("المنصة تحت الصيانة");return}
     const meta=peekExamSession();
     if(!meta){toast("مفيش امتحان معلّق");return}
     await tryResumeExam();
@@ -4362,6 +4372,7 @@ const A={
   },
   backAdmin(){S.view="admin";render(true)},
   async start(d){
+    if(S.site&&S.site.maintenance&&!S.isAdmin){toast("المنصة تحت الصيانة");return}
     const e=S.exams.find(x=>x.id===d.id),at=S.attempts[d.id]||[];
     if(!e||!vis(e))return;
     if(S.profile&&S.profile.blocked){toast("حسابك موقوف");return}
@@ -4544,7 +4555,8 @@ async function openDmThread(uid,name){
     },{merge:true});
   }catch(e){console.warn("conv",e);toast("تأكد من نشر قواعد Firestore الجديدة")}
   S.chatThread={uid,name:name||"زميل",avatar,convId:cid};
-  S.chatMsgs=S.chatMsgs||[];
+  S.chatMsgs=[];
+  try{const raw=localStorage.getItem("dmcache_"+cid);if(raw){const arr=JSON.parse(raw);if(Array.isArray(arr))S.chatMsgs=arr}}catch(_){}
   S.chatStickBottom=true;S.chatNewBelow=0;
   S.view="chatThread";
   S.chatPeerOnline=false;
@@ -5292,6 +5304,7 @@ function listenDmThread(cid,otherUid){
     }
     window.__dmSig=sig;
     S.chatMsgs=msgs;
+    try{localStorage.setItem("dmcache_"+cid,JSON.stringify(msgs.slice(-50).map(m=>({...m,img:(m.img&&String(m.img).length<4000)?m.img:null}))))}catch(_){}
     if(S.view==="chatThread"){
       const log=$("#dmChatLog");
       if(log&&prev>0&&msgs.length>=prev){
@@ -6201,10 +6214,10 @@ if('serviceWorker' in navigator){
       }
       // تنظيف كاش قديم كان ممكن يخزّن رد IP بالغلط
       try{
-        if(!localStorage.getItem("sw_v34_cleared")){
-          localStorage.setItem("sw_v34_cleared","1");
+        if(!localStorage.getItem("sw_v35_cleared")){
+          localStorage.setItem("sw_v35_cleared","1");
           if(reg.active)reg.active.postMessage({type:"CLEAR_CACHE"});
-          caches.keys().then(function(ks){ks.forEach(function(k){if(k.indexOf("eltafawoq-v34")<0)caches.delete(k)})});
+          caches.keys().then(function(ks){ks.forEach(function(k){if(k.indexOf("eltafawoq-v35")<0)caches.delete(k)})});
         }
       }catch(e){}
     }).catch(function(){});

@@ -1,6 +1,6 @@
-/* التفوق SW — v34 — لا تخزّن غير HTML كصفحة + شبكة أولاً للـ API */
-const CACHE = "eltafawoq-v34";
-const BUILD = "20261016-v34";
+/* التفوق SW — v35 — شبكة أولاً + كاش آمن + Offline صريح */
+const CACHE = "eltafawoq-v35";
+const BUILD = "20261016-v35";
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
@@ -97,9 +97,9 @@ function isHtmlResponse(res) {
 }
 
 self.addEventListener("fetch", (e) => {
+  if (e.request.method !== "GET") { e.respondWith(fetch(e.request)); return; }
   const url = new URL(e.request.url);
 
-  // APIs خارجية — شبكة فقط، ممنوع الكاش (سبب شاشة الـ IP)
   if (
     url.hostname.includes("ipify") ||
     url.hostname.includes("firestore") ||
@@ -108,11 +108,17 @@ self.addEventListener("fetch", (e) => {
     url.hostname.includes("gstatic") ||
     url.hostname.includes("cloudfunctions")
   ) {
-    e.respondWith(fetch(e.request));
+    e.respondWith(
+      fetch(e.request).catch(() =>
+        new Response(JSON.stringify({ error: "offline" }), {
+          status: 503,
+          headers: { "Content-Type": "application/json" }
+        })
+      )
+    );
     return;
   }
 
-  // تنقّل / HTML فقط
   const isNav =
     e.request.mode === "navigate" ||
     (e.request.destination === "document") ||
@@ -127,9 +133,7 @@ self.addEventListener("fetch", (e) => {
         .then((res) => {
           if (isHtmlResponse(res)) {
             const copy = res.clone();
-            caches.open(CACHE).then((c) => {
-              c.put("./index.html", copy);
-            }).catch(() => {});
+            caches.open(CACHE).then((c) => { c.put("./index.html", copy); }).catch(() => {});
           }
           return res;
         })
@@ -145,8 +149,7 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  // باقي الملفات من نفس الأصل فقط
-  if (url.origin === self.location.origin && e.request.method === "GET") {
+  if (url.origin === self.location.origin) {
     e.respondWith(
       fetch(e.request)
         .then((res) => {
