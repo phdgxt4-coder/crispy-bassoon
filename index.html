@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v41-s1">
+<meta name="sw-build" content="v42-s1">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <meta name="mobile-web-app-capable" content="yes">
@@ -434,6 +434,22 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 .tk-bubble.deleted{opacity:.65}
 .tk-bubble:hover .tk-msg-acts{opacity:1}
 
+
+/* ===== v42: شات مضغوط وأنيق ===== */
+.tk-bubble{min-width:84px;width:fit-content;max-width:84%;padding:8px 11px 6px}
+.tk-bubble>div[dir=auto]{min-width:40px}
+.tk-foot{display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:nowrap;white-space:nowrap}
+.tk-foot .when{display:inline;margin:0;flex:1;font-size:10px;opacity:.7}
+.tk-mini{border:0;background:rgba(127,127,127,.2);color:inherit;border-radius:99px;min-width:26px;height:24px;padding:0 7px;font-size:13px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+.tk-mini:active{transform:scale(.9)}
+.tk-bubble .msg-reacts{margin-top:5px;gap:4px}
+.tk-bubble .msg-reacts button{min-height:24px;padding:1px 8px;font-size:13px}
+.react-sheet{position:fixed;left:10px;right:10px;bottom:132px;z-index:90;max-width:520px;margin:0 auto;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:10px;background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 40px rgba(0,0,0,.45);animation:rsIn .16s ease-out}
+.react-sheet button{font-size:24px;border:0;background:var(--sel);border-radius:12px;width:46px;height:46px;cursor:pointer;line-height:1}
+.react-sheet button:active{transform:scale(.88)}
+@keyframes rsIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.tk-peer-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.tk-log{contain:content;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 </style>
 </head>
 <body>
@@ -452,7 +468,7 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,updatePassword,setPersistence,browserLocalPersistence} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,deleteField,collection,onSnapshot,query,where,orderBy,limit,getDocs,writeBatch,serverTimestamp,arrayUnion,arrayRemove} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,deleteField,collection,onSnapshot,query,where,orderBy,limit,getDocs,writeBatch,serverTimestamp,arrayUnion,arrayRemove,FieldPath} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ============ إعدادات Firebase ============ */
 const firebaseConfig = {
@@ -1009,28 +1025,49 @@ async function touchStreak(){
 }
 
 
-async function registerFcmToken(){
-  if(!S.user)return;
+function pushStateText(){
   try{
+    if(!("Notification" in window))return "المتصفح ده مش بيدعم الإشعارات (على الآيفون لازم تضيف المنصة للشاشة الرئيسية)";
+    const p=Notification.permission;
+    const v=(S.site&&S.site.vapidKey)?"المفتاح محفوظ":"المفتاح لسه ما اتحفظش";
+    const t=(S.profile&&S.profile.fcmToken)?"الجهاز مسجّل ✓":"الجهاز مش مسجّل";
+    return (p==="granted"?"الإذن ممنوح ✓":p==="denied"?"الإذن مرفوض ✗ (فعّله من إعدادات المتصفح)":"الإذن لسه ما اتطلبش")+" · "+v+" · "+t;
+  }catch(_){return ""}
+}
+async function registerFcmToken(userGesture){
+  const R=(ok,msg)=>({ok,msg});
+  if(!S.user)return R(false,"سجّل دخول الأول");
+  try{
+    if(!("Notification" in window)||!("serviceWorker" in navigator))return R(false,"المتصفح ده مش بيدعم الإشعارات (على الآيفون ضيف المنصة للشاشة الرئيسية أولاً)");
     if(!__msgMod){
-      try{__msgMod=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js")}catch(_){return}
+      try{__msgMod=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js")}catch(_){return R(false,"مقدرتش أحمّل مكتبة الإشعارات — تأكد من الإنترنت")}
     }
-    if(!(await __msgMod.isSupported()))return;
+    if(!(await __msgMod.isSupported()))return R(false,"الجهاز/المتصفح ده مش بيدعم إشعارات FCM");
     if(!messaging){
-      try{messaging=__msgMod.getMessaging()}catch(_){return}
+      try{messaging=__msgMod.getMessaging(window.__fbApp)}catch(e){return R(false,"فشل تهيئة الإشعارات: "+(e&&e.message||e))}
     }
-    const perm=await Notification.requestPermission();
-    if(perm!=="granted"){console.info("FCM: الإذن مرفوض");return}
+    let perm=Notification.permission;
+    if(perm==="default"){
+      if(!userGesture)return R(false,"محتاج إذن");
+      perm=await Notification.requestPermission();
+    }
+    if(perm!=="granted")return R(false,perm==="denied"?"الإذن مرفوض — فعّله من إعدادات الموقع في المتصفح":"ما وافقتش على الإذن");
     const vapid=(S.site&&S.site.vapidKey)||window.__VAPID_KEY||"";
-    if(!vapid){console.info("FCM: أضف vapidKey في إعدادات الأدمن (config/site)");return}
+    if(!vapid)return R(false,"مفتاح VAPID لسه ما اتحفظش في إعدادات الأدمن");
     const reg=await navigator.serviceWorker.ready;
     const token=await __msgMod.getToken(messaging,{vapidKey:vapid,serviceWorkerRegistration:reg});
-    if(token){
-      await setDoc(doc(db,"students",S.user.uid),{fcmToken:token,fcmUpdatedAt:serverTimestamp()},{merge:true});
-      if(S.profile)S.profile.fcmToken=token;
-      console.info("FCM token OK");
-    }
-  }catch(e){console.warn("fcm token",e)}
+    if(!token)return R(false,"فايربيز ما رجّعش توكن");
+    await setDoc(doc(db,"students",S.user.uid),{fcmToken:token,fcmUpdatedAt:serverTimestamp()},{merge:true});
+    if(S.profile)S.profile.fcmToken=token;
+    return R(true,"تم تسجيل الجهاز للإشعارات ✓");
+  }catch(e){
+    console.warn("fcm token",e);
+    const m=String((e&&(e.code||e.message))||e);
+    if(/applicationServerKey|invalid|vapid/i.test(m))return R(false,"مفتاح VAPID غلط — انسخه تاني من Firebase → Cloud Messaging → Web Push certificates");
+    if(/permission-blocked|denied/i.test(m))return R(false,"الإذن مرفوض من المتصفح");
+    if(/permission-denied|insufficient/i.test(m))return R(false,"القواعد مش بتسمح بحفظ التوكن — انشر firestore.rules");
+    return R(false,"فشل التسجيل: "+m.slice(0,120));
+  }
 }
 
 
@@ -1240,8 +1277,14 @@ async function startSession(u){
       subs.push(onSnapshot(query(collection(db,"results"),where("uid","==",u.uid)),s=>{
         S.myList=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(a)-tms(b));S.attempts=groupAttempts(S.myList);S._resultsReady=true;if(["home","progress","result","me"].includes(S.view))scheduleRender();maybeResume();syncMyLeaderboard();
       }));
-      subs.push(onSnapshot(query(collection(db,"leaderboard"),orderBy("examsDone","desc"),limit(20)),s=>{
+      subs.push(onSnapshot(query(collection(db,"leaderboard"),orderBy("score","desc"),limit(40)),s=>{
         S.board=s.docs.map(d=>({id:d.id,...d.data()}));
+        if(S.board.length<3&&!S._boardFb){
+          S._boardFb=1;
+          getDocs(query(collection(db,"leaderboard"),orderBy("examsDone","desc"),limit(40))).then(sn=>{
+            if((S.board||[]).length<3){S.board=sn.docs.map(d=>({id:d.id,...d.data()}));if(S.view==="progress")scheduleRender()}
+          }).catch(()=>{});
+        }
         if(S.view==="progress")scheduleRender();
       },err=>console.warn("leaderboard",err)));
       subs.push(onSnapshot(query(collection(db,"notifications"),where("uid","==",u.uid),orderBy("createdAt","desc"),limit(30)),s=>{
@@ -1261,11 +1304,25 @@ async function startSession(u){
 }
 
 if(configured){
-  onSnapshot(doc(db,"config","features"),s=>{S.features=s.exists()?s.data():{};if(S.user&&!S.isAdmin)scheduleRender()},e=>console.warn("features",e));
+  onSnapshot(doc(db,"config","features"),s=>{S.features=s.exists()?s.data():{};
+    if(S.user&&!S.isAdmin){
+      // القسم اللي الأدمن قفله: وقّف تحميله خالص (يتحمّل تاني بس لما يتفتح)
+      try{
+        if(!featState("books")&&window.__bookUnsub){window.__bookUnsub();window.__bookUnsub=null}
+        if(!featState("chat")){
+          if(window.__chatsUnsub){window.__chatsUnsub();window.__chatsUnsub=null}
+          if(window.__dmUnsub){window.__dmUnsub();window.__dmUnsub=null}
+          if(window.__dmMetaUnsub){window.__dmMetaUnsub();window.__dmMetaUnsub=null}
+        }
+        if(!featState("fadaye7")&&typeof __fadUnsub==="function"){__fadUnsub();__fadUnsub=null}
+        if(!featState("tanagha")&&typeof __galUnsub==="function"){__galUnsub();__galUnsub=null}
+      }catch(_){}
+      scheduleRender();
+    }},e=>console.warn("features",e));
   onSnapshot(doc(db,"config","site"),s=>{
     const d=s.exists()?s.data():{};
     const was=S.site.maintenance;
-    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",vapidKey:d.vapidKey||"",cacheBust:d.cacheBust||0};
+    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0};
     S.siteRaw=d;applyAiCfg();
     // أدمن طلب تسريع للجميع → امسح كاش الجهاز ده مرة
     try{
@@ -1486,7 +1543,8 @@ const splash=()=>``; // مفيش شاشة تحميل داخل #app — الـ HT
 const blockedView=()=>`<div class="wrap"><div class="center"><div class="logo" style="display:inline-block">التفوق</div><h1 style="margin-top:28px">حسابك موقوف</h1><p class="mut" style="max-width:360px;margin:8px auto 14px">تواصل مع المدرس لإعادة تفعيل الحساب.</p>${S.profile&&S.profile.blockReason?`<p style="max-width:360px;margin:0 auto 14px"><b>السبب:</b> ${esc(S.profile.blockReason)}</p>`:""}${S.profile&&S.profile.blockedUntil>0?`<p class="mut" style="margin:0 auto 14px">ينتهي الحظر: <b>${new Date(S.profile.blockedUntil).toLocaleString("ar-EG")}</b></p><button class="btn" data-act="home" style="margin-bottom:10px">تحديث</button><br>`:""}<button class="btn ghost" data-act="logout">تسجيل خروج</button></div></div>`;
 const logo=`<div class="logo">التفوق</div>`;
 const searchBtn=()=>S.user?`<button type="button" class="tg tg-icon" data-act="openAI" aria-label="么" title="مساعد 么">🤖</button><button type="button" class="tg tg-icon tg-lbl" data-act="speedBoost" aria-label="تسريع المنصة للهواتف الضعيفة" title="تسريع المنصة للهواتف الضعيفة"><span>⚡</span><small>للهواتف<br>الضعيفة</small></button>${!S.isAdmin?`<button type="button" class="tg tg-icon" data-act="openSearch" aria-label="بحث" title="بحث عن زميل">🔍</button>`:""}`:"";
-const header=(extra)=>`<div class="top"><div class="row" style="gap:8px;flex:1;min-width:0">${logo}${searchBtn()}</div><div class="row">${extra||""}${themeBtn()}</div></div>`;
+const header=(extra)=>`<div class="top"><div class="row" style="gap:8px;flex:1;min-width:0">${logo}${searchBtn()}</div><div class="row">${extra?(S.isAdmin?extra+themeBtn():extra):themeBtn()}</div></div>`;
+const NOHDR="<span></span>";
 const studentNav=()=>`<nav class="bot">
 <button class="${S.view==="home"||S.view==="subject"||S.view==="exam"||S.view==="result"?"on":""}" data-act="home">المواد</button>
 <button class="${S.view==="progress"?"on":""}" data-act="progress">تقدمي${(S.unreadNotif||0)?` <span class="badge">${S.unreadNotif}</span>`:""}</button>
@@ -1552,7 +1610,7 @@ ${at.map(a=>`<div class="row" style="margin-top:8px"><span>محاولة ${a.atte
 </div>${studentNav()}`}
 function examView(){
   const c=S.cur,e=c.exam;let pos=0,fun=false;
-  return `<div class="wrap"><div class="timer"><span>${esc(e.title)} · محاولة ${c.n}</span><span style="display:flex;align-items:center;gap:8px">${c.endAt?`<span id="timer">--:--</span>`:`<span>${gcount(e)} سؤال</span>`}<button type="button" class="btn ghost sm" data-act="pauseExam" style="padding:4px 10px;font-size:12px">حفظ وخرج</button></span></div>
+  return `<div class="wrap"><div class="timer"><span>${esc(e.title)} · محاولة ${c.n}</span><span style="display:flex;align-items:center;gap:8px">${c.endAt?`<span id="timer">--:--</span>`:`<span>${gcount(e)} سؤال</span>`}<button type="button" class="btn sm" data-act="pauseExam" style="padding:6px 12px;font-size:13px;font-weight:700;background:#17120a;color:#f5c542;border:1.5px solid #17120a;opacity:1;box-shadow:0 2px 6px rgba(0,0,0,.35)">💾 حفظ وخروج</button></span></div>
 <div class="prog"><i id="pg"></i></div>
 <form data-submit="submit">
 ${c.order.map(({i,o})=>{const q=e.questions[i];pos++;
@@ -2030,8 +2088,7 @@ function reactsHtml(col, id, reacts, mine){
     const n=(r[k]||[]).length, on=(r[k]||[]).includes(S.user&&S.user.uid);
     return `<button type="button" class="${on?"on":""}" data-act="toggleReact" data-col="${col}" data-id="${id}" data-emoji="${encodeURIComponent(k)}">${k} ${n}</button>`;
   }).join("");
-  const add=`<button type="button" class="react-add" data-act="pickReact" data-col="${col}" data-id="${id}">+</button>`;
-  return `<div class="msg-reacts">${chips}${add}</div>`;
+  return chips?`<div class="msg-reacts">${chips}</div>`:"";
 }
 
 function dmBubbleHtml(m){
@@ -2041,19 +2098,15 @@ function dmBubbleHtml(m){
   }
   const mine=m.fromUid===S.user.uid;
   const reply=m.replyTo?`<div class="tk-reply-q" dir="auto"><b>${esc(m.replyTo.name||"")}</b> ${esc((m.replyTo.text||"").slice(0,80))}</div>`:"";
-  const acts=m._local?"":`<div class="tk-msg-acts">
-    <button type="button" class="btn ghost sm" data-act="dmReply" data-id="${m.id}" data-text="${esc((m.text||"").slice(0,120))}" data-name="${esc(m.fromName||"")}">↩</button>
-    ${mine?`<button type="button" class="btn ghost sm" data-act="dmDelete" data-id="${m.id}">🗑</button>`:""}
-  </div>`;
+  const acts=m._local?"":`<button type="button" class="tk-mini" data-act="pickReact" data-col="dm" data-id="${m.id}" aria-label="تفاعل">☺</button><button type="button" class="tk-mini" data-act="dmReply" data-id="${m.id}" data-text="${esc((m.text||"").slice(0,120))}" data-name="${esc(m.fromName||"")}" aria-label="رد">↩</button>${mine?`<button type="button" class="tk-mini" data-act="dmDelete" data-id="${m.id}" aria-label="حذف">🗑</button>`:""}`;
   return `<div class="tk-bubble ${mine?"me":"them"}" data-mid="${m.id}">
       ${!mine&&m.fromName?`<div style="font-size:11px;opacity:.8;margin-bottom:2px">${esc(m.fromName)}</div>`:""}
       ${reply}
       ${m.text&&m.kind!=="audio"?`<div dir="auto">${esc(m.text)}</div>`:""}
       ${m.img?mediaEmbed(m.img,m.kind):""}
       ${m.roomCode?`<button class="btn sm gold" style="margin-top:6px" data-act="qbJoinInvite" data-code="${esc(m.roomCode)}">دخول الغرفة</button>`:""}
-      <span class="when">${m.createdAt?fmt(m.createdAt):""}${m.read&&mine?" · ✓✓":(mine?" · ✓":"")}</span>
-      ${reactsHtml("dm",m.id,m.reacts)}
-      ${acts}
+      ${reactsHtml("dm",m.id,m.reacts,true)}
+      <div class="tk-foot"><span class="when">${m.createdAt?fmt(m.createdAt):""}${m.read&&mine?" · ✓✓":(mine?" · ✓":"")}</span>${acts}</div>
     </div>`;
 }
 function chatThreadView(){
@@ -2061,8 +2114,9 @@ function chatThreadView(){
   const msgs=S.chatMsgs||[];
   const typing=`<div id="dmTypingLine" class="mut" style="font-size:12px;margin-top:2px">${S.chatTyping?"يكتب الآن…":""}</div>`;
   const replyBar=S.replyTo?`<div class="tk-reply-bar"><div style="flex:1;min-width:0" dir="auto"><b>رد على ${esc(S.replyTo.name||"")}</b><div class="mut" style="font-size:12px">${esc((S.replyTo.text||"").slice(0,100))}</div></div><button type="button" class="btn ghost sm" data-act="dmCancelReply">✕</button></div>`:"";
-  return `<div class="wrap chat-wrap">${header(`<button class="btn ghost sm" data-act="openChats">رجوع</button>`)}
-<div class="row" style="margin-bottom:8px;gap:10px;align-items:center">
+  return `<div class="wrap chat-wrap">${header(NOHDR)}
+<div class="tk-peer-row">
+  <button class="btn ghost sm" data-act="openChats">رجوع</button>
   <button type="button" data-act="openProfile" data-uid="${t.uid}" style="background:none;border:0;padding:0;cursor:pointer">
     ${t.avatar?`<img class="tk-av" src="${t.avatar}" alt="" style="width:44px;height:44px">`:`<div class="tk-av letter" style="width:44px;height:44px;font-size:16px">${esc((t.name||"?")[0])}</div>`}
   </button>
@@ -2071,7 +2125,7 @@ function chatThreadView(){
     <div id="dmOnlineTxt" class="mut" style="font-size:12px">${S.chatPeerOnline?"متصل":"غير متصل"}</div>
     ${typing}
   </div>
-  <button class="btn ghost sm" data-act="startCall" data-uid="${t.uid}" data-name="${esc(t.name||"")}">📞</button>
+  <button class="btn ghost sm" data-act="startCall" data-uid="${t.uid}" data-name="${esc(t.name||"")}" aria-label="مكالمة">📞</button>
 </div>
 <div class="tk-thread">
   <div class="tk-log" id="dmChatLog">${msgs.length?msgs.map(dmBubbleHtml).join(""):`<div class="mut" style="text-align:center;margin:auto">قول سلام 👋</div>`}</div>
@@ -2115,6 +2169,9 @@ ${(p.badges||[]).length?`<div style="margin-top:10px;display:flex;flex-wrap:wrap
   <button class="btn block gold" data-act="openAI">🤖 么</button>
   <p class="mut" style="margin:8px 0 0;text-align:center">اسأل 么 عن الدروس والامتحانات والمنصة</p>
 </div>
+<div class="card"><b>المظهر والإشعارات</b>
+<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sm" data-act="theme">${THEME_ICON[getThemeMode()]||"🎨"} تغيير الوضع: ${THEME_LABEL[getThemeMode()]||""}</button><button class="btn sm ghost" data-act="enablePush">🔔 تفعيل الإشعارات</button></div>
+<p class="mut" style="font-size:12px;margin:8px 0 0">${pushStateText()}</p></div>
 <div class="card"><b>تغيير الاسم</b>
 <label class="f">الاسم</label>
 <input id="meName" type="text" value="${esc(p.name||"")}" maxlength="40">
@@ -2396,7 +2453,8 @@ function adminTanagha(){
   const all=(S.galleries||[]).filter(g=>g.kind===kind);
   const pend=all.filter(g=>g.status==="pending");
   const ok=all.filter(g=>g.status==="approved"||g.status==="published");
-  const students=(S.students||[]).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||"","ar"));
+  const tq=(S.tgq||"").trim().toLowerCase();
+  const students=(S.students||[]).filter(s=>s.tanaghaSave||(tq&&((s.name||"").toLowerCase().includes(tq)||String(s.phone||"").includes(tq)))).slice(0,40);
   const secKey="gal_"+kind;
   return `<div class="card" style="background:linear-gradient(135deg,color-mix(in srgb,#BE185D 12%,var(--card)),var(--card))">
   <h3 style="margin-top:0">خاص لأولاد التناغه 😂💗</h3>
@@ -2437,9 +2495,10 @@ ${ok.length?ok.map(g=>`<div class="row" style="padding:10px 0;border-bottom:1px 
 </div>`).join(""):`<div class="mut">فاضي</div>`}
 </div>
 <div class="card"><h3 style="margin-top:0">🔓 استثناء الحفظ (مسموح ينزّل)</h3>
-<p class="mut">افتراضيًا ممنوع الحفظ/السكرين على الكل — فعّل لطالب لو حابب</p>
+<p class="mut">افتراضيًا ممنوع الحفظ/السكرين على الكل — ابحث عن طالب وفعّل له لو حابب (بنعرض المسموح لهم + نتيجة البحث بس)</p>
+<input id="tgq" type="text" placeholder="ابحث بالاسم أو الرقم" value="${esc(S.tgq||"")}" autocomplete="off" style="margin-bottom:8px">
 ${students.map(s=>`<div class="row" style="padding:6px 0"><span>${esc(s.name||s.phone||s.id)}</span>
-<button class="btn ${s.tanaghaSave?"":"ghost "}sm" data-act="toggleTanaghaSave" data-uid="${s.id}">${s.tanaghaSave?"✓ مسموح يحفظ":"ممنوع الحفظ"}</button></div>`).join("")||`<div class="mut">مفيش طلاب</div>`}
+<button class="btn ${s.tanaghaSave?"":"ghost "}sm" data-act="toggleTanaghaSave" data-uid="${s.id}">${s.tanaghaSave?"✓ مسموح يحفظ":"ممنوع الحفظ"}</button></div>`).join("")||`<div class="mut">${tq?"مفيش نتيجة":"مفيش طلاب مسموح لهم — ابحث لإضافة طالب"}</div>`}
 </div>
 <div class="card"><h3 style="margin-top:0">إخفاء القسم عن شخص</h3>
 ${students.map(s=>{const off=Array.isArray(s.hiddenSections)&&s.hiddenSections.includes(secKey);
@@ -2512,40 +2571,81 @@ ${okUrl(a.link)?`<p><a class="btn ghost sm" href="${esc(a.link)}" target="_blank
 <h3 style="margin-top:16px">التقييم</h3>${x.loading?skel():(filesHtml(x.q,"q",a.id)||(a.desc||okUrl(a.link)?"":`<div class="card mut">مفيش ملفات.</div>`))}
 <h3 style="margin-top:16px">الحل</h3>${sol}</div>`}
 
+
+/* ===== v42: نظام الترتيب الحي (نسبة × معامل ثقة، وحد أدنى للامتحانات) ===== */
+const RANK_CONF=[0,.25,.40,.55,.65,.75,.80,.85,.90,.95,1];
+function rankMin(){return Math.max(1,+(S.site&&S.site.rankMin)||2)}
+function confOf(n){return n>=10?1:(RANK_CONF[n]||0)}
+function rankScore(b){
+  const n=b.examsDone||0;
+  const pct=b.totalQ?(b.totalScore||0)/b.totalQ*100:(b.pct||0);
+  return Math.round(pct*confOf(n)*100)/100;
+}
+function rankBoard(arr){
+  const min=rankMin();
+  const items=(arr||[]).map(b=>({...b,_n:b.examsDone||0,_s:rankScore(b)}));
+  const ranked=items.filter(b=>b._n>=min).sort((a,b)=>b._s-a._s||(b.pct||0)-(a.pct||0)||b._n-a._n);
+  const prov=items.filter(b=>b._n>0&&b._n<min).sort((a,b)=>(b.pct||0)-(a.pct||0)||b._n-a._n);
+  return {ranked,prov};
+}
+function lbPayload(list){
+  const examsDone=list.length,totalScore=list.reduce((s,r)=>s+(r.score||0),0),totalQ=list.reduce((s,r)=>s+(r.total||0),0);
+  const ex={};list.forEach(r=>{if(r.examId)ex[r.examId]=[r.score||0,r.total||0]});
+  const b={examsDone,totalScore,totalQ,pct:totalQ?Math.round(totalScore/totalQ*1000)/10:0,ex,v:2};
+  b.score=rankScore(b);
+  return b;
+}
+function h2hText(other){
+  const me=(S.board||[]).find(b=>(b.uid||b.id)===S.user.uid);
+  const mine=(me&&me.ex)||{},theirs=other.ex||{};
+  const common=Object.keys(mine).filter(k=>theirs[k]);
+  if(!common.length)return "مفيش امتحانات مشتركة بينكم لسه — المقارنة بتتم على الامتحانات اللي الاتنين امتحنوها بس.";
+  let a=0,aq=0,o=0,oq=0;
+  const lines=common.map(k=>{
+    const e=(S.exams||[]).find(x=>x.id===k);
+    const [ms,mt]=mine[k],[ts,tt]=theirs[k];
+    a+=ms;aq+=mt;o+=ts;oq+=tt;
+    return (e?e.title:"امتحان")+": أنت "+ms+"/"+mt+" · هو "+ts+"/"+tt;
+  });
+  const pa=aq?Math.round(a/aq*1000)/10:0,po=oq?Math.round(o/oq*1000)/10:0;
+  const w=pa>po?"أنت متقدّم 👏":pa<po?"هو متقدّم عليك":"تعادل";
+  return "الامتحانات المشتركة ("+common.length+"):\n"+lines.join("\n")+"\n\nمجموعك "+a+"/"+aq+" = "+pa+"%\nمجموعه "+o+"/"+oq+" = "+po+"%\n→ "+w;
+}
+function lbBoardCard(){
+  const {ranked,prov}=rankBoard(S.board);
+  const min=rankMin();
+  const top3=ranked.slice(0,3),rest=ranked.slice(3,15);
+  const podiumOrder=[];
+  if(top3[1])podiumOrder.push({b:top3[1],rank:2,cls:"p2",medal:"🥈"});
+  if(top3[0])podiumOrder.push({b:top3[0],rank:1,cls:"p1",medal:"🥇"});
+  if(top3[2])podiumOrder.push({b:top3[2],rank:3,cls:"p3",medal:"🥉"});
+  const row=(b,i,isProv)=>`<div class="row" data-act="h2h" data-uid="${b.uid||b.id}" style="cursor:pointer">
+<span style="min-width:28px;font-weight:700;color:var(--mut)">${isProv?"–":i}</span>
+<span style="flex:1"><b>${esc((b.name||"طالب").split(" ")[0])}</b>${(b.uid||b.id)===S.user.uid?` <span class="pill">أنت</span>`:""}${isProv?` <span class="pill y" style="font-size:10px">ترتيب مؤقت</span>`:""}
+<div class="mut">${b.examsDone||0} امتحان · ${b.totalScore||0}/${b.totalQ||0} · <b style="color:var(--pri)">${b.pct||0}%</b>${isProv?"":` · نقاط ${b._s}`}</div></span></div>`;
+  return `<div class="card" style="overflow:hidden">
+<h3 style="text-align:center;margin:0 0 4px">🏆 لوحة الشرف</h3>
+<p class="mut" style="text-align:center;margin:0 0 4px;font-size:12px">الترتيب = النسبة × ثقة عدد الامتحانات · لازم ${min} امتحان على الأقل · اضغط على أي طالب لمقارنته بيك</p>
+${top3.length?`<div class="podium">${podiumOrder.map(({b,rank,cls,medal})=>`<div class="pod ${cls}" data-act="h2h" data-uid="${b.uid||b.id}" style="cursor:pointer">
+  <div class="avatar">${medal}</div>
+  <div class="nm">${esc((b.name||"طالب").split(" ")[0])}${(b.uid||b.id)===S.user.uid?" · أنت":""}</div>
+  <div class="sc">${b.pct||0}% · ${b.examsDone||0} امتحان</div>
+  <div class="bar">${rank}</div>
+</div>`).join("")}</div>`:""}
+${rest.length?`<div class="lb-rest">${rest.map((b,i)=>row(b,i+4,false)).join("")}</div>`:""}
+${prov.length?`<div class="mut" style="margin:10px 0 4px;font-size:12px">ترتيب مؤقت — محتاجين امتحان إضافي للدخول في الترتيب الرسمي:</div><div class="lb-rest">${prov.slice(0,8).map(b=>row(b,0,true)).join("")}</div>`:""}
+${!ranked.length&&!prov.length?`<div class="mut" style="text-align:center;padding:12px">لسه مفيش ترتيب. أول ما الطلاب يمتحنوا هتظهر المنصة هنا.</div>`:""}
+</div>`;
+}
+
 function progressView(){
   const L=S.myList,avgP=L.length?Math.round(L.reduce((s,r)=>s+pctOf(r),0)/L.length):0;
   const best=L.length?Math.max(...L.map(pctOf)):0,exams=new Set(L.map(r=>r.examId)).size;
   const bySub=SUBJECTS.map(s=>{const rs=L.filter(r=>r.subject===s.id);return {s,n:rs.length,avg:rs.length?Math.round(rs.reduce((a,r)=>a+pctOf(r),0)/rs.length):0}}).filter(x=>x.n);
   const weak=bySub.length>1?bySub.slice().sort((a,b)=>a.avg-b.avg)[0]:null;
   const last=L.slice(-10);
-  // ترتيب الأشطر: نسبة أعلى → مجموع أعلى → أكتر امتحانات
-  const board=(S.board||[]).slice().sort((a,b)=>
-    (b.pct-a.pct) || (b.totalScore-a.totalScore) || (b.examsDone-a.examsDone)
-  ).slice(0,10);
-  const top3=board.slice(0,3);
-  const rest=board.slice(3);
   const notifs=S.notifs||[];
-  // ترتيب المنصة: فضي | ذهبي | برونز (شكل التتويج)
-  const podiumOrder=[];
-  if(top3[1]) podiumOrder.push({b:top3[1],rank:2,cls:"p2",medal:"🥈"});
-  if(top3[0]) podiumOrder.push({b:top3[0],rank:1,cls:"p1",medal:"🥇"});
-  if(top3[2]) podiumOrder.push({b:top3[2],rank:3,cls:"p3",medal:"🥉"});
-  const boardCard=`<div class="card" style="overflow:hidden">
-<h3 style="text-align:center;margin:0 0 4px">🏆 لوحة الشرف</h3>
-<p class="mut" style="text-align:center;margin:0 0 4px">الأشطر والأنشط · حسب النسبة ثم الدرجات</p>
-${top3.length?`<div class="podium">${podiumOrder.map(({b,rank,cls,medal})=>`<div class="pod ${cls}">
-  <div class="avatar">${medal}</div>
-  <div class="nm">${esc((b.name||"طالب").split(" ")[0])}${b.uid===S.user.uid?" · أنت":""}</div>
-  <div class="sc">${b.pct||0}% · ${b.examsDone||0} امتحان</div>
-  <div class="bar">${rank}</div>
-</div>`).join("")}</div>`:""}
-${rest.length?`<div class="lb-rest">${rest.map((b,i)=>`<div class="row">
-<span style="min-width:28px;font-weight:700;color:var(--mut)">${i+4}</span>
-<span style="flex:1"><b>${esc((b.name||"طالب").split(" ")[0])}</b>${b.uid===S.user.uid?` <span class="pill">أنت</span>`:""}
-<div class="mut">${b.examsDone||0} امتحان · ${b.totalScore||0}/${b.totalQ||0} · <b style="color:var(--pri)">${b.pct||0}%</b></div></span>
-</div>`).join("")}</div>`:""}
-${!board.length?`<div class="mut" style="text-align:center;padding:12px">لسه مفيش ترتيب. أول ما الطلاب يمتحنوا هتظهر المنصة هنا.</div>`:""}
-</div>`;
+  const boardCard=lbBoardCard();
 
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="logout">خروج</button>`)}
 <h2>تقدمي</h2>
@@ -2950,16 +3050,21 @@ ${S.exams.length?S.exams.map(e=>{const n=(Array.isArray(S.results)?S.results:[])
 <div class="mut">${gcount(e)} سؤال${e.questions.length>gcount(e)?" + ألغاز":""} · ${e.minutes?e.minutes+" دقيقة":"بدون وقت"} · ${e.passMark>0?"النجاح من "+e.passMark:"بدون درجة نجاح"} · ${n} محاولة${e.publishAt?" · ينزل "+new Date(e.publishAt).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}):""}</div></div>
 <div class="row"><button class="btn ghost sm" data-act="editExam" data-id="${e.id}">تعديل</button><button class="btn ghost sm" data-act="dupExam" data-id="${e.id}">نسخ</button><button class="btn ghost sm" data-act="togglePub" data-id="${e.id}">${e.published?"إخفاء":"إظهار"}</button><button class="btn danger sm" data-act="delExam" data-id="${e.id}">حذف</button></div></div></div>`}).join(""):`<div class="card mut">لسه مفيش امتحانات. دوس "+" وابدأ.</div>`}`}
 function studentRows(){
-  return (Array.isArray(S.students)?S.students:[]).map(s=>{const rs=(Array.isArray(S.results)?S.results:[]).filter(r=>r.uid===s.id);
+  const by={};
+  (Array.isArray(S.results)?S.results:[]).forEach(r=>{(by[r.uid]||(by[r.uid]=[])).push(r)});
+  return (Array.isArray(S.students)?S.students:[]).map(s=>{const rs=by[s.id]||[];
     const avg=rs.length?Math.round(rs.reduce((a,r)=>a+pctOf(r),0)/rs.length):null;
     return {s,rs,avg,tabs:rs.reduce((a,r)=>a+(r.tabs||0),0),last:rs.length?rs[0]:null}});
 }
 function studentsTable(){
   const q=(S.sq||"").trim().toLowerCase(),cnt={};
   S.students.forEach(x=>{if(x.ip)cnt[x.ip]=(cnt[x.ip]||0)+1});
-  const rows=studentRows().filter(x=>!q||(x.s.name||"").toLowerCase().includes(q)||(x.s.phone||"").includes(q));
+  const allRows=studentRows().filter(x=>!q||(x.s.name||"").toLowerCase().includes(q)||(x.s.phone||"").includes(q));
+  const lim=S.sLimit||40;
+  const rows=allRows.slice(0,lim);
+  const moreBtn=allRows.length>lim?`<div style="text-align:center;margin:10px"><button class="btn ghost sm" data-act="moreStudents">عرض المزيد (${allRows.length-lim} طالب متبقي) — أو استخدم البحث</button></div>`:"";
   return rows.length?`<div class="tw card" style="padding:0"><table><tr><th>الاسم</th><th>التليفون</th><th>آخر دخول</th><th>آخر IP</th><th>الجهاز</th><th>المحاولات</th><th>المتوسط</th><th>خروج</th><th></th></tr>
-${rows.map(x=>`<tr><td>${esc(x.s.name)} ${x.s.blocked?pill("موقوف","r"):""}</td><td dir="ltr">${esc(x.s.phone)}</td><td>${fmt(x.s.lastLogin)||"-"}</td><td dir="ltr">${esc(x.s.ip||"-")} ${x.s.ip&&cnt[x.s.ip]>1?pill("مشترك","y"):""}</td><td>${esc(x.s.device||"-")}</td><td>${x.rs.length}</td><td>${x.avg==null?"-":x.avg+"%"}</td><td>${x.tabs?pill(x.tabs,"r"):0}</td><td><button class="btn sm" data-act="student" data-id="${x.s.id}">فتح الملف</button> <button class="btn ${x.s.blocked?"ghost":"danger"} sm" data-act="${x.s.blocked?"unblock":"block"}" data-id="${x.s.id}">${x.s.blocked?"فك الحظر":"حظر نهائي"}</button></td></tr>`).join("")}</table></div>`:`<div class="card mut">مفيش طلاب بالمواصفات دي.</div>`;
+${rows.map(x=>`<tr><td>${esc(x.s.name)} ${x.s.blocked?pill("موقوف","r"):""}</td><td dir="ltr">${esc(x.s.phone)}</td><td>${fmt(x.s.lastLogin)||"-"}</td><td dir="ltr">${esc(x.s.ip||"-")} ${x.s.ip&&cnt[x.s.ip]>1?pill("مشترك","y"):""}</td><td>${esc(x.s.device||"-")}</td><td>${x.rs.length}</td><td>${x.avg==null?"-":x.avg+"%"}</td><td>${x.tabs?pill(x.tabs,"r"):0}</td><td><button class="btn sm" data-act="student" data-id="${x.s.id}">فتح الملف</button> <button class="btn ${x.s.blocked?"ghost":"danger"} sm" data-act="${x.s.blocked?"unblock":"block"}" data-id="${x.s.id}">${x.s.blocked?"فك الحظر":"حظر نهائي"}</button></td></tr>`).join("")}</table></div>${moreBtn}`:`<div class="card mut">مفيش طلاب بالمواصفات دي.</div>`;
 }
 function adminStudents(){
   return `<div class="stats"><div class="card stat"><b>${S.students.length}</b><span class="mut">طالب مسجّل</span></div></div>
@@ -3108,11 +3213,11 @@ function adminSettings(){
 <p class="mut">اربط أي سيرفر يرد JSON: <code dir="ltr">{"reply":"..."}</code><br>
 المنصة تبعت: message, system, history, books, exams, name, view</p>
 <label class="f">رابط الـ API / Webhook</label>
-<input id="aiUrlIn" class="ltr" type="url" placeholder="https://your-server.com/ai" value="${esc(S.site.aiUrl||"")}">
+<input id="aiUrlIn" name="ai_endpoint_x" class="ltr" type="text" inputmode="url" placeholder="https://your-server.com/ai" value="${esc(/^https?:\/\//i.test(S.site.aiUrl||"")?S.site.aiUrl:"")}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')">
 <label class="f">مفتاح API (اختياري — لو سيرفرك يحتاجه في الهيدر)</label>
-<input id="aiKeyIn" class="ltr" type="password" placeholder="sk-… أو Bearer token" value="${esc(S.site.aiKey||"")}">
+<input id="aiKeyIn" name="ai_secret_x" class="ltr" type="text" style="-webkit-text-security:disc" placeholder="sk-… أو Bearer token" value="${esc(S.site.aiKey||"")}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')">
 <label class="f">🛡 رابط الوسيط الآمن (Cloudflare Worker) — اختياري</label>
-<input id="aiProxyIn" class="ltr" type="url" placeholder="https://xxxx.workers.dev" value="${esc(S.site.aiProxy||"")}">
+<input id="aiProxyIn" name="ai_proxy_x" class="ltr" type="text" inputmode="url" placeholder="https://xxxx.workers.dev" value="${esc(/^https?:\/\//i.test(S.site.aiProxy||"")?S.site.aiProxy:"")}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')">
 <p class="mut" style="font-size:12px;margin:4px 0 0">لو حطّيته: المنصة بتكلّم الوسيط بدل السيرفر، والمفتاح والرابط الحقيقيين بيتخزنوا جوّه الوسيط بس (محدش من الطلاب يقدر يشوفهم). في الحالة دي سيب الخانتين اللي فوق فاضيين. لو سبته فاضي، كل حاجة شغالة زي ما هي.</p>
 <div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap">
 <button class="btn sm" data-act="saveAiUrl">💾 حفظ الربط</button>
@@ -3123,8 +3228,15 @@ function adminSettings(){
 </div>
 <div class="card"><h3 style="margin-top:0">إشعارات المكالمات (FCM)</h3>
 <p class="mut">Firebase → Project settings → Cloud Messaging → Web Push certificates</p>
-<input id="vapidIn" class="ltr" type="text" placeholder="VAPID key" value="${esc(S.site.vapidKey||"")}">
-<button class="btn sm" style="margin-top:8px" data-act="saveVapid">حفظ مفتاح الإشعارات</button></div>`;
+<input id="vapidIn" name="fcm_vapid_x" class="ltr" type="text" placeholder="VAPID key (يبدأ بـ B)" value="${esc(S.site.vapidKey||"")}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')">
+<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sm" data-act="saveVapid">حفظ مفتاح الإشعارات</button><button class="btn sm gold" data-act="enablePush">🔔 تفعيل وتجربة على جهازي</button></div>
+<p id="pushStatus" class="mut" style="font-size:12px;margin:8px 0 0">حالة الإشعارات: ${typeof pushStateText==="function"?pushStateText():""}</p></div>
+<div class="card"><h3 style="margin-top:0">📞 تحسين وصول المكالمات (TURN — اختياري)</h3>
+<p class="mut" style="font-size:12px">لو المكالمة بترن وبتتوصل بس الصوت مش بيسمع على بعض الشبكات (داتا الموبايل)، سجّل مجاناً في metered.ca أو أي مزود TURN والصق البيانات هنا. لو سيبتها فاضية المكالمات بتشتغل زي ما هي.</p>
+<input id="turnUrlIn" name="turn_url_x" class="ltr" type="text" placeholder="turn:xxx.metered.ca:443?transport=tcp" value="${esc(S.site.turnUrl||"")}" autocomplete="off" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')">
+<input id="turnUserIn" name="turn_user_x" class="ltr" type="text" style="margin-top:6px" placeholder="username" value="${esc(S.site.turnUser||"")}" autocomplete="off" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')">
+<input id="turnCredIn" name="turn_cred_x" class="ltr" type="text" style="margin-top:6px;-webkit-text-security:disc" placeholder="credential" value="${esc(S.site.turnCred||"")}" autocomplete="off" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')">
+<button class="btn sm" style="margin-top:8px" data-act="saveTurn">حفظ</button></div>`;
   // ---
   
   return extra+`<div class="card"><h3>وضع الصيانة</h3>
@@ -3291,10 +3403,49 @@ function ensureAuditListen(){
 const A={
   async markNotifsRead(){for(const n of (Array.isArray(S.notifs)?S.notifs:[]).filter(x=>!x.read)){try{await updateDoc(doc(db,"notifications",n.id),{read:true})}catch(e){}}},
   adminRefreshPerf(){render(true);toast("اتحدّثت أرقام الأداء")},
+  async saveVapid(){
+    const v=($("#vapidIn")&&$("#vapidIn").value||"").trim().replace(/\s+/g,"");
+    if(!v){toast("الصق مفتاح VAPID الأول");return}
+    if(v.length<60||!/^[A-Za-z0-9_\-]+$/.test(v)){toast("المفتاح شكله غلط — لازم يكون سطر طويل (حوالي 87 حرف) يبدأ بـ B",true);return}
+    try{
+      await setDoc(doc(db,"config","site"),{vapidKey:v},{merge:true});
+      if(S.site)S.site.vapidKey=v;
+      toast("تم حفظ المفتاح ✓",true);
+      const r=await registerFcmToken(true);
+      toast(r.ok?"الإشعارات اشتغلت على جهازك ✓":"اتحفظ المفتاح، لكن: "+r.msg,true);
+      const el=$("#pushStatus");if(el)el.textContent="حالة الإشعارات: "+pushStateText();
+    }catch(e){toast((e&&e.code==="permission-denied")?"مفيش صلاحية — انشر firestore.rules":"فشل الحفظ: "+((e&&e.message)||"").slice(0,80),true)}
+  },
+  async h2h(d){
+    const b=(S.board||[]).find(x=>(x.uid||x.id)===d.uid);if(!b)return;
+    if(d.uid===S.user.uid){await uiDialog({title:"أنت",icon:"🏆",ok:"تمام",msg:"ترتيبك بيتحسب من نسبتك العامة × ثقة عدد الامتحانات اللي دخلتها ("+(b.examsDone||0)+" امتحان، "+(b.pct||0)+"%). كل ما تمتحن أكتر وتحافظ على مستواك، ترتيبك بيطلع."});return}
+    await uiDialog({title:"مقارنة مع "+((b.name||"زميل").split(" ")[0]),icon:"⚔️",ok:"تمام",msg:h2hText(b)});
+  },
+  async saveTurn(){
+    const g=id=>($(id)&&$(id).value||"").trim();
+    const turnUrl=g("#turnUrlIn"),turnUser=g("#turnUserIn"),turnCred=g("#turnCredIn");
+    if(turnUrl&&!/^turns?:/i.test(turnUrl)){toast("رابط TURN لازم يبدأ بـ turn:",true);return}
+    try{await setDoc(doc(db,"config","site"),{turnUrl,turnUser,turnCred},{merge:true});if(S.site){S.site.turnUrl=turnUrl;S.site.turnUser=turnUser;S.site.turnCred=turnCred}toast("اتحفظ ✓",true)}
+    catch(e){toast("فشل الحفظ",true)}
+  },
+  async enablePush(){
+    toast("جاري تفعيل الإشعارات…");
+    const r=await registerFcmToken(true);
+    if(r.ok){
+      try{
+        const reg=await navigator.serviceWorker.ready;
+        await reg.showNotification("منصة التفوق",{body:"الإشعارات شغالة على جهازك ✓",icon:"./icons/icon-192.png",tag:"push-test"});
+      }catch(_){}
+    }
+    toast(r.ok?"الإشعارات اشتغلت ✓":r.msg,true);
+    const el=$("#pushStatus");if(el)el.textContent="حالة الإشعارات: "+pushStateText();
+  },
   async saveAiUrl(){
     const url=($("#aiUrlIn")&&$("#aiUrlIn").value||"").trim();
     const key=($("#aiKeyIn")&&$("#aiKeyIn").value||"").trim();
     const proxy=($("#aiProxyIn")&&$("#aiProxyIn").value||"").trim();
+    if(url&&!/^https:\/\/[^\s]+\.[^\s]+/i.test(url)){toast("رابط الـ API لازم يبدأ بـ https://",true);return}
+    if(proxy&&!/^https:\/\/[^\s]+\.[^\s]+/i.test(proxy)){toast("رابط الوسيط لازم يبدأ بـ https://",true);return}
     try{
       await setDoc(doc(db,"config","ai"),{aiUrl:url,aiKey:key,proxyUrl:proxy},{merge:true});
       try{await updateDoc(doc(db,"config","site"),{aiUrl:deleteField(),aiKey:deleteField()})}catch(_){}
@@ -3307,6 +3458,7 @@ const A={
     const proxy=($("#aiProxyIn")&&$("#aiProxyIn").value||"").trim()||(S.site&&S.site.aiProxy)||"";
     const url=proxy||(S.site&&S.site.aiUrl)||($("#aiUrlIn")&&$("#aiUrlIn").value||"").trim();
     if(!url){toast("حط رابط الأول");return}
+    if(!/^https:\/\//i.test(url)){toast("الرابط لازم يبدأ بـ https:// — شكل اللي مكتوب غلط",true);return}
     toast("جاري اختبار 么…");
     try{
       const headers={"Content-Type":"application/json"};
@@ -3324,7 +3476,7 @@ const A={
       const reply=j.reply||j.text||j.message||"";
       if(r.ok&&reply)toast("نجح ✓: "+String(reply).slice(0,80),true);
       else toast("الرد: "+r.status+" "+String(reply||j.error||"مفيش reply"),true);
-    }catch(e){toast("فشل الاتصال: تحقق من الرابط والـ CORS")}
+    }catch(e){toast("فشل الاتصال بالرابط — اتأكد إنه كامل وبيبدأ بـ https:// وإن ALLOWED_ORIGIN في الوسيط = https://phdgxt4-coder.github.io",true)}
   },
   theme(d,el){document.querySelectorAll('.tg[data-act="theme"]').forEach(b=>{b.classList.add("spin");setTimeout(()=>b.classList.remove("spin"),500)});cycleTheme();},
   mode(){S.mode=S.mode==="login"?"register":"login";S.error="";render(true)},
@@ -3353,10 +3505,9 @@ const A={
       let n=0;
       for(const uid of Object.keys(byUid)){
         const u=byUid[uid], list=Object.values(u.exams);
-        const examsDone=list.length, totalScore=list.reduce((s,r)=>s+(r.score||0),0), totalQ=list.reduce((s,r)=>s+(r.total||0),0);
         await setDoc(doc(db,"leaderboard",uid),{
           uid,name:u.name||"طالب",phone:u.phone||"",
-          examsDone,totalScore,totalQ,pct:totalQ?Math.round(totalScore/totalQ*100):0,
+          ...lbPayload(list),
           updatedAt:serverTimestamp()
         },{merge:true});
         n++;
@@ -3368,16 +3519,7 @@ const A={
   async pauseExam(){
     const c=S.cur;if(!c||c.done||c.pausing)return;
     if(!await uiConfirm("هتحفظ إجاباتك وتخرج.\nتقدر ترجع تكمل من «استئناف الامتحان» بعدين.\nالمؤقت هيفضل شغّال لو في وقت محدد.")) return;
-    c.pausing=true;
-    try{saveExamDraft()}catch(_){}
-    try{persistExamSession(c)}catch(_){}
-    logActivity("exam_pause", c.exam.title||"");
-    clearInterval(timer);clearInterval(hb);timer=null;hb=null;
-    const sid=c.sid;
-    S.cur=null;S.view="home";
-    render(true);
-    toast("اتحفظت إجاباتك — تقدر تستأنف من صفحة المادة");
-    // keep starts doc alive so resume works
+    pauseExamNow(false);
   },
   async resumeExam(){
     if(S.site&&S.site.maintenance&&!S.isAdmin){toast("المنصة تحت الصيانة");return}
@@ -3412,49 +3554,57 @@ const A={
   audSpeed(d){const el=document.getElementById(d.id);if(el){el.playbackRate=parseFloat(d.r)||1;toast("السرعة ×"+(d.r||1))}},
   async startCall(d){if(!d.uid)return;await startVoiceCall(d.uid,d.name||"زميل")},
   
-  async pickReact(d){
+  pickReact(d){
     const old=document.getElementById("reactPicker");
+    const same=old&&old.dataset.id===d.id;
     if(old)old.remove();
+    if(same)return;
     const box=document.createElement("div");
-    box.id="reactPicker";box.className="react-picker";
-    box.innerHTML=REACT_EMOJI.map(e=>`<button type="button" data-e="${e}">${e}</button>`).join("")+
-      `<button type="button" data-e="__more" style="font-size:13px;padding:6px 8px">+ غيره</button>`;
-    const host=document.querySelector(`[data-mid="${d.id}"]`)||document.getElementById("dmChatLog")||document.body;
-    host.appendChild(box);
+    box.id="reactPicker";box.className="react-sheet";box.dataset.id=d.id;
+    box.innerHTML=REACT_EMOJI.map(e=>`<button type="button" data-e="${e}">${e}</button>`).join("")+`<button type="button" data-e="__more" style="font-size:13px;width:auto;padding:0 10px">غيره</button>`;
+    document.body.appendChild(box);
     box.onclick=async ev=>{
       const b=ev.target.closest("button");if(!b)return;
       let emoji=b.getAttribute("data-e");
-      if(emoji==="__more"){emoji=await uiPrompt("اكتب إيموجي");if(!emoji)return}
+      if(emoji==="__more"){box.remove();emoji=await uiPrompt("اكتب إيموجي");if(!emoji)return}
       box.remove();
       A.toggleReact({col:d.col,id:d.id,emoji:String(emoji).trim().slice(0,8)});
     };
     setTimeout(()=>{
-      const close=e=>{if(!box.contains(e.target)){box.remove();document.removeEventListener("click",close,true)}};
-      document.addEventListener("click",close,true);
+      const close=e=>{if(!document.body.contains(box)){document.removeEventListener("pointerdown",close,true);return}if(!box.contains(e.target)){box.remove();document.removeEventListener("pointerdown",close,true)}};
+      document.addEventListener("pointerdown",close,true);
     },0);
   },
   async toggleReact(d){
     if(!S.user||!d.id||!d.emoji)return;
     try{d.emoji=decodeURIComponent(d.emoji)}catch(_){}
-    try{
-      let ref;
-      if(d.col==="dm"&&S.chatThread){
-        const cid=convIdFor(S.user.uid,S.chatThread.uid);
-        ref=doc(db,"conversations",cid,"msgs",d.id);
-      }else if(d.col==="grp"&&S.groupId){
-        ref=doc(db,"groups",S.groupId,"msgs",d.id);
-      }else if(d.col==="qb"&&S.qb&&S.qb.roomCode){
-        ref=doc(db,"qb_rooms",S.qb.roomCode,"chat",d.id);
-      }else{toast("مفيش محادثة مفتوحة");return}
-      const snap=await getDoc(ref);
-      if(!snap.exists()){toast("الرسالة مش موجودة");return}
-      const reacts={...(snap.data().reacts||{})};
-      const arr=[...(reacts[d.emoji]||[])];
+    let ref,list,rerender;
+    if(d.col==="dm"&&S.chatThread){
+      ref=doc(db,"conversations",convIdFor(S.user.uid,S.chatThread.uid),"msgs",d.id);list=S.chatMsgs;
+      rerender=()=>{const log=$("#dmChatLog");if(log&&S.view==="chatThread"){const st=log.scrollTop;log.innerHTML=(S.chatMsgs||[]).map(dmBubbleHtml).join("");log.scrollTop=st}};
+    }else if(d.col==="grp"&&S.groupId){
+      ref=doc(db,"groups",S.groupId,"msgs",d.id);list=S.groupMsgs;
+      rerender=()=>{if(S.view==="groupThread")scheduleRender()};
+    }else if(d.col==="qb"&&S.qb&&S.qb.roomCode){
+      ref=doc(db,"qb_rooms",S.qb.roomCode,"chat",d.id);list=null;rerender=()=>{};
+    }else{toast("مفيش محادثة مفتوحة");return}
+    // تحديث فوري محلياً (بدون انتظار السيرفر)
+    const m=list&&list.find(x=>x.id===d.id);
+    let had=false;
+    if(m){
+      m.reacts=m.reacts||{};
+      const arr=[...(m.reacts[d.emoji]||[])];
       const ix=arr.indexOf(S.user.uid);
-      if(ix>=0)arr.splice(ix,1);else arr.push(S.user.uid);
-      if(arr.length)reacts[d.emoji]=arr;else delete reacts[d.emoji];
-      await updateDoc(ref,{reacts});
-    }catch(e){console.error("toggleReact",e);toast((e&&e.code==="permission-denied")?"مفيش صلاحية للتفاعل — انشر قواعد Firestore":(e&&e.message)||"فشل التفاعل")}
+      if(ix>=0){arr.splice(ix,1);had=true}else arr.push(S.user.uid);
+      if(arr.length)m.reacts[d.emoji]=arr;else delete m.reacts[d.emoji];
+      window.__dmSig=null;
+      try{rerender()}catch(_){}
+    }else{
+      try{const sn=await getDoc(ref);had=!!(sn.exists()&&((sn.data().reacts||{})[d.emoji]||[]).includes(S.user.uid))}catch(_){}
+    }
+    try{
+      await updateDoc(ref,new FieldPath("reacts",d.emoji),had?arrayRemove(S.user.uid):arrayUnion(S.user.uid));
+    }catch(e){console.error("toggleReact",e);toast((e&&e.code==="permission-denied")?"مفيش صلاحية للتفاعل — انشر قواعد Firestore":"فشل التفاعل")}
   },
 
   
@@ -3877,10 +4027,10 @@ const A={
       try{
         let board=S.board||[];
         if(!board.length){
-          const sn=await getDocs(query(collection(db,"leaderboard"),orderBy("examsDone","desc"),limit(80)));
+          const sn=await getDocs(query(collection(db,"leaderboard"),orderBy("score","desc"),limit(80)));
           board=sn.docs.map(x=>({id:x.id,...x.data()}));S.board=board;
         }
-        const ranked=[...board].sort((a,b)=>(b.pct||0)-(a.pct||0)||(b.examsDone||0)-(a.examsDone||0));
+        const ranked=rankBoard(board).ranked;
         const idx=ranked.findIndex(b=>(b.uid||b.id)===uid);
         if(idx>=0)rank=idx+1;
       }catch(_){}
@@ -3909,7 +4059,7 @@ const A={
       let board=S.board||[];
       if(!board.length){
         try{
-          const sn=await getDocs(query(collection(db,"leaderboard"),orderBy("examsDone","desc"),limit(80)));
+          const sn=await getDocs(query(collection(db,"leaderboard"),orderBy("score","desc"),limit(80)));
           board=sn.docs.map(d=>({id:d.id,...d.data()}));
           S.board=board;
         }catch(_){}
@@ -3928,7 +4078,7 @@ const A={
         return name.includes(ql)||phone.includes(q);
       }).slice(0,20);
       // ترتيب leaderboard حسب النقاط
-      const ranked=[...board].sort((a,b)=>(b.pct||0)-(a.pct||0)||(b.examsDone||0)-(a.examsDone||0));
+      const ranked=rankBoard(board).ranked;
       try{S.globalHits=runGlobalSearch(S.friendQ||"")}catch(_){}
       S.friendHits=matched.map(s=>{
         const lb=board.find(b=>b.uid===s.id||b.id===s.id)||{};
@@ -4995,15 +5145,17 @@ const A={
       toast(d.v==="approved"?"اتفتحله الأقسام ✓":"اتقفلت عنه الأقسام",true);
     }catch(e){window.__cancel=true;toast("مقدرتش: "+(e.code||e.message||""))}
   },
+  moreStudents(){S.sLimit=(S.sLimit||40)+60;const t=$("#stbl");if(t)t.innerHTML=studentsTable()},
   async setFeature(d){
     if(!S.isAdmin||!d.id)return;
     const want=d.on==="1";
     if(featState(d.id)===want){window.__cancel=true;return}
-    try{
-      await setDoc(doc(db,"config","features"),{[d.id]:want},{merge:true});
-      S.features={...(S.features||{}),[d.id]:want};
-      toast(want?"🔓 اتفتح القسم":"🔐 اتقفل القسم",true);render(true);
-    }catch(e){window.__cancel=true;toast("مقدرتش: "+(e.code||e.message||""))}
+    const prev=S.features;
+    // فوري: غيّر الحالة وارسم، وبعدين اكتب في السيرفر في الخلفية
+    S.features={...(S.features||{}),[d.id]:want};
+    toast(want?"🔓 اتفتح القسم":"🔐 اتقفل القسم",true);render(true);
+    try{await setDoc(doc(db,"config","features"),{[d.id]:want},{merge:true})}
+    catch(e){S.features=prev;render(true);window.__cancel=true;toast("مقدرتش أحفظ التغيير: "+(e.code||e.message||""),true)}
   },
   async unblock(d){try{await updateDoc(doc(db,"students",d.id),{blocked:false,blockedUntil:0,blockReason:""});toast("اتفك الحظر")}catch(e){toast("مقدرتش")}},
   async doLogin(){
@@ -5242,10 +5394,12 @@ function stopRingtone(){
   __ringCtx=null;
 }
 function iceServers(){
-  return {iceServers:[
-    {urls:"stun:stun.l.google.com:19302"},
-    {urls:"stun:stun1.l.google.com:19302"}
-  ]};
+  const l=[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}];
+  try{
+    const t=S.site&&S.site.turnUrl;
+    if(t)l.push({urls:t.split(",").map(x=>x.trim()).filter(Boolean),username:S.site.turnUser||"",credential:S.site.turnCred||""});
+  }catch(_){}
+  return {iceServers:l};
 }
 async function startVoiceCall(toUid,toName){
   if(!S.user||!toUid)return;
@@ -5262,15 +5416,17 @@ async function startVoiceCall(toUid,toName){
   pc.ontrack=ev=>{try{remoteAudio.srcObject=ev.streams[0];remoteAudio.play().catch(()=>{})}catch(_){}};
   const callRef=doc(db,"calls",callId);
   const pendingIce=[];
+  let callDocReady=false;
   pc.onicecandidate=e=>{
     if(!e.candidate)return;
     const c=e.candidate.toJSON();
-    pendingIce.push(c);
+    if(!callDocReady){pendingIce.push(c);return}
     updateDoc(callRef,{callerIce:arrayUnion(c)}).catch(()=>{});
   };
-  const offer=await pc.createOffer({offerToReceiveAudio:true});
-  await pc.setLocalDescription(offer);
-  await setDoc(callRef,{
+  let offer;
+  try{offer=await pc.createOffer({offerToReceiveAudio:true});await pc.setLocalDescription(offer)}
+  catch(e){toast("فشل تجهيز المكالمة");try{stream.getTracks().forEach(t=>t.stop());pc.close()}catch(_){}return}
+  try{await setDoc(callRef,{
     from:S.user.uid,
     fromName:(S.profile&&S.profile.name||"طالب").split(" ")[0],
     to:toUid,
@@ -5280,7 +5436,14 @@ async function startVoiceCall(toUid,toName){
     callerIce:[],
     calleeIce:[],
     createdAt:serverTimestamp()
-  });
+  })}catch(e){
+    console.error("call create",e);
+    try{stream.getTracks().forEach(t=>t.stop());pc.close()}catch(_){}
+    toast((e&&e.code==="permission-denied")?"المكالمة مرفوضة — انشر firestore.rules الجديدة (أو حسابك محظور)":"مقدرتش أبدأ المكالمة — تأكد من الإنترنت",true);
+    return;
+  }
+  callDocReady=true;
+  if(pendingIce.length){try{await updateDoc(callRef,{callerIce:arrayUnion(...pendingIce)})}catch(_){}}
   try{
     await addDoc(collection(db,"notifications"),{
       uid:toUid, text:"📞 مكالمة واردة من "+((S.profile&&S.profile.name)||"زميل"),
@@ -5447,12 +5610,29 @@ async function listenIncomingCalls(){
     }
   }catch(_){}
   window.__callListen=onSnapshot(
-    query(collection(db,"calls"),where("to","==",S.user.uid),limit(15)),
+    query(collection(db,"calls"),where("to","==",S.user.uid),where("status","==","ringing"),limit(10)),
     snap=>{
       snap.docChanges().forEach(ch=>{
+        const id=ch.doc.id;
+        if(ch.type==="removed"){
+          // المكالمة خرجت من حالة الرنين (اتلغت / اترفضت / اتردّ عليها)
+          if(window.__incomingCallId===id){
+            window.__incomingCallId=null;
+            try{clearTimeout(window.__incomingTimer)}catch(_){}
+            if(!window.__call){
+              stopRingtone();
+              const b=document.getElementById("callBar");if(b)b.remove();
+              try{if(navigator.vibrate)navigator.vibrate(0)}catch(_){}
+              toast("المتصل ألغى المكالمة");
+            }
+          }
+          return;
+        }
         if(ch.type!=="added"&&ch.type!=="modified")return;
         const d=ch.doc.data();
-        const id=ch.doc.id;
+        // تجاهل مكالمات قديمة عالقة
+        const age=Date.now()-tsMs(d.createdAt||Date.now());
+        if(age>55000){return}
         if(d.status&&d.status!=="ringing"){
           if(window.__incomingCallId===id){
             window.__incomingCallId=null;
@@ -5483,8 +5663,16 @@ async function listenIncomingCalls(){
           }
           try{if(navigator.vibrate)navigator.vibrate([300,120,300,120,300,120,500])}catch(_){}
         }catch(_){}
+        try{clearTimeout(window.__incomingTimer)}catch(_){}
+        window.__incomingTimer=setTimeout(()=>{
+          if(window.__incomingCallId===id&&!window.__call){
+            window.__incomingCallId=null;stopRingtone();
+            const b=document.getElementById("callBar");if(b)b.remove();
+          }
+        },50000);
         showIncomingCallUI(d.fromName||"شخص",()=>{
           window.__incomingCallId=null;
+          try{clearTimeout(window.__incomingTimer)}catch(_){}
           answerVoiceCall(id,d);
         },()=>{
           window.__incomingCallId=null;
@@ -5495,7 +5683,7 @@ async function listenIncomingCalls(){
         });
       });
     },
-    err=>{console.warn("calls listen",err);toast("المكالمات: تأكد من نشر rules وفهرس Firestore إن طُلب")}
+    err=>{console.warn("calls listen",err);window.__callListen=null;toast("المكالمات: انشر firestore.rules الجديدة")}
   );
 }
 
@@ -5621,8 +5809,9 @@ function groupThreadView(){
     return `<button type="button" class="hit" data-act="pickGrpAdd" data-uid="${s.id}" data-name="${esc(s.name||"")}">${av}<div style="flex:1;text-align:start"><b>${esc(s.name||"?")}</b><div class="mut" dir="ltr">${esc(s.phone||"")}</div></div><span class="btn sm">إضافة</span></button>`;
   }).join("")):(S.grpAddQ&&S.grpAddQ.length>=2?`<div class="mut" style="margin-top:8px">مفيش نتائج</div>`:`<div class="mut" style="margin-top:8px">اكتب حرفين على الأقل</div>`)}
 </div>`:"";
-  return `<div class="wrap chat-wrap">${header(`<button class="btn ghost sm" data-act="openChats">رجوع</button>`)}
-<div class="row" style="margin-bottom:8px">
+  return `<div class="wrap chat-wrap">${header(NOHDR)}
+<div class="tk-peer-row">
+  <button class="btn ghost sm" data-act="openChats">رجوع</button>
   <div style="flex:1"><b style="font-size:18px">${esc(S.groupName||"جروب")}</b></div>
   <button class="btn ghost sm" data-act="addToGroup">＋ عضو</button>
 </div>
@@ -5630,11 +5819,12 @@ ${addPanel}
 <div class="tk-thread">
   <div class="tk-log" id="grpLog">${msgs.length?msgs.map(m=>{
     const mine=m.fromUid===S.user.uid;
-    return `<div class="tk-bubble ${mine?"me":"them"}">
+    return `<div class="tk-bubble ${mine?"me":"them"}" data-mid="${m.id}">
       ${!mine?`<div style="font-size:11px;opacity:.8">${esc(m.fromName||"?")}</div>`:""}
       ${m.text&&m.kind!=="audio"&&m.kind!=="image"?`<div dir="auto">${esc(m.text)}</div>`:""}
       ${m.img?mediaEmbed(m.img,m.kind):""}
-      <span class="when">${m.createdAt?fmt(m.createdAt):""}</span>${reactsHtml("grp",m.id,m.reacts)}
+      ${reactsHtml("grp",m.id,m.reacts,true)}
+      <div class="tk-foot"><span class="when">${m.createdAt?fmt(m.createdAt):""}</span><button type="button" class="tk-mini" data-act="pickReact" data-col="grp" data-id="${m.id}" aria-label="تفاعل">☺</button></div>
     </div>`;
   }).join(""):`<div class="mut" style="text-align:center;margin:auto">اول رسالة في الجروب… اكتب تحت 👇</div>`}</div>
 </div>
@@ -6266,14 +6456,12 @@ function syncMyLeaderboard(){
       if(!prev||(r.score/Math.max(r.total,1))>(prev.score/Math.max(prev.total,1))) byExam[r.examId]=r;
     });
     const list=Object.values(byExam);
-    const examsDone=list.length;
-    const totalScore=list.reduce((s,r)=>s+(r.score||0),0);
-    const totalQ=list.reduce((s,r)=>s+(r.total||0),0);
-    const __sig=[examsDone,totalScore,totalQ,S.profile.name||"",S.profile.phone||""].join("|");
+    const __lb=lbPayload(list);
+    const __sig=["v2",__lb.examsDone,__lb.totalScore,__lb.totalQ,S.profile.name||"",S.profile.phone||""].join("|");
     try{const k="lbsig_"+S.user.uid;if(localStorage.getItem(k)===__sig)return;localStorage.setItem(k,__sig)}catch(_){}
     setDoc(doc(db,"leaderboard",S.user.uid),{
       uid:S.user.uid,name:S.profile.name||"طالب",phone:S.profile.phone||"",
-      examsDone,totalScore,totalQ,pct:totalQ?Math.round(totalScore/totalQ*100):0,
+      ...__lb,
       updatedAt:serverTimestamp()
     },{merge:true}).catch(()=>{});
   }catch(_){}
@@ -6351,6 +6539,17 @@ function readExamAnsFromDOM(){
     if(q.essay){const ta=document.querySelector(`textarea[name=q${i}]`);return ta?ta.value:""}
     const r=document.querySelector(`input[name=q${i}]:checked`);return r?+r.value:-1;
   });
+}
+function pauseExamNow(auto){
+  const c=S.cur;if(!c||c.done||c.pausing)return;
+  c.pausing=true;
+  try{saveExamDraft()}catch(_){}
+  try{persistExamSession(c)}catch(_){}
+  try{logActivity(auto?"exam_pause_auto":"exam_pause", c.exam.title||"")}catch(_){}
+  clearInterval(timer);clearInterval(hb);timer=null;hb=null;
+  S.cur=null;S.view="home";
+  render(true);
+  toast(auto?"خرجت من الامتحان — إجاباتك اتحفظت تلقائياً، كمّل من «استئناف الامتحان»":"اتحفظت إجاباتك — تقدر تستأنف من صفحة المادة",true);
 }
 function saveExamDraft(){
   const c=S.cur;if(!c||c.done)return;
@@ -6462,8 +6661,7 @@ async function submitExam(auto){
     const byExam={};
     all.forEach(r=>{if(!r.examId)return;const prev=byExam[r.examId];if(!prev||(r.score/Math.max(r.total,1))>(prev.score/Math.max(prev.total,1)))byExam[r.examId]=r});
     const list=Object.values(byExam);
-    const examsDone=list.length,totalScore=list.reduce((s,r)=>s+(r.score||0),0),totalQ=list.reduce((s,r)=>s+(r.total||0),0);
-    setDoc(doc(db,"leaderboard",S.user.uid),{uid:S.user.uid,name:S.profile.name,phone:S.profile.phone,examsDone,totalScore,totalQ,pct:totalQ?Math.round(totalScore/totalQ*100):0,updatedAt:serverTimestamp()},{merge:true}).catch(()=>{});
+    setDoc(doc(db,"leaderboard",S.user.uid),{uid:S.user.uid,name:S.profile.name,phone:S.profile.phone,...lbPayload(list),updatedAt:serverTimestamp()},{merge:true}).catch(()=>{});
   }catch(_){}
 }
 function runResult(){
@@ -6492,6 +6690,7 @@ function leave(){
 function back(){const c=S.cur;if(S.view==="exam"&&c&&!c.done&&c.away){c.away=false;liveUpdate({away:false})}}
 document.addEventListener("visibilitychange",()=>{
   if(document.hidden){
+    try{if(S.cur&&!S.cur.done&&S.view==="exam")saveExamDraft()}catch(_){}
     leave();
     if(S.qb&&S.qb.roomCode) qbPresence(true);
   }else{
@@ -6503,6 +6702,7 @@ window.addEventListener("blur",()=>{leave();if(S.qb&&S.qb.roomCode)qbPresence(tr
 window.addEventListener("focus",()=>{back();if(S.qb&&S.qb.roomCode)qbPresence(false)});
 // خروج كامل من المتصفح → حاول تطلع من الغرفة
 window.addEventListener("pagehide",()=>{
+  try{if(S.cur&&!S.cur.done&&S.view==="exam")saveExamDraft()}catch(_){}
   if(S.qb&&S.qb.roomCode&&S.user){
     try{
       const code=S.qb.roomCode;
@@ -6654,7 +6854,8 @@ document.addEventListener("change",e=>{
   }
 });
 document.addEventListener("input",e=>{
-  if(e.target.id==="sq"){S.sq=e.target.value;const t=$("#stbl");if(t)t.innerHTML=studentsTable()}
+  if(e.target.id==="tgq"){S.tgq=e.target.value;clearTimeout(window.__tgqT);window.__tgqT=setTimeout(()=>{const f=document.activeElement&&document.activeElement.id==="tgq";render(true);if(f){const i=$("#tgq");if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}}},350);return}
+  if(e.target.id==="sq"){S.sq=e.target.value;S.sLimit=40;const t=$("#stbl");if(t)t.innerHTML=studentsTable()}
   if(e.target.tagName==="TEXTAREA"&&S.view==="exam"&&e.target.name&&e.target.name.startsWith("q")){updProg();saveExamDraft()}
 });
 document.addEventListener("submit",e=>{e.preventDefault();const f=e.target.dataset.submit;if(f)A[f]?.()});
@@ -6775,6 +6976,28 @@ window.addEventListener('appinstalled',()=>{
   window.__deferredPrompt=null;
   try{window.toast&&window.toast('تم تثبيت تطبيق التفوق ✓',true)}catch(e){}
 });
+
+/* ===== v42: زر الرجوع في الموبايل/التطبيق: حفظ تلقائي للامتحان + رجوع منطقي + تأكيد الخروج ===== */
+(function(){
+  try{history.replaceState({r:1},"");history.pushState({a:1},"")}catch(_){return}
+  let leaving=false,asking=false;
+  window.addEventListener("popstate",async()=>{
+    if(leaving)return;
+    try{history.pushState({a:1},"")}catch(_){}
+    const dlg=document.querySelector(".dlg-ov");
+    if(dlg){const no=dlg.querySelector('[data-k="no"]');if(no)no.click();return}
+    const pk=document.getElementById("reactPicker");if(pk){pk.remove();return}
+    if(S.view==="exam"&&S.cur&&!S.cur.done){pauseExamNow(true);return}
+    if(!S.user)return;
+    const btn=[...document.querySelectorAll(".wrap button[data-act],.top button[data-act]")].find(b=>b.textContent.trim()==="رجوع");
+    if(btn){btn.click();return}
+    if(asking)return;
+    asking=true;
+    const ok=await uiDialog({title:"الخروج من المنصة",icon:"👋",msg:"عايز تخرج من التطبيق؟",ok:"خروج"});
+    asking=false;
+    if(ok){leaving=true;try{history.go(-2)}catch(_){}setTimeout(()=>{try{window.close()}catch(_){}},300)}
+  });
+})();
 </script>
 </body>
 </html>
