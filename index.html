@@ -2,9 +2,10 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v42-s1">
+<meta name="sw-build" content="v43-s1">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
+<script>(function(){try{var m=localStorage.getItem("theme_mode"),c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#0B0A07",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="التفوق">
@@ -450,6 +451,24 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 @keyframes rsIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .tk-peer-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .tk-log{contain:content;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+
+/* ===== v43: ترتيب الهيدر: الشعار + 🤖 + ⚡ فوق، و🔍 تحت الروبوت، وزر الوضع جنب رجوع/خروج ===== */
+.hdr-r{display:grid;grid-template-columns:auto auto auto auto;column-gap:8px;row-gap:8px;align-items:center;justify-items:start;min-width:0}
+.hdr-r .hdr-s{grid-column:2;grid-row:2}
+.hdr-l{gap:8px;flex-wrap:nowrap;align-self:flex-start}
+.top{align-items:flex-start}
+/* خلفية شاشة البداية حسب الوضع */
+html{background:var(--bg)}
+:root[data-theme="golden"] #splash{background:radial-gradient(120% 90% at 50% 30%,#2B2210 0%,#14100A 55%,#0B0A07 100%)}
+:root[data-theme="dark"] #splash{background:linear-gradient(160deg,#10302D 0%,#0C1716 60%,#081110 100%)}
+:root[data-theme="nightread"] #splash{background:linear-gradient(160deg,#1F2630 0%,#12151A 100%)}
+:root[data-theme="morning"] #splash{background:linear-gradient(160deg,#2563EB 0%,#1D4ED8 45%,#0F2744 100%)}
+:root[data-theme="comfort"] #splash{background:linear-gradient(160deg,#7FA286 0%,#6B8F71 45%,#3D3428 100%)}
+@media (prefers-color-scheme:dark){:root:not([data-theme]) #splash{background:linear-gradient(160deg,#10302D 0%,#0C1716 60%,#081110 100%)}}
+
+.btn.busy,.tk-mini.busy,.tg.busy{opacity:.55;pointer-events:none;position:relative}
+.btn.busy::after{content:"";position:absolute;inset-inline-end:8px;top:50%;width:12px;height:12px;margin-top:-6px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -623,7 +642,7 @@ function setThemeMode(mode,chosen){
   }else{
     root.setAttribute("data-theme",mode==="light"?"light":mode);
   }
-  try{document.querySelector('meta[name="theme-color"]').content=(mode==="golden"||mode==="dark"||mode==="nightread")?"#0C1716":"#0B5D57"}catch(_){}
+  try{document.querySelector('meta[name="theme-color"]').content={golden:"#0B0A07",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71"}[mode]||"#0B5D57"}catch(_){}
 }
 function cycleTheme(){
   const cur=getThemeMode();
@@ -637,6 +656,14 @@ function cycleTheme(){
 // apply on boot
 try{setThemeMode(getThemeMode())}catch(_){}
 
+
+const __trail={};
+function trailR(k,ms){
+  const n=Date.now(),last=__trail[k]||0;
+  if(n-last>=ms){__trail[k]=n;scheduleRender();return}
+  if(__trail["t"+k])return;
+  __trail["t"+k]=setTimeout(()=>{__trail["t"+k]=0;__trail[k]=Date.now();scheduleRender()},ms-(n-last));
+}
 const S = {asms:[],asm:null,editingAsm:null,logins:{},sq:"",starts:[],examsLoaded:false,user:null,isAdmin:false,profile:null,site:{maintenance:false,message:""},exams:[],results:[],students:[],alerts:[],
   myList:[],attempts:{},view:"loading",tab:"dash",subject:null,cur:null,last:null,review:null,studentId:null,editing:null,
   adminLogin:false,mode:"login",error:"",filter:"",unread:0,unreadAlerts:0,registering:false,taps:[],
@@ -667,9 +694,10 @@ if(configured){
       if(!(await __msgMod.isSupported()))return;
       messaging=__msgMod.getMessaging(app);
       __msgMod.onMessage(messaging,payload=>{
-        const tt=payload?.notification?.title||"التفوق";
-        const b=payload?.notification?.body||payload?.data?.body||"";
-        toast(tt+": "+b,true);
+        const d=(payload&&payload.data)||{};
+        const tt=payload?.notification?.title||d.title||"التفوق";
+        const b=payload?.notification?.body||d.body||"";
+        if(!(d.type==="dm"&&S.view==="chatThread")&&d.type!=="call")toast(tt+": "+b,true);
         if(payload?.data?.type==="call"){try{startRingtone()}catch(_){}}
       });
     }catch(e){console.warn("messaging optional",e)}
@@ -1025,6 +1053,36 @@ async function touchStreak(){
 }
 
 
+/* ===== v43: إشعارات حقيقية عبر وسيط Cloudflare (مستقلة تماماً عن فتح/قفل الأقسام) ===== */
+function pushBase(){
+  const u=(S.site&&S.site.pushUrl)||"";
+  return /^https:\/\//i.test(u)?u.replace(/\/+$/,""):"";
+}
+async function pushCall(path,body){
+  const base=pushBase();if(!base||!auth||!auth.currentUser)return null;
+  try{
+    const t=await auth.currentUser.getIdToken();
+    const r=await fetch(base+path,{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+t},body:JSON.stringify(body||{}),keepalive:true});
+    return await r.json().catch(()=>({}));
+  }catch(_){return null}
+}
+const __pushLast={};
+function sendPush(body,throttleKey,throttleMs){
+  try{
+    if(!pushBase())return;
+    if(throttleKey){const n=Date.now();if(n-(__pushLast[throttleKey]||0)<(throttleMs||20000))return;__pushLast[throttleKey]=n}
+    pushCall("/send",body);
+  }catch(_){}
+}
+async function pushSubscribe(token){
+  try{
+    if(!token||!pushBase())return;
+    const k="push_sub_"+(S.user?S.user.uid:"")+"_"+token.slice(-12);
+    if(localStorage.getItem(k))return;
+    const r=await pushCall("/subscribe",{token});
+    if(r&&r.ok)localStorage.setItem(k,"1");
+  }catch(_){}
+}
 function pushStateText(){
   try{
     if(!("Notification" in window))return "المتصفح ده مش بيدعم الإشعارات (على الآيفون لازم تضيف المنصة للشاشة الرئيسية)";
@@ -1033,6 +1091,20 @@ function pushStateText(){
     const t=(S.profile&&S.profile.fcmToken)?"الجهاز مسجّل ✓":"الجهاز مش مسجّل";
     return (p==="granted"?"الإذن ممنوح ✓":p==="denied"?"الإذن مرفوض ✗ (فعّله من إعدادات المتصفح)":"الإذن لسه ما اتطلبش")+" · "+v+" · "+t;
   }catch(_){return ""}
+}
+function maybeAskPush(){
+  if(!S.user||S.isAdmin)return;
+  setTimeout(async()=>{
+    try{
+      if(!S.user||!("Notification" in window)||Notification.permission!=="default")return;
+      if(!(S.site&&S.site.vapidKey))return;
+      const k="push_asked_"+S.user.uid;
+      if(localStorage.getItem(k))return;
+      localStorage.setItem(k,"1");
+      const ok=await uiDialog({title:"الإشعارات",icon:"🔔",msg:"تحب توصلك إشعارات المكالمات والرسائل والامتحانات الجديدة حتى لو التطبيق مقفول؟",ok:"تفعيل"});
+      if(ok){const r=await registerFcmToken(true);toast(r.ok?"الإشعارات اشتغلت ✓":r.msg,true)}
+    }catch(_){}
+  },9000);
 }
 async function registerFcmToken(userGesture){
   const R=(ok,msg)=>({ok,msg});
@@ -1059,6 +1131,7 @@ async function registerFcmToken(userGesture){
     if(!token)return R(false,"فايربيز ما رجّعش توكن");
     await setDoc(doc(db,"students",S.user.uid),{fcmToken:token,fcmUpdatedAt:serverTimestamp()},{merge:true});
     if(S.profile)S.profile.fcmToken=token;
+    pushSubscribe(token);
     return R(true,"تم تسجيل الجهاز للإشعارات ✓");
   }catch(e){
     console.warn("fcm token",e);
@@ -1133,21 +1206,23 @@ async function startSession(u){
   try{touchStreak()}catch(_){}
   try{listenIncomingCalls()}catch(_){}
   try{registerFcmToken()}catch(_){}
+  try{maybeAskPush()}catch(_){}
   try{subs.push(onSnapshot(doc(db,"config","ai"),s=>{S.aiCfg=s.exists()?s.data():null;applyAiCfg()},e=>console.warn("aicfg",e)))}catch(_){}
   try{handlePendingCall()}catch(_){}
 
   try{
     if(S.isAdmin){
       S.view="admin";S.tab="dash";
+      try{autoRebuildBoard()}catch(_){}
       let f1=true,f2=true,f3=true,__resT=0,__altT=0,__staT=0,__exaT=0;
       subs.push(onSnapshot(collection(db,"exams"),s=>{
       S.exams=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));
       try{if(S.exams.length)localStorage.setItem("exams_cache_v1",JSON.stringify(S.exams.map(e=>({id:e.id,title:e.title,subject:e.subject,minutes:e.minutes,passMark:e.passMark,published:e.published}))))}catch(_){}
-      if(S.view==="admin"&&["dash","exams","editExam"].includes(S.tab)){const n=Date.now();if(n-__exaT<1500)return;__exaT=n;scheduleRender()}}));
+      if(S.view==="admin"&&["dash","exams","editExam"].includes(S.tab))trailR("exa",1500)}));
       subs.push(onSnapshot(query(collection(db,"results"),orderBy("createdAt","desc"),limit(200)),s=>{
         if(!f1)s.docChanges().forEach(c=>{if(c.type==="added"&&c.doc.data().createdAt){const r=c.doc.data();toast(`${r.name} امتحن ${r.examTitle} (محاولة ${r.attempt||1}) وجاب ${r.score}/${r.total}`,true);if(S.tab!=="results"){S.unread++;updTitle()}}});
         f1=false;S.results=s.docs.map(d=>({id:d.id,...d.data()}));
-        if(S.view==="admin"&&["dash","results","students","live"].includes(S.tab)){const n=Date.now();if(n-__resT<2000)return;__resT=n;scheduleRender()}
+        if(S.view==="admin"&&["dash","results","students","live"].includes(S.tab))trailR("res",2000)
       }));
       // assessments: ensureAsmsListen عند تبويب التقييمات
 
@@ -1163,23 +1238,23 @@ async function startSession(u){
         if(S.tab==="students"){
           try{const tb=document.getElementById("stbl");if(tb){tb.innerHTML=studentsTable();return}}catch(_){}
         }
-        if(S.tab==="dash"||S.tab==="live"){const n=Date.now();if(n-__staT<4000)return;__staT=n;scheduleRender()}
+        if(S.tab==="dash"||S.tab==="live")trailR("sta",4000)
       }));
       let __prT=0;
       subs.push(onSnapshot(collection(db,"presence"),s=>{
         S.presence={};s.docs.forEach(d=>{S.presence[d.id]=d.data()});
         mergePresence();
-        if(S.view==="admin"&&["live","dash"].includes(S.tab)){const n=Date.now();if(n-__prT<10000)return;__prT=n;scheduleRender()}
+        if(S.view==="admin"&&["live","dash"].includes(S.tab))trailR("pr",10000)
       },err=>console.warn("presence",err)));
       subs.push(onSnapshot(query(collection(db,"alerts"),orderBy("createdAt","desc"),limit(200)),s=>{
         if(!f2)s.docChanges().forEach(c=>{if(c.type==="added"&&c.doc.data().createdAt){const a=c.doc.data();toast(`⚠ ${a.name} (${a.phone}) خرج من الامتحان: ${a.examTitle}`,true);if(S.tab!=="alerts"){S.unreadAlerts++;updTitle()}}});
         f2=false;S.alerts=s.docs.map(d=>({id:d.id,...d.data()}));
-        if(S.view==="admin"&&S.tab==="alerts"){const n=Date.now();if(n-__altT<2000)return;__altT=n;scheduleRender()}
+        if(S.view==="admin"&&S.tab==="alerts")trailR("alt",2000)
       }));
       subs.push(onSnapshot(collection(db,"starts"),s=>{
         if(!f3)s.docChanges().forEach(c=>{if(c.type==="added"){const a=c.doc.data();toast(`🟢 ${a.name||"طالب"} بدأ امتحان ${a.examTitle||""}`,true)}});
         f3=false;S.starts=s.docs.map(d=>({id:d.id,...d.data()}));
-        if(S.view==="admin"&&S.tab==="live"){const n=Date.now();if(n-__staT<4000)return;__staT=n;scheduleRender()}
+        if(S.view==="admin"&&S.tab==="live")trailR("sta",4000)
       }));
       subs.push(onSnapshot(query(collection(db,"activity"),orderBy("createdAt","desc"),limit(150)),s=>{
         S.activity=s.docs.map(d=>({id:d.id,...d.data()}));S.activityLoaded=true;
@@ -1322,7 +1397,7 @@ if(configured){
   onSnapshot(doc(db,"config","site"),s=>{
     const d=s.exists()?s.data():{};
     const was=S.site.maintenance;
-    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0};
+    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",pushUrl:d.pushUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0};
     S.siteRaw=d;applyAiCfg();
     // أدمن طلب تسريع للجميع → امسح كاش الجهاز ده مرة
     try{
@@ -1542,8 +1617,11 @@ function render(force){
 const splash=()=>``; // مفيش شاشة تحميل داخل #app — الـ HTML splash يكفي لجزء من الثانية
 const blockedView=()=>`<div class="wrap"><div class="center"><div class="logo" style="display:inline-block">التفوق</div><h1 style="margin-top:28px">حسابك موقوف</h1><p class="mut" style="max-width:360px;margin:8px auto 14px">تواصل مع المدرس لإعادة تفعيل الحساب.</p>${S.profile&&S.profile.blockReason?`<p style="max-width:360px;margin:0 auto 14px"><b>السبب:</b> ${esc(S.profile.blockReason)}</p>`:""}${S.profile&&S.profile.blockedUntil>0?`<p class="mut" style="margin:0 auto 14px">ينتهي الحظر: <b>${new Date(S.profile.blockedUntil).toLocaleString("ar-EG")}</b></p><button class="btn" data-act="home" style="margin-bottom:10px">تحديث</button><br>`:""}<button class="btn ghost" data-act="logout">تسجيل خروج</button></div></div>`;
 const logo=`<div class="logo">التفوق</div>`;
-const searchBtn=()=>S.user?`<button type="button" class="tg tg-icon" data-act="openAI" aria-label="么" title="مساعد 么">🤖</button><button type="button" class="tg tg-icon tg-lbl" data-act="speedBoost" aria-label="تسريع المنصة للهواتف الضعيفة" title="تسريع المنصة للهواتف الضعيفة"><span>⚡</span><small>للهواتف<br>الضعيفة</small></button>${!S.isAdmin?`<button type="button" class="tg tg-icon" data-act="openSearch" aria-label="بحث" title="بحث عن زميل">🔍</button>`:""}`:"";
-const header=(extra)=>`<div class="top"><div class="row" style="gap:8px;flex:1;min-width:0">${logo}${searchBtn()}</div><div class="row">${extra?(S.isAdmin?extra+themeBtn():extra):themeBtn()}</div></div>`;
+const aiBtn=()=>S.user?`<button type="button" class="tg tg-icon" data-act="openAI" aria-label="么" title="مساعد 么">🤖</button>`:"";
+const boostBtn=()=>S.user?`<button type="button" class="tg tg-icon tg-lbl" data-act="speedBoost" aria-label="تسريع المنصة للهواتف الضعيفة" title="تسريع المنصة للهواتف الضعيفة"><span>⚡</span><small>للهواتف<br>الضعيفة</small></button>`:"";
+const findBtn=()=>(S.user&&!S.isAdmin)?`<button type="button" class="tg tg-icon hdr-s" data-act="openSearch" aria-label="بحث" title="بحث عن زميل">🔍</button>`:"";
+const searchBtn=()=>aiBtn()+boostBtn()+findBtn();
+const header=(extra)=>`<div class="top"><div class="hdr-r">${logo}${aiBtn()}${boostBtn()}${themeBtn()}${findBtn()}</div><div class="row hdr-l">${extra||""}</div></div>`;
 const NOHDR="<span></span>";
 const studentNav=()=>`<nav class="bot">
 <button class="${S.view==="home"||S.view==="subject"||S.view==="exam"||S.view==="result"?"on":""}" data-act="home">المواد</button>
@@ -2052,7 +2130,7 @@ function chatListView(){
   const tab=S.chatTab||"dms";
   const list=S.chats||[];
   const groups=S.groups||[];
-  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openSearch">🔍</button>`)}
+  return `<div class="wrap">${header()}
 <h2 style="margin-bottom:4px">صندوق الوارد</h2>
 <div class="tk-tabs">
   <button type="button" class="${tab==="dms"?"on":""}" data-act="chatTab" data-id="dms">الرسائل ${(S.unreadChat||0)?`<span class="tk-badge">${S.unreadChat}</span>`:""}</button>
@@ -2094,7 +2172,7 @@ function reactsHtml(col, id, reacts, mine){
 function dmBubbleHtml(m){
   if(m.deleted){
     const mine=m.fromUid===S.user.uid;
-    return `<div class="tk-bubble ${mine?"me":"them"} deleted"><div class="mut" style="font-style:italic">تم حذف الرسالة</div><span class="when">${m.createdAt?fmt(m.createdAt):""}</span></div>`;
+    return `<div class="tk-bubble ${mine?"me":"them"} deleted" data-mid="${m.id}"><div class="mut" style="font-style:italic">تم حذف الرسالة</div><span class="when">${m.createdAt?fmt(m.createdAt):""}</span></div>`;
   }
   const mine=m.fromUid===S.user.uid;
   const reply=m.replyTo?`<div class="tk-reply-q" dir="auto"><b>${esc(m.replyTo.name||"")}</b> ${esc((m.replyTo.text||"").slice(0,80))}</div>`:"";
@@ -2169,8 +2247,8 @@ ${(p.badges||[]).length?`<div style="margin-top:10px;display:flex;flex-wrap:wrap
   <button class="btn block gold" data-act="openAI">🤖 么</button>
   <p class="mut" style="margin:8px 0 0;text-align:center">اسأل 么 عن الدروس والامتحانات والمنصة</p>
 </div>
-<div class="card"><b>المظهر والإشعارات</b>
-<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sm" data-act="theme">${THEME_ICON[getThemeMode()]||"🎨"} تغيير الوضع: ${THEME_LABEL[getThemeMode()]||""}</button><button class="btn sm ghost" data-act="enablePush">🔔 تفعيل الإشعارات</button></div>
+<div class="card"><b>الإشعارات</b>
+<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sm ghost" data-act="enablePush">🔔 تفعيل الإشعارات</button></div>
 <p class="mut" style="font-size:12px;margin:8px 0 0">${pushStateText()}</p></div>
 <div class="card"><b>تغيير الاسم</b>
 <label class="f">الاسم</label>
@@ -2611,6 +2689,46 @@ function h2hText(other){
   const w=pa>po?"أنت متقدّم 👏":pa<po?"هو متقدّم عليك":"تعادل";
   return "الامتحانات المشتركة ("+common.length+"):\n"+lines.join("\n")+"\n\nمجموعك "+a+"/"+aq+" = "+pa+"%\nمجموعه "+o+"/"+oq+" = "+po+"%\n→ "+w;
 }
+
+async function rebuildBoardCore(silent){
+  if(!S.isAdmin||window.__lbBuilding)return;
+  window.__lbBuilding=true;
+  try{
+    if(!silent)toast("جاري بناء لوحة الشرف…");
+    const sn=await getDocs(collection(db,"results"));
+    const byUid={};
+    sn.docs.forEach(d=>{
+      const r=d.data();
+      if(!r.uid||!r.examId)return;
+      if(!byUid[r.uid])byUid[r.uid]={name:r.name,phone:r.phone,exams:{}};
+      const prev=byUid[r.uid].exams[r.examId];
+      if(!prev||(r.score/Math.max(r.total,1))>(prev.score/Math.max(prev.total,1)))byUid[r.uid].exams[r.examId]=r;
+    });
+    const uids=Object.keys(byUid);
+    let n=0;
+    for(let i=0;i<uids.length;i+=400){
+      const batch=writeBatch(db);
+      uids.slice(i,i+400).forEach(uid=>{
+        const u=byUid[uid];
+        batch.set(doc(db,"leaderboard",uid),{uid,name:u.name||"طالب",phone:u.phone||"",...lbPayload(Object.values(u.exams)),updatedAt:serverTimestamp()},{merge:true});
+        n++;
+      });
+      await batch.commit();
+    }
+    try{localStorage.setItem("lb_auto_ts",String(Date.now()))}catch(_){}
+    toast("اتبنيت لوحة الشرف لـ "+n+" طالب ✓",true);
+  }catch(e){console.error("rebuildBoard",e);if(!silent)toast("فشل البناء: "+((e&&e.message)||"").slice(0,80),true)}
+  finally{window.__lbBuilding=false}
+}
+function autoRebuildBoard(){
+  if(!S.isAdmin)return;
+  try{
+    const last=+localStorage.getItem("lb_auto_ts")||0;
+    if(Date.now()-last<3*86400000)return;
+  }catch(_){}
+  setTimeout(()=>rebuildBoardCore(true),8000);
+}
+
 function lbBoardCard(){
   const {ranked,prov}=rankBoard(S.board);
   const min=rankMin();
@@ -3230,6 +3348,9 @@ function adminSettings(){
 <p class="mut">Firebase → Project settings → Cloud Messaging → Web Push certificates</p>
 <input id="vapidIn" name="fcm_vapid_x" class="ltr" type="text" placeholder="VAPID key (يبدأ بـ B)" value="${esc(S.site.vapidKey||"")}" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')">
 <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sm" data-act="saveVapid">حفظ مفتاح الإشعارات</button><button class="btn sm gold" data-act="enablePush">🔔 تفعيل وتجربة على جهازي</button></div>
+<label class="f" style="margin-top:12px">🔔 رابط وسيط الإشعارات (Cloudflare Worker)</label>
+<input id="pushUrlIn" name="push_worker_x" class="ltr" type="text" inputmode="url" placeholder="https://mora-push.xxxx.workers.dev" value="${esc(/^https?:\/\//i.test(S.site.pushUrl||"")?S.site.pushUrl:"")}" autocomplete="off" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')">
+<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sm" data-act="savePushUrl">💾 حفظ الوسيط</button><button class="btn sm gold" data-act="testPushUrl">اختبار الوسيط</button></div>
 <p id="pushStatus" class="mut" style="font-size:12px;margin:8px 0 0">حالة الإشعارات: ${typeof pushStateText==="function"?pushStateText():""}</p></div>
 <div class="card"><h3 style="margin-top:0">📞 تحسين وصول المكالمات (TURN — اختياري)</h3>
 <p class="mut" style="font-size:12px">لو المكالمة بترن وبتتوصل بس الصوت مش بيسمع على بعض الشبكات (داتا الموبايل)، سجّل مجاناً في metered.ca أو أي مزود TURN والصق البيانات هنا. لو سيبتها فاضية المكالمات بتشتغل زي ما هي.</p>
@@ -3421,6 +3542,22 @@ const A={
     if(d.uid===S.user.uid){await uiDialog({title:"أنت",icon:"🏆",ok:"تمام",msg:"ترتيبك بيتحسب من نسبتك العامة × ثقة عدد الامتحانات اللي دخلتها ("+(b.examsDone||0)+" امتحان، "+(b.pct||0)+"%). كل ما تمتحن أكتر وتحافظ على مستواك، ترتيبك بيطلع."});return}
     await uiDialog({title:"مقارنة مع "+((b.name||"زميل").split(" ")[0]),icon:"⚔️",ok:"تمام",msg:h2hText(b)});
   },
+  async savePushUrl(){
+    const u=($("#pushUrlIn")&&$("#pushUrlIn").value||"").trim().replace(/\/+$/,"");
+    if(u&&!/^https:\/\/[^\s]+\.[^\s]+$/i.test(u)){toast("الرابط لازم يبدأ بـ https://",true);return}
+    try{await setDoc(doc(db,"config","site"),{pushUrl:u},{merge:true});if(S.site)S.site.pushUrl=u;toast(u?"اتحفظ وسيط الإشعارات ✓":"اتشال الوسيط",true)}
+    catch(e){toast("فشل الحفظ",true)}
+  },
+  async testPushUrl(){
+    const u=(($("#pushUrlIn")&&$("#pushUrlIn").value)||(S.site&&S.site.pushUrl)||"").trim().replace(/\/+$/,"");
+    if(!/^https:\/\//i.test(u)){toast("الصق رابط الوسيط الأول",true);return}
+    toast("جاري اختبار الوسيط…");
+    try{
+      const r=await fetch(u,{method:"GET"});const j=await r.json().catch(()=>({}));
+      if(r.ok&&j.service==="push")toast(j.configured?"الوسيط شغّال ومفتاح الخدمة متضبوط ✓":"الوسيط شغّال لكن مفتاح الخدمة (SA_PRIVATE_KEY / SA_CLIENT_EMAIL) ناقص",true);
+      else toast("الرابط ده مش وسيط الإشعارات (رد: "+r.status+")",true);
+    }catch(e){toast("فشل الاتصال — اتأكد من الرابط وإن ALLOWED_ORIGIN صح",true)}
+  },
   async saveTurn(){
     const g=id=>($(id)&&$(id).value||"").trim();
     const turnUrl=g("#turnUrlIn"),turnUser=g("#turnUserIn"),turnCred=g("#turnCredIn");
@@ -3492,28 +3629,8 @@ const A={
   home(){S.view="home";render(true)},
   async rebuildBoard(){
     if(!S.isAdmin)return;
-    if(!await uiConfirm("هبني لوحة الشرف من كل النتائج القديمة. متابعة؟"))return;
-    try{
-      const byUid={};
-      (S.results||[]).forEach(r=>{
-        if(!r.uid||!r.examId)return;
-        if(!byUid[r.uid]) byUid[r.uid]={name:r.name,phone:r.phone,exams:{}};
-        const prev=byUid[r.uid].exams[r.examId];
-        if(!prev||(r.score/Math.max(r.total,1))>(prev.score/Math.max(prev.total,1)))
-          byUid[r.uid].exams[r.examId]=r;
-      });
-      let n=0;
-      for(const uid of Object.keys(byUid)){
-        const u=byUid[uid], list=Object.values(u.exams);
-        await setDoc(doc(db,"leaderboard",uid),{
-          uid,name:u.name||"طالب",phone:u.phone||"",
-          ...lbPayload(list),
-          updatedAt:serverTimestamp()
-        },{merge:true});
-        n++;
-      }
-      toast("اتبنيت لوحة الشرف لـ "+n+" طالب");
-    }catch(e){toast("فشل البناء: "+(e.message||""))}
+    if(!await uiConfirm("هبني لوحة الشرف من كل نتايج الطلاب (بقرأ كل النتايج مرة واحدة). متابعة؟",{ok:"ابني دلوقتي",icon:"🏆"}))return;
+    await rebuildBoardCore(false);
   },
   progress(){S.view="progress";render(true)},
   async pauseExam(){
@@ -3581,10 +3698,10 @@ const A={
     let ref,list,rerender;
     if(d.col==="dm"&&S.chatThread){
       ref=doc(db,"conversations",convIdFor(S.user.uid,S.chatThread.uid),"msgs",d.id);list=S.chatMsgs;
-      rerender=()=>{const log=$("#dmChatLog");if(log&&S.view==="chatThread"){const st=log.scrollTop;log.innerHTML=(S.chatMsgs||[]).map(dmBubbleHtml).join("");log.scrollTop=st}};
+      rerender=()=>{const log=$("#dmChatLog");if(log&&S.view==="chatThread")patchChatLog(log,S.chatMsgs||[],dmBubbleHtml,EMPTY_DM)};
     }else if(d.col==="grp"&&S.groupId){
       ref=doc(db,"groups",S.groupId,"msgs",d.id);list=S.groupMsgs;
-      rerender=()=>{if(S.view==="groupThread")scheduleRender()};
+      rerender=()=>{const log=$("#grpLog");if(log&&S.view==="groupThread")patchChatLog(log,S.groupMsgs||[],grpBubbleHtml,EMPTY_GRP)};
     }else if(d.col==="qb"&&S.qb&&S.qb.roomCode){
       ref=doc(db,"qb_rooms",S.qb.roomCode,"chat",d.id);list=null;rerender=()=>{};
     }else{toast("مفيش محادثة مفتوحة");return}
@@ -3645,7 +3762,8 @@ const A={
   async delBook(d){
     if(!S.isAdmin||!d.id)return;
     if(!await uiConfirm("حذف الكتاب؟"))return;
-    try{await deleteDoc(doc(db,"books",d.id));toast("اتحذف")}catch(e){toast("فشل")}
+    const prev=S.books;S.books=(S.books||[]).filter(x=>x.id!==d.id);render(true);toast("🗑 تم حذف الكتاب",true);
+    try{await deleteDoc(doc(db,"books",d.id))}catch(e){S.books=prev;render(true);window.__cancel=true;toast("فشل الحذف",true)}
   },
   async broadcastNotif(){
     if(!S.isAdmin)return;
@@ -3663,7 +3781,8 @@ const A={
       await Promise.all(batch.map(s=>addDoc(collection(db,"notifications"),{
         uid:s.id, text:msg.trim(), createdAt:serverTimestamp(), fromAdmin:true, read:false
       })));
-      toast("اتبعت الإشعار ✓",true);
+      sendPush({type:"broadcast",title:"📢 التفوق",body:msg.trim()});
+      toast(pushBase()?"اتبعت الإشعار ✓ (داخل المنصة + إشعار للأجهزة)":"اتبعت داخل المنصة ✓ — لتوصيله كإشعار للأجهزة اربط وسيط الإشعارات من الإعدادات",true);
     }catch(e){toast("فشل الإرسال")}
   },
 
@@ -3697,13 +3816,15 @@ const A={
   },
   async grantAsmRole(d){
     if(!S.isAdmin||!d.uid)return;
-    try{
-      const st=await getDoc(doc(db,"students",d.uid));
-      const roles=new Set((st.exists()&&st.data().roles)||[]);
-      if(roles.has("asm"))roles.delete("asm");else roles.add("asm");
-      await updateDoc(doc(db,"students",d.uid),{roles:[...roles]});
-      toast(roles.has("asm")?"بقى مسؤول تقييمات ✓":"اتشال من مسؤولي التقييمات",true);
-    }catch(e){toast("فشل — حدّث rules")}
+    const st=(S.students||[]).find(x=>x.id===d.uid);
+    const had=Array.isArray(st&&st.roles)&&st.roles.includes("asm");
+    const prev=st&&st.roles;
+    const roles=new Set((st&&st.roles)||[]);
+    if(had)roles.delete("asm");else roles.add("asm");
+    if(st)st.roles=[...roles];
+    render(true);toast(!had?"✅ بقى مسؤول تقييمات":"↩ اتشال من مسؤولي التقييمات",true);
+    try{await updateDoc(doc(db,"students",d.uid),{roles:[...roles]})}
+    catch(e){if(st)st.roles=prev;render(true);window.__cancel=true;toast("فشل — حدّث rules",true)}
   },
   openMe(){S.view="me";render(true)},
   adminResetPass(d){
@@ -4433,6 +4554,7 @@ const A={
         }catch(err){lastErr=err;console.error("gal",err)}
       }
       if(ok){
+        if(!S.isAdmin)sendPush({type:"admin_event",event:"gallery"},"adm_gallery",60000);
         toast(S.isAdmin?("اتنشر "+ok+" ✓"):("اتبعت "+ok+" للموافقة ✓"),true);
         if($("#galTitle"))$("#galTitle").value="";
         if(inp)inp.value="";
@@ -4470,8 +4592,10 @@ const A={
   },
   async pinGal(d){
     if(!S.isAdmin||!d.id)return;
-    const g=(S.galleries||[]).find(x=>x.id===d.id);
-    try{await updateDoc(doc(db,"galleries",d.id),{pinned:!g||!g.pinned});}catch(e){toast("فشل")}
+    const g=(S.galleries||[]).find(x=>x.id===d.id);if(!g)return;
+    const next=!g.pinned;g.pinned=next;render(true);
+    toast(next?"📌 تم التثبيت":"تم إلغاء التثبيت",true);
+    try{await updateDoc(doc(db,"galleries",d.id),{pinned:next})}catch(e){g.pinned=!next;render(true);window.__cancel=true;toast("فشل",true)}
   },
 
   
@@ -4604,6 +4728,7 @@ const A={
         await addDoc(collection(db,"fadaye7"),{...base,url,kind:"image",createdAt:serverTimestamp()});
         n++;
       }
+      sendPush({type:"admin_event",event:"fadaye7"},"adm_fad",60000);
       toast("اتنشرت ✓",true);
       if($("#stuFadTitle"))$("#stuFadTitle").value="";
       if($("#stuFadFile"))$("#stuFadFile").value="";
@@ -4622,11 +4747,19 @@ const A={
   },
   async approveFadaye7(d){
     if(!S.isAdmin||!d.id)return;
-    try{await updateDoc(doc(db,"fadaye7",d.id),{status:"approved",published:true,approvedAt:serverTimestamp()});toast("اتوافقت ونشرت ✓",true)}catch(e){toast("فشل")}
+    const f=(S.fadaye7||[]).find(x=>x.id===d.id);const prev=f&&{status:f.status,published:f.published};
+    if(f){f.status="approved";f.published=true}
+    render(true);toast("✅ تمت الموافقة والنشر",true);
+    try{await updateDoc(doc(db,"fadaye7",d.id),{status:"approved",published:true,approvedAt:serverTimestamp()})}
+    catch(e){if(f&&prev)Object.assign(f,prev);render(true);window.__cancel=true;toast("فشل",true)}
   },
   async rejectFadaye7(d){
     if(!S.isAdmin||!d.id)return;
-    try{await updateDoc(doc(db,"fadaye7",d.id),{status:"rejected",published:false});toast("اترفضت")}catch(e){toast("فشل")}
+    const f=(S.fadaye7||[]).find(x=>x.id===d.id);const prev=f&&{status:f.status,published:f.published};
+    if(f){f.status="rejected";f.published=false}
+    render(true);toast("⛔ تم الرفض",true);
+    try{await updateDoc(doc(db,"fadaye7",d.id),{status:"rejected",published:false})}
+    catch(e){if(f&&prev)Object.assign(f,prev);render(true);window.__cancel=true;toast("فشل",true)}
   },
   openFadHide(d){
     if(!S.isAdmin||!d.id)return;
@@ -4749,8 +4882,17 @@ const A={
     const local={id:"local_"+Date.now(),fromUid:S.user.uid,fromName:(S.profile.name||"طالب").split(" ")[0],text,createdAt:{seconds:Date.now()/1000},_local:true};
     S.groupMsgs=(S.groupMsgs||[]).concat([local]);
     S.chatStickBottom=true;
-    if(S.view==="groupThread"){render();scrollChatBottom(true)}
+    if(S.view==="groupThread"){
+      const log=$("#grpLog");
+      if(log)patchChatLog(log,S.groupMsgs,grpBubbleHtml,EMPTY_GRP);else render();
+      scrollChatBottom(true);
+    }
     try{
+      try{
+        const g=(S.groups||[]).find(x=>x.id===S.groupId);
+        const to=((g&&g.members)||[]).filter(u=>u!==S.user.uid);
+        if(to.length)sendPush({type:"group",toUids:to,groupId:S.groupId,groupName:S.groupName||"جروب",text},"grp_"+S.groupId,15000);
+      }catch(_){}
       await Promise.all([
         addDoc(collection(db,"groups",S.groupId,"msgs"),{
           fromUid:S.user.uid,fromName:(S.profile.name||"طالب").split(" ")[0],
@@ -4904,8 +5046,18 @@ const A={
       S.view=S.isAdmin?"admin":"asmAdmin";S.tab="asm";render(true);toast("اتحفظ التقييم");
     }catch(err){b.disabled=false;b.textContent="حفظ التقييم";toast("مقدرتش أحفظ. اتأكد من النت ومن إن الـ Rules الجديدة اتنشرت.")}
   },
-  async toggleAsm(d){const a=S.asms.find(q=>q.id===d.id);await updateDoc(doc(db,"assessments",d.id),{published:!a.published})},
-  async toggleSol(d){const a=S.asms.find(q=>q.id===d.id);await updateDoc(doc(db,"assessments",d.id),{showSolution:!a.showSolution});toast(a.showSolution?"اتقفل الحل":"اتنزّل الحل للطلاب")},
+  async toggleAsm(d){
+    const a=S.asms.find(q=>q.id===d.id);if(!a)return;
+    const next=!a.published;a.published=next;render(true);
+    toast(next?"✅ تم الإظهار — التقييم ظاهر للطلاب":"🙈 تم الإخفاء — التقييم مخفي عن الطلاب",true);
+    try{await updateDoc(doc(db,"assessments",d.id),{published:next})}catch(err){a.published=!next;render(true);window.__cancel=true;toast("فشل التغيير",true)}
+  },
+  async toggleSol(d){
+    const a=S.asms.find(q=>q.id===d.id);if(!a)return;
+    const next=!a.showSolution;a.showSolution=next;render(true);
+    toast(next?"✅ تم إنزال الحل للطلاب":"🔒 تم قفل الحل",true);
+    try{await updateDoc(doc(db,"assessments",d.id),{showSolution:next})}catch(err){a.showSolution=!next;render(true);window.__cancel=true;toast("فشل التغيير",true)}
+  },
   async delAsm(d){
     if(!await uiConfirm("تمسح التقييم ده بكل ملفاته؟ مفيش رجوع."))return;
     try{
@@ -5042,14 +5194,31 @@ const A={
     if(data.passMark>qs.filter(q=>!q.fun).length){toast("درجة النجاح أكبر من عدد الأسئلة");return}
     $("#sv").disabled=true;
     try{
+      const __was=S.editing.id?!!((S.exams||[]).find(x=>x.id===S.editing.id)||{}).published:false;
       if(S.editing.id)await updateDoc(doc(db,"exams",S.editing.id),data);
       else await addDoc(collection(db,"exams"),{...data,createdAt:serverTimestamp()});
+      if(data.published&&!__was&&!data.publishAt)sendPush({type:"broadcast",title:"📝 امتحان جديد",body:data.title});
       S.view="admin";S.tab="exams";render(true);toast("اتحفظ الامتحان");
     }catch(e){$("#sv").disabled=false;toast("مقدرتش أحفظ. اتأكد من الاتصال والـ rules.")}
   },
-  async togglePub(d){const e=S.exams.find(x=>x.id===d.id);await updateDoc(doc(db,"exams",d.id),{published:!e.published})},
-  async delExam(d){if(await uiConfirm("تمسح الامتحان ده؟ مش هتقدر ترجعه."))await deleteDoc(doc(db,"exams",d.id))},
-  async delResult(d){if(await uiConfirm("تمسح المحاولة دي؟ الطالب هيرجعله محاولة."))await deleteDoc(doc(db,"results",d.id))},
+  async togglePub(d){
+    const e=S.exams.find(x=>x.id===d.id);if(!e)return;
+    const next=!e.published;e.published=next;
+    render(true);
+    toast(next?"✅ تم الإظهار — الامتحان ظاهر للطلاب":"🙈 تم الإخفاء — الامتحان مخفي عن الطلاب",true);
+    try{await updateDoc(doc(db,"exams",d.id),{published:next});if(next&&!e.publishAt)sendPush({type:"broadcast",title:"📝 امتحان جديد",body:e.title||""})}
+    catch(err){e.published=!next;render(true);window.__cancel=true;toast("فشل التغيير — اتأكد من الإنترنت",true)}
+  },
+  async delExam(d){
+    if(!await uiConfirm("تمسح الامتحان ده؟ مش هتقدر ترجعه."))return;
+    const prev=S.exams;S.exams=S.exams.filter(x=>x.id!==d.id);render(true);toast("🗑 تم مسح الامتحان",true);
+    try{await deleteDoc(doc(db,"exams",d.id))}catch(err){S.exams=prev;render(true);window.__cancel=true;toast("فشل المسح",true)}
+  },
+  async delResult(d){
+    if(!await uiConfirm("تمسح المحاولة دي؟ الطالب هيرجعله محاولة."))return;
+    const prev=S.results;S.results=(S.results||[]).filter(x=>x.id!==d.id);render(true);toast("🗑 تم مسح المحاولة",true);
+    try{await deleteDoc(doc(db,"results",d.id))}catch(err){S.results=prev;render(true);window.__cancel=true;toast("فشل المسح",true)}
+  },
   async xlsx(){
     if(!S.isAdmin)return;
     toast("جاري تجهيز ملف Excel…");
@@ -5112,10 +5281,22 @@ const A={
   async toggleMaint(){
     const on=!S.site.maintenance;
     if(on&&!await uiConfirm("تشغّل وضع الصيانة؟ الطلاب مش هيقدروا يدخلوا."))return;
-    try{await setDoc(doc(db,"config","site"),{maintenance:on,message:$("#mmsg").value.trim()},{merge:true});toast(on?"وضع الصيانة شغّال":"المنصة رجعت للطلاب")}catch(e){toast("مقدرتش أحفظ")}
+    const msg=($("#mmsg")&&$("#mmsg").value||"").trim();
+    S.site.maintenance=on;S.site.message=msg;render(true);
+    toast(on?"🛠 وضع الصيانة شغّال":"✅ المنصة رجعت للطلاب",true);
+    try{await setDoc(doc(db,"config","site"),{maintenance:on,message:msg},{merge:true})}
+    catch(e){S.site.maintenance=!on;render(true);window.__cancel=true;toast("مقدرتش أحفظ",true)}
   },
   async saveMsg(){try{await setDoc(doc(db,"config","site"),{message:$("#mmsg").value.trim()},{merge:true});toast("اتحفظت الرسالة")}catch(e){toast("مقدرتش أحفظ")}},
-  async saveAnn(d){try{await setDoc(doc(db,"config","site"),{announce:$("#ann").value.trim(),announceOn:d.on==="1"&&!!$("#ann").value.trim()},{merge:true});toast(d.on==="1"?"اتنشر الإعلان":"اتخفى الإعلان")}catch(e){toast("مقدرتش أحفظ")}},
+  async saveAnn(d){
+    const text=($("#ann")&&$("#ann").value||"").trim();
+    const on=d.on==="1"&&!!text;
+    const prev={announce:S.site.announce,announceOn:S.site.announceOn};
+    S.site.announce=text;S.site.announceOn=on;render(true);
+    toast(d.on==="1"?"✅ تم نشر الإعلان":"🙈 تم إخفاء الإعلان",true);
+    try{await setDoc(doc(db,"config","site"),{announce:text,announceOn:on},{merge:true})}
+    catch(e){Object.assign(S.site,prev);render(true);window.__cancel=true;toast("مقدرتش أحفظ",true)}
+  },
   async wipe(){
     if(await uiPrompt("ده هيمسح كل الامتحانات ونتايج وتقدم كل الطلاب نهائيًا. لو متأكد اكتب كلمة: مسح")!=="مسح"){toast("اتلغى المسح");return}
     try{
@@ -5133,17 +5314,21 @@ const A={
     if(days===null){window.__cancel=true;return}
     const n=Math.floor(Number(days));
     const reason=(await uiPrompt("سبب الحظر (بيظهر للطالب — اختياري):","")||"").trim();
-    try{
-      await updateDoc(doc(db,"students",d.id),{blocked:true,blockReason:reason,blockedUntil:(n>0?Date.now()+n*864e5:0),blockedAt:Date.now()});
-      toast(n>0?"اتحظر "+n+" يوم":"اتحظر نهائي");
-    }catch(e){toast("مقدرتش أحظر")}
+    const st=(S.students||[]).find(x=>x.id===d.id);const prev=st?{blocked:st.blocked,blockedUntil:st.blockedUntil,blockReason:st.blockReason}:null;
+    const until=(n>0?Date.now()+n*864e5:0);
+    if(st){st.blocked=true;st.blockedUntil=until;st.blockReason=reason}
+    render(true);toast(n>0?"⛔ تم حظر الطالب "+n+" يوم":"⛔ تم حظر الطالب نهائياً",true);
+    try{await updateDoc(doc(db,"students",d.id),{blocked:true,blockReason:reason,blockedUntil:until,blockedAt:Date.now()})}
+    catch(e){if(st&&prev)Object.assign(st,prev);render(true);window.__cancel=true;toast("مقدرتش أحظر",true)}
   },
   async tgDecide(d){
     if(!S.isAdmin||!d.id)return;
-    try{
-      await updateDoc(doc(db,"students",d.id),{tanaghaAccess:d.v==="approved"?"approved":"rejected"});
-      toast(d.v==="approved"?"اتفتحله الأقسام ✓":"اتقفلت عنه الأقسام",true);
-    }catch(e){window.__cancel=true;toast("مقدرتش: "+(e.code||e.message||""))}
+    const v=d.v==="approved"?"approved":"rejected";
+    const st=(S.students||[]).find(x=>x.id===d.id);const prev=st&&st.tanaghaAccess;
+    if(st)st.tanaghaAccess=v;
+    render(true);toast(v==="approved"?"✅ تم فتح الأقسام للطالب":"⛔ تم قفل الأقسام عن الطالب",true);
+    try{await updateDoc(doc(db,"students",d.id),{tanaghaAccess:v})}
+    catch(e){if(st)st.tanaghaAccess=prev;render(true);window.__cancel=true;toast("مقدرتش: "+(e.code||e.message||""),true)}
   },
   moreStudents(){S.sLimit=(S.sLimit||40)+60;const t=$("#stbl");if(t)t.innerHTML=studentsTable()},
   async setFeature(d){
@@ -5157,7 +5342,13 @@ const A={
     try{await setDoc(doc(db,"config","features"),{[d.id]:want},{merge:true})}
     catch(e){S.features=prev;render(true);window.__cancel=true;toast("مقدرتش أحفظ التغيير: "+(e.code||e.message||""),true)}
   },
-  async unblock(d){try{await updateDoc(doc(db,"students",d.id),{blocked:false,blockedUntil:0,blockReason:""});toast("اتفك الحظر")}catch(e){toast("مقدرتش")}},
+  async unblock(d){
+    const st=(S.students||[]).find(x=>x.id===d.id);const prev=st?{blocked:st.blocked,blockedUntil:st.blockedUntil,blockReason:st.blockReason}:null;
+    if(st){st.blocked=false;st.blockedUntil=0;st.blockReason=""}
+    render(true);toast("✅ تم فك الحظر — الطالب رجع يستخدم المنصة",true);
+    try{await updateDoc(doc(db,"students",d.id),{blocked:false,blockedUntil:0,blockReason:""})}
+    catch(e){if(st&&prev)Object.assign(st,prev);render(true);window.__cancel=true;toast("مقدرتش أفك الحظر",true)}
+  },
   async doLogin(){
     if(!configured){S.error="المنصة تحت التعديل.";render(true);return}
     const idv=norm($("#id").value),pw=$("#pw").value;
@@ -5180,7 +5371,7 @@ const A={
     $("#go").disabled=true;S.error="";S.registering=true;
     try{
       const c=await createUserWithEmailAndPassword(auth,phone+DOMAIN,pw);
-      try{await setDoc(doc(db,"students",c.user.uid),{name,phone,tanaghaAccess:"pending",regIp:myIp||"",regDevice:device(),createdAt:serverTimestamp()})}catch(_){}
+      try{await setDoc(doc(db,"students",c.user.uid),{name,phone,tanaghaAccess:"pending",regIp:myIp||"",regDevice:device(),createdAt:serverTimestamp()});sendPush({type:"admin_event",event:"signup"},"adm_signup",30000)}catch(_){}
       S.registering=false;await startSession(c.user);
     }catch(e){S.registering=false;S.error=authErr(e);render(true)}
   }
@@ -5304,7 +5495,7 @@ async function sendDm(toUid,text,img,extra){
   if(S.view==="chatThread"){
     const log=$("#dmChatLog");
     if(log&&typeof dmBubbleHtml==="function"){
-      try{log.innerHTML=S.chatMsgs.map(dmBubbleHtml).join("");scrollChatBottom(true)}catch(_){render(true);scrollChatBottom(true)}
+      try{patchChatLog(log,S.chatMsgs,dmBubbleHtml,EMPTY_DM);scrollChatBottom(true)}catch(_){render(true);scrollChatBottom(true)}
     }else{render(true);scrollChatBottom(true)}
   }
   try{
@@ -5331,13 +5522,7 @@ async function sendDm(toUid,text,img,extra){
         uid:toUid, text:fromN+": "+preview, kind:"dm", fromUid:S.user.uid,
         createdAt:serverTimestamp(), read:false
       }).catch(()=>{});
-      getDoc(doc(db,"students",toUid)).then(peer=>{
-        const token=peer.exists()?(peer.data().fcmToken||null):null;
-        addDoc(collection(db,"pushRequests"),{
-          toUid, token, type:"dm", status:"pending",
-          title:fromN, body:preview, createdAt:serverTimestamp()
-        }).catch(()=>{});
-      }).catch(()=>{});
+      if(!(S.chatPeerOnline&&S.chatThread&&S.chatThread.uid===toUid))sendPush({type:"dm",toUid,text:preview},"dm_"+toUid,15000);
     }catch(_){}
   }catch(err){
     console.error("sendDm",err);
@@ -5450,17 +5635,7 @@ async function startVoiceCall(toUid,toName){
       kind:"call", callId, createdAt:serverTimestamp(), read:false
     });
   }catch(_){}
-  try{
-    const peer=await getDoc(doc(db,"students",toUid));
-    const token=peer.exists()?(peer.data().fcmToken||null):null;
-    await addDoc(collection(db,"pushRequests"),{
-      toUid, token, callId,
-      title:"مكالمة — التفوق",
-      body:((S.profile&&S.profile.name)||"زميل")+" بيتصل بيك",
-      type:"call", status:"pending",
-      createdAt:serverTimestamp()
-    });
-  }catch(_){}
+  sendPush({type:"call",toUid,callId});
   startRingtone();
   showCallUI(toName||"زميل",true,()=>endVoiceCall("cancel"),null);
   let answered=false;
@@ -5782,7 +5957,9 @@ function listenGroup(gid){
     msgs.sort((a,b)=>tsMs(a.createdAt)-tsMs(b.createdAt));
     S.groupMsgs=msgs;
     if(S.view==="groupThread"){
-      render();
+      const log=$("#grpLog");
+      if(log&&prev>0){patchChatLog(log,msgs,grpBubbleHtml,EMPTY_GRP)}
+      else render();
       bindChatScroll();
       onChatMsgsUpdate(prev,msgs.length);
     }
@@ -5797,6 +5974,16 @@ ${list.length?list.map(g=>`<button type="button" class="card row" data-act="open
   <div style="flex:1"><b>${esc(g.name||"جروب")}</b><div class="mut">${esc(g.lastText||"…")} · ${(g.members||[]).length} عضو</div></div>
 </button>`).join(""):`<div class="card mut">مفيش جروبات — اعمل واحد وادعُ أصحابك.</div>`}
 </div>${studentNav()}`;
+}
+function grpBubbleHtml(m){
+    const mine=m.fromUid===S.user.uid;
+    return `<div class="tk-bubble ${mine?"me":"them"}" data-mid="${m.id}">
+      ${!mine?`<div style="font-size:11px;opacity:.8">${esc(m.fromName||"?")}</div>`:""}
+      ${m.text&&m.kind!=="audio"&&m.kind!=="image"?`<div dir="auto">${esc(m.text)}</div>`:""}
+      ${m.img?mediaEmbed(m.img,m.kind):""}
+      ${reactsHtml("grp",m.id,m.reacts,true)}
+      <div class="tk-foot"><span class="when">${m.createdAt?fmt(m.createdAt):""}</span><button type="button" class="tk-mini" data-act="pickReact" data-col="grp" data-id="${m.id}" aria-label="تفاعل">☺</button></div>
+    </div>`;
 }
 function groupThreadView(){
   const msgs=S.groupMsgs||[];
@@ -5817,16 +6004,7 @@ function groupThreadView(){
 </div>
 ${addPanel}
 <div class="tk-thread">
-  <div class="tk-log" id="grpLog">${msgs.length?msgs.map(m=>{
-    const mine=m.fromUid===S.user.uid;
-    return `<div class="tk-bubble ${mine?"me":"them"}" data-mid="${m.id}">
-      ${!mine?`<div style="font-size:11px;opacity:.8">${esc(m.fromName||"?")}</div>`:""}
-      ${m.text&&m.kind!=="audio"&&m.kind!=="image"?`<div dir="auto">${esc(m.text)}</div>`:""}
-      ${m.img?mediaEmbed(m.img,m.kind):""}
-      ${reactsHtml("grp",m.id,m.reacts,true)}
-      <div class="tk-foot"><span class="when">${m.createdAt?fmt(m.createdAt):""}</span><button type="button" class="tk-mini" data-act="pickReact" data-col="grp" data-id="${m.id}" aria-label="تفاعل">☺</button></div>
-    </div>`;
-  }).join(""):`<div class="mut" style="text-align:center;margin:auto">اول رسالة في الجروب… اكتب تحت 👇</div>`}</div>
+  <div class="tk-log" id="grpLog">${msgs.length?msgs.map(grpBubbleHtml).join(""):EMPTY_GRP}</div>
 </div>
 <form class="tk-compose" data-submit="groupSend">
   <button type="button" class="btn ghost sm" data-act="groupVoice" title="تسجيل صوت">🎙</button>
@@ -5853,40 +6031,76 @@ async function uploadMedia(file, path){
   await M.uploadBytes(r, file, {contentType:file.type||undefined});
   return await M.getDownloadURL(r);
 }
+const EMPTY_DM=`<div class="mut" style="text-align:center;margin:auto">قول سلام 👋</div>`;
+const EMPTY_GRP=`<div class="mut" style="text-align:center;margin:auto">اول رسالة في الجروب… اكتب تحت 👇</div>`;
+/* تحديث سجل الرسائل بدون إعادة رسمه كله (من غير وميض ولا قفز) */
+function patchChatLog(log,msgs,fn,emptyHtml){
+  if(!log)return;
+  if(!msgs||!msgs.length){log.innerHTML=emptyHtml||"";return}
+  [...log.children].forEach(c=>{if(!c.dataset||!c.dataset.mid)c.remove()});
+  const old=new Map();
+  [...log.children].forEach(c=>{if(c.dataset&&c.dataset.mid)old.set(c.dataset.mid,c)});
+  const keep=new Set();
+  let prev=null;
+  const mk=h=>{const t=document.createElement("template");t.innerHTML=h.trim();return t.content.firstElementChild};
+  msgs.forEach(m=>{
+    const id=String(m.id);keep.add(id);
+    const h=fn(m);
+    let el=old.get(id);
+    if(el){
+      if(el._h!==h){const n=mk(h);if(n){n._h=h;log.replaceChild(n,el);el=n}}
+    }else{
+      el=mk(h);if(!el)return;el._h=h;
+      log.insertBefore(el,prev?prev.nextSibling:log.firstChild);
+    }
+    // ترتيب صحيح لو العنصر القديم مش في مكانه
+    if(prev&&el.previousElementSibling!==prev)log.insertBefore(el,prev.nextSibling);
+    prev=el;
+  });
+  old.forEach((el,id)=>{if(!keep.has(id)&&el.parentNode===log)el.remove()});
+}
+function peersLoad(){try{return JSON.parse(localStorage.getItem("peers_v1")||"{}")||{}}catch(_){return {}}}
+function peersSave(){try{const p=window.__peers||{};const o={};Object.keys(p).slice(-120).forEach(k=>{o[k]={name:p[k].name,avatar:(p[k].avatar&&String(p[k].avatar).length<5000)?p[k].avatar:null}});localStorage.setItem("peers_v1",JSON.stringify(o))}catch(_){}}
+function chatsCacheKey(){return "chats_cache_"+(S.user?S.user.uid:"")}
+function loadChatsCache(){
+  if(!S.user||(S.chats&&S.chats.length))return;
+  try{const r=JSON.parse(localStorage.getItem(chatsCacheKey())||"null");if(Array.isArray(r)){S.chats=r;S.unreadChat=r.reduce((a,c)=>a+(c.unread||0),0)}}catch(_){}
+}
 function listenMyChats(){
   if(!S.user||S.isAdmin)return;
   if(window.__chatsUnsub){try{window.__chatsUnsub()}catch(_){}}
+  if(!window.__peers)window.__peers=peersLoad();
+  loadChatsCache();
   S.chats=S.chats||[];
-  window.__chatsUnsub=onSnapshot(query(collection(db,"conversations"),where("participants","array-contains",S.user.uid),limit(40)),async snap=>{
+  window.__chatsUnsub=onSnapshot(query(collection(db,"conversations"),where("participants","array-contains",S.user.uid),limit(40)),snap=>{
     const rows=snap.docs.map(d=>({id:d.id,...d.data()}));
     rows.sort((a,b)=>tms(b.updatedAt||b.lastAt)-tms(a.updatedAt||a.lastAt));
-    if(!window.__peers)window.__peers={};
-    S.chats=await Promise.all(rows.map(async c=>{
+    const build=()=>rows.map(c=>{
       const otherUid=(c.participants||[]).find(u=>u!==S.user.uid);
-      let otherName=(c.names&&c.names[otherUid])||"زميل",otherAvatar=null;
-      if(otherUid&&window.__peers[otherUid]){
-        otherName=window.__peers[otherUid].name||otherName;
-        otherAvatar=window.__peers[otherUid].avatar||null;
-      }else if(otherUid){
-        try{
-          const st=await getDoc(doc(db,"students",otherUid));
-          if(st.exists()){
-            const d=st.data();
-            otherName=d.name||otherName;
-            otherAvatar=d.avatarThumb||d.avatar||null;
-            window.__peers[otherUid]={name:otherName,avatar:otherAvatar};
-          }
-        }catch(_){}
-      }
+      const pr=otherUid&&window.__peers[otherUid];
+      const otherName=(pr&&pr.name)||(c.names&&c.names[otherUid])||"زميل";
+      const otherAvatar=(pr&&pr.avatar)||null;
       const unread=(c.lastFrom&&c.lastFrom!==S.user.uid && !(c.readBy&&c.readBy[S.user.uid] && tsMs(c.readBy[S.user.uid])>=tsMs(c.lastAt||c.updatedAt)))?1:0;
       return {id:c.id,otherUid,otherName,otherAvatar,lastText:c.lastText,lastAt:c.lastAt||c.updatedAt,unread};
-    }));
-    S.unreadChat=S.chats.reduce((a,c)=>a+(c.unread||0),0);
-    if(S.view==="chatList"||S.view==="home")scheduleRender();
-    else {
-      // حدّث الشارة فقط
-      const nav=document.querySelector('nav.bot');
-      if(nav) {/* re-render nav via full if badge needed */ if(S.unreadChat)render(); }
+    });
+    const apply=()=>{
+      S.chats=build();
+      S.unreadChat=S.chats.reduce((a,c)=>a+(c.unread||0),0);
+      try{localStorage.setItem(chatsCacheKey(),JSON.stringify(S.chats.map(c=>({id:c.id,otherUid:c.otherUid,otherName:c.otherName,otherAvatar:(c.otherAvatar&&String(c.otherAvatar).length<5000)?c.otherAvatar:null,lastText:c.lastText,lastAt:c.lastAt&&c.lastAt.seconds?{seconds:c.lastAt.seconds}:(typeof c.lastAt==="number"?c.lastAt:null),unread:c.unread}))))}catch(_){}
+      if(S.view==="chatList"||S.view==="home")scheduleRender();
+      else{const nav=document.querySelector('nav.bot');if(nav&&S.unreadChat)scheduleRender()}
+    };
+    apply(); // فوري — من غير انتظار بيانات الزملاء
+    // هات الزملاء الناقصين بالتوازي، وبعدها حدّث مرة واحدة
+    const missing=[...new Set(rows.map(c=>(c.participants||[]).find(u=>u!==S.user.uid)).filter(u=>u&&!window.__peers[u]))];
+    if(missing.length){
+      Promise.all(missing.map(async u=>{
+        try{
+          const st=await getDoc(doc(db,"students",u));
+          if(st.exists()){const d=st.data();window.__peers[u]={name:d.name||"زميل",avatar:d.avatarThumb||d.avatar||null}}
+          else window.__peers[u]={name:"زميل",avatar:null};
+        }catch(_){}
+      })).then(()=>{peersSave();apply()});
     }
   },err=>{
     console.warn("chats",err);
@@ -6002,7 +6216,7 @@ function listenDmThread(cid,otherUid){
       if(log&&prev>0&&msgs.length>=prev){
         // تحديث اللوج فقط بدون إعادة رسم الصفحة كلها
         try{
-          log.innerHTML=msgs.length?msgs.map(dmBubbleHtml).join(""):`<div class="mut" style="text-align:center;margin:auto">قول سلام 👋</div>`;
+          patchChatLog(log,msgs,dmBubbleHtml,EMPTY_DM);
           bindChatScroll();
           onChatMsgsUpdate(prev,msgs.length);
         }catch(e){render();bindChatScroll();onChatMsgsUpdate(prev,msgs.length)}
@@ -6757,6 +6971,11 @@ document.addEventListener("click",e=>{
     window.__cancel=false;
     const __done=()=>{if(S.isAdmin&&AUDIT_ACTS[act]&&!window.__cancel)auditLog(AUDIT_ACTS[act],b.dataset.id||"")};
     const r=fn(b.dataset,b);
+    if(r&&typeof r.then==="function"){
+      b.classList.add("busy");
+      const __un=()=>{try{b.classList.remove("busy")}catch(_){}};
+      r.then(__un,__un);
+    }
     if(r&&typeof r.then==="function")r.then(__done).catch(err=>{console.error("act",act,err);try{toast("خطأ: "+((err&&err.message)||act))}catch(_){}});
     else __done();
   }catch(err){console.error("act",act,err);try{toast("خطأ: "+act)}catch(_){}}

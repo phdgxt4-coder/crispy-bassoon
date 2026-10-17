@@ -1,6 +1,6 @@
-/* التفوق SW — v41 — شبكة أولاً + كاش آمن + Offline صريح */
-const CACHE = "eltafawoq-v42";
-const BUILD = "20261017-v42";
+/* التفوق SW — v43 — شبكة أولاً + كاش آمن + Offline صريح */
+const CACHE = "eltafawoq-v43";
+const BUILD = "20261017-v43";
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
@@ -18,6 +18,7 @@ try {
     const data = payload.data || {};
     const isCall = data.type === "call" || data.callId;
     const title = (payload.notification && payload.notification.title)
+      || data.title
       || (isCall ? "📞 مكالمة واردة" : "التفوق");
     const body = (payload.notification && payload.notification.body)
       || data.body
