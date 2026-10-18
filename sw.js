@@ -1,6 +1,6 @@
-/* التفوق SW — v56 — شبكة أولاً + كاش آمن + Offline صريح */
-const CACHE = "eltafawoq-v56";
-const BUILD = "20261018-v56";
+/* التفوق SW — v57 — GLB pets + شبكة أولاً + كاش آمن */
+const CACHE = "eltafawoq-v57";
+const BUILD = "20261018-v57";
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");

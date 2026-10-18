@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v56">
+<meta name="sw-build" content="v57-glb">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <script>(function(){try{var m=localStorage.getItem("theme_mode"),c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#0B0A07",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
@@ -496,8 +496,8 @@ html[data-skin=neon]{--sk1:#EC4899;--sk2:#BE185D;--sk3:#06B6D4}
 @keyframes lfglow{to{filter:drop-shadow(0 0 14px gold)}}
 .lf-pet{position:absolute;bottom:14px;inset-inline-start:30%;cursor:pointer;text-align:center;animation:lfroam 9s ease-in-out infinite alternate;z-index:2}
 @keyframes lfroam{0%{transform:translateX(0)}50%{transform:translateX(-46px)}100%{transform:translateX(40px)}}
-.lf-pet .b{display:inline-block;position:relative;line-height:1;animation:lfbob 2.2s cubic-bezier(.4,0,.2,1) infinite;will-change:transform}
-@keyframes lfbob{0%,100%{transform:translateY(0) scale(1,1)}35%{transform:translateY(-4px) scale(1.012,.99)}55%{transform:translateY(-7px) scale(1.018,.985)}}
+.lf-pet .b{display:inline-block;position:relative;line-height:1;animation:lfbob 1.6s ease-in-out infinite}
+@keyframes lfbob{50%{transform:translateY(-6px)}}
 .lf-pet.jump .b{animation:lfjump .7s}
 @keyframes lfjump{30%{transform:translateY(-44px) rotate(-8deg)}60%{transform:translateY(0) rotate(6deg)}}
 .lf-pet .b.egg{animation:lfwob 1.4s infinite}
@@ -611,30 +611,24 @@ html[data-skin=neon]{--sk1:#EC4899;--sk2:#BE185D;--sk3:#06B6D4}
 .lf-prize{perspective:600px}.lf-prize>div:first-child{animation:lfbob 2s ease-in-out infinite}
 /* ===== Store v5 ===== */
 .lf-wallet{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,var(--pri),var(--pri2));color:var(--onpri);border-radius:18px;padding:12px 16px;margin-bottom:10px;box-shadow:0 8px 22px rgba(0,0,0,.18)}.lf-wallet b{font-size:24px;font-variant-numeric:tabular-nums}
-.lf-grid.shop{grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:14px}
-.lf-it.sh{padding:16px 10px 14px;overflow:hidden;border-width:1.5px;border-radius:18px;animation:lfcard .5s cubic-bezier(.22,1.1,.3,1.15) backwards;animation-delay:var(--d,0ms);transition:transform .28s cubic-bezier(.2,1.1,.3,1),box-shadow .28s,border-color .25s;position:relative}
-.lf-it.sh:hover{transform:translateY(-7px) scale(1.035);box-shadow:0 18px 36px rgba(0,0,0,.2)}
-@keyframes lfcard{from{opacity:0;transform:translateY(18px) scale(.9)}}
-.lf-it.sh .rb{position:absolute;top:8px;inset-inline-start:8px;font-style:normal;font-size:10px;font-weight:800;padding:3px 9px;border-radius:99px;background:var(--line);color:var(--mut);z-index:2;letter-spacing:.03em}
-.lf-it.sh .pv{height:76px;display:flex;align-items:center;justify-content:center;margin:14px 0 6px;filter:drop-shadow(0 5px 12px rgba(0,0,0,.2))}
-.lf-it.sh .nm{display:block;font-size:13.5px;margin-top:4px;font-weight:700}
-.lf-it.sh .pr{font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}.lf-it.sh s{opacity:.5;font-size:10px;margin-inline-start:4px}
-.lf-it.sh button{min-height:38px;border-radius:12px;font-weight:700;transition:transform .15s,filter .2s}
-.lf-it.sh button:active{transform:scale(.95)}
-.lf-it.r-r{border-color:#3b82f6;background:linear-gradient(165deg,color-mix(in srgb,#3b82f6 9%,var(--card)),var(--card))}.lf-it.r-r .rb{background:linear-gradient(90deg,#2563eb,#3b82f6);color:#fff}
-.lf-it.r-e{border-color:#a855f7;box-shadow:0 0 20px rgba(168,85,247,.35);background:linear-gradient(165deg,color-mix(in srgb,#a855f7 11%,var(--card)),var(--card))}.lf-it.r-e .rb{background:linear-gradient(90deg,#7c3aed,#a855f7);color:#fff}
-.lf-it.r-l{border-color:#f59e0b;box-shadow:0 0 24px rgba(245,158,11,.48);background:linear-gradient(165deg,color-mix(in srgb,#f59e0b 13%,var(--card)),var(--card))}.lf-it.r-l .rb{background:linear-gradient(90deg,#f59e0b,#ef4444);color:#fff}
-.lf-it.r-l::before,.lf-it.r-e::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 28%,rgba(255,255,255,.38) 48%,transparent 68%);transform:translateX(-135%);animation:lfshine 3s ease-in-out infinite;pointer-events:none;border-radius:inherit}
-@keyframes lfshine{50%,100%{transform:translateX(135%)}}
-.lf-it.own{background:color-mix(in srgb,var(--pri) 11%,var(--card));border-color:color-mix(in srgb,var(--pri) 48%,var(--line))}
-.pv-av{width:54px;height:54px;border-radius:50%;background:var(--sel);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 5px 14px rgba(0,0,0,.18);transition:transform .3s}
-.lf-it.sh:hover .pv-av{transform:scale(1.14) rotate(8deg)}
-.pv-sk{width:60px;height:60px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:30px;box-shadow:0 8px 20px rgba(0,0,0,.3);animation:lfbob 2.4s ease-in-out infinite;transition:transform .3s}
-.lf-it.sh:hover .pv-sk{transform:scale(1.12) rotateY(14deg)}
-.pv-pet{position:relative;display:inline-block;font-size:48px;line-height:1;animation:lfbob 1.9s ease-in-out infinite;filter:drop-shadow(0 7px 10px rgba(0,0,0,.28));transition:transform .35s cubic-bezier(.2,1.2,.3,1)}
-.lf-it.sh:hover .pv-pet{transform:scale(1.18) translateY(-5px)}
-.pv-ic{font-size:46px;animation:lfbob 2.2s ease-in-out infinite;filter:drop-shadow(0 5px 8px rgba(0,0,0,.22));transition:transform .3s}
-.lf-it.sh:hover .pv-ic{transform:scale(1.14) rotate(-10deg)}
+.lf-grid.shop{grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:12px}
+.lf-it.sh{padding:14px 8px 12px;overflow:hidden;border-width:1.5px;animation:lfcard .45s cubic-bezier(.2,.9,.3,1.2) backwards;animation-delay:var(--d,0ms)}
+@keyframes lfcard{from{opacity:0;transform:translateY(14px) scale(.94)}}
+.lf-it.sh .rb{position:absolute;top:6px;inset-inline-start:6px;font-style:normal;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--line);color:var(--mut)}
+.lf-it.sh .pv{height:64px;display:flex;align-items:center;justify-content:center;margin:12px 0 4px}
+.lf-it.sh .nm{display:block;font-size:13px;margin-top:2px}
+.lf-it.sh .pr{font-weight:800;color:var(--ink)}.lf-it.sh s{opacity:.5;font-size:10px;margin-inline-start:4px}
+.lf-it.sh button{min-height:36px}
+.lf-it.r-r{border-color:#3b82f6}.lf-it.r-r .rb{background:#3b82f6;color:#fff}
+.lf-it.r-e{border-color:#a855f7;box-shadow:0 0 14px rgba(168,85,247,.28)}.lf-it.r-e .rb{background:#a855f7;color:#fff}
+.lf-it.r-l{border-color:#f59e0b;box-shadow:0 0 18px rgba(245,158,11,.4)}.lf-it.r-l .rb{background:linear-gradient(90deg,#f59e0b,#ef4444);color:#fff}
+.lf-it.r-l::before,.lf-it.r-e::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.3) 50%,transparent 65%);transform:translateX(-120%);animation:lfshine 3.4s ease-in-out infinite;pointer-events:none}
+@keyframes lfshine{60%,100%{transform:translateX(120%)}}
+.lf-it.own{background:color-mix(in srgb,var(--pri) 8%,var(--card))}
+.pv-av{width:46px;height:46px;border-radius:50%;background:var(--sel);display:flex;align-items:center;justify-content:center;font-size:24px}
+.pv-sk{width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 6px 14px rgba(0,0,0,.25);animation:lfbob 2.4s ease-in-out infinite}
+.pv-pet{position:relative;display:inline-block;font-size:38px;line-height:1;animation:lfbob 1.8s ease-in-out infinite}
+.pv-ic{font-size:40px;animation:lfbob 2.2s ease-in-out infinite}
 .pv-t{margin:0!important;font-size:12px}
 .pv-fx{position:relative;width:60px;height:56px;display:block;overflow:hidden}.pv-fx i{position:absolute;top:0;font-style:normal;font-size:16px;animation:lffall 2.2s linear infinite}
 .pv-fx i:nth-child(1){left:6px}.pv-fx i:nth-child(2){left:20px;animation-delay:-.6s}.pv-fx i:nth-child(3){left:34px;animation-delay:-1.2s}.pv-fx i:nth-child(4){left:46px;animation-delay:-1.8s}
@@ -684,18 +678,18 @@ button,.btn,.tab,.lf-chips button{touch-action:manipulation}
 .lf-room .lf-pet{animation:none;inset-inline-start:auto;left:var(--x,40%);transition:left var(--wd,2s) linear;translate:calc(var(--px,0)*-14px) 0;user-select:none;-webkit-user-select:none}
 .lf-room .lf-pet.m{z-index:3}.lf-room .lf-pet.ex{z-index:2;filter:saturate(1.05)}
 .lf-pet.fl .b{scale:-1 1}
-.lf-pet.walk .b{animation:lfwalk .4s cubic-bezier(.4,0,.2,1) infinite}
-@keyframes lfwalk{0%,100%{transform:translateY(0) rotate(-5deg) scaleX(1)}25%{transform:translateY(-5px) rotate(2deg) scaleX(1.025)}50%{transform:translateY(-10px) rotate(6deg) scaleX(1)}75%{transform:translateY(-4px) rotate(-1deg) scaleX(.98)}}
-.lf-pet.hop .b{animation:lfhop2 .72s cubic-bezier(.22,1.2,.4,1) 2}
-@keyframes lfhop2{0%{transform:translateY(0) scale(1,1)}10%{transform:translateY(3px) scale(1.12,.86)}38%{transform:translateY(-34px) scale(.93,1.12)}68%{transform:translateY(-6px) scale(1.04,.95)}100%{transform:translateY(0) scale(1)}}
-.lf-pet.spin .b{animation:lfspin2 .85s cubic-bezier(.3,1.2,.4,1)}
-@keyframes lfspin2{to{transform:rotate(360deg) scale(1.12)}}
-.lf-pet.sit .b{animation:none;transform:scale(1.06,.82);transform-origin:50% 100%;transition:transform .45s cubic-bezier(.3,1.1,.4,1)}
-.lf-pet.sleep .b{animation:lfbreath 2.8s ease-in-out infinite;filter:brightness(.78);transform-origin:50% 100%}
-@keyframes lfbreath{0%,100%{transform:scale(1,.97)}50%{transform:scale(1.045,.93)}}
-.lf-pet.eat .b{animation:lfchew .32s ease-in-out 5}
-@keyframes lfchew{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.09,.88) rotate(-5deg)}}
-.lf-pet.r-dance .b{animation:lfdance .4s cubic-bezier(.3,1.2,.4,1) 5}.lf-pet.r-jump .b{animation:lfhop2 .72s cubic-bezier(.22,1.2,.4,1)}.lf-pet.r-sad .b{animation:lfsad 2s ease-in-out;filter:grayscale(.6) brightness(.88)}
+.lf-pet.walk .b{animation:lfwalk .34s ease-in-out infinite}
+@keyframes lfwalk{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-8px) rotate(6deg)}}
+.lf-pet.hop .b{animation:lfhop2 .65s ease-out 2}
+@keyframes lfhop2{0%,100%{transform:translateY(0) scale(1)}15%{transform:translateY(0) scale(1.08,.9)}50%{transform:translateY(-28px) scale(.96,1.06)}}
+.lf-pet.spin .b{animation:lfspin2 .8s ease-in-out}
+@keyframes lfspin2{to{transform:rotate(360deg) scale(1.08)}}
+.lf-pet.sit .b{animation:none;transform:scale(1.04,.86);transform-origin:50% 100%}
+.lf-pet.sleep .b{animation:lfbreath 2.4s ease-in-out infinite;filter:brightness(.82);transform-origin:50% 100%}
+@keyframes lfbreath{50%{transform:scale(1.05,.95)}}
+.lf-pet.eat .b{animation:lfchew .28s ease-in-out 4}
+@keyframes lfchew{50%{transform:scale(1.07,.93) rotate(-4deg)}}
+.lf-pet.r-dance .b{animation:lfdance .45s 4}.lf-pet.r-jump .b{animation:lfhop2 .65s ease-out}.lf-pet.r-sad .b{animation:lfsad 1.8s;filter:grayscale(.7)}
 .lf-pet .say{position:absolute;top:-4px;left:50%;font-style:normal;font-size:18px;line-height:1;pointer-events:none;animation:lfsay 1.7s ease-out forwards}
 @keyframes lfsay{from{transform:translate(-50%,0) scale(.4);opacity:0}20%{opacity:1;transform:translate(-50%,-14px) scale(1)}to{transform:translate(-50%,-38px);opacity:0}}
 .lf-room.night .lf-pet .b{filter:brightness(.92)}
@@ -7832,8 +7826,21 @@ function lfHouseSvg(){
 
 /* ===== v54: Companion 3D — procedural Three.js animals (strong phones only, lazy-loaded) ===== */
 const LF_NAME={"🐺":"ذئب الظل","🦊":"ثعلب اللهب","🐱":"قط السكر","🐼":"باندا","🐻":"دب","🦁":"أسد","🐯":"نمر","🦄":"يونيكورن","🐉":"تنين أسطوري","🐲":"تنين صغير"};
-const C3D={ok:null,T:null,p:null,R:null,sc:null,cam:null,cv:null,room:null,ents:new Map(),raf:0,idle:0,last:0,fN:0,fT:0,slow:0,vis:true,io:null,tex:null,stripe:null,dot:null,shT:null,sph:null,pln:null,w:0,h:0,dpr:0};
+const C3D={ok:null,T:null,p:null,R:null,sc:null,cam:null,cv:null,room:null,ents:new Map(),raf:0,idle:0,last:0,fN:0,fT:0,slow:0,vis:true,io:null,tex:null,stripe:null,dot:null,shT:null,sph:null,pln:null,w:0,h:0,dpr:0,GLTF:null,Skel:null,glbCache:{},glbBusy:{}};
 const C3_RB=[0xff5a5a,0xffa14a,0xffe14a,0x5adf7a,0x4ab4ff,0x8a6aff,0xe06aff];
+/* Real animated GLB models (CC0) — Gobkit free pack */
+const C3_GLB={
+"🦊":{url:"https://gobkit.com/freebies/animal006/Fox.glb",scale:42,y:0,face:Math.PI},
+"🦁":{url:"https://gobkit.com/freebies/animal006/Lion.glb",scale:38,y:0,face:Math.PI},
+"🐱":{url:"https://gobkit.com/freebies/animal/Corgi.glb",scale:48,y:0,face:Math.PI},
+"🐻":{url:"https://gobkit.com/freebies/animal/Hippo.glb",scale:34,y:0,face:Math.PI},
+"🐺":{url:"https://gobkit.com/freebies/animalB/Boar.glb",scale:40,y:0,face:Math.PI},
+"🐯":{url:"https://gobkit.com/freebies/animal006/Lion.glb",scale:38,y:0,face:Math.PI,tint:0xe8882c},
+"🦄":{url:"https://gobkit.com/freebies/animal006/Zebra.glb",scale:36,y:0,face:Math.PI},
+"🐉":{url:"https://gobkit.com/freebies/dino/Trex.glb",scale:28,y:0,face:Math.PI},
+"🐲":{url:"https://gobkit.com/freebies/dino/Spinosaurus.glb",scale:26,y:0,face:Math.PI},
+"🐼":{url:"https://gobkit.com/freebies/animal005/Sheep.glb",scale:40,y:0,face:Math.PI}
+};
 const C3S={
 "🐺":{b:0x6e788a,l:0xe2e6ec,d:0x252a33,e:0xffc83d,ear:"point",sn:.55,sz:1,aura:0x7ad0ff,tail:{n:7,L:.68,r:.08,bush:.9,base:-.28,curl:-.02}},
 "🦊":{b:0xe46a1e,l:0xfff3e6,d:0x1e100a,e:0x6b3e10,ear:"big",sn:.62,sz:.9,aura:0xff9a3a,tail:{n:8,L:.85,r:.095,bush:1.6,base:-.1,curl:-.03,tip:0xffffff}},
@@ -7862,8 +7869,25 @@ function c3dCan(){
   return C3D.ok=ok;
 }
 function c3dLoad(){
-  if(!C3D.p)C3D.p=import("https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js").then(m=>(C3D.T=m));
+  if(!C3D.p){
+    C3D.p=Promise.all([
+      import("https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"),
+      import("https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js"),
+      import("https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/utils/SkeletonUtils.js")
+    ]).then(([T,G,S])=>{C3D.T=T;C3D.GLTF=G.GLTFLoader;C3D.Skel=S;return T});
+  }
   return C3D.p;
+}
+function c3dLoadGlb(url){
+  if(C3D.glbCache[url])return Promise.resolve(C3D.glbCache[url]);
+  if(C3D.glbBusy[url])return C3D.glbBusy[url];
+  C3D.glbBusy[url]=new Promise((res,rej)=>{
+    try{
+      const loader=new C3D.GLTF();
+      loader.load(url,g=>{C3D.glbCache[url]=g;delete C3D.glbBusy[url];res(g)},undefined,e=>{delete C3D.glbBusy[url];rej(e)});
+    }catch(e){delete C3D.glbBusy[url];rej(e)}
+  });
+  return C3D.glbBusy[url];
 }
 function c3dAttach(room){
   try{
@@ -7873,19 +7897,10 @@ function c3dAttach(room){
 }
 function c3dMakeTex(T){
   const mk=(w,h,fn)=>{const c=document.createElement("canvas");c.width=w;c.height=h;fn(c.getContext("2d"),w,h);const t=new T.CanvasTexture(c);t.wrapS=t.wrapT=T.RepeatWrapping;t.colorSpace=T.SRGBColorSpace;try{t.anisotropy=8}catch(_){}return t};
-  /* high-detail fur grain */
-  C3D.tex=mk(256,256,(g,w,h)=>{
-    g.fillStyle="#f5f2ed";g.fillRect(0,0,w,h);
-    for(let i=0;i<5200;i++){
-      const x=Math.random()*w,y=Math.random()*h,l=1.5+Math.random()*10,a=.035+Math.random()*.11;
-      g.strokeStyle=Math.random()<.58?`rgba(18,10,5,${a})`:`rgba(255,252,245,${a+.16})`;
-      g.lineWidth=.5+Math.random()*1.4;g.beginPath();g.moveTo(x,y);g.lineTo(x+(Math.random()-.5)*5,y+l);g.stroke();
-    }
-    for(let i=0;i<260;i++){const x=Math.random()*w,y=Math.random()*h,r=.8+Math.random()*2.8;g.fillStyle=`rgba(0,0,0,${.025+Math.random()*.05})`;g.beginPath();g.arc(x,y,r,0,7);g.fill()}
-  });
-  C3D.stripe=mk(64,256,(g,w,h)=>{g.fillStyle="#fff";g.fillRect(0,0,w,h);let y=12;while(y<h){const th=5+Math.random()*11;g.fillStyle=`rgba(32,16,6,${.48+Math.random()*.38})`;g.beginPath();g.moveTo(0,y);for(let x=0;x<=w;x+=5)g.lineTo(x,y+(Math.random()-.5)*7);for(let x=w;x>=0;x-=5)g.lineTo(x,y+th+(Math.random()-.5)*7);g.fill();y+=th+12+Math.random()*18}});
-  C3D.dot=mk(48,48,(g)=>{const r=g.createRadialGradient(24,24,0,24,24,24);r.addColorStop(0,"rgba(255,255,255,1)");r.addColorStop(.3,"rgba(255,255,255,.75)");r.addColorStop(.65,"rgba(255,255,255,.22)");r.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=r;g.fillRect(0,0,48,48)});
-  C3D.shT=mk(128,128,(g)=>{const r=g.createRadialGradient(64,64,0,64,64,64);r.addColorStop(0,"rgba(0,0,0,.58)");r.addColorStop(.35,"rgba(0,0,0,.3)");r.addColorStop(.7,"rgba(0,0,0,.08)");r.addColorStop(1,"rgba(0,0,0,0)");g.fillStyle=r;g.fillRect(0,0,128,128)});
+  C3D.tex=mk(256,256,(g,w,h)=>{g.fillStyle="#f5f2ed";g.fillRect(0,0,w,h);for(let i=0;i<4800;i++){const x=Math.random()*w,y=Math.random()*h,l=1.5+Math.random()*9,a=.04+Math.random()*.1;g.strokeStyle=Math.random()<.55?`rgba(18,10,5,${a})`:`rgba(255,252,245,${a+.15})`;g.lineWidth=.5+Math.random()*1.3;g.beginPath();g.moveTo(x,y);g.lineTo(x+(Math.random()-.5)*4,y+l);g.stroke()}});
+  C3D.stripe=mk(64,256,(g,w,h)=>{g.fillStyle="#fff";g.fillRect(0,0,w,h);let y=12;while(y<h){const th=5+Math.random()*11;g.fillStyle=`rgba(32,16,6,${.5+Math.random()*.35})`;g.beginPath();g.moveTo(0,y);for(let x=0;x<=w;x+=5)g.lineTo(x,y+(Math.random()-.5)*6);for(let x=w;x>=0;x-=5)g.lineTo(x,y+th+(Math.random()-.5)*6);g.fill();y+=th+12+Math.random()*16}});
+  C3D.dot=mk(48,48,(g)=>{const r=g.createRadialGradient(24,24,0,24,24,24);r.addColorStop(0,"rgba(255,255,255,1)");r.addColorStop(.3,"rgba(255,255,255,.7)");r.addColorStop(1,"rgba(255,255,255,0)");g.fillStyle=r;g.fillRect(0,0,48,48)});
+  C3D.shT=mk(128,128,(g)=>{const r=g.createRadialGradient(64,64,0,64,64,64);r.addColorStop(0,"rgba(0,0,0,.55)");r.addColorStop(.4,"rgba(0,0,0,.25)");r.addColorStop(1,"rgba(0,0,0,0)");g.fillStyle=r;g.fillRect(0,0,128,128)});
 }
 function c3dStart(room){
   const T=C3D.T;if(!T)return;
@@ -7893,17 +7908,16 @@ function c3dStart(room){
     if(!C3D.R){
       c3dMakeTex(T);
       const cv=document.createElement("canvas");cv.className="c3d-cv";
-      const R=new T.WebGLRenderer({canvas:cv,alpha:true,antialias:true,powerPreference:"high-performance",precision:"highp"});
-      R.outputColorSpace=T.SRGBColorSpace;R.toneMapping=T.ACESFilmicToneMapping;R.toneMappingExposure=1.22;R.setClearColor(0x000000,0);
+      const R=new T.WebGLRenderer({canvas:cv,alpha:true,antialias:true,powerPreference:"high-performance"});
+      R.outputColorSpace=T.SRGBColorSpace;R.toneMapping=T.ACESFilmicToneMapping;R.toneMappingExposure=1.2;R.setClearColor(0x000000,0);
       cv.addEventListener("webglcontextlost",e=>{try{e.preventDefault()}catch(_){}c3dOff(false)});
       const sc=new T.Scene(),cam=new T.OrthographicCamera(0,300,250,0,-2000,2000);cam.position.z=600;
-      /* cinematic multi-light for realistic fur volume */
-      sc.add(new T.HemisphereLight(0xfff7ec,0x3d2a18,1.4));
-      const key=new T.DirectionalLight(0xfff1d4,2.75);key.position.set(-190,290,330);sc.add(key);
-      const fill=new T.DirectionalLight(0xa0c4ff,1.05);fill.position.set(290,50,170);sc.add(fill);
-      const rim=new T.DirectionalLight(0xffffff,1.65);rim.position.set(30,150,-290);sc.add(rim);
-      const bounce=new T.DirectionalLight(0xffd9a0,.5);bounce.position.set(20,-220,80);sc.add(bounce);
-      C3D.sph=new T.SphereGeometry(1,40,32);C3D.pln=new T.PlaneGeometry(1,1);
+      sc.add(new T.HemisphereLight(0xfff7ec,0x3d2a18,1.35));
+      const key=new T.DirectionalLight(0xfff1d4,2.6);key.position.set(-180,280,320);sc.add(key);
+      const fill=new T.DirectionalLight(0xa0c4ff,1.0);fill.position.set(280,60,180);sc.add(fill);
+      const rim=new T.DirectionalLight(0xffffff,1.5);rim.position.set(40,140,-280);sc.add(rim);
+      const bounce=new T.DirectionalLight(0xffd9a0,.45);bounce.position.set(0,-200,80);sc.add(bounce);
+      C3D.sph=new T.SphereGeometry(1,36,28);C3D.pln=new T.PlaneGeometry(1,1);
       C3D.R=R;C3D.cv=cv;C3D.sc=sc;C3D.cam=cam;
     }
     C3D.room=room;room.appendChild(C3D.cv);room.setAttribute("data-3d","1");
@@ -7924,26 +7938,15 @@ function c3dOff(save){
 }
 function c3dKill(e){
   try{
+    if(e.mixer){try{e.mixer.stopAllAction()}catch(_){ }e.mixer=null}
     [e.g,e.sh,e.fx,e.gl].forEach(o=>{if(!o)return;if(o.parent)o.parent.remove(o);o.traverse(m=>{if(m.geometry&&m.geometry!==C3D.sph&&m.geometry!==C3D.pln)m.geometry.dispose();if(m.material)m.material.dispose&&m.material.dispose()})});
   }catch(_){}
 }
 /* ---------- builder ---------- */
-function c3dMat(T,col,o){
-  return new T.MeshStandardMaterial(Object.assign({
-    color:col,roughness:.78,metalness:.03,
-    map:C3D.tex,bumpMap:C3D.tex,bumpScale:1.05,
-    flatShading:false
-  },o||{}));
-}
+function c3dMat(T,col,o){return new T.MeshStandardMaterial(Object.assign({color:col,roughness:.78,metalness:.03,map:C3D.tex,bumpMap:C3D.tex,bumpScale:1.0,flatShading:false},o||{}))}
 function c3dWing(T,mat){
-  const s=new T.Shape();
-  s.moveTo(0,0);
-  s.quadraticCurveTo(.08,.45,.55,.68);
-  s.quadraticCurveTo(.5,.5,.58,.4);
-  s.quadraticCurveTo(.4,.34,.44,.14);
-  s.quadraticCurveTo(.26,.18,.16,-.02);
-  s.lineTo(0,0);
-  const m=new T.Mesh(new T.ShapeGeometry(s,16),mat);m.scale.x=-1;return m;
+  const s=new T.Shape();s.moveTo(0,0);s.quadraticCurveTo(.12,.36,.5,.56);s.quadraticCurveTo(.42,.4,.5,.3);s.quadraticCurveTo(.34,.28,.38,.1);s.quadraticCurveTo(.22,.14,.2,-.02);s.lineTo(0,0);
+  const m=new T.Mesh(new T.ShapeGeometry(s),mat);m.scale.x=-1;return m;
 }
 function c3dBuild(sp,st,accs){
   const T=C3D.T,P=C3S[sp]||C3S["🐺"],R={sp,st,P};
@@ -8039,27 +8042,80 @@ function c3dBuild(sp,st,accs){
 function c3dEnt(p,room){
   const T=C3D.T;
   const sp=((p.querySelector(".pe")||{}).textContent||"").trim(),st=+p.dataset.st||4;
-  if(!C3S[sp])return null;
+  if(!C3S[sp]&&!C3_GLB[sp])return null;
   const accs=[...p.querySelectorAll(".lf-acc")].map(x=>x.classList[1]).filter(Boolean);
-  const sig=sp+"|"+st+"|"+accs.join(",");
+  const sig=sp+"|"+st+"|"+accs.join(",")+"|glb";
   let e=C3D.ents.get(p);
   if(e&&e.sig===sig)return e;
   if(e){c3dKill(e)}
+  const glbCfg=C3_GLB[sp];
+  /* Prefer real GLB model when available */
+  if(glbCfg&&C3D.GLTF&&C3D.Skel){
+    e={p,R:null,g:new T.Group(),sig,sp,st,seed:Math.random()*100,yaw:-.5,ph:0,cur:{},glb:1,glbCfg,mixer:null,actions:{},act:null,ready:0,hopT:-1,spinT:-1,lastX:null,vx:0};
+    C3D.sc.add(e.g);
+    const sh=new T.Mesh(C3D.pln,new T.MeshBasicMaterial({map:C3D.shT,transparent:true,depthWrite:false,opacity:.7}));sh.position.z=-60;C3D.sc.add(sh);e.sh=sh;
+    C3D.ents.set(p,e);
+    c3dLoadGlb(glbCfg.url).then(gltf=>{
+      if(!e.g||!e.g.parent)return;
+      try{
+        const root=C3D.Skel.clone(gltf.scene);
+        root.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;if(o.material){o.material=o.material.clone();o.material.roughness=.65;o.material.metalness=.05;if(glbCfg.tint)o.material.color.multiply(new T.Color(glbCfg.tint))}}});
+        const box=new T.Box3().setFromObject(root),sz=new T.Vector3();box.getSize(sz);
+        const sc=glbCfg.scale/Math.max(sz.x,sz.y,sz.z,0.01);
+        root.scale.setScalar(sc);root.position.y=-box.min.y*sc+glbCfg.y;root.rotation.y=glbCfg.face||0;
+        e.g.add(root);e.model=root;e.ready=1;
+        if(gltf.animations&&gltf.animations.length){
+          e.mixer=new T.AnimationMixer(root);
+          const names=["idle","walk","attack","dead"];
+          gltf.animations.forEach(clip=>{
+            const n=(clip.name||"").toLowerCase();
+            const key=names.find(k=>n.includes(k))||n||"idle";
+            e.actions[key]=e.mixer.clipAction(clip);
+          });
+          if(!e.actions.idle&&gltf.animations[0])e.actions.idle=e.mixer.clipAction(gltf.animations[0]);
+          if(e.actions.idle){e.actions.idle.play();e.act="idle"}
+        }
+      }catch(err){console.warn("glb attach",err)}
+    }).catch(()=>{/* keep empty group, procedural fallback not auto */});
+    return e;
+  }
+  /* Procedural fallback */
+  if(!C3S[sp])return null;
   const R=c3dBuild(sp,st,accs);
   e={p,R,g:R.g,sig,sp,st,seed:Math.random()*100,yaw:-.5,ph:0,cur:{},blinkT:1+Math.random()*3,blink:0,glanceT:0,glance:0,hopT:-1,spinT:-1,lastX:null,vx:0};
   C3D.sc.add(e.g);
   const sh=new T.Mesh(C3D.pln,new T.MeshBasicMaterial({map:C3D.shT,transparent:true,depthWrite:false}));sh.position.z=-60;C3D.sc.add(sh);e.sh=sh;
   const P=R.P;
   if(st>=5||(P.dragon&&st>=3)){
-    const N=36,pos=new Float32Array(N*3),pm=new T.PointsMaterial({size:9,map:C3D.dot,color:P.aura,transparent:true,opacity:.92,depthWrite:false,blending:T.AdditiveBlending,sizeAttenuation:false});
+    const N=28,pos=new Float32Array(N*3),pm=new T.PointsMaterial({size:8,map:C3D.dot,color:P.aura,transparent:true,opacity:.92,depthWrite:false,blending:T.AdditiveBlending,sizeAttenuation:false});
     const gm=new T.BufferGeometry();gm.setAttribute("position",new T.BufferAttribute(pos,3));
     const pts=new T.Points(gm,pm);pts.frustumCulled=false;C3D.sc.add(pts);e.fx=pts;e.fxN=N;e.fire=!!P.dragon&&st<5;
   }
-  if(st>=5){const sm=new T.Sprite(new T.SpriteMaterial({map:C3D.dot,color:P.aura,transparent:true,opacity:.4,depthWrite:false,blending:T.AdditiveBlending}));sm.position.z=-120;C3D.sc.add(sm);e.gl=sm}
+  if(st>=5){const sm=new T.Sprite(new T.SpriteMaterial({map:C3D.dot,color:P.aura,transparent:true,opacity:.35,depthWrite:false,blending:T.AdditiveBlending}));sm.position.z=-120;C3D.sc.add(sm);e.gl=sm}
   C3D.ents.set(p,e);return e;
 }
 const c3Sm=(c,t,k,dt)=>c+(t-c)*Math.min(1,k*dt);
-const c3Ease=x=>x*x*(3-2*x);
+function c3dGlbPose(e,dt){
+  if(!e.ready||!e.mixer)return 0;
+  const cl=e.p.classList,has=c=>cl.contains(c);
+  const walk=has("walk")||has("r-run"),hop=has("hop")||has("r-jump"),happy=has("happy")||has("r-dance"),sad=has("r-sad"),sleep=has("sleep");
+  let want="idle";
+  if(walk)want="walk";
+  else if(hop||happy)want=e.actions.attack?"attack":(e.actions.walk?"walk":"idle");
+  else if(sad||sleep)want="idle";
+  if(want!==e.act&&e.actions[want]){
+    if(e.act&&e.actions[e.act])e.actions[e.act].fadeOut(.25);
+    e.actions[want].reset().fadeIn(.25).play();
+    e.act=want;
+  }else if(want!==e.act&&!e.actions[want]&&e.actions.idle&&e.act!=="idle"){
+    if(e.act&&e.actions[e.act])e.actions[e.act].fadeOut(.25);
+    e.actions.idle.reset().fadeIn(.25).play();e.act="idle";
+  }
+  e.mixer.update(dt);
+  const ty=has("fl")?Math.PI/2:-Math.PI/2;
+  e.yaw=c3Sm(e.yaw,ty,5,dt);
+  return e.yaw;
+}
 function c3dPose(e,dt,t){
   const R=e.R,cl=e.p.classList,has=c=>cl.contains(c),c=e.cur,K=R.K;
   const walk=has("walk")||has("r-run"),sleep=has("sleep"),scr=has("scratch"),sit=has("sit")||scr,eat=has("eat"),yawn=has("yawn"),str=has("stretch"),sniff=has("sniff"),
@@ -8067,90 +8123,55 @@ function c3dPose(e,dt,t){
   const idle=!walk&&!sleep&&!sit&&!eat&&!yawn&&!str&&!sniff;
   if(hop){e.hopT=e.hopT<0?0:e.hopT+dt}else e.hopT=-1;
   if(spin){e.spinT=e.spinT<0?0:e.spinT+dt}else e.spinT=-1;
-  /* facing — smooth turn */
+  /* facing */
   const ty=has("fl")?-.5:-2.64;
-  e.yaw=c3Sm(e.yaw,ty,5.2,dt);
+  e.yaw=c3Sm(e.yaw,ty,7,dt);
   let yawAdd=0;
-  if(e.spinT>=0){const q=Math.min(1,e.spinT/.85);yawAdd=c3Ease(q)*Math.PI*2}
-  if(dance)yawAdd+=Math.sin(t*12)*.28+Math.sin(t*7)*.12;
-  /* natural blink + soft glance */
-  e.blinkT-=dt;
-  if(e.blinkT<=0){e.blink=.1+(Math.random()<.2?.1:0);e.blinkT=1.6+Math.random()*4.5+(Math.random()<.1?.2:0)}
+  if(e.spinT>=0){const q=Math.min(1,e.spinT/.8);yawAdd=(q<.5?2*q*q:1-Math.pow(-2*q+2,2)/2)*Math.PI*2}
+  if(dance)yawAdd+=Math.sin(t*14)*.35;
+  /* blink + glance */
+  e.blinkT-=dt;if(e.blinkT<=0){e.blink=.13;e.blinkT=2.2+Math.random()*3.5}
   if(e.blink>0)e.blink-=dt;
-  e.glanceT-=dt;
-  if(e.glanceT<=0){e.glance=(Math.random()-.5)*1.2;e.glanceT=2+Math.random()*4.5}
-  /* micro idle motion */
-  const micro=Math.sin(t*.6+e.seed)*.02+Math.sin(t*1.4+e.seed*2)*.008;
-  let dy=0,pitch=0,hz=micro,hy=idle?e.glance*.55:0,jaw=0,eye=1,earZ=0,earX=0,tAmp=.18,tF=1.4,tSag=0,bob=0,sway=0;
+  e.glanceT-=dt;if(e.glanceT<=0){e.glance=(Math.random()-.5)*1.0;e.glanceT=1.8+Math.random()*3.2}
+  /* targets */
+  let dy=0,pitch=0,hz=Math.sin(t*.9+e.seed)*.03,hy=idle?e.glance*.6:0,jaw=0,eye=1,earZ=0,earX=0,tAmp=.2,tF=1.6,tSag=0,bob=0;
   let lg=[[0,0],[0,0],[0,0],[0,0]];
-  const brA=sleep?.026:.01;
-  /* realistic quadruped gait */
-  if(walk){
-    const sp=has("r-run")?1.4:1;
-    bob=Math.abs(Math.sin(e.ph))*.034*sp;
-    tAmp=.4;tF=5.4*sp;hz=Math.sin(e.ph*2)*.045;pitch=Math.sin(e.ph)*.07;sway=Math.sin(e.ph)*.045;
-  }
-  if(sit){dy=-.18*K;pitch=.46;lg[2]=[1.28,-2.1];lg[3]=[1.28,-2.1];lg[0]=[.1,-.06];lg[1]=[.1,-.06];if(!scr)hy=e.glance*.42}
-  if(scr){lg[2]=[.92+Math.sin(t*26)*.34,-1.18];hz=.15;eye=.36;earZ=.18}
-  if(sleep){dy=-.33*K;pitch=.025;lg[0]=[1.18,-2];lg[1]=[1.18,-2];lg[2]=[1.38,-2.2];lg[3]=[1.38,-2.2];hz=-.58;hy=.16;eye=.035;earX=.78;earZ=-.4;tAmp=.025;tSag=.58}
-  if(eat){pitch=-.15;hz=-.5+Math.sin(t*10)*.15;jaw=.22+.22*Math.sin(t*13.5);lg[0]=[.25,-.25];lg[1]=[.25,-.25];hy=0;earZ=.12}
-  if(yawn){hz=.5;jaw=.85;eye=.1;hy=0;earX=.35}
-  if(str){pitch=-.34;dy=-.055;lg[0]=[1,-.38];lg[1]=[1,-.38];lg[2]=[-.3,0];lg[3]=[-.3,0];hz=-.34;eye=.26;hy=0;tAmp=.07}
-  if(sniff){hz=-.34+Math.sin(t*13)*.08;pitch=-.09;hy=Math.sin(t*2.6)*.2;jaw=.05+Math.sin(t*16)*.05}
-  if(look)hy=.82*(Math.sin(e.seed)>0?1:-1);
-  if(happy){tAmp=.95;tF=15.5;jaw=.24;eye=.4;earZ=.3;bob=.038+.038*Math.abs(Math.sin(t*13));if(!walk&&!sit){lg[0]=[Math.sin(t*13)*.58,0];lg[1]=[Math.sin(t*13+Math.PI)*.58,0]}}
-  if(sad){hz=-.5;earX=.88;earZ=-.45;tAmp=.025;tSag=.78;eye=.52;pitch=-.055}
-  if(hop&&e.hopT>=0){
-    const u=(e.hopT%.72)/.72,s=Math.sin(u*Math.PI);
-    dy+=s*.5;bob=0;
-    lg.forEach((l,i)=>{l[0]=i<2?(.42+s*.32):(-.42-s*.28);l[1]=i<2?(-.72-s*.42):(.72+s*.32)});
-  }
-  /* higher-order smoothing */
-  const sk=hop?26:8;
-  c.dy=c3Sm(c.dy||0,dy,sk,dt);c.pitch=c3Sm(c.pitch||0,pitch,7.2,dt);c.hz=c3Sm(c.hz||0,hz,8.2,dt);c.hy=c3Sm(c.hy||0,hy,6.8,dt);
-  c.jaw=c3Sm(c.jaw||0,jaw,12.5,dt);c.eye=c3Sm(c.eye==null?1:c.eye,eye,10.5,dt);c.earZ=c3Sm(c.earZ||0,earZ,7.2,dt);c.earX=c3Sm(c.earX||0,earX,7.2,dt);
-  c.tAmp=c3Sm(c.tAmp||.18,tAmp,5.2,dt);c.tSag=c3Sm(c.tSag||0,tSag,4.2,dt);c.bob=c3Sm(c.bob||0,bob,11.5,dt);c.sway=c3Sm(c.sway||0,sway,7.5,dt);
-  /* apply with secondary motion */
+  const brA=sleep?.03:.014;
+  if(walk){bob=Math.abs(Math.sin(e.ph))*.025;tAmp=.3;tF=6;hz=Math.sin(e.ph*2)*.03}
+  if(sit){dy=-.16*K;pitch=.42;lg[2]=[1.2,-2.0];lg[3]=[1.2,-2.0];lg[0]=[.05,0];lg[1]=[.05,0];if(!scr)hy=e.glance*.5}
+  if(scr){lg[2]=[.95+Math.sin(t*28)*.3,-1.2];hz=.12;eye=.4}
+  if(sleep){dy=-.3*K;pitch=.02;lg[0]=[1.1,-1.9];lg[1]=[1.1,-1.9];lg[2]=[1.3,-2.1];lg[3]=[1.3,-2.1];hz=-.6;hy=.2;eye=.05;earX=.7;earZ=-.35;tAmp=.04;tSag=.5}
+  if(eat){pitch=-.12;hz=-.5+Math.sin(t*11)*.12;jaw=.18+.18*Math.sin(t*14);lg[0]=[.2,-.2];lg[1]=[.2,-.2];hy=0}
+  if(yawn){hz=.42;jaw=.75;eye=.15;hy=0}
+  if(str){pitch=-.3;dy=-.04;lg[0]=[.9,-.3];lg[1]=[.9,-.3];lg[2]=[-.25,0];lg[3]=[-.25,0];hz=-.3;eye=.3;hy=0;tAmp=.1}
+  if(sniff){hz=-.3+Math.sin(t*14)*.06;pitch=-.06;hy=Math.sin(t*3)*.15}
+  if(look)hy=.75*(Math.sin(e.seed)>0?1:-1);
+  if(happy){tAmp=.8;tF=17;jaw=.24;eye=.45;earZ=.25;bob=.03+.03*Math.abs(Math.sin(t*14));if(!walk&&!sit){lg[0]=[Math.sin(t*14)*.6,0];lg[1]=[Math.sin(t*14+Math.PI)*.6,0]}}
+  if(sad){hz=-.5;earX=.8;earZ=-.4;tAmp=.04;tSag=.7;eye=.6;pitch=-.04}
+  if(hop&&e.hopT>=0){const u=(e.hopT%.65)/.65;dy+=Math.sin(u*Math.PI)*.42;lg.forEach((l,i)=>{l[0]=i<2?.5:-.5;l[1]=i<2?-.9:.9});c.sq=1-Math.sin(u*Math.PI)*.0}
+  /* smooth */
+  c.dy=c3Sm(c.dy||0,dy,hop?30:9,dt);c.pitch=c3Sm(c.pitch||0,pitch,8,dt);c.hz=c3Sm(c.hz||0,hz,9,dt);c.hy=c3Sm(c.hy||0,hy,8,dt);
+  c.jaw=c3Sm(c.jaw||0,jaw,14,dt);c.eye=c3Sm(c.eye==null?1:c.eye,eye,12,dt);c.earZ=c3Sm(c.earZ||0,earZ,8,dt);c.earX=c3Sm(c.earX||0,earX,8,dt);
+  c.tAmp=c3Sm(c.tAmp||.2,tAmp,6,dt);c.tSag=c3Sm(c.tSag||0,tSag,5,dt);c.bob=c3Sm(c.bob||0,bob,14,dt);
+  /* apply */
   const body=R.body;
-  const br=1+Math.sin(t*(sleep?1.5:2.2)+e.seed)*brA+Math.sin(t*.85+e.seed)*.005;
-  body.scale.set(1+(br-1)*.12,br,1+(br-1)*.38);
-  body.position.y=c.dy+c.bob;body.rotation.z=c.pitch;body.rotation.y=c.sway;
+  const br=1+Math.sin(t*(sleep?1.6:2.4)+e.seed)*brA;
+  body.scale.set(1,br,1+(br-1)*.5);
+  body.position.y=c.dy+c.bob;body.rotation.z=c.pitch;
   R.head.rotation.z=c.hz;R.head.rotation.y=c.hy;
   R.jaw.rotation.z=-c.jaw;
-  const ey=c.eye*(e.blink>0?.05:1);
-  R.eyes.forEach(g=>{g.scale.set(R.eyeS,R.eyeS*Math.max(.04,ey),R.eyeS)});
-  /* independent ear twitch */
-  R.ears.forEach((g,i)=>{
-    const s=i?-1:1;
-    const twitch=(Math.sin(t*.4+e.seed*3+(i?1.8:0))>.975?0.45:0)+Math.sin(t*.5+e.seed+(i?2.2:0))*.055;
-    g.rotation.z=c.earZ+twitch;g.rotation.x=s*(.22+c.earX+Math.sin(t*.75+i)*.035);
-  });
-  /* tail lag cascade */
-  R.tail.forEach((s,i)=>{
-    const lag=i*.58,freq=walk?tF:(happy?tF:1.3);
-    const sw=Math.sin(t*freq-lag)*c.tAmp*(.3+i*.17);
-    const lift=s.b+c.tSag*(i?.15:.52)+Math.sin(t*1-lag)*.045*(1-i*.07);
-    s.g.rotation.y=sw;s.g.rotation.z=lift;
-  });
-  /* legs — natural gait */
+  const ey=c.eye*(e.blink>0?.08:1);
+  R.eyes.forEach(g=>{g.scale.set(R.eyeS,R.eyeS*Math.max(.06,ey),R.eyeS)});
+  R.ears.forEach((g,i)=>{const s=i?-1:1;g.rotation.z=c.earZ+Math.sin(t*.7+e.seed+(i?2:0))*.04+(Math.sin(t*.37+e.seed*3)>.96?.35:0);g.rotation.x=s*(.22+c.earX)});
+  R.tail.forEach((s,i)=>{const sw=Math.sin(t*(walk?tF:happy?tF:1.6)-i*.6)*c.tAmp*(.35+i*.14);s.g.rotation.y=sw;s.g.rotation.z=s.b+c.tSag*(i?.18:.6)+(i?Math.sin(t*1.1-i*.5)*.03:0)});
   R.legs.forEach(L=>{
     const tgt=lg[L.i];
-    if(walk){
-      const ph=e.ph+L.ph,sp=has("r-run")?1.3:1;
-      const swing=Math.sin(ph)*.65*sp,lift=Math.max(0,Math.cos(ph))*sp;
-      L.hip.rotation.z=swing;L.knee.rotation.z=-lift*(L.front?.95:.7);
-    }else{
-      L.hip.rotation.z=c3Sm(L.hip.rotation.z,tgt[0],10.5,dt);
-      L.knee.rotation.z=c3Sm(L.knee.rotation.z,tgt[1],10.5,dt);
-    }
+    if(walk){const ph=e.ph+L.ph;const swing=Math.sin(ph)*.55,lift=Math.max(0,Math.cos(ph));L.hip.rotation.z=swing;L.knee.rotation.z=-lift*(L.front?.85:.6)}
+    else{L.hip.rotation.z=c3Sm(L.hip.rotation.z,tgt[0],12,dt);L.knee.rotation.z=c3Sm(L.knee.rotation.z,tgt[1],12,dt)}
   });
-  /* wings */
-  R.wings.forEach(w=>{
-    const fly=has("hop")||has("r-jump")||happy;
-    w.g.rotation.x=w.s*(1.05+Math.sin(t*(fly?11:1.5)+e.seed)*(fly?.45:.1));
-  });
-  if(R.halo){R.halo.position.y=.38+Math.sin(t*1.7)*.02;R.halo.rotation.z=Math.sin(t*.65)*.1}
-  if(walk)e.ph+=dt*(has("r-run")?13:8.4);
+  R.wings.forEach(w=>{const fly=has("hop")||has("r-jump")||happy;w.g.rotation.x=w.s*(1.05+Math.sin(t*(fly?14:1.8)+e.seed)*(fly?.35:.07))});
+  if(R.halo){R.halo.position.y=.38+Math.sin(t*2)*.015}
+  if(walk)e.ph+=dt*9;
   return yawAdd;
 }
 /* ---------- main loop ---------- */
@@ -8179,28 +8200,34 @@ function c3dLoop(now){
       if(p.classList.contains("isegg")||p.classList.contains("home")){const o=C3D.ents.get(p);if(o){o.g.visible=false;o.sh.visible=false;if(o.fx)o.fx.visible=false;if(o.gl)o.gl.visible=false}return}
       const e=c3dEnt(p,room);if(!e)return;
       const fpx=parseFloat(getComputedStyle(p).fontSize)||52;
-      const size=fpx*2.1*e.R.P.sz;
       const cx=p.offsetLeft+p.offsetWidth/2-px*14,gy=H-(p.offsetTop+p.offsetHeight)+8;
       if(e.lastX!=null)e.vx=(cx-e.lastX)/Math.max(.001,dt);e.lastX=cx;
+      const g=e.g;g.visible=true;if(e.sh)e.sh.visible=true;
+      /* Real GLB path */
+      if(e.glb){
+        const yaw=c3dGlbPose(e,dt);
+        const sc=fpx/52;
+        g.scale.setScalar(sc);g.position.set(cx,gy,p.classList.contains("m")?30:0);g.rotation.y=yaw;
+        if(e.sh){e.sh.scale.set(fpx*1.1,fpx*.18,1);e.sh.position.set(cx,gy+2,-60)}
+        return;
+      }
+      /* Procedural path */
+      const size=fpx*2.1*((e.R&&e.R.P&&e.R.P.sz)||1);
       const yawAdd=c3dPose(e,dt,t);
-      const g=e.g;g.visible=true;e.sh.visible=true;
       g.scale.setScalar(size);g.position.set(cx,gy,p.classList.contains("m")?30:0);g.rotation.y=e.yaw+yawAdd;
-      const lift=Math.max(0,e.R.body.position.y);
-      /* soft contact shadow shrinks when airborne */
-      const shS=Math.max(.32,1.22-lift*.7);
-      e.sh.scale.set(size*shS,size*.24*shS,1);e.sh.position.set(cx,gy+1.2,-60);
-      if(e.sh.material)e.sh.material.opacity=.9*(.5+shS*.5);
+      const lift=Math.max(0,(e.R&&e.R.body)?e.R.body.position.y:0);
+      if(e.sh){e.sh.scale.set(size*(1.15-lift*.5),size*.2,1);e.sh.position.set(cx,gy+2,-60)}
       if(e.fx){
         e.fx.visible=true;const a=e.fx.geometry.attributes.position,N=e.fxN;
         for(let i=0;i<N;i++){
-          const u=((t*(e.fire?.55:.15)+i/N)%1),ang=i*2.3+t*(e.fire?1:.7);
-          const rr=size*(e.fire?.4:.7)*(e.fire?1-u*.5:1)*(1+Math.sin(t*2.8+i)*.05);
-          a.setXYZ(i,Math.cos(ang)*rr,u*size*(e.fire?1.15:1.4),Math.sin(ang)*rr*.55);
+          const u=((t*(e.fire?.5:.18)+i/N)%1),ang=i*2.4+t*(e.fire?.8:.9);
+          const rr=size*(e.fire?.35:.62)*(e.fire?1-u*.6:1);
+          a.setXYZ(i,Math.cos(ang)*rr,u*size*(e.fire?1.0:1.25),Math.sin(ang)*rr*.5);
         }
-        a.needsUpdate=true;e.fx.position.set(cx,gy+size*.12,40);
-        e.fx.material.opacity=.88*(e.fire?.85:1)*(.65+.35*Math.sin(t*2+e.seed));
+        a.needsUpdate=true;e.fx.position.set(cx,gy,40);
+        e.fx.material.opacity=.95*(e.fire?.8:1);
       }
-      if(e.gl){e.gl.visible=true;e.gl.position.set(cx,gy+size*.55,-120);const s=size*(1.9+Math.sin(t*1.7+e.seed)*.15);e.gl.scale.set(s,s,1);if(e.gl.material)e.gl.material.opacity=.35+.1*Math.sin(t*2+e.seed)}
+      if(e.gl){e.gl.visible=true;e.gl.position.set(cx,gy+size*.5,-120);const s=size*(1.7+Math.sin(t*2+e.seed)*.1);e.gl.scale.set(s,s,1)}
     });
     C3D.ents.forEach((e,p)=>{if(!seen.has(p)||!p.isConnected){c3dKill(e);C3D.ents.delete(p)}});
     C3D.R.render(C3D.sc,C3D.cam);
