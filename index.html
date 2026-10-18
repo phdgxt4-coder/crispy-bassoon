@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v48-s1">
+<meta name="sw-build" content="v49-s1">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <script>(function(){try{var m=localStorage.getItem("theme_mode"),c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#0B0A07",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
@@ -645,6 +645,69 @@ html[data-skin=neon]{--sk1:#EC4899;--sk2:#BE185D;--sk3:#06B6D4}
 @keyframes lfflash{0%{opacity:0;transform:scale(.4)}40%{opacity:1}100%{opacity:0;transform:scale(1.8)}}
 .lf-bought .bi{font-size:76px;animation:lfpetout .6s cubic-bezier(.2,1.6,.4,1)}
 @media (prefers-reduced-motion:reduce){.lf-it.sh,.lf-it.sh::before,.pv-sk,.pv-pet,.pv-ic,.pv-fx i{animation:none!important}}
+/* ===== Store v6 ===== */
+.fr-ruby{background:linear-gradient(135deg,#7f1d1d,#ef4444,#fecaca);box-shadow:0 0 12px rgba(239,68,68,.6)}
+.fr-emerald{background:linear-gradient(135deg,#064e3b,#10b981,#a7f3d0);box-shadow:0 0 12px rgba(16,185,129,.6)}
+.fr-sapphire{background:linear-gradient(135deg,#1e3a8a,#3b82f6,#bfdbfe);box-shadow:0 0 12px rgba(59,130,246,.6)}
+.fr-ice{background:conic-gradient(from var(--a,0deg),#e0f2fe,#7dd3fc,#fff,#bae6fd,#e0f2fe);animation:lfspin 5s linear infinite;box-shadow:0 0 14px rgba(125,211,252,.7)}
+.fr-cyber{background:conic-gradient(from var(--a,0deg),#22d3ee,#0f172a,#f0abfc,#0f172a,#22d3ee);animation:lfspin 3s linear infinite;box-shadow:0 0 12px #22d3ee}
+.fr-rgb{background:conic-gradient(from var(--a,0deg),#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);animation:lfspin 2.5s linear infinite}
+.fr-electric{background:linear-gradient(135deg,#facc15,#fff,#38bdf8);animation:lfelec .9s steps(2) infinite}
+@keyframes lfelec{0%{box-shadow:0 0 6px #facc15}50%{box-shadow:0 0 22px #38bdf8,0 0 36px #facc15}100%{box-shadow:0 0 8px #facc15}}
+.fr-shadow{background:linear-gradient(135deg,#0f0f1a,#312e81);box-shadow:0 0 18px rgba(99,102,241,.7),inset 0 0 8px #000}
+.fr-crystal{background:conic-gradient(from var(--a,0deg),#c4b5fd,#fff,#f0abfc,#a5f3fc,#c4b5fd);animation:lfspin 6s linear infinite;box-shadow:0 0 16px rgba(196,181,253,.8)}
+html[data-skin=glass]{--sk1:#64748B;--sk2:#475569;--sk3:#38BDF8}
+html[data-skin=midnight]{--sk1:#4338CA;--sk2:#312E81;--sk3:#7C3AED}
+html[data-skin=gold]{--sk1:#B45309;--sk2:#92400E;--sk3:#F59E0B}
+html[data-skin=pink]{--sk1:#DB2777;--sk2:#BE185D;--sk3:#F472B6}
+html[data-skin=sky]{--sk1:#0284C7;--sk2:#0369A1;--sk3:#38BDF8}
+html[data-skin=coffee]{--sk1:#78350F;--sk2:#451A03;--sk3:#A16207}
+html[data-skin=cyberpunk]{--sk1:#C026D3;--sk2:#86198F;--sk3:#06B6D4}
+html[data-skin=retro]{--sk1:#E11D48;--sk2:#9F1239;--sk3:#F59E0B}
+html[data-skin=minimal]{--sk1:#374151;--sk2:#1F2937;--sk3:#6B7280}
+.lf-it{-webkit-tap-highlight-color:transparent}
+.lf-it button{transition:transform .15s,filter .15s}.lf-it button:active:not(:disabled){transform:scale(.93);filter:brightness(1.1)}
+html{scroll-behavior:smooth}
+button,.btn,.tab,.lf-chips button{touch-action:manipulation}
+/* ===== Room v2 ===== */
+.lf-room[data-live]{--px:0;--py:0;transform:perspective(900px) rotateY(calc(var(--px)*5deg)) rotateX(calc(var(--py)*-4deg));transition:transform .18s ease-out;cursor:pointer;touch-action:pan-y}
+.lf-room[data-live]::before{content:"";position:absolute;inset:0;z-index:4;pointer-events:none;background:radial-gradient(120% 90% at 50% 40%,transparent 55%,rgba(0,0,0,.28)),linear-gradient(90deg,rgba(0,0,0,.18),transparent 14%,transparent 86%,rgba(0,0,0,.18))}
+.lf-room[data-live] .sky{translate:calc(var(--px)*-3px) calc(var(--py)*-2px)}
+.lf-room[data-live] .slot{translate:calc(var(--px)*-8px) calc(var(--py)*-3px)}
+.lf-room[data-live] .boards{translate:calc(var(--px)*-5px) 0}
+.lf-room .lf-pet{animation:none;inset-inline-start:auto;left:var(--x,40%);transition:left var(--wd,2s) linear;translate:calc(var(--px,0)*-14px) 0;user-select:none;-webkit-user-select:none}
+.lf-room .lf-pet.m{z-index:3}.lf-room .lf-pet.ex{z-index:2;filter:saturate(1.05)}
+.lf-pet.fl .b{scale:-1 1}
+.lf-pet.walk .b{animation:lfwalk .34s ease-in-out infinite}
+@keyframes lfwalk{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-8px) rotate(6deg)}}
+.lf-pet.hop .b{animation:lfhop2 .65s ease-out 2}
+@keyframes lfhop2{0%,100%{transform:translateY(0) scale(1)}15%{transform:translateY(0) scale(1.08,.9)}50%{transform:translateY(-28px) scale(.96,1.06)}}
+.lf-pet.spin .b{animation:lfspin2 .8s ease-in-out}
+@keyframes lfspin2{to{transform:rotate(360deg) scale(1.08)}}
+.lf-pet.sit .b{animation:none;transform:scale(1.04,.86);transform-origin:50% 100%}
+.lf-pet.sleep .b{animation:lfbreath 2.4s ease-in-out infinite;filter:brightness(.82);transform-origin:50% 100%}
+@keyframes lfbreath{50%{transform:scale(1.05,.95)}}
+.lf-pet.eat .b{animation:lfchew .28s ease-in-out 4}
+@keyframes lfchew{50%{transform:scale(1.07,.93) rotate(-4deg)}}
+.lf-pet.r-dance .b{animation:lfdance .45s 4}.lf-pet.r-jump .b{animation:lfhop2 .65s ease-out}.lf-pet.r-sad .b{animation:lfsad 1.8s;filter:grayscale(.7)}
+.lf-pet .say{position:absolute;top:-4px;left:50%;font-style:normal;font-size:18px;line-height:1;pointer-events:none;animation:lfsay 1.7s ease-out forwards}
+@keyframes lfsay{from{transform:translate(-50%,0) scale(.4);opacity:0}20%{opacity:1;transform:translate(-50%,-14px) scale(1)}to{transform:translate(-50%,-38px);opacity:0}}
+.lf-room.night .lf-pet .b{filter:brightness(.92)}
+/* chat */
+.tk-bubble{animation:none}
+.tk-bubble.nw.me{animation:lfmsgme .34s cubic-bezier(.2,1.1,.3,1)}
+.tk-bubble.nw.them{animation:lfmsgthem .34s cubic-bezier(.2,1.1,.3,1)}
+@keyframes lfmsgme{from{opacity:0;transform:translate(22px,12px) scale(.88)}}
+@keyframes lfmsgthem{from{opacity:0;transform:translate(-22px,12px) scale(.88)}}
+.tk-log{scroll-behavior:smooth;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#dmTypingLine:not(:empty)::after{content:"";animation:lfdots 1.2s steps(1) infinite}
+@keyframes lfdots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+.tk-compose input{transition:box-shadow .2s,border-color .2s}.tk-compose input:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--pri) 25%,transparent);outline:0}
+.tk-compose .btn{transition:transform .12s}.tk-compose .btn:active{transform:scale(.88)}
+.msg-reacts button{animation:lfpopin .22s}
+.online-dot:not(.off){animation:lfonline 2s ease-in-out infinite}
+@keyframes lfonline{50%{box-shadow:0 0 0 5px rgba(34,197,94,.18)}}
+@media (prefers-reduced-motion:reduce){.lf-room[data-live]{transform:none}.tk-bubble.nw{animation:none!important}.lf-pet .b{animation:none!important}}
 </style>
 </head>
 <body>
@@ -2221,6 +2284,7 @@ function profileView(){
     <div class="stat card"><b>${u.totalScore!=null?u.totalScore:"—"}</b><span class="mut">نقاط</span></div>
   </div>
 </div>
+${(()=>{const l=lfPeer(u.id);return l&&(l.pet||(l.eq&&Object.keys(l.eq.room||{}).length))?`<div class="card" style="padding:12px"><h3 style="margin:0 0 8px">🏠 غرفة ${esc((u.name||"").split(" ")[0])}</h3>${lfRoomHtml(l,u.xp||0,"p"+u.id)}</div>`:""})()}
 ${u.recent&&u.recent.length?`<div class="card"><h3>آخر النتائج</h3>${u.recent.map(r=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><span style="flex:1"><b dir="auto">${esc(r.examTitle||"امتحان")}</b><div class="mut">${esc(subName(r.subject)||"")}</div></span><span><b>${r.score}/${r.total}</b> ${passPill(r)}</span></div>`).join("")}</div>`:`<div class="card mut">لسه مفيش نتائج ظاهرة.</div>`}
 <button class="btn block" data-act="studentCard" data-uid="${u.id}" style="margin-bottom:8px">🪪 بطاقة الطالب</button>${u.id===S.user.uid?`<button class="btn block ghost" data-act="openMe">تعديل حسابي</button>`:`<button class="btn block gold" data-act="startChat" data-uid="${u.id}" data-name="${esc(u.name||"طالب")}">💬 راسله دلوقتي</button><button class="btn block ghost" style="margin-top:8px" data-act="blockUser" data-uid="${u.id}">🚫 حظر</button>`}
 </div>${studentNav()}`;
@@ -2408,6 +2472,7 @@ function meView(){
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
 <h2>حسابي</h2>
 ${typeof installBanner==="function"?installBanner():""}
+${S.life&&S.life.pet?`<div class="card" style="padding:12px"><div class="row" style="margin-bottom:8px"><b style="flex:1">🏠 غرفتي</b><button class="btn gold sm" data-act="openLife">المتجر والتعديل</button></div>${lfRoomHtml(S.life,xp,"me")}<div class="mut" style="font-size:12px;margin-top:6px;text-align:center">اضغط على الأرض يجيلك الحيوان · واضغط عليه يلعب معاك 💖</div></div>`:`<div class="card" style="text-align:center"><div style="font-size:42px">🥚</div><button class="btn gold block" data-act="openLife">اختار رفيقك وابدأ غرفتك</button></div>`}
 <div class="card xp-card" style="text-align:center">${lfFr(av,S.life)}${lfChip()}
 <div style="margin-top:8px"><b>${esc(p.name||"طالب")}</b></div>
 <div class="mut">${esc(p.phone||"")}</div>
@@ -3382,7 +3447,7 @@ function studentDetail(){
   const roleBtns=`<div class="card"><b>صلاحيات خاصة</b><div class="row" style="margin-top:8px;gap:8px;flex-wrap:wrap">
     <button type="button" class="btn ${isAsm?"":"ghost "}sm" data-act="grantAsmRole" data-uid="${s.id}">${isAsm?"✓ مسؤول تقييمات":"تعيين مسؤول تقييمات"}</button>
     <button type="button" class="btn ${s.tanaghaSave?"":"ghost "}sm" data-act="toggleTanaghaSave" data-uid="${s.id}">${s.tanaghaSave?"✓ حفظ التناغه":"سماح حفظ التناغه"}</button>
-    <button type="button" class="btn ghost sm" data-act="adminLifeAll" data-uid="${s.id}">🎁 وضع التجربة: كل المتجر</button>
+    ${S.testerUid&&S.testerUid!==s.id?`<button type="button" class="btn ghost sm" disabled>🔒 وضع التجربة محجوز لحساب تاني</button>`:`<button type="button" class="btn ${S.testerUid===s.id?"":"ghost "}sm" data-act="adminLifeAll" data-uid="${s.id}">${S.testerUid===s.id?"✓ حساب التجربة (ثابت)":"🎁 اختيار حساب التجربة (مرة واحدة)"}</button>`}
   </div></div>`;
   const wa=s.phone&&/^01\d{9}$/.test(s.phone)?`https://wa.me/20${s.phone.slice(1)}`:"";
   return `<div class="wrap wide">${header(`<button class="btn ghost sm" data-act="backAdmin">رجوع</button>`)}
@@ -4337,7 +4402,7 @@ const A={
       recent=recent.slice(0,8);
       S.viewProfile={
         id:uid,name:st.name||lb.name||"طالب",phone:st.phone||lb.phone||"",
-        avatar:st.avatar||null,blocked:!!st.blocked,
+        avatar:st.avatar||null,xp:st.xp||0,blocked:!!st.blocked,
         examsDone:lb.examsDone,totalScore:lb.totalScore,pct:lb.pct,rank,recent
       };
     }catch(e){
@@ -7296,7 +7361,7 @@ if(!configured)render(true);
 /* ===== Student Life v1: Coins + Pet + Shop + Room + Quests ===== */
 const LF_ST=[0,300,900,1800,3500,7000],LF_STN=["بيضة","رضيع","طفل","شاب","بالغ","أسطوري"],LF_SC=[1,.6,.75,.9,1.05,1.25];
 const LF_PETS=["🐱","🐶","🦊","🐼","🐧","🐸","🐨","🐰","🐢","🐺","🐲"];
-const LF_CATS={title:"الألقاب",frame:"الإطارات",skin:"الثيمات",fx:"التأثيرات",acc:"للحيوان",room:"الغرفة",snd:"الأصوات",bub:"فقاعات الشات"};
+const LF_CATS={title:"الألقاب",frame:"الإطارات",skin:"الثيمات",fx:"التأثيرات",acc:"للحيوان",pet:"🐾 حيوانات",room:"الغرفة",snd:"الأصوات",bub:"فقاعات الشات"};
 const LF_OLD={"t1":150,"t2":400,"t3":400,"t4":400,"t5":900,"t6":1500,"t7":600,"f1":100,"f2":250,"f3":500,"f4":1200,"f5":800,"f6":700,"f7":1000,"s1":300,"s2":300,"s3":350,"s4":350,"s5":600,"s6":600,"x1":350,"x2":350,"x3":400,"x4":500,"x5":400,"a1":200,"a2":200,"a3":250,"a4":700,"a5":900,"a6":600,"r1":150,"r2":200,"r3":250,"r4":600,"r5":120,"r6":180,"r7":500,"r8":250,"r9":200,"r10":450,"r11":220,"r12":150,"p1":180,"p2":180,"p3":220,"p4":220,"p5":300,"g1":160,"g2":160,"g3":160,"h1":400,"h2":250,"h3":150,"h4":300,"h5":100,"h6":450,"h7":600,"h8":100,"h9":700,"n1":150,"n2":200,"n3":250,"n4":250,"n5":150,"n6":150,"n7":120,"n8":120,"b1":400,"b2":500,"b3":450,"b4":350,"b5":400};
 const LF_SHOP=[
 {id:"t1",c:"title",i:"📖",n:"طالب مجتهد",p:900,lv:1},{id:"t8",c:"title",i:"🧠",n:"العبقري",p:1500,lv:3},{id:"t9",c:"title",i:"🌟",n:"المتفوق",p:2500,lv:4},{id:"t10",c:"title",i:"🏅",n:"جامع الإنجازات",p:3500,lv:5},{id:"t11",c:"title",i:"🦁",n:"القائد",p:4500,lv:6},{id:"t12",c:"title",i:"🎖️",n:"المحترف",p:6000,lv:7},{id:"t13",c:"title",i:"🐉",n:"الوحش",p:9000,lv:8},{id:"t5",c:"title",i:"👑",n:"أسطورة",p:5400,lv:6},{id:"t6",c:"title",i:"💎",n:"VIP",p:9000,lv:8},{id:"t7",c:"title",i:"🎯",n:"صياد الجوائز",p:3600,lv:4},
@@ -7304,7 +7369,7 @@ const LF_SHOP=[
 {id:"s1",c:"skin",i:"🌊",n:"Ocean",p:1800,lv:2,k:"ocean"},{id:"s2",c:"skin",i:"🟣",n:"Purple",p:1800,lv:2,k:"purple"},{id:"s3",c:"skin",i:"🌅",n:"Sunset",p:2100,lv:3,k:"sunset"},{id:"s4",c:"skin",i:"🌲",n:"Forest",p:2100,lv:3,k:"forest"},{id:"s5",c:"skin",i:"🌈",n:"Aurora",p:3600,lv:5,k:"aurora"},{id:"s6",c:"skin",i:"💗",n:"Neon",p:3600,lv:5,k:"neon"},
 {id:"x1",c:"fx",i:"⭐",n:"نجوم",p:2100,lv:2,k:"⭐"},{id:"x2",c:"fx",i:"❄️",n:"ثلج",p:2100,lv:3,k:"❄️"},{id:"x3",c:"fx",i:"💖",n:"قلوب",p:2400,lv:3,k:"💖"},{id:"x4",c:"fx",i:"✨",n:"شرارات",p:3000,lv:4,k:"✨"},{id:"x5",c:"fx",i:"💧",n:"مطر",p:2400,lv:3,k:"💧"},
 {id:"a1",c:"acc",i:"🎩",n:"قبعة",p:1400,lv:1,k:"hat"},{id:"a2",c:"acc",i:"🕶️",n:"نظارة",p:1400,lv:1,k:"glasses"},{id:"a3",c:"acc",i:"🧣",n:"وشاح",p:1750,lv:2,k:"scarf"},{id:"a4",c:"acc",i:"👑",n:"تاج",p:4900,lv:5,k:"crown"},{id:"a5",c:"acc",i:"🪽",n:"جناحين",p:6300,lv:6,k:"wings"},{id:"a6",c:"acc",i:"😇",n:"هالة",p:4200,lv:4,k:"halo"},
-{id:"r1",c:"room",s:"wall",i:"🖼️",n:"لوحة",p:750,lv:1},{id:"r2",c:"room",s:"wall",i:"🪟",n:"شباك",p:1000,lv:1},{id:"r3",c:"room",s:"desk",i:"📚",n:"رف كتب",p:1250,lv:2},{id:"r4",c:"room",s:"desk",i:"🖥️",n:"كمبيوتر",p:3000,lv:4},{id:"r5",c:"room",s:"plant",i:"🌵",n:"صبار",p:600,lv:1},{id:"r6",c:"room",s:"plant",i:"🪴",n:"نبتة",p:900,lv:2},{id:"r7",c:"room",s:"floor",i:"🛏️",n:"سرير",p:2500,lv:3},{id:"r8",c:"room",s:"floor",i:"🪑",n:"كرسي",p:1250,lv:2},{id:"r9",c:"room",s:"light",i:"💡",n:"إضاءة",p:1000,lv:1},{id:"r10",c:"room",s:"light",i:"🏮",n:"فانوس",p:2250,lv:3},{id:"r11",c:"room",s:"clock",i:"🕰️",n:"ساعة",p:1100,lv:2},{id:"r12",c:"room",s:"clock",i:"⏰",n:"منبّه",p:750,lv:1},{id:"p1",c:"room",s:"paint",i:"🟦",n:"ورق حائط أزرق",p:900,lv:1,k:"#8ec5ff",f:"#b98a5e"},{id:"p2",c:"room",s:"paint",i:"🟩",n:"ورق حائط أخضر",p:900,lv:1,k:"#a8e6b0",f:"#b08a60"},{id:"p3",c:"room",s:"paint",i:"🟪",n:"ورق حائط بنفسجي",p:1100,lv:2,k:"#cdb4ff",f:"#a77c5a"},{id:"p4",c:"room",s:"paint",i:"🟧",n:"ورق حائط برتقالي",p:1100,lv:2,k:"#ffc999",f:"#a98059"},{id:"p5",c:"room",s:"paint",i:"⬛",n:"ورق حائط داكن",p:1500,lv:3,k:"#2b2f4a",f:"#5a3f2a"},{id:"g1",c:"room",s:"rug",i:"🟥",n:"سجادة حمرا",p:800,lv:1,k:"#c0392b"},{id:"g2",c:"room",s:"rug",i:"🟦",n:"سجادة زرقا",p:800,lv:1,k:"#2e6bd1"},{id:"g3",c:"room",s:"rug",i:"🟩",n:"سجادة خضرا",p:800,lv:2,k:"#2f9e57"},{id:"h1",c:"room",s:"shelf",i:"🏆",n:"كأس",p:2000,lv:3},{id:"h2",c:"room",s:"shelf",i:"🌍",n:"جلوب",p:1250,lv:2},{id:"h3",c:"room",s:"shelf",i:"🧸",n:"دبدوب",p:750,lv:1},{id:"h4",c:"room",s:"desk2",i:"🎧",n:"سماعات",p:1500,lv:3},{id:"h5",c:"room",s:"desk2",i:"☕",n:"قهوة",p:500,lv:1},{id:"h6",c:"room",s:"side",i:"🎸",n:"جيتار",p:2250,lv:4},{id:"h7",c:"room",s:"side",i:"🔭",n:"تلسكوب",p:3000,lv:5},{id:"h8",c:"room",s:"side",i:"⚽",n:"كورة",p:500,lv:1},{id:"h9",c:"room",s:"light",i:"🪔",n:"نجفة",p:3500,lv:6},{id:"n1",c:"snd",s:"win",i:"🎺",n:"فوز: ريترو",p:600,lv:1,k:[392,392,523,659,784],w:"square"},{id:"n2",c:"snd",s:"win",i:"🔔",n:"فوز: جرس",p:800,lv:2,k:[1047,1319,1568,2093],w:"sine"},{id:"n3",c:"snd",s:"lvl",i:"🎼",n:"ليفل: فانفار",p:1000,lv:3,k:[262,330,392,523,659,784],w:"sawtooth"},{id:"n4",c:"snd",s:"lvl",i:"🪄",n:"ليفل: سحر",p:1000,lv:3,k:[523,659,784,988,1319,1568],w:"sine"},{id:"n5",c:"snd",s:"box",i:"🔮",n:"صندوق: غموض",p:600,lv:1,k:[220,277,330,415,554],w:"sine"},{id:"n6",c:"snd",s:"box",i:"🕹️",n:"صندوق: أركيد",p:600,lv:1,k:[330,440,660,880],w:"square"},{id:"n7",c:"snd",s:"buy",i:"💵",n:"شراء: كاش",p:500,lv:1,k:[1568,2093],w:"sine"},{id:"n8",c:"snd",s:"buy",i:"🫧",n:"شراء: بوب",p:500,lv:1,k:[440,660,990],w:"triangle"},{id:"b1",c:"bub",i:"🟡",n:"ذهبي",p:2400,lv:3,k:"gold"},{id:"b2",c:"bub",i:"🔷",n:"نيون",p:3000,lv:4,k:"neon"},{id:"b3",c:"bub",i:"🪟",n:"زجاج",p:2700,lv:4,k:"glass"},{id:"b4",c:"bub",i:"💥",n:"كوميك",p:2100,lv:2,k:"comic"},{id:"b5",c:"bub",i:"🌇",n:"غروب",p:2400,lv:3,k:"sunset"}
+{id:"r1",c:"room",s:"wall",i:"🖼️",n:"لوحة",p:750,lv:1},{id:"r2",c:"room",s:"wall",i:"🪟",n:"شباك",p:1000,lv:1},{id:"r3",c:"room",s:"desk",i:"📚",n:"رف كتب",p:1250,lv:2},{id:"r4",c:"room",s:"desk",i:"🖥️",n:"كمبيوتر",p:3000,lv:4},{id:"r5",c:"room",s:"plant",i:"🌵",n:"صبار",p:600,lv:1},{id:"r6",c:"room",s:"plant",i:"🪴",n:"نبتة",p:900,lv:2},{id:"r7",c:"room",s:"floor",i:"🛏️",n:"سرير",p:2500,lv:3},{id:"r8",c:"room",s:"floor",i:"🪑",n:"كرسي",p:1250,lv:2},{id:"r9",c:"room",s:"light",i:"💡",n:"إضاءة",p:1000,lv:1},{id:"r10",c:"room",s:"light",i:"🏮",n:"فانوس",p:2250,lv:3},{id:"r11",c:"room",s:"clock",i:"🕰️",n:"ساعة",p:1100,lv:2},{id:"r12",c:"room",s:"clock",i:"⏰",n:"منبّه",p:750,lv:1},{id:"p1",c:"room",s:"paint",i:"🟦",n:"ورق حائط أزرق",p:900,lv:1,k:"#8ec5ff",f:"#b98a5e"},{id:"p2",c:"room",s:"paint",i:"🟩",n:"ورق حائط أخضر",p:900,lv:1,k:"#a8e6b0",f:"#b08a60"},{id:"p3",c:"room",s:"paint",i:"🟪",n:"ورق حائط بنفسجي",p:1100,lv:2,k:"#cdb4ff",f:"#a77c5a"},{id:"p4",c:"room",s:"paint",i:"🟧",n:"ورق حائط برتقالي",p:1100,lv:2,k:"#ffc999",f:"#a98059"},{id:"p5",c:"room",s:"paint",i:"⬛",n:"ورق حائط داكن",p:1500,lv:3,k:"#2b2f4a",f:"#5a3f2a"},{id:"g1",c:"room",s:"rug",i:"🟥",n:"سجادة حمرا",p:800,lv:1,k:"#c0392b"},{id:"g2",c:"room",s:"rug",i:"🟦",n:"سجادة زرقا",p:800,lv:1,k:"#2e6bd1"},{id:"g3",c:"room",s:"rug",i:"🟩",n:"سجادة خضرا",p:800,lv:2,k:"#2f9e57"},{id:"h1",c:"room",s:"shelf",i:"🏆",n:"كأس",p:2000,lv:3},{id:"h2",c:"room",s:"shelf",i:"🌍",n:"جلوب",p:1250,lv:2},{id:"h3",c:"room",s:"shelf",i:"🧸",n:"دبدوب",p:750,lv:1},{id:"h4",c:"room",s:"desk2",i:"🎧",n:"سماعات",p:1500,lv:3},{id:"h5",c:"room",s:"desk2",i:"☕",n:"قهوة",p:500,lv:1},{id:"h6",c:"room",s:"side",i:"🎸",n:"جيتار",p:2250,lv:4},{id:"h7",c:"room",s:"side",i:"🔭",n:"تلسكوب",p:3000,lv:5},{id:"h8",c:"room",s:"side",i:"⚽",n:"كورة",p:500,lv:1},{id:"h9",c:"room",s:"light",i:"🪔",n:"نجفة",p:3500,lv:6},{id:"n1",c:"snd",s:"win",i:"🎺",n:"فوز: ريترو",p:600,lv:1,k:[392,392,523,659,784],w:"square"},{id:"n2",c:"snd",s:"win",i:"🔔",n:"فوز: جرس",p:800,lv:2,k:[1047,1319,1568,2093],w:"sine"},{id:"n3",c:"snd",s:"lvl",i:"🎼",n:"ليفل: فانفار",p:1000,lv:3,k:[262,330,392,523,659,784],w:"sawtooth"},{id:"n4",c:"snd",s:"lvl",i:"🪄",n:"ليفل: سحر",p:1000,lv:3,k:[523,659,784,988,1319,1568],w:"sine"},{id:"n5",c:"snd",s:"box",i:"🔮",n:"صندوق: غموض",p:600,lv:1,k:[220,277,330,415,554],w:"sine"},{id:"n6",c:"snd",s:"box",i:"🕹️",n:"صندوق: أركيد",p:600,lv:1,k:[330,440,660,880],w:"square"},{id:"n7",c:"snd",s:"buy",i:"💵",n:"شراء: كاش",p:500,lv:1,k:[1568,2093],w:"sine"},{id:"n8",c:"snd",s:"buy",i:"🫧",n:"شراء: بوب",p:500,lv:1,k:[440,660,990],w:"triangle"},{id:"b1",c:"bub",i:"🟡",n:"ذهبي",p:2400,lv:3,k:"gold"},{id:"b2",c:"bub",i:"🔷",n:"نيون",p:3000,lv:4,k:"neon"},{id:"b3",c:"bub",i:"🪟",n:"زجاج",p:2700,lv:4,k:"glass"},{id:"b4",c:"bub",i:"💥",n:"كوميك",p:2100,lv:2,k:"comic"},{id:"b5",c:"bub",i:"🌇",n:"غروب",p:2400,lv:3,k:"sunset"},{id:"f8",c:"frame",i:"❤️",n:"روبي",p:7200,lv:6,k:"ruby"},{id:"f9",c:"frame",i:"💚",n:"زمرد",p:7200,lv:6,k:"emerald"},{id:"f10",c:"frame",i:"💙",n:"ياقوت",p:7200,lv:6,k:"sapphire"},{id:"f11",c:"frame",i:"🧊",n:"Ice",p:6000,lv:5,k:"ice"},{id:"f12",c:"frame",i:"🤖",n:"Cyber",p:10400,lv:8,k:"cyber"},{id:"f13",c:"frame",i:"🌈",n:"RGB",p:11200,lv:9,k:"rgb"},{id:"f14",c:"frame",i:"⚡",n:"Electric",p:9200,lv:7,k:"electric"},{id:"f15",c:"frame",i:"🌑",n:"Shadow",p:8000,lv:7,k:"shadow"},{id:"f16",c:"frame",i:"🔮",n:"Crystal",p:12800,lv:10,k:"crystal"},{id:"s7",c:"skin",i:"🪟",n:"Glass",p:2400,lv:3,k:"glass"},{id:"s8",c:"skin",i:"🌃",n:"Midnight",p:2400,lv:3,k:"midnight"},{id:"s9",c:"skin",i:"🥇",n:"Gold",p:4200,lv:5,k:"gold"},{id:"s10",c:"skin",i:"🌸",n:"Pink",p:2100,lv:2,k:"pink"},{id:"s11",c:"skin",i:"☁️",n:"Sky",p:2100,lv:2,k:"sky"},{id:"s12",c:"skin",i:"☕",n:"Coffee",p:2100,lv:2,k:"coffee"},{id:"s13",c:"skin",i:"🦾",n:"Cyberpunk",p:5400,lv:6,k:"cyberpunk"},{id:"s14",c:"skin",i:"📼",n:"Retro",p:3000,lv:4,k:"retro"},{id:"s15",c:"skin",i:"⬜",n:"Minimal",p:1500,lv:2,k:"minimal"},{id:"x6",c:"fx",i:"🍃",n:"أوراق",p:2100,lv:3,k:"🍃"},{id:"x7",c:"fx",i:"☄️",n:"نيزك",p:4500,lv:5,k:"☄️"},{id:"x8",c:"fx",i:"⚡",n:"برق",p:4800,lv:5,k:"⚡"},{id:"x9",c:"fx",i:"🫧",n:"فقاعات",p:2400,lv:3,k:"🫧"},{id:"x10",c:"fx",i:"💎",n:"ألماس",p:7500,lv:7,k:"💎"},{id:"x11",c:"fx",i:"☁️",n:"سحب",p:2100,lv:2,k:"☁️"},{id:"x12",c:"fx",i:"🌠",n:"شهب",p:5400,lv:6,k:"🌠"},{id:"z1",c:"pet",i:"🦋",n:"فراشة",p:12000,lv:4,k:"🦋"},{id:"z2",c:"pet",i:"🦉",n:"بومة",p:15000,lv:5,k:"🦉"},{id:"z3",c:"pet",i:"🐻",n:"دب",p:18000,lv:6,k:"🐻"},{id:"z4",c:"pet",i:"🐙",n:"أخطبوط",p:20000,lv:7,k:"🐙"},{id:"z5",c:"pet",i:"🦁",n:"أسد",p:25000,lv:8,k:"🦁"},{id:"z6",c:"pet",i:"🐯",n:"نمر",p:25000,lv:8,k:"🐯"},{id:"z7",c:"pet",i:"🦅",n:"نسر",p:30000,lv:9,k:"🦅"},{id:"z8",c:"pet",i:"🐬",n:"دلفين",p:30000,lv:9,k:"🐬"},{id:"z9",c:"pet",i:"🐘",n:"فيل",p:35000,lv:10,k:"🐘"},{id:"z10",c:"pet",i:"🦖",n:"ديناصور",p:45000,lv:11,k:"🦖"},{id:"z11",c:"pet",i:"🦄",n:"يونيكورن",p:60000,lv:12,k:"🦄"},{id:"z12",c:"pet",i:"🐉",n:"تنين أسطوري",p:80000,lv:15,k:"🐉"}
 ];
 const LF_POOL=[{id:"login",e:"login",t:"ادخل المنصة",n:1,r:20},{id:"e1",e:"exam",t:"خلّص امتحان",n:1,r:60},{id:"e2",e:"exam",t:"خلّص امتحانين",n:2,r:90},{id:"full",e:"full",t:"هات درجة كاملة",n:1,r:80},{id:"box",e:"box",t:"افتح صندوق الحظ",n:1,r:30},{id:"ai",e:"ai",t:"اسأل المساعد الذكي",n:1,r:30},{id:"game",e:"game",t:"ادخل لعبة",n:1,r:40}];
 const LF_ACH=[{id:"a_ex1",i:"📝",t:"أول امتحان",ok:l=>l.tot.ex>=1,r:50},{id:"a_ex10",i:"📚",t:"10 امتحانات",ok:l=>l.tot.ex>=10,r:150},{id:"a_full",i:"💯",t:"أول درجة كاملة",ok:l=>l.tot.full>=1,r:100},{id:"a_box",i:"🎁",t:"فتحت أول صندوق",ok:l=>l.tot.box>=1,r:40},{id:"a_lv10",i:"⭐",t:"Level 10",ok:()=>xpLevel((S.profile||{}).xp||0)>=10,r:200},{id:"a_str7",i:"🔥",t:"7 أيام متتالية",ok:()=>((S.profile||{}).streak||0)>=7,r:150},{id:"a_c5k",i:"🪙",t:"جمعت 5000 عملة",ok:l=>l.earned>=5000,r:300},{id:"a_win",i:"🏆",t:"أول فوز في لعبة",ok:l=>l.tot.win>=1,r:100},{id:"a_ex100",i:"🎓",t:"100 امتحان",ok:l=>l.tot.ex>=100,r:500},{id:"a_full5",i:"💎",t:"5 درجات كاملة",ok:l=>l.tot.full>=5,r:250},{id:"a_shop5",i:"🛍️",t:"اشتريت 5 حاجات",ok:l=>l.inv.length>=5,r:120},{id:"a_pet3",i:"🐺",t:"حيوانك بقى شاب",ok:()=>lfStage((S.profile||{}).xp)>=3,r:200}];
@@ -7340,7 +7405,7 @@ function lifeView(){
       const sl=s=>{const id=l.eq.room[s],it=lfItem(id);if(it&&s==="rug")return `<span class="slot s-rug" style="background:${it.k}"></span>`;return it?`<span class="slot s-${s}">${it.i}</span>`:""};
       const q=(l.q.done||[]).length,mood=q>=3?"متحمس 🤩":q>=1?"سعيد 😊":"نعسان 😴";
       const cd=lfCountdown();
-      body=`<div class="lf-room ${new Date().getHours()>=19||new Date().getHours()<6?"night":""}" style="${(()=>{const pn=lfItem(l.eq.room.paint);return pn?`background:linear-gradient(${pn.k} 0 62%,${pn.f} 62%)`:""})()}"><div class="sky"><i class="sun"></i><b class="cl c1"></b><b class="cl c2"></b></div><div class="boards"></div>${["rug","wall","clock","light","shelf","desk","desk2","plant","side","floor"].map(sl).join("")}${lfPet(l,xp,60)}</div>
+      body=`${lfRoomHtml(l,xp,"me")}
 <div class="card" style="margin-top:12px"><div class="row"><b style="flex:1">${l.pet.t} ${esc(l.pet.n)} · ${LF_STN[stg]}</b><span class="pill">${mood}</span></div>
 <div class="lf-xp" style="background:var(--line)"><i style="width:${prog}%;background:var(--pri)"></i></div>
 <div class="mut" style="font-size:12px;margin-top:6px">${!l.hatched&&stg===0?"خلّص أي مهمة أو امتحان وهتفقس 🐣":nxt?`${nxt-xp} XP للمرحلة الجاية (${LF_STN[stg+1]})`:"وصل لأعلى مرحلة 🐉"} · اضغط عليه يلعب معاك</div>
@@ -7361,7 +7426,7 @@ function lifeView(){
 <div class="lf-top"><div class="r"><div><b>Lv ${xpLevel(xp)}</b><div style="opacity:.85;font-size:13px">${xp} XP · 🔥 ${p.streak||0} يوم</div></div><span><span class="lf-coin" id="lfCoin">🪙 ${l.coins}</span><button class="lf-mute" data-act="lfMute" aria-label="الصوت">${lfMuted()?"🔇":"🔊"}</button></span></div><div class="lf-xp"><i style="width:${xpProgress(xp)}%"></i></div></div>
 <div class="lf-tabs">${tabs}</div>${body}</div>${studentNav()}`;
 }
-function lfOn(it){const e=S.life.eq;return it.c==="snd"?(e.snd||{})[it.s]===it.id:it.c==="acc"?e.acc.includes(it.id):it.c==="room"?e.room[it.s]===it.id:e[it.c]===it.id}
+function lfOn(it){if(it.c==="pet")return ((S.life.eq.pets)||[]).includes(it.id);const e=S.life.eq;return it.c==="snd"?(e.snd||{})[it.s]===it.id:it.c==="acc"?e.acc.includes(it.id):it.c==="room"?e.room[it.s]===it.id:e[it.c]===it.id}
 function lfOv(h){const o=document.createElement("div");o.className="lf-ov";o.innerHTML=h;o.addEventListener("click",e=>{if(e.target===o||e.target.dataset.x)o.remove()});document.body.appendChild(o);return o}
 Object.assign(A,{
   openLife(){S.view="life";render(true)},
@@ -7379,7 +7444,7 @@ Object.assign(A,{
     o.innerHTML=`<div class="lf-card" data-tilt><div>${lfFr(ah,l)}<h3 style="margin:8px 0 2px">${esc(u.name||"طالب")}</h3>${lfTitle(l)}<div style="margin:10px 0;min-height:70px;position:relative;font-size:46px">${l.pet?`<span style="font-size:${Math.round(46*LF_SC[stg])}px">${stg===0?"🥚":l.pet.t}</span><div class="mut" style="font-size:12px">${esc(l.pet.n)} · ${LF_STN[stg]}</div>`:`<span class="mut" style="font-size:13px">لسه معندوش حيوان</span>`}</div>
 <div class="st"><div><b>⭐ ${xpLevel(xp)}</b>المستوى</div><div><b>🪙 ${l.coins}</b>عملات</div><div><b>🔥 ${u.streak||0}</b>أيام متتالية</div><div><b>${rk>=0?"#"+(rk+1):"—"}</b>الترتيب</div><div><b>${b.pct!=null?b.pct+"%":"—"}</b>نسبة النجاح</div><div><b>🏅 ${(l.ach||[]).length}</b>إنجازات</div></div><button class="btn block ghost" style="margin-top:12px" data-x="1">إغلاق</button></div></div>`}catch(e){o.innerHTML=`<div class="lf-prize">مقدرتش أحمّل البطاقة</div>`}}
 });
-function lfEquipSet(it,on){const e=S.life.eq;if(it.c==="acc"){e.acc=e.acc.filter(x=>x!==it.id);if(on)e.acc.push(it.id)}else if(it.c==="snd"){e.snd=e.snd||{};if(on)e.snd[it.s]=it.id;else delete e.snd[it.s]}else if(it.c==="room"){if(on)e.room[it.s]=it.id;else delete e.room[it.s]}else e[it.c]=on?it.id:null}
+function lfEquipSet(it,on){const e=S.life.eq;if(it.c==="acc"){e.acc=e.acc.filter(x=>x!==it.id);if(on)e.acc.push(it.id)}else if(it.c==="pet"){e.pets=(e.pets||[]).filter(x=>x!==it.id);if(on)e.pets.push(it.id);e.pets=e.pets.slice(-3)}else if(it.c==="snd"){e.snd=e.snd||{};if(on)e.snd[it.s]=it.id;else delete e.snd[it.s]}else if(it.c==="room"){if(on)e.room[it.s]=it.id;else delete e.room[it.s]}else e[it.c]=on?it.id:null}
 {const _ai=A.openAI;if(_ai)A.openAI=function(){lfEvent("ai");return _ai.apply(this,arguments)};const _g=A.openGames;if(_g)A.openGames=function(){lfEvent("game");return _g.apply(this,arguments)}}
 {const _ax=addXP;addXP=async function(a,r){const x0=(S.profile||{}).xp||0;await _ax(a,r);try{lfOnXp(r,x0)}catch(_){}}}
 
@@ -7392,7 +7457,7 @@ function lfClean(l){const num=(v,m)=>Math.max(0,Math.min(m,Math.floor(+v||0)));l
  {const pd={};const o=(l.paid&&typeof l.paid==="object")?l.paid:{};l.inv.forEach(id=>{const v=o[id];if(Array.isArray(v)&&v.length===2){const b=Math.floor(+v[0]);pd[id]=[isFinite(b)?Math.max(-1,Math.min(1e7,b)):0,num(v[1],1e7)]}});l.paid=pd}
  const p=l.pet;l.pet=p&&LF_PETS.includes(p.t)?{t:p.t,n:String(p.n||"Spark").slice(0,14)}:null;
  const e=l.eq=(l.eq&&typeof l.eq==="object")?l.eq:{};const ok=(id,c)=>{const it=lfItem(id);return it&&it.c===c&&l.inv.includes(id)?id:null};
- ["title","frame","skin","fx","bub"].forEach(c=>{e[c]=ok(e[c],c)});e.acc=(Array.isArray(e.acc)?e.acc:[]).filter(id=>ok(id,"acc")).slice(0,6);
+ ["title","frame","skin","fx","bub"].forEach(c=>{e[c]=ok(e[c],c)});e.acc=(Array.isArray(e.acc)?e.acc:[]).filter(id=>ok(id,"acc")).slice(0,6);e.pets=(Array.isArray(e.pets)?e.pets:[]).filter(id=>ok(id,"pet")).slice(0,3);
  const r={};Object.keys(e.room||{}).forEach(s=>{const it=lfItem(e.room[s]);if(it&&it.c==="room"&&it.s===s&&l.inv.includes(it.id))r[s]=it.id});e.room=r;
  const sn={};Object.keys(e.snd||{}).forEach(s=>{const it=lfItem(e.snd[s]);if(it&&it.c==="snd"&&it.s===s&&l.inv.includes(it.id))sn[s]=it.id});e.snd=sn;
  l.tot={ex:num((l.tot||{}).ex,1e6),full:num((l.tot||{}).full,1e6),box:num((l.tot||{}).box,1e6),win:num((l.tot||{}).win,1e6)};l.ach=(Array.isArray(l.ach)?l.ach:[]).filter(a=>LF_ACH.some(x=>x.id===a));
@@ -7411,7 +7476,7 @@ const LF_SAY=["يلا نذاكر! 📚","فخور بيك 💪","عايز امت�
 Object.assign(A,{buddyTap(d,b){lfReact("jump");lfSfx("coin");toast(S.life.pet.n+": "+LF_SAY[Math.floor(Math.random()*LF_SAY.length)])},lfMute(){try{localStorage.setItem("lf_mute",lfMuted()?"0":"1")}catch(_){}render(true)}});
 document.addEventListener("pointermove",e=>{const t=e.target.closest&&e.target.closest(".lf-3d");if(!t)return;const r=t.getBoundingClientRect();t.style.setProperty("--ry",((e.clientX-r.left)/r.width-.5)*90+"deg");t.style.setProperty("--rx",(.5-(e.clientY-r.top)/r.height)*40+"deg");t.classList.add("tilt");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("tilt"),1800)},{passive:true});
 {const _sb=qbSaveBattle;qbSaveBattle=async function(){const g=S.qb;try{if(g&&g.match&&!g.match._lf&&S.life&&S.user&&!S.isAdmin){g.match._lf=1;const m=g.match,me=m.players.find(p=>p.uid===S.user.uid);if(me){const rk=[...m.players].sort((a,b)=>b.score-a.score).findIndex(p=>p.uid===S.user.uid)+1;if(rk===1&&m.players.length>1){S.life.tot.win++;lfAdd(/bot/i.test(String(g.mode))?35:120,"فوز 🏆");lfEvent("win");lfReact("dance");lfSfx("win")}else lfReact("sad")}}}catch(_){}return _sb.apply(this,arguments)}}
-{const _r=render;render=function(){try{if(S.user&&S.profile&&!S.isAdmin&&!S.profile.phone)S.profile.phone=String(S.user.email||"").split("@")[0]}catch(_){}const r=_r.apply(this,arguments);try{lfBuddyUpd();lfPost();lfCfgListen()}catch(_){}return r}}
+{const _r=render;render=function(){try{if(S.user&&S.profile&&!S.isAdmin&&!S.profile.phone)S.profile.phone=String(S.user.email||"").split("@")[0]}catch(_){}const r=_r.apply(this,arguments);try{lfBuddyUpd();lfPost();lfCfgListen();lfRoomInit();lfChatAnim()}catch(_){}return r}}
 
 
 /* ===== Student Life v3 ===== */
@@ -7455,6 +7520,7 @@ function lfReconcile(l){
 let __lfCfgOn=0;
 function lfCfgListen(){
   if(__lfCfgOn||!S.user)return;__lfCfgOn=1;
+  try{onSnapshot(doc(db,"config","tester"),s=>{S.testerUid=s.exists()?s.data().uid:null;if(S.isAdmin)render(true)},()=>{})}catch(_){}
   try{onSnapshot(doc(db,"config","shop"),s=>{
     S.shopCfg=s.exists()?s.data():{};
     if(S.life&&!S.isAdmin){const n=lfReconcile(S.life);if(n){lfClean(S.life);lfApply();lfSave()}}
@@ -7463,7 +7529,7 @@ function lfCfgListen(){
 }
 const LF_RAR=[["c","عادي",1000],["r","نادر",4000],["e","ملحمي",12000],["l","أسطوري",1e9]];
 const lfRar=it=>LF_RAR.find(r=>it.p<r[2]);
-const LF_SKG={ocean:"#06b6d4,#1e3a8a",purple:"#a78bfa,#be185d",sunset:"#fb923c,#db2777",forest:"#4ade80,#065f46",aurora:"#34d399,#8b5cf6",neon:"#f472b6,#06b6d4"};
+const LF_SKG={ocean:"#06b6d4,#1e3a8a",purple:"#a78bfa,#be185d",sunset:"#fb923c,#db2777",forest:"#4ade80,#065f46",aurora:"#34d399,#8b5cf6",neon:"#f472b6,#06b6d4",glass:"#94a3b8,#e2e8f0",midnight:"#1e1b4b,#4338ca",gold:"#f59e0b,#fde047",pink:"#f9a8d4,#ec4899",sky:"#7dd3fc,#2563eb",coffee:"#a16207,#451a03",cyberpunk:"#f0abfc,#22d3ee",retro:"#fb7185,#fbbf24",minimal:"#e5e7eb,#9ca3af"};
 function lfPv(it,l){
   const pe=(l.pet&&l.pet.t)||"🐱";
   if(it.c==="frame")return lfFr(`<div class="pv-av">🙂</div>`,{eq:{frame:it.id}});
@@ -7512,15 +7578,84 @@ Object.assign(A,{
   },
   async adminLifeAll(d){
     try{
-      const ref=doc(db,"life",d.uid),s=await getDoc(ref),cur=s.exists()?s.data():{},on=!cur.all;
-      const ok=await uiDialog({title:on?"وضع التجربة":"إلغاء وضع التجربة",icon:"🎁",msg:on?"الطالب ده هيتفتحله كل المتجر (وأي غرض جديد هيتضاف) ومش هيتسحب منه حتى لو غيّرت الأسعار، وهياخد 100,000 عملة. تأكيد؟":"هيرجع حساب عادي: حاجته تتفضّى وعملاته تتصفّر. تأكيد؟",ok:"تأكيد"});
-      if(!ok)return;
-      if(on)await setDoc(ref,{all:true,coins:100000,hatched:true,inv:LF_SHOP.map(x=>x.id),updatedAt:serverTimestamp()},{merge:true});
-      else await setDoc(ref,{all:deleteField(),coins:0,inv:[],paid:{},eq:{acc:[],room:{}},updatedAt:serverTimestamp()},{merge:true});
-      toast(on?"اتفعّل وضع التجربة ✓":"اتلغى ✓",true)
+      const tref=doc(db,"config","tester"),ts=await getDoc(tref),tid=ts.exists()?ts.data().uid:null;
+      if(tid&&tid!==d.uid){toast("وضع التجربة محجوز لحساب واحد بس ومينفعش يتغيّر");return}
+      const ref=doc(db,"life",d.uid);
+      if(!tid){
+        const ok=await uiDialog({title:"اختيار حساب التجربة",icon:"🔒",msg:"ده قرار نهائي: الطالب ده هيبقى حساب التجربة الوحيد (كل المتجر مفتوح ومتتسحبش منه حاجة)، ومينفعش تختار أو تشيل غيره بعد كده. تأكيد؟",ok:"تأكيد نهائي"});
+        if(!ok)return;
+        await setDoc(tref,{uid:d.uid,at:Date.now()})
+      }
+      await setDoc(ref,{all:true,coins:100000,hatched:true,inv:LF_SHOP.map(x=>x.id),updatedAt:serverTimestamp()},{merge:true});
+      S.testerUid=d.uid;toast("حساب التجربة جاهز ✓",true);render(true)
     }catch(e){toast("فشل: "+(e.code||e.message||""))}
   }
 });
+
+
+/* ===== Room v2: live 3D-ish room, pet behaviours, extra pets, chat animation ===== */
+const LF_SLOTS=["rug","wall","clock","light","shelf","desk","desk2","plant","side","floor"];
+function lfRoomHtml(l,xp,uid){
+  const hr=new Date().getHours(),night=hr>=19||hr<6,stg=lfStage(xp,l),eq=l.eq||{};
+  const pn=lfItem((eq.room||{}).paint);
+  const bg=pn?`background:linear-gradient(${pn.k} 0 62%,${pn.f} 62%)`:"";
+  const sl=s=>{const it=lfItem((eq.room||{})[s]);if(!it)return"";if(s==="rug")return `<span class="slot s-rug" style="background:${it.k}"></span>`;return `<span class="slot s-${s}">${it.i}</span>`};
+  const done=(l.q&&l.q.d===todayKey())?(l.q.done||[]).length:0;
+  const mood=night?"sleepy":done>=3?"hyper":done>=1?"happy":"calm";
+  const pos=window.__rmPos=window.__rmPos||{},px=(k,d)=>pos[uid+k]!=null?pos[uid+k]:d;
+  const acc=stg>0?(eq.acc||[]).map(lfItem).filter(Boolean).map(a=>`<span class="lf-acc ${a.k}">${a.i}</span>`).join(""):"";
+  const main=l.pet?`<div class="lf-pet m ${stg===5?"aura":""} ${stg===0?"isegg":""}" data-act="petTap" data-k="m" style="--x:${px("m",42)}%;font-size:${Math.round(60*LF_SC[stg])}px"><span class="b ${stg===0?"egg":""}">${stg===0?"🥚":l.pet.t}${acc}</span><i class="sh"></i></div>`:"";
+  const ex=(eq.pets||[]).map(lfItem).filter(Boolean).slice(0,3).map((it,i)=>`<div class="lf-pet ex" data-act="petTap" data-k="e${i}" style="--x:${px("e"+i,[12,72,58][i])}%;font-size:38px"><span class="b">${it.k}</span><i class="sh"></i></div>`).join("");
+  return `<div class="lf-room rm3 ${night?"night":""}" data-live="1" data-uid="${esc(uid)}" data-mood="${mood}" style="${bg}"><div class="sky"><i class="sun"></i><b class="cl c1"></b><b class="cl c2"></b></div><div class="boards"></div>${LF_SLOTS.map(sl).join("")}${ex}${main}</div>`;
+}
+function lfPetGo(room,p,x){
+  x=Math.max(4,Math.min(78,x-8));
+  const cur=parseFloat(p.style.getPropertyValue("--x"))||40,dist=Math.abs(x-cur);if(dist<2)return;
+  const dur=Math.max(.5,dist/24);
+  p.style.setProperty("--wd",dur+"s");p.classList.toggle("fl",x>cur);p.classList.add("walk");p.style.setProperty("--x",x+"%");
+  (window.__rmPos=window.__rmPos||{})[(room.dataset.uid||"")+p.dataset.k]=x;
+  clearTimeout(p._wt);p._wt=setTimeout(()=>p.classList.remove("walk"),dur*1000+60);
+}
+function lfPetBrain(room,p,i){
+  if(p.classList.contains("isegg"))return;
+  const k=p.dataset.k;
+  const say=t=>{const s=document.createElement("em");s.className="say";s.textContent=t;p.appendChild(s);setTimeout(()=>s.remove(),1700)};
+  const act=(c,ms)=>{["hop","spin","sit","sleep","eat"].forEach(x=>p.classList.remove(x));void p.offsetWidth;p.classList.add(c);clearTimeout(p._at);p._at=setTimeout(()=>p.classList.remove(c),ms)};
+  const tick=()=>{
+    if(!p.isConnected||!room.isConnected)return;
+    const mood=room.dataset.mood,r=Math.random();let next=2400+Math.random()*3200;
+    if(mood==="sleepy"&&r<.7){act("sleep",6000);say("💤");next=6200}
+    else if(r<.38||(mood==="hyper"&&r<.55)){
+      const main=room.querySelector('.lf-pet[data-k="m"]');let x=Math.random()*70+12;
+      if(k!=="m"&&main&&Math.random()<.4)x=(parseFloat(main.style.getPropertyValue("--x"))||40)+(Math.random()<.5?-14:14)+8;
+      lfPetGo(room,p,x)}
+    else if(r<.52)act("hop",1300);
+    else if(r<.62)act("spin",900);
+    else if(r<.74){act("sit",3000);if(mood==="calm")say("😌")}
+    else if(r<.84){act("eat",1300);say("🍎")}
+    else if(r<.92)say(["💖","✨","🎵","📚"][Math.floor(Math.random()*4)]);
+    setTimeout(tick,next)
+  };
+  setTimeout(tick,700+i*900);
+}
+function lfRoomInit(){
+  document.querySelectorAll(".lf-room[data-live]:not([data-on])").forEach(room=>{
+    room.dataset.on="1";
+    room.addEventListener("pointermove",e=>{const r=room.getBoundingClientRect();room.style.setProperty("--px",(((e.clientX-r.left)/r.width-.5)*2).toFixed(2));room.style.setProperty("--py",(((e.clientY-r.top)/r.height-.5)*2).toFixed(2))},{passive:true});
+    room.addEventListener("pointerleave",()=>{room.style.setProperty("--px",0);room.style.setProperty("--py",0)});
+    room.addEventListener("click",e=>{if(e.target.closest(".lf-pet"))return;const r=room.getBoundingClientRect(),p=room.querySelector('.lf-pet[data-k="m"]');if(p&&!p.classList.contains("isegg"))lfPetGo(room,p,(e.clientX-r.left)/r.width*100)});
+    room.querySelectorAll(".lf-pet").forEach((p,i)=>lfPetBrain(room,p,i));
+  });
+}
+{const _lr=lfReact;lfReact=function(k){try{_lr(k)}catch(_){}try{document.querySelectorAll('.lf-room .lf-pet[data-k="m"]').forEach(p=>{["run","jump","dance","sad"].forEach(x=>p.classList.remove("r-"+x));void p.offsetWidth;p.classList.add("r-"+k);setTimeout(()=>p.classList.remove("r-"+k),1900)})}catch(_){}}}
+let __ck="",__seen=new Set();
+function lfChatAnim(){
+  const key=S.view+"|"+((S.chatThread&&S.chatThread.uid)||(S.groupThread&&(S.groupThread.id||S.groupThread.gid))||"");
+  const bs=document.querySelectorAll(".tk-log .tk-bubble[data-mid]");
+  if(key!==__ck){__ck=key;__seen=new Set();bs.forEach(b=>__seen.add(b.dataset.mid));return}
+  bs.forEach(b=>{const m=b.dataset.mid;if(!__seen.has(m)){__seen.add(m);b.classList.add("nw")}});
+  if(__seen.size>800)__seen=new Set([...__seen].slice(-300));
+}
 
 </script>
 <script>
