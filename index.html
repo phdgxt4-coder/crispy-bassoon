@@ -2,7 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v59-force3d">
+<meta name="sw-build" content="v60-force3d">
+<script>window.APP_BUILD="v60-force3d";</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <script>(function(){try{var m=localStorage.getItem("theme_mode"),c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#0B0A07",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
@@ -3222,7 +3223,9 @@ ${groups.map(g=>`<div style="margin-bottom:10px">
   <div class="tabs" style="margin-bottom:0">${g.items.map(([k,v])=>`<button class="tab ${t===k?"on":""}" data-act="tab" data-id="${k}">${v}${bd[k]?`<span class="badge">${bd[k]}</span>`:""}</button>`).join("")}</div>
 </div>`).join("")}
 ${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,tanagha:adminTanagha,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,suspicious:adminSuspicious,managers:adminManagers,security:adminSecurity,tgreq:adminTgReq,settings:adminSettings,shopadm:adminShop}[t]||adminDash)()}
-${t==="exams"?`<button class="fab" data-act="newExam" aria-label="امتحان جديد">+</button>`:""}</div>`}
+${t==="exams"?`<button class="fab" data-act="newExam" aria-label="امتحان جديد">+</button>`:""}
+<div id="build-ver" style="position:fixed;bottom:10px;left:10px;z-index:9999;font-size:11px;opacity:.7;background:rgba(0,0,0,.65);color:#ffd76a;padding:4px 10px;border-radius:8px;font-family:monospace;pointer-events:none;direction:ltr">v60-force3d · 3D</div>
+</div>`}
 const chart=(days,vals,cls)=>{const mx=Math.max(1,...vals);return `<div class="bars">${vals.map((v,i)=>`<div>${v||""}<i class="${cls||""}" style="height:${Math.max(3,v/mx*68)}%"></i><span>${days[i].l}</span></div>`).join("")}</div>`};
 
 function adminActivity(){
@@ -7859,7 +7862,7 @@ function c3dCan(){
   let ok=true;
   try{
     try{localStorage.removeItem("c3d_off");localStorage.removeItem("fx_tier")}catch(_){}
-    try{document.documentElement.removeAttribute("data-fx")}catch(_){}
+    try{document.documentElement.removeAttribute("data-fx");document.documentElement.setAttribute("data-fx","full")}catch(_){}
     const c=document.createElement("canvas");
     const gl=c.getContext("webgl2")||c.getContext("webgl")||c.getContext("experimental-webgl");
     if(!gl)ok=false;
@@ -7928,7 +7931,6 @@ function c3dStart(room){
 function c3dKick(){if(!C3D.raf&&C3D.room&&C3D.ok){C3D.last=performance.now();C3D.raf=requestAnimationFrame(c3dLoop)}}
 function c3dStop(){if(C3D.raf){cancelAnimationFrame(C3D.raf);C3D.raf=0}if(C3D.idle){clearTimeout(C3D.idle);C3D.idle=0}}
 function c3dOff(save){
-  /* force mode: never permanently disable 3D on any phone */
   if(C3D.force){c3dStop();return}
   C3D.ok=false;
   try{if(save)localStorage.setItem("c3d_off",String(Date.now()))}catch(_){}
@@ -8044,7 +8046,7 @@ function c3dEnt(p,room){
   const sp=((p.querySelector(".pe")||{}).textContent||"").trim(),st=+p.dataset.st||4;
   if(!C3S[sp]&&!C3_GLB[sp])return null;
   const accs=[...p.querySelectorAll(".lf-acc")].map(x=>x.classList[1]).filter(Boolean);
-  const sig=sp+"|"+st+"|"+accs.join(",")+"|v59";
+  const sig=sp+"|"+st+"|"+accs.join(",")+"|v60";
   let e=C3D.ents.get(p);
   if(e&&e.sig===sig)return e;
   if(e){c3dKill(e)}
@@ -8356,14 +8358,15 @@ window.addEventListener('appinstalled',()=>{
 })();
 </script>
 <script>
-/* v59: FORCE full quality always — 3D on every phone / PWA */
+/* v53: invisible auto-quality + haptics + keyboard lift. No UI, no settings. */
 (function(){
   try{
     var H=document.documentElement,N=navigator,C=N.connection||{};
-    try{localStorage.removeItem("fx_tier");localStorage.removeItem("c3d_off")}catch(_){}
-    H.setAttribute("data-fx","full");
-    function save(t){H.setAttribute("data-fx","full");try{localStorage.setItem("fx_tier",JSON.stringify({t:"full",at:Date.now()}))}catch(_){}}
-    var weak=false,fresh=false;
+    var cached=null;try{cached=JSON.parse(localStorage.getItem("fx_tier")||"null")}catch(_){}
+    var fresh=!!(cached&&cached.t&&Date.now()-cached.at<6048e5);
+    var weak=(N.deviceMemory&&N.deviceMemory<=3)||(N.hardwareConcurrency&&N.hardwareConcurrency<=4)||C.saveData===true||/(^|-)2g$/.test(C.effectiveType||"");
+    H.setAttribute("data-fx","full");try{localStorage.removeItem("fx_tier");localStorage.removeItem("c3d_off")}catch(_){}
+    function save(t){H.setAttribute("data-fx",t);try{localStorage.setItem("fx_tier",JSON.stringify({t:t,at:Date.now()}))}catch(_){}}
     function probe(ms,cb){
       var n=0,t0=0,hid=false;
       function f(t){
@@ -8374,7 +8377,10 @@ window.addEventListener('appinstalled',()=>{
       requestAnimationFrame(f);
     }
     function start(){
-      setTimeout(function(){save("full")},100);
+      if(!fresh)setTimeout(function(){probe(1500,function(fps){
+        if(fps===null)return;
+        save("full");
+      })},3500);
       setTimeout(function(){
         if(H.getAttribute("data-fx")!=="full")return;
         probe(2000,function(fps){if(fps!==null&&fps<28)save("lite")});

@@ -1,6 +1,6 @@
-/* التفوق SW — v59 — GLB pets محلية + 3D إجباري + PWA */
-const CACHE = "eltafawoq-v59";
-const BUILD = "20261018-v59";
+/* التفوق SW — v60 — network-first HTML + GLB pets + force 3D */
+const CACHE = "eltafawoq-v60";
+const BUILD = "20261018-v60";
 const PETS = ["./pets/fox.glb","./pets/lion.glb","./pets/corgi.glb","./pets/hippo.glb","./pets/boar.glb","./pets/zebra.glb","./pets/trex.glb","./pets/spino.glb","./pets/sheep.glb","./pets/hare.glb"];
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
@@ -102,19 +102,7 @@ self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") { e.respondWith(fetch(e.request)); return; }
   const url = new URL(e.request.url);
 
-  if (url.hostname === "cdn.jsdelivr.net" && url.pathname.indexOf("/npm/three@") === 0) {
-    e.respondWith(
-      caches.open(CACHE).then((c) =>
-        c.match(e.request).then((hit) => hit || fetch(e.request).then((res) => {
-          if (res && res.ok) c.put(e.request, res.clone()).catch(() => {});
-          return res;
-        }))
-      )
-    );
-    return;
-  }
-
-  /* cache local GLB pets for offline PWA */
+  /* cache local GLB pets */
   if (url.origin === self.location.origin && url.pathname.endsWith(".glb")) {
     e.respondWith(
       caches.open(CACHE).then((c) =>
@@ -122,6 +110,18 @@ self.addEventListener("fetch", (e) => {
           if (res && res.ok) c.put(e.request, res.clone()).catch(() => {});
           return res;
         }).catch(() => hit))
+      )
+    );
+    return;
+  }
+
+  if (url.hostname === "cdn.jsdelivr.net" && url.pathname.indexOf("/npm/three@") === 0) {
+    e.respondWith(
+      caches.open(CACHE).then((c) =>
+        c.match(e.request).then((hit) => hit || fetch(e.request).then((res) => {
+          if (res && res.ok) c.put(e.request, res.clone()).catch(() => {});
+          return res;
+        }))
       )
     );
     return;
