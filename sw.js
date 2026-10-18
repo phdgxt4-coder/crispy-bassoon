@@ -1,7 +1,7 @@
-/* التفوق SW — v62 — GLB من الجذر + 3D */
-const CACHE = "eltafawoq-v62";
-const BUILD = "20261018-v62";
-const PETS = ["./boar.glb","./fox.glb","./lion.glb","./corgi.glb","./hippo.glb","./zebra.glb","./trex.glb","./spino.glb","./sheep.glb","./hare.glb"];
+/* التفوق SW — v61 — network-first HTML + GLB pets */
+const CACHE = "eltafawoq-v61";
+const BUILD = "20261018-v61";
+const PETS = ["./pets/fox.glb","./pets/lion.glb","./pets/corgi.glb","./pets/hippo.glb","./pets/boar.glb","./pets/zebra.glb","./pets/trex.glb","./pets/spino.glb","./pets/sheep.glb","./pets/hare.glb"];
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
@@ -73,7 +73,11 @@ self.addEventListener("notificationclick", (e) => {
 self.addEventListener("install", (e) => {
   self.skipWaiting();
   e.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(["./index.html", "./manifest.json"].concat(PETS)).catch(() => {}))
+    caches.open(CACHE).then((c) =>
+      c.addAll(["./index.html", "./manifest.json"]).catch(() => {}).then(() =>
+        Promise.all(PETS.map((u) => c.add(u).catch(() => {})))
+      )
+    )
   );
 });
 
@@ -102,18 +106,7 @@ self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") { e.respondWith(fetch(e.request)); return; }
   const url = new URL(e.request.url);
 
-  if (url.hostname === "cdn.jsdelivr.net" && url.pathname.indexOf("/npm/three@") === 0) {
-    e.respondWith(
-      caches.open(CACHE).then((c) =>
-        c.match(e.request).then((hit) => hit || fetch(e.request).then((res) => {
-          if (res && res.ok) c.put(e.request, res.clone()).catch(() => {});
-          return res;
-        }))
-      )
-    );
-    return;
-  }
-
+  /* cache local GLB pets */
   if (url.origin === self.location.origin && url.pathname.endsWith(".glb")) {
     e.respondWith(
       caches.open(CACHE).then((c) =>
@@ -121,6 +114,18 @@ self.addEventListener("fetch", (e) => {
           if (res && res.ok) c.put(e.request, res.clone()).catch(() => {});
           return res;
         }).catch(() => hit))
+      )
+    );
+    return;
+  }
+
+  if (url.hostname === "cdn.jsdelivr.net" && url.pathname.indexOf("/npm/three@") === 0) {
+    e.respondWith(
+      caches.open(CACHE).then((c) =>
+        c.match(e.request).then((hit) => hit || fetch(e.request).then((res) => {
+          if (res && res.ok) c.put(e.request, res.clone()).catch(() => {});
+          return res;
+        }))
       )
     );
     return;
