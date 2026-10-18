@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v43-s1">
+<meta name="sw-build" content="v48-s1">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <script>(function(){try{var m=localStorage.getItem("theme_mode"),c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#0B0A07",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
@@ -609,6 +609,42 @@ html[data-skin=neon]{--sk1:#EC4899;--sk2:#BE185D;--sk3:#06B6D4}
 @keyframes lfbox3d{0%,100%{transform:perspective(500px) rotateY(-28deg) rotate(-6deg)}50%{transform:perspective(500px) rotateY(28deg) rotate(6deg) scale(1.15)}}
 .lf-it .ic{transform:perspective(300px) translateZ(0)}.lf-it:hover .ic{transform:perspective(300px) translateZ(24px) rotateY(18deg)}
 .lf-prize{perspective:600px}.lf-prize>div:first-child{animation:lfbob 2s ease-in-out infinite}
+/* ===== Store v5 ===== */
+.lf-wallet{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,var(--pri),var(--pri2));color:var(--onpri);border-radius:18px;padding:12px 16px;margin-bottom:10px;box-shadow:0 8px 22px rgba(0,0,0,.18)}.lf-wallet b{font-size:24px;font-variant-numeric:tabular-nums}
+.lf-grid.shop{grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:12px}
+.lf-it.sh{padding:14px 8px 12px;overflow:hidden;border-width:1.5px;animation:lfcard .45s cubic-bezier(.2,.9,.3,1.2) backwards;animation-delay:var(--d,0ms)}
+@keyframes lfcard{from{opacity:0;transform:translateY(14px) scale(.94)}}
+.lf-it.sh .rb{position:absolute;top:6px;inset-inline-start:6px;font-style:normal;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--line);color:var(--mut)}
+.lf-it.sh .pv{height:64px;display:flex;align-items:center;justify-content:center;margin:12px 0 4px}
+.lf-it.sh .nm{display:block;font-size:13px;margin-top:2px}
+.lf-it.sh .pr{font-weight:800;color:var(--ink)}.lf-it.sh s{opacity:.5;font-size:10px;margin-inline-start:4px}
+.lf-it.sh button{min-height:36px}
+.lf-it.r-r{border-color:#3b82f6}.lf-it.r-r .rb{background:#3b82f6;color:#fff}
+.lf-it.r-e{border-color:#a855f7;box-shadow:0 0 14px rgba(168,85,247,.28)}.lf-it.r-e .rb{background:#a855f7;color:#fff}
+.lf-it.r-l{border-color:#f59e0b;box-shadow:0 0 18px rgba(245,158,11,.4)}.lf-it.r-l .rb{background:linear-gradient(90deg,#f59e0b,#ef4444);color:#fff}
+.lf-it.r-l::before,.lf-it.r-e::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.3) 50%,transparent 65%);transform:translateX(-120%);animation:lfshine 3.4s ease-in-out infinite;pointer-events:none}
+@keyframes lfshine{60%,100%{transform:translateX(120%)}}
+.lf-it.own{background:color-mix(in srgb,var(--pri) 8%,var(--card))}
+.pv-av{width:46px;height:46px;border-radius:50%;background:var(--sel);display:flex;align-items:center;justify-content:center;font-size:24px}
+.pv-sk{width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 6px 14px rgba(0,0,0,.25);animation:lfbob 2.4s ease-in-out infinite}
+.pv-pet{position:relative;display:inline-block;font-size:38px;line-height:1;animation:lfbob 1.8s ease-in-out infinite}
+.pv-ic{font-size:40px;animation:lfbob 2.2s ease-in-out infinite}
+.pv-t{margin:0!important;font-size:12px}
+.pv-fx{position:relative;width:60px;height:56px;display:block;overflow:hidden}.pv-fx i{position:absolute;top:0;font-style:normal;font-size:16px;animation:lffall 2.2s linear infinite}
+.pv-fx i:nth-child(1){left:6px}.pv-fx i:nth-child(2){left:20px;animation-delay:-.6s}.pv-fx i:nth-child(3){left:34px;animation-delay:-1.2s}.pv-fx i:nth-child(4){left:46px;animation-delay:-1.8s}
+@keyframes lffall{from{transform:translateY(-10px);opacity:0}20%{opacity:1}to{transform:translateY(54px);opacity:0}}
+.lf-it .pv-snd{background:var(--sel);color:var(--ink);width:auto;padding:8px 12px;border-radius:99px;font-size:14px;animation:none;margin:0}
+.pv-bub{display:inline-block;padding:8px 12px;border-radius:14px 14px 4px 14px;font-size:12px;background:var(--sel);color:var(--ink)}
+.lf-hatch{background:var(--card);color:var(--ink);border-radius:26px;padding:26px 22px;text-align:center;max-width:320px;width:100%;animation:lfpopin .5s cubic-bezier(.2,1.5,.4,1)}
+.lf-hatch .hx{position:relative;height:130px;display:flex;align-items:center;justify-content:center}
+.lf-hatch .egg{position:absolute;font-size:92px;animation:lfegg 1.5s ease-in forwards}
+.lf-hatch .pet{position:absolute;font-size:80px;opacity:0;animation:lfpetout .7s 1.4s cubic-bezier(.2,1.6,.4,1) forwards}
+.lf-hatch .sp{position:absolute;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,rgba(255,230,120,.9),transparent 65%);opacity:0;animation:lfflash .6s 1.35s ease-out forwards}
+@keyframes lfegg{0%,100%{transform:rotate(0)}10%{transform:rotate(-10deg)}20%{transform:rotate(10deg)}30%{transform:rotate(-14deg)}40%{transform:rotate(14deg)}55%{transform:rotate(-18deg) scale(1.05)}70%{transform:rotate(18deg) scale(1.08)}88%{transform:scale(1.15);opacity:1}100%{transform:scale(1.4);opacity:0}}
+@keyframes lfpetout{from{opacity:0;transform:scale(.2) translateY(20px)}to{opacity:1;transform:none}}
+@keyframes lfflash{0%{opacity:0;transform:scale(.4)}40%{opacity:1}100%{opacity:0;transform:scale(1.8)}}
+.lf-bought .bi{font-size:76px;animation:lfpetout .6s cubic-bezier(.2,1.6,.4,1)}
+@media (prefers-reduced-motion:reduce){.lf-it.sh,.lf-it.sh::before,.pv-sk,.pv-pet,.pv-ic,.pv-fx i{animation:none!important}}
 </style>
 </head>
 <body>
@@ -2978,7 +3014,7 @@ function adminView(){
     {title:"محتوى", items:[["exams","امتحانات"],["asm","تقييمات"],["books","كتب"]]},
     {title:"مجتمع", items:[["fadaye7","فضايح 😂"],["tanagha","التناغه 💗"],["tgreq","طلبات التناغه"],["students","طلاب"]]},
     {title:"رقابة", items:[["results","نتايج"],["alerts","تنبيهات"],["suspicious","احتيالي"]]},
-    {title:"إدارة", items:[["managers","المسؤولين"],["security","🛡 الأمان"],["settings","إعدادات"]]}
+    {title:"إدارة", items:[["managers","المسؤولين"],["security","🛡 الأمان"],["shopadm","🛒 المتجر"],["settings","إعدادات"]]}
   ];
   const bd={tgreq:(Array.isArray(S.students)?S.students:[]).filter(x=>x.tanaghaAccess==="pending").length,results:S.unread,alerts:S.unreadAlerts,live:liveActive().length,suspicious:(S.suspicious||[]).filter(x=>!x.seen).length};
   return `<div class="wrap wide">${header(`${pill("أدمن","i")}<button class="btn ghost sm" data-act="logout">خروج</button>`)}
@@ -2987,7 +3023,7 @@ ${groups.map(g=>`<div style="margin-bottom:10px">
   <div class="mut" style="font-size:11px;font-weight:700;margin-bottom:4px;opacity:.75">${g.title}</div>
   <div class="tabs" style="margin-bottom:0">${g.items.map(([k,v])=>`<button class="tab ${t===k?"on":""}" data-act="tab" data-id="${k}">${v}${bd[k]?`<span class="badge">${bd[k]}</span>`:""}</button>`).join("")}</div>
 </div>`).join("")}
-${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,tanagha:adminTanagha,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,suspicious:adminSuspicious,managers:adminManagers,security:adminSecurity,tgreq:adminTgReq,settings:adminSettings}[t]||adminDash)()}
+${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,tanagha:adminTanagha,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,suspicious:adminSuspicious,managers:adminManagers,security:adminSecurity,tgreq:adminTgReq,settings:adminSettings,shopadm:adminShop}[t]||adminDash)()}
 ${t==="exams"?`<button class="fab" data-act="newExam" aria-label="امتحان جديد">+</button>`:""}</div>`}
 const chart=(days,vals,cls)=>{const mx=Math.max(1,...vals);return `<div class="bars">${vals.map((v,i)=>`<div>${v||""}<i class="${cls||""}" style="height:${Math.max(3,v/mx*68)}%"></i><span>${days[i].l}</span></div>`).join("")}</div>`};
 
@@ -3346,6 +3382,7 @@ function studentDetail(){
   const roleBtns=`<div class="card"><b>صلاحيات خاصة</b><div class="row" style="margin-top:8px;gap:8px;flex-wrap:wrap">
     <button type="button" class="btn ${isAsm?"":"ghost "}sm" data-act="grantAsmRole" data-uid="${s.id}">${isAsm?"✓ مسؤول تقييمات":"تعيين مسؤول تقييمات"}</button>
     <button type="button" class="btn ${s.tanaghaSave?"":"ghost "}sm" data-act="toggleTanaghaSave" data-uid="${s.id}">${s.tanaghaSave?"✓ حفظ التناغه":"سماح حفظ التناغه"}</button>
+    <button type="button" class="btn ghost sm" data-act="adminLifeAll" data-uid="${s.id}">🎁 وضع التجربة: كل المتجر</button>
   </div></div>`;
   const wa=s.phone&&/^01\d{9}$/.test(s.phone)?`https://wa.me/20${s.phone.slice(1)}`:"";
   return `<div class="wrap wide">${header(`<button class="btn ghost sm" data-act="backAdmin">رجوع</button>`)}
@@ -7260,29 +7297,30 @@ if(!configured)render(true);
 const LF_ST=[0,300,900,1800,3500,7000],LF_STN=["بيضة","رضيع","طفل","شاب","بالغ","أسطوري"],LF_SC=[1,.6,.75,.9,1.05,1.25];
 const LF_PETS=["🐱","🐶","🦊","🐼","🐧","🐸","🐨","🐰","🐢","🐺","🐲"];
 const LF_CATS={title:"الألقاب",frame:"الإطارات",skin:"الثيمات",fx:"التأثيرات",acc:"للحيوان",room:"الغرفة",snd:"الأصوات",bub:"فقاعات الشات"};
+const LF_OLD={"t1":150,"t2":400,"t3":400,"t4":400,"t5":900,"t6":1500,"t7":600,"f1":100,"f2":250,"f3":500,"f4":1200,"f5":800,"f6":700,"f7":1000,"s1":300,"s2":300,"s3":350,"s4":350,"s5":600,"s6":600,"x1":350,"x2":350,"x3":400,"x4":500,"x5":400,"a1":200,"a2":200,"a3":250,"a4":700,"a5":900,"a6":600,"r1":150,"r2":200,"r3":250,"r4":600,"r5":120,"r6":180,"r7":500,"r8":250,"r9":200,"r10":450,"r11":220,"r12":150,"p1":180,"p2":180,"p3":220,"p4":220,"p5":300,"g1":160,"g2":160,"g3":160,"h1":400,"h2":250,"h3":150,"h4":300,"h5":100,"h6":450,"h7":600,"h8":100,"h9":700,"n1":150,"n2":200,"n3":250,"n4":250,"n5":150,"n6":150,"n7":120,"n8":120,"b1":400,"b2":500,"b3":450,"b4":350,"b5":400};
 const LF_SHOP=[
-{id:"t1",c:"title",i:"📖",n:"طالب مجتهد",p:150,lv:1},{id:"t2",c:"title",i:"➗",n:"ملك الرياضيات",p:400,lv:3},{id:"t3",c:"title",i:"⚛️",n:"ملك الفيزياء",p:400,lv:3},{id:"t4",c:"title",i:"🧪",n:"ملك الكيمياء",p:400,lv:3},{id:"t5",c:"title",i:"👑",n:"أسطورة",p:900,lv:6},{id:"t6",c:"title",i:"💎",n:"VIP",p:1500,lv:8},{id:"t7",c:"title",i:"🎯",n:"صياد الجوائز",p:600,lv:4},
-{id:"f1",c:"frame",i:"🥉",n:"برونزي",p:100,lv:1,k:"bronze"},{id:"f2",c:"frame",i:"🥈",n:"فضي",p:250,lv:2,k:"silver"},{id:"f3",c:"frame",i:"🥇",n:"ذهبي",p:500,lv:4,k:"gold"},{id:"f4",c:"frame",i:"💠",n:"ألماس",p:1200,lv:8,k:"diamond"},{id:"f5",c:"frame",i:"🔥",n:"نار",p:800,lv:6,k:"fire"},{id:"f6",c:"frame",i:"⚡",n:"نيون",p:700,lv:5,k:"neon"},{id:"f7",c:"frame",i:"🌌",n:"Galaxy",p:1000,lv:7,k:"galaxy"},
-{id:"s1",c:"skin",i:"🌊",n:"Ocean",p:300,lv:2,k:"ocean"},{id:"s2",c:"skin",i:"🟣",n:"Purple",p:300,lv:2,k:"purple"},{id:"s3",c:"skin",i:"🌅",n:"Sunset",p:350,lv:3,k:"sunset"},{id:"s4",c:"skin",i:"🌲",n:"Forest",p:350,lv:3,k:"forest"},{id:"s5",c:"skin",i:"🌈",n:"Aurora",p:600,lv:5,k:"aurora"},{id:"s6",c:"skin",i:"💗",n:"Neon",p:600,lv:5,k:"neon"},
-{id:"x1",c:"fx",i:"⭐",n:"نجوم",p:350,lv:2,k:"⭐"},{id:"x2",c:"fx",i:"❄️",n:"ثلج",p:350,lv:3,k:"❄️"},{id:"x3",c:"fx",i:"💖",n:"قلوب",p:400,lv:3,k:"💖"},{id:"x4",c:"fx",i:"✨",n:"شرارات",p:500,lv:4,k:"✨"},{id:"x5",c:"fx",i:"💧",n:"مطر",p:400,lv:3,k:"💧"},
-{id:"a1",c:"acc",i:"🎩",n:"قبعة",p:200,lv:1,k:"hat"},{id:"a2",c:"acc",i:"🕶️",n:"نظارة",p:200,lv:1,k:"glasses"},{id:"a3",c:"acc",i:"🧣",n:"وشاح",p:250,lv:2,k:"scarf"},{id:"a4",c:"acc",i:"👑",n:"تاج",p:700,lv:5,k:"crown"},{id:"a5",c:"acc",i:"🪽",n:"جناحين",p:900,lv:6,k:"wings"},{id:"a6",c:"acc",i:"😇",n:"هالة",p:600,lv:4,k:"halo"},
-{id:"r1",c:"room",s:"wall",i:"🖼️",n:"لوحة",p:150,lv:1},{id:"r2",c:"room",s:"wall",i:"🪟",n:"شباك",p:200,lv:1},{id:"r3",c:"room",s:"desk",i:"📚",n:"رف كتب",p:250,lv:2},{id:"r4",c:"room",s:"desk",i:"🖥️",n:"كمبيوتر",p:600,lv:4},{id:"r5",c:"room",s:"plant",i:"🌵",n:"صبار",p:120,lv:1},{id:"r6",c:"room",s:"plant",i:"🪴",n:"نبتة",p:180,lv:2},{id:"r7",c:"room",s:"floor",i:"🛏️",n:"سرير",p:500,lv:3},{id:"r8",c:"room",s:"floor",i:"🪑",n:"كرسي",p:250,lv:2},{id:"r9",c:"room",s:"light",i:"💡",n:"إضاءة",p:200,lv:1},{id:"r10",c:"room",s:"light",i:"🏮",n:"فانوس",p:450,lv:3},{id:"r11",c:"room",s:"clock",i:"🕰️",n:"ساعة",p:220,lv:2},{id:"r12",c:"room",s:"clock",i:"⏰",n:"منبّه",p:150,lv:1},{id:"p1",c:"room",s:"paint",i:"🟦",n:"ورق حائط أزرق",p:180,lv:1,k:"#8ec5ff",f:"#b98a5e"},{id:"p2",c:"room",s:"paint",i:"🟩",n:"ورق حائط أخضر",p:180,lv:1,k:"#a8e6b0",f:"#b08a60"},{id:"p3",c:"room",s:"paint",i:"🟪",n:"ورق حائط بنفسجي",p:220,lv:2,k:"#cdb4ff",f:"#a77c5a"},{id:"p4",c:"room",s:"paint",i:"🟧",n:"ورق حائط برتقالي",p:220,lv:2,k:"#ffc999",f:"#a98059"},{id:"p5",c:"room",s:"paint",i:"⬛",n:"ورق حائط داكن",p:300,lv:3,k:"#2b2f4a",f:"#5a3f2a"},{id:"g1",c:"room",s:"rug",i:"🟥",n:"سجادة حمرا",p:160,lv:1,k:"#c0392b"},{id:"g2",c:"room",s:"rug",i:"🟦",n:"سجادة زرقا",p:160,lv:1,k:"#2e6bd1"},{id:"g3",c:"room",s:"rug",i:"🟩",n:"سجادة خضرا",p:160,lv:2,k:"#2f9e57"},{id:"h1",c:"room",s:"shelf",i:"🏆",n:"كأس",p:400,lv:3},{id:"h2",c:"room",s:"shelf",i:"🌍",n:"جلوب",p:250,lv:2},{id:"h3",c:"room",s:"shelf",i:"🧸",n:"دبدوب",p:150,lv:1},{id:"h4",c:"room",s:"desk2",i:"🎧",n:"سماعات",p:300,lv:3},{id:"h5",c:"room",s:"desk2",i:"☕",n:"قهوة",p:100,lv:1},{id:"h6",c:"room",s:"side",i:"🎸",n:"جيتار",p:450,lv:4},{id:"h7",c:"room",s:"side",i:"🔭",n:"تلسكوب",p:600,lv:5},{id:"h8",c:"room",s:"side",i:"⚽",n:"كورة",p:100,lv:1},{id:"h9",c:"room",s:"light",i:"🪔",n:"نجفة",p:700,lv:6},{id:"n1",c:"snd",s:"win",i:"🎺",n:"فوز: ريترو",p:150,lv:1,k:[392,392,523,659,784],w:"square"},{id:"n2",c:"snd",s:"win",i:"🔔",n:"فوز: جرس",p:200,lv:2,k:[1047,1319,1568,2093],w:"sine"},{id:"n3",c:"snd",s:"lvl",i:"🎼",n:"ليفل: فانفار",p:250,lv:3,k:[262,330,392,523,659,784],w:"sawtooth"},{id:"n4",c:"snd",s:"lvl",i:"🪄",n:"ليفل: سحر",p:250,lv:3,k:[523,659,784,988,1319,1568],w:"sine"},{id:"n5",c:"snd",s:"box",i:"🔮",n:"صندوق: غموض",p:150,lv:1,k:[220,277,330,415,554],w:"sine"},{id:"n6",c:"snd",s:"box",i:"🕹️",n:"صندوق: أركيد",p:150,lv:1,k:[330,440,660,880],w:"square"},{id:"n7",c:"snd",s:"buy",i:"💵",n:"شراء: كاش",p:120,lv:1,k:[1568,2093],w:"sine"},{id:"n8",c:"snd",s:"buy",i:"🫧",n:"شراء: بوب",p:120,lv:1,k:[440,660,990],w:"triangle"},{id:"b1",c:"bub",i:"🟡",n:"ذهبي",p:400,lv:3,k:"gold"},{id:"b2",c:"bub",i:"🔷",n:"نيون",p:500,lv:4,k:"neon"},{id:"b3",c:"bub",i:"🪟",n:"زجاج",p:450,lv:4,k:"glass"},{id:"b4",c:"bub",i:"💥",n:"كوميك",p:350,lv:2,k:"comic"},{id:"b5",c:"bub",i:"🌇",n:"غروب",p:400,lv:3,k:"sunset"}
+{id:"t1",c:"title",i:"📖",n:"طالب مجتهد",p:900,lv:1},{id:"t8",c:"title",i:"🧠",n:"العبقري",p:1500,lv:3},{id:"t9",c:"title",i:"🌟",n:"المتفوق",p:2500,lv:4},{id:"t10",c:"title",i:"🏅",n:"جامع الإنجازات",p:3500,lv:5},{id:"t11",c:"title",i:"🦁",n:"القائد",p:4500,lv:6},{id:"t12",c:"title",i:"🎖️",n:"المحترف",p:6000,lv:7},{id:"t13",c:"title",i:"🐉",n:"الوحش",p:9000,lv:8},{id:"t5",c:"title",i:"👑",n:"أسطورة",p:5400,lv:6},{id:"t6",c:"title",i:"💎",n:"VIP",p:9000,lv:8},{id:"t7",c:"title",i:"🎯",n:"صياد الجوائز",p:3600,lv:4},
+{id:"f1",c:"frame",i:"🥉",n:"برونزي",p:800,lv:1,k:"bronze"},{id:"f2",c:"frame",i:"🥈",n:"فضي",p:2000,lv:2,k:"silver"},{id:"f3",c:"frame",i:"🥇",n:"ذهبي",p:4000,lv:4,k:"gold"},{id:"f4",c:"frame",i:"💠",n:"ألماس",p:9600,lv:8,k:"diamond"},{id:"f5",c:"frame",i:"🔥",n:"نار",p:6400,lv:6,k:"fire"},{id:"f6",c:"frame",i:"⚡",n:"نيون",p:5600,lv:5,k:"neon"},{id:"f7",c:"frame",i:"🌌",n:"Galaxy",p:8000,lv:7,k:"galaxy"},
+{id:"s1",c:"skin",i:"🌊",n:"Ocean",p:1800,lv:2,k:"ocean"},{id:"s2",c:"skin",i:"🟣",n:"Purple",p:1800,lv:2,k:"purple"},{id:"s3",c:"skin",i:"🌅",n:"Sunset",p:2100,lv:3,k:"sunset"},{id:"s4",c:"skin",i:"🌲",n:"Forest",p:2100,lv:3,k:"forest"},{id:"s5",c:"skin",i:"🌈",n:"Aurora",p:3600,lv:5,k:"aurora"},{id:"s6",c:"skin",i:"💗",n:"Neon",p:3600,lv:5,k:"neon"},
+{id:"x1",c:"fx",i:"⭐",n:"نجوم",p:2100,lv:2,k:"⭐"},{id:"x2",c:"fx",i:"❄️",n:"ثلج",p:2100,lv:3,k:"❄️"},{id:"x3",c:"fx",i:"💖",n:"قلوب",p:2400,lv:3,k:"💖"},{id:"x4",c:"fx",i:"✨",n:"شرارات",p:3000,lv:4,k:"✨"},{id:"x5",c:"fx",i:"💧",n:"مطر",p:2400,lv:3,k:"💧"},
+{id:"a1",c:"acc",i:"🎩",n:"قبعة",p:1400,lv:1,k:"hat"},{id:"a2",c:"acc",i:"🕶️",n:"نظارة",p:1400,lv:1,k:"glasses"},{id:"a3",c:"acc",i:"🧣",n:"وشاح",p:1750,lv:2,k:"scarf"},{id:"a4",c:"acc",i:"👑",n:"تاج",p:4900,lv:5,k:"crown"},{id:"a5",c:"acc",i:"🪽",n:"جناحين",p:6300,lv:6,k:"wings"},{id:"a6",c:"acc",i:"😇",n:"هالة",p:4200,lv:4,k:"halo"},
+{id:"r1",c:"room",s:"wall",i:"🖼️",n:"لوحة",p:750,lv:1},{id:"r2",c:"room",s:"wall",i:"🪟",n:"شباك",p:1000,lv:1},{id:"r3",c:"room",s:"desk",i:"📚",n:"رف كتب",p:1250,lv:2},{id:"r4",c:"room",s:"desk",i:"🖥️",n:"كمبيوتر",p:3000,lv:4},{id:"r5",c:"room",s:"plant",i:"🌵",n:"صبار",p:600,lv:1},{id:"r6",c:"room",s:"plant",i:"🪴",n:"نبتة",p:900,lv:2},{id:"r7",c:"room",s:"floor",i:"🛏️",n:"سرير",p:2500,lv:3},{id:"r8",c:"room",s:"floor",i:"🪑",n:"كرسي",p:1250,lv:2},{id:"r9",c:"room",s:"light",i:"💡",n:"إضاءة",p:1000,lv:1},{id:"r10",c:"room",s:"light",i:"🏮",n:"فانوس",p:2250,lv:3},{id:"r11",c:"room",s:"clock",i:"🕰️",n:"ساعة",p:1100,lv:2},{id:"r12",c:"room",s:"clock",i:"⏰",n:"منبّه",p:750,lv:1},{id:"p1",c:"room",s:"paint",i:"🟦",n:"ورق حائط أزرق",p:900,lv:1,k:"#8ec5ff",f:"#b98a5e"},{id:"p2",c:"room",s:"paint",i:"🟩",n:"ورق حائط أخضر",p:900,lv:1,k:"#a8e6b0",f:"#b08a60"},{id:"p3",c:"room",s:"paint",i:"🟪",n:"ورق حائط بنفسجي",p:1100,lv:2,k:"#cdb4ff",f:"#a77c5a"},{id:"p4",c:"room",s:"paint",i:"🟧",n:"ورق حائط برتقالي",p:1100,lv:2,k:"#ffc999",f:"#a98059"},{id:"p5",c:"room",s:"paint",i:"⬛",n:"ورق حائط داكن",p:1500,lv:3,k:"#2b2f4a",f:"#5a3f2a"},{id:"g1",c:"room",s:"rug",i:"🟥",n:"سجادة حمرا",p:800,lv:1,k:"#c0392b"},{id:"g2",c:"room",s:"rug",i:"🟦",n:"سجادة زرقا",p:800,lv:1,k:"#2e6bd1"},{id:"g3",c:"room",s:"rug",i:"🟩",n:"سجادة خضرا",p:800,lv:2,k:"#2f9e57"},{id:"h1",c:"room",s:"shelf",i:"🏆",n:"كأس",p:2000,lv:3},{id:"h2",c:"room",s:"shelf",i:"🌍",n:"جلوب",p:1250,lv:2},{id:"h3",c:"room",s:"shelf",i:"🧸",n:"دبدوب",p:750,lv:1},{id:"h4",c:"room",s:"desk2",i:"🎧",n:"سماعات",p:1500,lv:3},{id:"h5",c:"room",s:"desk2",i:"☕",n:"قهوة",p:500,lv:1},{id:"h6",c:"room",s:"side",i:"🎸",n:"جيتار",p:2250,lv:4},{id:"h7",c:"room",s:"side",i:"🔭",n:"تلسكوب",p:3000,lv:5},{id:"h8",c:"room",s:"side",i:"⚽",n:"كورة",p:500,lv:1},{id:"h9",c:"room",s:"light",i:"🪔",n:"نجفة",p:3500,lv:6},{id:"n1",c:"snd",s:"win",i:"🎺",n:"فوز: ريترو",p:600,lv:1,k:[392,392,523,659,784],w:"square"},{id:"n2",c:"snd",s:"win",i:"🔔",n:"فوز: جرس",p:800,lv:2,k:[1047,1319,1568,2093],w:"sine"},{id:"n3",c:"snd",s:"lvl",i:"🎼",n:"ليفل: فانفار",p:1000,lv:3,k:[262,330,392,523,659,784],w:"sawtooth"},{id:"n4",c:"snd",s:"lvl",i:"🪄",n:"ليفل: سحر",p:1000,lv:3,k:[523,659,784,988,1319,1568],w:"sine"},{id:"n5",c:"snd",s:"box",i:"🔮",n:"صندوق: غموض",p:600,lv:1,k:[220,277,330,415,554],w:"sine"},{id:"n6",c:"snd",s:"box",i:"🕹️",n:"صندوق: أركيد",p:600,lv:1,k:[330,440,660,880],w:"square"},{id:"n7",c:"snd",s:"buy",i:"💵",n:"شراء: كاش",p:500,lv:1,k:[1568,2093],w:"sine"},{id:"n8",c:"snd",s:"buy",i:"🫧",n:"شراء: بوب",p:500,lv:1,k:[440,660,990],w:"triangle"},{id:"b1",c:"bub",i:"🟡",n:"ذهبي",p:2400,lv:3,k:"gold"},{id:"b2",c:"bub",i:"🔷",n:"نيون",p:3000,lv:4,k:"neon"},{id:"b3",c:"bub",i:"🪟",n:"زجاج",p:2700,lv:4,k:"glass"},{id:"b4",c:"bub",i:"💥",n:"كوميك",p:2100,lv:2,k:"comic"},{id:"b5",c:"bub",i:"🌇",n:"غروب",p:2400,lv:3,k:"sunset"}
 ];
 const LF_POOL=[{id:"login",e:"login",t:"ادخل المنصة",n:1,r:20},{id:"e1",e:"exam",t:"خلّص امتحان",n:1,r:60},{id:"e2",e:"exam",t:"خلّص امتحانين",n:2,r:90},{id:"full",e:"full",t:"هات درجة كاملة",n:1,r:80},{id:"box",e:"box",t:"افتح صندوق الحظ",n:1,r:30},{id:"ai",e:"ai",t:"اسأل المساعد الذكي",n:1,r:30},{id:"game",e:"game",t:"ادخل لعبة",n:1,r:40}];
 const LF_ACH=[{id:"a_ex1",i:"📝",t:"أول امتحان",ok:l=>l.tot.ex>=1,r:50},{id:"a_ex10",i:"📚",t:"10 امتحانات",ok:l=>l.tot.ex>=10,r:150},{id:"a_full",i:"💯",t:"أول درجة كاملة",ok:l=>l.tot.full>=1,r:100},{id:"a_box",i:"🎁",t:"فتحت أول صندوق",ok:l=>l.tot.box>=1,r:40},{id:"a_lv10",i:"⭐",t:"Level 10",ok:()=>xpLevel((S.profile||{}).xp||0)>=10,r:200},{id:"a_str7",i:"🔥",t:"7 أيام متتالية",ok:()=>((S.profile||{}).streak||0)>=7,r:150},{id:"a_c5k",i:"🪙",t:"جمعت 5000 عملة",ok:l=>l.earned>=5000,r:300},{id:"a_win",i:"🏆",t:"أول فوز في لعبة",ok:l=>l.tot.win>=1,r:100},{id:"a_ex100",i:"🎓",t:"100 امتحان",ok:l=>l.tot.ex>=100,r:500},{id:"a_full5",i:"💎",t:"5 درجات كاملة",ok:l=>l.tot.full>=5,r:250},{id:"a_shop5",i:"🛍️",t:"اشتريت 5 حاجات",ok:l=>l.inv.length>=5,r:120},{id:"a_pet3",i:"🐺",t:"حيوانك بقى شاب",ok:()=>lfStage((S.profile||{}).xp)>=3,r:200}];
-const lfDef=()=>({coins:0,earned:0,inv:[],eq:{acc:[],room:{}},pet:null,lucky:0,lastDaily:"",q:{d:"",done:[],prog:{}},tot:{ex:0,full:0,box:0},ach:[],w:{k:"",done:[],prog:{}}});
+const lfDef=()=>({coins:0,earned:0,inv:[],eq:{acc:[],room:{}},pet:null,lucky:0,lastDaily:"",q:{d:"",done:[],prog:{}},tot:{ex:0,full:0,box:0},ach:[],w:{k:"",done:[],prog:{}},paid:{},refunded:0,hatched:false});
 const lfItem=id=>LF_SHOP.find(x=>x.id===id);
-const lfStage=xp=>{let s=0;LF_ST.forEach((m,i)=>{if((xp||0)>=m)s=i});return s};
+const lfStage=(xp,l)=>{let s=0;LF_ST.forEach((m,i)=>{if((xp||0)>=m)s=i});l=l===undefined?S.life:l;if(l&&l.hatched&&s<1)s=1;return s};
 function lfQuests(){const k=todayKey();let h=0;for(const ch of k)h=(h*31+ch.charCodeAt(0))>>>0;const r=mulberry(h);return shuf(LF_POOL,r).slice(0,5)}
 let __lfT=0;
-function lfSave(){if(!S.user||S.isAdmin||!S.life)return;clearTimeout(__lfT);__lfT=setTimeout(async()=>{const l=S.life,sv=l._srv||{earned:0,eDay:"",eToday:0},de=l.earned-sv.earned;const base={coins:l.coins,earned:l.earned,inv:l.inv,eq:l.eq,pet:l.pet,lucky:l.lucky,lastDaily:l.lastDaily,q:l.q,tot:l.tot,ach:l.ach,w:l.w,updatedAt:serverTimestamp()};for(const off of [0,-240000,240000]){const dk=lfDayKey(off),used=sv.eDay===dk?sv.eToday:0,ed=de>0?dk:(sv.eDay||""),et=de>0?used+de:(sv.eToday||0);try{await setDoc(doc(db,"life",S.user.uid),{...base,eDay:ed,eToday:et},{merge:true});l._srv={earned:l.earned,eDay:ed,eToday:et};return}catch(e){if(!String(e.code||"").includes("permission"))return console.warn("life",e)}}},700)}
+function lfSave(){if(!S.user||S.isAdmin||!S.life)return;clearTimeout(__lfT);__lfT=setTimeout(async()=>{const l=S.life,sv=l._srv||{earned:0,eDay:"",eToday:0},de=l.earned-sv.earned;const base={coins:l.coins,earned:l.earned,inv:l.inv,eq:l.eq,pet:l.pet,lucky:l.lucky,lastDaily:l.lastDaily,q:l.q,tot:l.tot,ach:l.ach,w:l.w,paid:l.paid||{},refunded:l.refunded||0,hatched:!!l.hatched,updatedAt:serverTimestamp()};for(const off of [0,-240000,240000]){const dk=lfDayKey(off),used=sv.eDay===dk?sv.eToday:0,ed=de>0?dk:(sv.eDay||""),et=de>0?used+de:(sv.eToday||0);try{await setDoc(doc(db,"life",S.user.uid),{...base,eDay:ed,eToday:et},{merge:true});l._srv={earned:l.earned,eDay:ed,eToday:et};return}catch(e){if(!String(e.code||"").includes("permission"))return console.warn("life",e)}}},700)}
 function lfSfx(k){try{if(localStorage.getItem("lf_mute")==="1")return;const c=window.__lfa||(window.__lfa=new (window.AudioContext||window.webkitAudioContext)());const ov=S.life&&S.life.eq&&S.life.eq.snd?lfItem(S.life.eq.snd[k]):null;const seq=ov?ov.k:({win:[523,659,784,1047],lvl:[392,523,659,784,1047],box:[300,400,500,700],buy:[660,880],coin:[880,1175]}[k]||[600]);seq.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.type=(ov&&ov.w)||"triangle";o.frequency.value=f;g.gain.setValueAtTime(.001,c.currentTime+i*.09);g.gain.exponentialRampToValueAtTime(.18,c.currentTime+i*.09+.02);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+i*.09+.2);o.connect(g);g.connect(c.destination);o.start(c.currentTime+i*.09);o.stop(c.currentTime+i*.09+.22)})}catch(_){}}
 function lfApply(){const e=(S.life&&S.life.eq)||{};const sk=lfItem(e.skin);const r=document.documentElement;if(sk)r.dataset.skin=sk.k;else delete r.dataset.skin;let f=document.getElementById("fxl");if(f)f.remove();const fx=lfItem(e.fx);if(fx){f=document.createElement("div");f.id="fxl";for(let i=0;i<14;i++){const s=document.createElement("span");s.textContent=fx.k;s.style.cssText=`left:${Math.random()*100}%;font-size:${12+Math.random()*14}px;animation-duration:${7+Math.random()*8}s;animation-delay:${-Math.random()*12}s`;f.appendChild(s)}document.body.appendChild(f)}}
 function lfAdd(c,why,silent){const l=S.life;if(!l||!c)return;const stg=lfStage((S.profile||{}).xp);if(why==="exam"&&stg>=1)c+=2;if(stg>=3&&c>20)c=Math.round(c*1.05);l.coins+=c;l.earned+=c;if(!silent){toast(`+${c} 🪙 ${why&&why!=="exam"?why:""}`,true);lfSfx("coin");lfBurst("🪙",6)}lfSave();lfAch();if(S.view==="life")render(true)}
-function lfEvent(e,n){const l=S.life;if(!l||S.isAdmin)return;n=n==null?1:n;if(!n)return;const dk=todayKey(),wk=lfWeek();if(l.q.d!==dk)l.q={d:dk,done:[],prog:{}};if(!l.w||l.w.k!==wk)l.w={k:wk,done:[],prog:{}};[[l.q,lfQuests()],[l.w,LF_WEEK]].forEach(([b,list])=>{b.prog[e]=(b.prog[e]||0)+n;list.forEach(x=>{if(x.e===e&&!b.done.includes(x.id)&&b.prog[e]>=x.n){b.done.push(x.id);lfAdd(x.r,"مهمة: "+x.t)}})});lfSave()}
+function lfEvent(e,n){let hn=0;const l=S.life;if(!l||S.isAdmin)return;n=n==null?1:n;if(!n)return;const dk=todayKey(),wk=lfWeek();if(l.q.d!==dk)l.q={d:dk,done:[],prog:{}};if(!l.w||l.w.k!==wk)l.w={k:wk,done:[],prog:{}};[[l.q,lfQuests()],[l.w,LF_WEEK]].forEach(([b,list])=>{b.prog[e]=(b.prog[e]||0)+n;list.forEach(x=>{if(x.e===e&&!b.done.includes(x.id)&&b.prog[e]>=x.n){b.done.push(x.id);hn=1;lfAdd(x.r,"مهمة: "+x.t)}})});lfSave();if(hn)lfHatch()}
 function lfAch(){const l=S.life;if(!l)return;LF_ACH.forEach(a=>{if(!l.ach.includes(a.id)&&a.ok(l)){l.ach.push(a.id);l.coins+=a.r;l.earned+=a.r;toast(`🏅 إنجاز: ${a.t} · +${a.r} 🪙`,true);lfSfx("win")}})}
-async function lfInit(){if(!S.user||S.isAdmin)return;try{const s=await getDoc(doc(db,"life",S.user.uid));S.life=Object.assign(lfDef(),s.exists()?s.data():{});S.life.eq=Object.assign({acc:[],room:{}},S.life.eq||{});S.life.tot=Object.assign({ex:0,full:0,box:0},S.life.tot||{});lfClean(S.life);S.life._srv={earned:S.life.earned,eDay:S.life.eDay||"",eToday:S.life.eToday||0};lfApply();const t=todayKey();if(S.life.lastDaily!==t){S.life.lastDaily=t;lfAdd(15,"دخول يومي");lfEvent("login");lfEvent("day");setTimeout(()=>lfReact("run"),900)}lfAch();lfSave();render(true)}catch(e){console.warn("lifeInit",e)}}
-function lfOnXp(reason,xp0){if(!S.life||S.isAdmin)return;if(reason==="exam"||reason==="exam_full"||reason==="first_exam"){const full=reason==="exam_full";S.life.tot.ex++;if(full)S.life.tot.full++;lfAdd(40+(full?80:0),"exam");lfEvent("exam");if(full)lfEvent("full");lfSfx("win")}const p=S.profile||{};lfEvent("xp",Math.max(0,(p.xp||0)-(xp0||0)));if(xpLevel(p.xp||0)>xpLevel(xp0||0)){lfSfx("lvl");try{confetti()}catch(_){}toast("🎉 Level "+xpLevel(p.xp),true)}lfReact(reason==="exam_full"?"dance":"jump")}
+async function lfInit(){if(!S.user||S.isAdmin)return;try{const s=await getDoc(doc(db,"life",S.user.uid));S.life=Object.assign(lfDef(),s.exists()?s.data():{});S.life.eq=Object.assign({acc:[],room:{}},S.life.eq||{});S.life.tot=Object.assign({ex:0,full:0,box:0},S.life.tot||{});lfReconcile(S.life);lfClean(S.life);lfCfgListen();S.life._srv={earned:S.life.earned,eDay:S.life.eDay||"",eToday:S.life.eToday||0};lfApply();const t=todayKey();if(S.life.lastDaily!==t){S.life.lastDaily=t;lfAdd(15,"دخول يومي");lfEvent("login");lfEvent("day");setTimeout(()=>lfReact("run"),900)}lfAch();lfSave();render(true)}catch(e){console.warn("lifeInit",e)}}
+function lfOnXp(reason,xp0){if(!S.life||S.isAdmin)return;if(reason==="exam"||reason==="exam_full"||reason==="first_exam"){const full=reason==="exam_full";S.life.tot.ex++;if(full)S.life.tot.full++;lfAdd(40+(full?80:0),"exam");lfHatch();lfEvent("exam");if(full)lfEvent("full");lfSfx("win")}const p=S.profile||{};lfEvent("xp",Math.max(0,(p.xp||0)-(xp0||0)));if(xpLevel(p.xp||0)>xpLevel(xp0||0)){lfSfx("lvl");try{confetti()}catch(_){}toast("🎉 Level "+xpLevel(p.xp),true)}lfReact(reason==="exam_full"?"dance":"jump")}
 function lfPet(l,xp,px){if(!l||!l.pet)return"";const st=lfStage(xp);const acc=(l.eq.acc||[]).map(id=>lfItem(id)).filter(Boolean).map(a=>`<span class="lf-acc ${a.k}">${a.i}</span>`).join("");return `<div class="lf-pet ${st===5?"aura":""}" data-act="petTap" style="font-size:${Math.round(px*LF_SC[st])}px"><span class="b ${st===0?"egg":""}">${st===0?"🥚":l.pet.t}${st>0?acc:""}</span><i class="sh"></i></div>`}
 function lfFr(h,l){const f=l&&lfItem((l.eq||{}).frame);return f?`<div class="fr fr-${f.k}">${h}</div>`:h}
 function lfTitle(l){const t=l&&lfItem((l.eq||{}).title);return t?`<div class="title-pill">${t.i} ${esc(t.n)}</div>`:""}
@@ -7293,7 +7331,7 @@ function lifeView(){
   const l=S.life,p=S.profile||{},xp=p.xp||0;
   if(!l)return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openMe">رجوع</button>`)}<div class="card mut">جاري التحميل…</div></div>${studentNav()}`;
   const tab=S.lifeTab||"room",stg=lfStage(xp),nxt=LF_ST[stg+1];
-  const prog=nxt?Math.round((xp-LF_ST[stg])/(nxt-LF_ST[stg])*100):100;
+  const lb0=(stg===1&&xp<LF_ST[1])?0:LF_ST[stg],prog=nxt?Math.max(0,Math.min(100,Math.round((xp-lb0)/(nxt-lb0)*100))):100;
   const tabs=[["room","🏠 غرفتي"],["shop","🛒 المتجر"],["quests","✅ المهام"],["ach","🏅 إنجازات"]].map(t=>`<button class="${tab===t[0]?"on":""}" data-act="lifeTab" data-t="${t[0]}">${t[1]}</button>`).join("");
   let body="";
   if(tab==="room"){
@@ -7305,13 +7343,13 @@ function lifeView(){
       body=`<div class="lf-room ${new Date().getHours()>=19||new Date().getHours()<6?"night":""}" style="${(()=>{const pn=lfItem(l.eq.room.paint);return pn?`background:linear-gradient(${pn.k} 0 62%,${pn.f} 62%)`:""})()}"><div class="sky"><i class="sun"></i><b class="cl c1"></b><b class="cl c2"></b></div><div class="boards"></div>${["rug","wall","clock","light","shelf","desk","desk2","plant","side","floor"].map(sl).join("")}${lfPet(l,xp,60)}</div>
 <div class="card" style="margin-top:12px"><div class="row"><b style="flex:1">${l.pet.t} ${esc(l.pet.n)} · ${LF_STN[stg]}</b><span class="pill">${mood}</span></div>
 <div class="lf-xp" style="background:var(--line)"><i style="width:${prog}%;background:var(--pri)"></i></div>
-<div class="mut" style="font-size:12px;margin-top:6px">${nxt?`${nxt-xp} XP للمرحلة الجاية (${LF_STN[stg+1]})`:"وصل لأعلى مرحلة 🐉"} · اضغط عليه يلعب معاك</div>
+<div class="mut" style="font-size:12px;margin-top:6px">${!l.hatched&&stg===0?"خلّص أي مهمة أو امتحان وهتفقس 🐣":nxt?`${nxt-xp} XP للمرحلة الجاية (${LF_STN[stg+1]})`:"وصل لأعلى مرحلة 🐉"} · اضغط عليه يلعب معاك</div>
 <div class="mut" style="font-size:12px">${stg>=1?"• +2 🪙 لكل امتحان ":""}${stg>=3?"• +5% عملات ":""}${stg>=5?"• خصم 10% في المتجر":""}</div></div>
 <button class="btn block gold" data-act="openBox" ${cd?"disabled":""}>🎁 صندوق الحظ ${cd?"· بعد "+cd:"· متاح دلوقتي!"}</button>
 <div class="card" style="margin-top:12px"><b>اللي معاك</b><div class="lf-grid" style="margin-top:8px">${l.inv.map(lfItem).filter(Boolean).map(it=>`<div class="lf-it ${lfOn(it)?"on":""}"><div class="ic">${it.i}</div><small>${esc(it.n)}</small><button data-act="equip" data-id="${it.id}">${lfOn(it)?"شيل":"البس"}</button></div>`).join("")||`<div class="mut">لسه مفيش حاجة — روح المتجر 🛒</div>`}</div></div>`}
   }else if(tab==="shop"){
     const cat=S.lifeCat||"title",disc=stg>=5?.9:1,lv=xpLevel(xp);
-    body=`<div class="lf-chips">${Object.keys(LF_CATS).map(k=>`<button class="${cat===k?"on":""}" data-act="lifeCat" data-c="${k}">${LF_CATS[k]}</button>`).join("")}</div><div class="lf-grid">${LF_SHOP.filter(x=>x.c===cat).map(it=>{const own=l.inv.includes(it.id),pr=Math.round(it.p*disc),lock=lv<it.lv;return `<div class="lf-it ${lfOn(it)?"on":""}"><div class="ic">${it.i}</div><b style="font-size:13px">${esc(it.n)}</b><small>${lock&&!own?"🔒 Level "+it.lv:own?"ملكك":"🪙 "+pr}</small>${own?`<button data-act="equip" data-id="${it.id}">${lfOn(it)?"شيل":"البس"}</button>`:`<button class="g" data-act="buy" data-id="${it.id}" ${lock||l.coins<pr?"disabled":""}>اشتري</button>`}</div>`}).join("")}</div><p class="mut" style="font-size:12px;text-align:center;margin-top:10px">كل حاجة هنا شكل بس — العملات مبتأثرش على درجاتك أو الامتحانات.</p>`;
+    body=`<div class="lf-wallet"><span>🪙 رصيدك</span><b>${l.coins.toLocaleString("en")}</b></div><div class="lf-chips">${Object.keys(LF_CATS).map(k=>`<button class="${cat===k?"on":""}" data-act="lifeCat" data-c="${k}">${LF_CATS[k]}</button>`).join("")}</div><div class="lf-grid shop">${LF_SHOP.filter(x=>x.c===cat&&lfAvail(x)).map((it,i)=>lfShopCard(it,i,l,disc,lv)).join("")}</div><p class="mut" style="font-size:12px;text-align:center;margin-top:10px">كل حاجة هنا شكل بس — العملات مبتأثرش على درجاتك أو الامتحانات. لو السعر اتغيّر بيتسحب الغرض وفلوسك بترجعلك كاملة.</p>`;
   }else if(tab==="quests"){
     const q=l.q.d===todayKey()?l.q:{done:[],prog:{}},w=l.w&&l.w.k===lfWeek()?l.w:{done:[],prog:{}};
     const rq=(b,x)=>{const d=b.done.includes(x.id),pr=Math.min(b.prog[x.e]||0,x.n);return `<div class="lf-q ${d?"done":""}"><span style="font-size:24px">${d?"✅":"🎯"}</span><div style="flex:1"><b>${x.t}</b> <span class="mut" style="font-size:12px">${pr}/${x.n}</span><div class="bar"><i style="width:${pr/x.n*100}%"></i></div></div><span class="pill y">+${x.r} 🪙</span></div>`};
@@ -7328,16 +7366,16 @@ function lfOv(h){const o=document.createElement("div");o.className="lf-ov";o.inn
 Object.assign(A,{
   openLife(){S.view="life";render(true)},
   lifeTab(d){S.lifeTab=d.t;render(true)},lifeCat(d){S.lifeCat=d.c;render(true)},
-  async pickPet(d){if(!LF_PETS.includes(d.e))return;const n=await uiPrompt("اسم رفيقك؟","Spark");if(n===null)return;S.life.pet={t:d.e,n:(n||"Spark").slice(0,14)};lfSave();lfSfx("win");render(true)},
+  async pickPet(d){if(!LF_PETS.includes(d.e))return;const n=await uiPrompt("اسم رفيقك؟","Spark");if(n===null)return;S.life.pet={t:d.e,n:(n||"Spark").slice(0,14)};lfSave();lfSfx("win");render(true);if((S.life.q.done||[]).length||S.life.tot.ex>0||S.life.ach.length)setTimeout(lfHatch,500)},
   petTap(d,b){const el=b.closest?b.closest(".lf-pet"):b;if(!el)return;el.classList.remove("jump");void el.offsetWidth;el.classList.add("jump");const h=document.createElement("span");h.className="lf-heart";h.textContent="💖";h.style.cssText="left:50%;top:-10px";el.appendChild(h);setTimeout(()=>h.remove(),1100);lfSfx("coin")},
-  buy(d){const it=lfItem(d.id);if(!it||!S.life||xpLevel((S.profile||{}).xp||0)<it.lv)return;const l=S.life,pr=Math.round(it.p*(lfStage((S.profile||{}).xp)>=5?.9:1));if(l.inv.includes(it.id)||l.coins<pr)return;l.coins-=pr;l.inv.push(it.id);lfEquipSet(it,true);lfApply();lfSave();lfSfx("buy");lfBurst("✨",8);toast(`اشتريت ${it.n} ${it.i}`,true);render(true)},
+  buy(d){const it=lfItem(d.id);if(!it||!S.life||!lfAvail(it))return;if(S.shopCfg===undefined){toast("ثانية واحدة… بحمّل الأسعار");return}const l=S.life;if(xpLevel((S.profile||{}).xp||0)<it.lv)return;const disc=lfStage((S.profile||{}).xp)>=5?.9:1,base=lfPrice(it),pr=Math.round(base*disc);if(l.inv.includes(it.id)||l.coins<pr)return;l.coins-=pr;l.inv.push(it.id);l.paid=l.paid||{};l.paid[it.id]=[base,pr];lfEquipSet(it,true);lfApply();lfSave();lfSfx("buy");lfBurst("✨",8);toast(`اشتريت ${it.n} ${it.i}`,true);lfBought(it);render(true)},
   equip(d){const it=lfItem(d.id);if(!it||!S.life.inv.includes(it.id))return;lfEquipSet(it,!lfOn(it));lfBurst("✨",4);lfSfx("coin");lfApply();lfSave();render(true)},
-  openBox(){const l=S.life;if(lfCountdown())return;l.lucky=Date.now();const r=Math.random()*100;let pz;const own=c=>LF_SHOP.filter(x=>x.c===c&&!l.inv.includes(x.id));const pick=c=>{const a=own(c);return a.length?a[Math.floor(Math.random()*a.length)]:null};
+  openBox(){const l=S.life;if(lfCountdown())return;l.lucky=Date.now();const r=Math.random()*100;let pz;const own=c=>LF_SHOP.filter(x=>x.c===c&&!l.inv.includes(x.id)&&lfAvail(x));const pick=c=>{const a=own(c);return a.length?a[Math.floor(Math.random()*a.length)]:null};
     if(r<40)pz={c:20};else if(r<60)pz={c:50};else if(r<75)pz={c:100};else if(r<85)pz={c:150};else if(r<90)pz={it:pick("title")};else if(r<94)pz={it:pick("frame")};else if(r<97)pz={it:pick("skin")};else if(r<99)pz={it:pick("acc")};else pz={c:500,jp:1};
     if(pz.it===null||(pz.it===undefined&&!pz.c))pz={c:100};
     const o=lfOv(`<div class="lf-box">🎁</div>`);lfSfx("box");l.tot.box++;
-    setTimeout(()=>{if(pz.it){l.inv.push(pz.it.id)}else lfAdd(pz.c,"",true);const t=pz.it?`${pz.it.i}<br><b>${pz.it.n}</b><br><span class="mut">${LF_CATS[pz.it.c]}</span>`:`${pz.jp?"🎰 JACKPOT":"🪙"}<br><b style="font-size:28px">+${pz.c}</b>`;o.innerHTML=`<div class="lf-prize"><div style="font-size:64px;line-height:1.3">${t}</div><button class="btn block" style="margin-top:14px" data-x="1">تمام</button></div>`;lfSfx(pz.jp||pz.it?"lvl":"win");lfEvent("box");lfAch();lfSave();render(true)},1300)},
-  async studentCard(d){const uid=d.uid||S.user.uid;const o=lfOv(`<div class="lf-card"><div class="mut">جاري التحميل…</div></div>`);try{const [s,lf]=await Promise.all([getDoc(doc(db,"students",uid)),getDoc(doc(db,"life",uid))]);const u=s.exists()?s.data():{},l=Object.assign(lfDef(),lf.exists()?lf.data():{});l.eq=Object.assign({acc:[],room:{}},l.eq||{});lfClean(l);const xp=u.xp||0,stg=lfStage(xp);const rk=(typeof rankBoard==="function"?rankBoard(S.board).ranked:[]).findIndex(b=>(b.uid||b.id)===uid);const b=(S.board||[]).find(x=>(x.uid||x.id)===uid)||{};const av=u.avatarThumb||u.avatar;const ah=av?`<img src="${av}" alt="" style="width:84px;height:84px;border-radius:50%;object-fit:cover">`:`<div class="av" style="width:84px;height:84px;font-size:32px">${esc((u.name||"؟")[0])}</div>`;
+    setTimeout(()=>{if(pz.it){l.inv.push(pz.it.id);l.paid=l.paid||{};l.paid[pz.it.id]=[-1,0]}else lfAdd(pz.c,"",true);const t=pz.it?`${pz.it.i}<br><b>${pz.it.n}</b><br><span class="mut">${LF_CATS[pz.it.c]}</span>`:`${pz.jp?"🎰 JACKPOT":"🪙"}<br><b style="font-size:28px">+${pz.c}</b>`;o.innerHTML=`<div class="lf-prize"><div style="font-size:64px;line-height:1.3">${t}</div><button class="btn block" style="margin-top:14px" data-x="1">تمام</button></div>`;lfSfx(pz.jp||pz.it?"lvl":"win");lfEvent("box");lfAch();lfSave();render(true)},1300)},
+  async studentCard(d){const uid=d.uid||S.user.uid;const o=lfOv(`<div class="lf-card"><div class="mut">جاري التحميل…</div></div>`);try{const [s,lf]=await Promise.all([getDoc(doc(db,"students",uid)),getDoc(doc(db,"life",uid))]);const u=s.exists()?s.data():{},l=Object.assign(lfDef(),lf.exists()?lf.data():{});l.eq=Object.assign({acc:[],room:{}},l.eq||{});lfClean(l);const xp=u.xp||0,stg=lfStage(xp,l);const rk=(typeof rankBoard==="function"?rankBoard(S.board).ranked:[]).findIndex(b=>(b.uid||b.id)===uid);const b=(S.board||[]).find(x=>(x.uid||x.id)===uid)||{};const av=u.avatarThumb||u.avatar;const ah=av?`<img src="${av}" alt="" style="width:84px;height:84px;border-radius:50%;object-fit:cover">`:`<div class="av" style="width:84px;height:84px;font-size:32px">${esc((u.name||"؟")[0])}</div>`;
     o.innerHTML=`<div class="lf-card" data-tilt><div>${lfFr(ah,l)}<h3 style="margin:8px 0 2px">${esc(u.name||"طالب")}</h3>${lfTitle(l)}<div style="margin:10px 0;min-height:70px;position:relative;font-size:46px">${l.pet?`<span style="font-size:${Math.round(46*LF_SC[stg])}px">${stg===0?"🥚":l.pet.t}</span><div class="mut" style="font-size:12px">${esc(l.pet.n)} · ${LF_STN[stg]}</div>`:`<span class="mut" style="font-size:13px">لسه معندوش حيوان</span>`}</div>
 <div class="st"><div><b>⭐ ${xpLevel(xp)}</b>المستوى</div><div><b>🪙 ${l.coins}</b>عملات</div><div><b>🔥 ${u.streak||0}</b>أيام متتالية</div><div><b>${rk>=0?"#"+(rk+1):"—"}</b>الترتيب</div><div><b>${b.pct!=null?b.pct+"%":"—"}</b>نسبة النجاح</div><div><b>🏅 ${(l.ach||[]).length}</b>إنجازات</div></div><button class="btn block ghost" style="margin-top:12px" data-x="1">إغلاق</button></div></div>`}catch(e){o.innerHTML=`<div class="lf-prize">مقدرتش أحمّل البطاقة</div>`}}
 });
@@ -7350,7 +7388,8 @@ function lfEquipSet(it,on){const e=S.life.eq;if(it.c==="acc"){e.acc=e.acc.filter
 const LF_WEEK=[{id:"w1",e:"exam",t:"خلّص 10 امتحانات",n:10,r:250},{id:"w2",e:"win",t:"اكسب 5 مباريات",n:5,r:250},{id:"w3",e:"day",t:"ادخل المنصة 7 أيام",n:7,r:250},{id:"w4",e:"xp",t:"اجمع 300 XP",n:300,r:250}];
 const lfWeek=()=>"w"+Math.floor((Date.now()/864e5+2)/7);
 const lfMuted=()=>{try{return localStorage.getItem("lf_mute")==="1"}catch(_){return false}};
-function lfClean(l){const num=(v,m)=>Math.max(0,Math.min(m,Math.floor(+v||0)));l.coins=num(l.coins,1e7);l.earned=num(l.earned,1e8);l.lucky=num(l.lucky,4e12);l.inv=[...new Set((Array.isArray(l.inv)?l.inv:[]).filter(id=>typeof id==="string"&&lfItem(id)))];
+function lfClean(l){const num=(v,m)=>Math.max(0,Math.min(m,Math.floor(+v||0)));l.coins=num(l.coins,1e7);l.earned=num(l.earned,1e8);l.lucky=num(l.lucky,4e12);if(l.all)l.inv=LF_SHOP.map(x=>x.id);l.refunded=num(l.refunded,1e9);l.hatched=!!l.hatched;l.all=!!l.all;l.inv=[...new Set((Array.isArray(l.inv)?l.inv:[]).filter(id=>typeof id==="string"&&lfItem(id)))];
+ {const pd={};const o=(l.paid&&typeof l.paid==="object")?l.paid:{};l.inv.forEach(id=>{const v=o[id];if(Array.isArray(v)&&v.length===2){const b=Math.floor(+v[0]);pd[id]=[isFinite(b)?Math.max(-1,Math.min(1e7,b)):0,num(v[1],1e7)]}});l.paid=pd}
  const p=l.pet;l.pet=p&&LF_PETS.includes(p.t)?{t:p.t,n:String(p.n||"Spark").slice(0,14)}:null;
  const e=l.eq=(l.eq&&typeof l.eq==="object")?l.eq:{};const ok=(id,c)=>{const it=lfItem(id);return it&&it.c===c&&l.inv.includes(id)?id:null};
  ["title","frame","skin","fx","bub"].forEach(c=>{e[c]=ok(e[c],c)});e.acc=(Array.isArray(e.acc)?e.acc:[]).filter(id=>ok(id,"acc")).slice(0,6);
@@ -7372,7 +7411,7 @@ const LF_SAY=["يلا نذاكر! 📚","فخور بيك 💪","عايز امت�
 Object.assign(A,{buddyTap(d,b){lfReact("jump");lfSfx("coin");toast(S.life.pet.n+": "+LF_SAY[Math.floor(Math.random()*LF_SAY.length)])},lfMute(){try{localStorage.setItem("lf_mute",lfMuted()?"0":"1")}catch(_){}render(true)}});
 document.addEventListener("pointermove",e=>{const t=e.target.closest&&e.target.closest(".lf-3d");if(!t)return;const r=t.getBoundingClientRect();t.style.setProperty("--ry",((e.clientX-r.left)/r.width-.5)*90+"deg");t.style.setProperty("--rx",(.5-(e.clientY-r.top)/r.height)*40+"deg");t.classList.add("tilt");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("tilt"),1800)},{passive:true});
 {const _sb=qbSaveBattle;qbSaveBattle=async function(){const g=S.qb;try{if(g&&g.match&&!g.match._lf&&S.life&&S.user&&!S.isAdmin){g.match._lf=1;const m=g.match,me=m.players.find(p=>p.uid===S.user.uid);if(me){const rk=[...m.players].sort((a,b)=>b.score-a.score).findIndex(p=>p.uid===S.user.uid)+1;if(rk===1&&m.players.length>1){S.life.tot.win++;lfAdd(/bot/i.test(String(g.mode))?35:120,"فوز 🏆");lfEvent("win");lfReact("dance");lfSfx("win")}else lfReact("sad")}}}catch(_){}return _sb.apply(this,arguments)}}
-{const _r=render;render=function(){try{if(S.user&&S.profile&&!S.isAdmin&&!S.profile.phone)S.profile.phone=String(S.user.email||"").split("@")[0]}catch(_){}const r=_r.apply(this,arguments);try{lfBuddyUpd();lfPost()}catch(_){}return r}}
+{const _r=render;render=function(){try{if(S.user&&S.profile&&!S.isAdmin&&!S.profile.phone)S.profile.phone=String(S.user.email||"").split("@")[0]}catch(_){}const r=_r.apply(this,arguments);try{lfBuddyUpd();lfPost();lfCfgListen()}catch(_){}return r}}
 
 
 /* ===== Student Life v3 ===== */
@@ -7388,6 +7427,100 @@ async function lfMigrate(){try{if(localStorage.getItem("priv_mig_v2")==="1")retu
 const __rs=()=>document.querySelectorAll("[data-tilt].on3").forEach(x=>{x.style.removeProperty("--rx");x.style.removeProperty("--ry");x.classList.remove("on3")});
 document.addEventListener("pointermove",e=>{const t=e.target.closest&&e.target.closest("[data-tilt]");document.querySelectorAll("[data-tilt].on3").forEach(x=>{if(x!==t){x.style.removeProperty("--rx");x.style.removeProperty("--ry");x.classList.remove("on3")}});if(!t)return;const r=t.getBoundingClientRect();t.style.setProperty("--ry",((e.clientX-r.left)/r.width-.5)*24+"deg");t.style.setProperty("--rx",(.5-(e.clientY-r.top)/r.height)*18+"deg");t.classList.add("on3")},{passive:true});
 document.addEventListener("pointerup",__rs);document.addEventListener("pointercancel",__rs);
+
+
+/* ===== Store v5: realistic prices, refunds, hatch, admin tools ===== */
+const lfPrice=it=>{const c=S.shopCfg&&S.shopCfg.prices;const v=c&&+c[it.id];return v>0?Math.round(v):it.p};
+const lfAvail=it=>!(((S.shopCfg&&S.shopCfg.off)||[]).includes(it.id));
+function lfReconcile(l){
+  if(!l||l.all)return 0;
+  const cfg=S.shopCfg,off=(cfg&&cfg.off)||[];
+  l.paid=(l.paid&&typeof l.paid==="object")?l.paid:{};
+  let refund=0;const keep=[],gone=[];
+  (Array.isArray(l.inv)?l.inv:[]).forEach(id=>{
+    const it=lfItem(id),pd=l.paid[id],legacy=!Array.isArray(pd);
+    const b=legacy?(LF_OLD[id]||0):(+pd[0]||0),a=legacy?b:(+pd[1]||0);
+    let drop=false;
+    if(!it)drop=true;
+    else if(cfg===undefined||cfg===null)drop=false;
+    else if(off.includes(id))drop=true;
+    else if(b>=0&&b!==lfPrice(it))drop=true;
+    if(drop){if(b>=0)refund+=a;gone.push(id);delete l.paid[id]}else keep.push(id)
+  });
+  if(!gone.length)return 0;
+  l.inv=keep;l.coins=(l.coins||0)+refund;l.refunded=(l.refunded||0)+refund;
+  setTimeout(()=>{try{toast(`🔄 المتجر اتحدّث — شلنا ${gone.length} حاجة ورجّعنالك ${refund.toLocaleString("en")} 🪙`,true)}catch(_){}},800);
+  return gone.length;
+}
+let __lfCfgOn=0;
+function lfCfgListen(){
+  if(__lfCfgOn||!S.user)return;__lfCfgOn=1;
+  try{onSnapshot(doc(db,"config","shop"),s=>{
+    S.shopCfg=s.exists()?s.data():{};
+    if(S.life&&!S.isAdmin){const n=lfReconcile(S.life);if(n){lfClean(S.life);lfApply();lfSave()}}
+    if(S.isAdmin||S.view==="life")render(true)
+  },e=>{__lfCfgOn=0;S.shopCfg=S.shopCfg||{};console.warn("shopcfg",e)})}catch(_){__lfCfgOn=0}
+}
+const LF_RAR=[["c","عادي",1000],["r","نادر",4000],["e","ملحمي",12000],["l","أسطوري",1e9]];
+const lfRar=it=>LF_RAR.find(r=>it.p<r[2]);
+const LF_SKG={ocean:"#06b6d4,#1e3a8a",purple:"#a78bfa,#be185d",sunset:"#fb923c,#db2777",forest:"#4ade80,#065f46",aurora:"#34d399,#8b5cf6",neon:"#f472b6,#06b6d4"};
+function lfPv(it,l){
+  const pe=(l.pet&&l.pet.t)||"🐱";
+  if(it.c==="frame")return lfFr(`<div class="pv-av">🙂</div>`,{eq:{frame:it.id}});
+  if(it.c==="title")return `<span class="title-pill pv-t">${it.i} ${esc(it.n)}</span>`;
+  if(it.c==="skin")return `<span class="pv-sk" style="background:linear-gradient(135deg,${LF_SKG[it.k]||"#888,#444"})">${it.i}</span>`;
+  if(it.c==="acc")return `<span class="pv-pet">${pe}<span class="lf-acc ${it.k}">${it.i}</span></span>`;
+  if(it.c==="fx")return `<span class="pv-fx"><i>${it.k}</i><i>${it.k}</i><i>${it.k}</i><i>${it.k}</i></span>`;
+  if(it.c==="snd")return `<button type="button" class="pv-snd" data-act="sndPrev" data-id="${it.id}" aria-label="تجربة الصوت">▶ ${it.i}</button>`;
+  if(it.c==="bub")return `<span class="tk-bubble me lfb-${it.k} pv-bub">${it.i} رسالة</span>`;
+  return `<span class="pv-ic">${it.i}</span>`;
+}
+function lfShopCard(it,i,l,disc,lv){
+  const own=l.inv.includes(it.id),base=lfPrice(it),pr=Math.round(base*disc),lock=lv<it.lv,rr=lfRar(it),cant=!own&&(lock||l.coins<pr);
+  return `<div class="lf-it sh r-${rr[0]} ${lfOn(it)?"on":""} ${own?"own":""}" style="--d:${Math.min(i,14)*40}ms"><i class="rb">${rr[1]}</i><div class="pv">${lfPv(it,l)}</div><b class="nm">${esc(it.n)}</b><small>${own?"✅ ملكك":lock?"🔒 Level "+it.lv:`<span class="pr">🪙 ${pr.toLocaleString("en")}</span>${disc<1?`<s>${base.toLocaleString("en")}</s>`:""}`}</small>${own?`<button data-act="equip" data-id="${it.id}">${lfOn(it)?"شيل":"البس"}</button>`:`<button class="g" data-act="buy" data-id="${it.id}" ${cant?"disabled":""}>${!lock&&l.coins<pr?"ناقصك "+(pr-l.coins).toLocaleString("en"):"اشتري"}</button>`}</div>`;
+}
+function lfBought(it){
+  const o=lfOv(`<div class="lf-prize lf-bought"><div class="bi">${it.i}</div><h3 style="margin:8px 0 2px">${esc(it.n)}</h3><p class="mut" style="margin:0 0 12px">اتضاف لحاجتك واتلبس تلقائي ✨</p><button class="btn block gold" data-x="1">حلو!</button></div>`);
+  setTimeout(()=>{try{confetti()}catch(_){}},200);setTimeout(()=>{if(o.isConnected)o.remove()},2800);
+}
+function lfHatch(){
+  const l=S.life;if(!l||!l.pet||l.hatched)return;
+  l.hatched=true;lfSave();
+  lfOv(`<div class="lf-hatch"><div class="hx"><i class="sp"></i><span class="egg">🥚</span><span class="pet">${l.pet.t}</span></div><h3 style="margin:6px 0">${esc(l.pet.n)} فقس! 🐣</h3><p class="mut" style="margin:0 0 14px">كمّل مهام ومذاكرة علشان يكبر معاك</p><button class="btn block gold" data-x="1">يلا نبدأ</button></div>`);
+  lfSfx("box");setTimeout(()=>{lfSfx("lvl");try{confetti()}catch(_){}lfBurst("✨",10)},1450);
+  try{lfReact("jump")}catch(_){}
+  setTimeout(()=>{try{render(true)}catch(_){}},300);
+}
+function lfPlay(seq,w){try{const c=window.__lfa||(window.__lfa=new (window.AudioContext||window.webkitAudioContext)());seq.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.type=w||"triangle";o.frequency.value=f;g.gain.setValueAtTime(.001,c.currentTime+i*.09);g.gain.exponentialRampToValueAtTime(.18,c.currentTime+i*.09+.02);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+i*.09+.2);o.connect(g);g.connect(c.destination);o.start(c.currentTime+i*.09);o.stop(c.currentTime+i*.09+.22)})}catch(_){}}
+function adminShop(){
+  const cfg=S.shopCfg||{},pr=cfg.prices||{},off=cfg.off||[],cat=S.admShopCat||"title";
+  const chips=Object.keys(LF_CATS).map(k=>`<button class="${cat===k?"on":""}" data-act="adminShopCat" data-c="${k}">${LF_CATS[k]}</button>`).join("");
+  const rows=LF_SHOP.filter(x=>x.c===cat).map(it=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line);gap:8px;flex-wrap:nowrap"><span style="font-size:24px">${it.i}</span><div style="flex:1;min-width:0"><b>${esc(it.n)}</b><div class="mut" style="font-size:11px">الافتراضي ${it.p.toLocaleString("en")} · Level ${it.lv}</div></div><input class="ltr shp-p" data-id="${it.id}" type="number" min="1" inputmode="numeric" style="width:92px" placeholder="${it.p}" value="${pr[it.id]||""}"><label style="font-size:12px;white-space:nowrap"><input type="checkbox" class="shp-off" data-id="${it.id}" ${off.includes(it.id)?"checked":""}> إخفاء</label></div>`).join("");
+  return `<div class="card"><h3>🛒 إدارة المتجر</h3><p class="mut">غيّر السعر أو اخفي أي غرض. لما تحفظ: كل طالب اشترى الغرض بسعر قديم بيتسحب منه الغرض وفلوسه بترجعله كاملة تلقائيًا. احفظ قبل ما تبدّل القسم.</p><div class="lf-chips">${chips}</div>${rows}<button class="btn gold" style="margin-top:12px;width:100%" data-act="adminShopSave">💾 حفظ أسعار ${LF_CATS[cat]}</button></div>`;
+}
+Object.assign(A,{
+  sndPrev(d){const it=lfItem(d.id);if(it&&Array.isArray(it.k))lfPlay(it.k,it.w)},
+  adminShopCat(d){S.admShopCat=d.c;render(true)},
+  async adminShopSave(){
+    try{
+      const cfg=S.shopCfg||{},prices={...(cfg.prices||{})},off=new Set(cfg.off||[]);
+      document.querySelectorAll(".shp-p").forEach(el=>{const it=lfItem(el.dataset.id);if(!it)return;const v=Math.round(+el.value);if(v>0&&v!==it.p)prices[it.id]=v;else delete prices[it.id]});
+      document.querySelectorAll(".shp-off").forEach(el=>{if(el.checked)off.add(el.dataset.id);else off.delete(el.dataset.id)});
+      await setDoc(doc(db,"config","shop"),{prices,off:[...off],v:Date.now()});
+      toast("اتحفظ ✓ — التغيير بيوصل للطلاب فورًا",true)
+    }catch(e){toast("فشل الحفظ: "+(e.code||e.message||""))}
+  },
+  async adminLifeAll(d){
+    try{
+      const ref=doc(db,"life",d.uid),s=await getDoc(ref),cur=s.exists()?s.data():{},on=!cur.all;
+      const ok=await uiDialog({title:on?"وضع التجربة":"إلغاء وضع التجربة",icon:"🎁",msg:on?"الطالب ده هيتفتحله كل المتجر (وأي غرض جديد هيتضاف) ومش هيتسحب منه حتى لو غيّرت الأسعار، وهياخد 100,000 عملة. تأكيد؟":"هيرجع حساب عادي: حاجته تتفضّى وعملاته تتصفّر. تأكيد؟",ok:"تأكيد"});
+      if(!ok)return;
+      if(on)await setDoc(ref,{all:true,coins:100000,hatched:true,inv:LF_SHOP.map(x=>x.id),updatedAt:serverTimestamp()},{merge:true});
+      else await setDoc(ref,{all:deleteField(),coins:0,inv:[],paid:{},eq:{acc:[],room:{}},updatedAt:serverTimestamp()},{merge:true});
+      toast(on?"اتفعّل وضع التجربة ✓":"اتلغى ✓",true)
+    }catch(e){toast("فشل: "+(e.code||e.message||""))}
+  }
+});
 
 </script>
 <script>
