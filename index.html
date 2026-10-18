@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v58-glb-force">
+<meta name="sw-build" content="v59-force3d">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <script>(function(){try{var m=localStorage.getItem("theme_mode"),c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#0B0A07",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
@@ -7828,7 +7828,7 @@ function lfHouseSvg(){
 const LF_NAME={"🐺":"ذئب الظل","🦊":"ثعلب اللهب","🐱":"قط السكر","🐼":"باندا","🐻":"دب","🦁":"أسد","🐯":"نمر","🦄":"يونيكورن","🐉":"تنين أسطوري","🐲":"تنين صغير"};
 const C3D={ok:null,T:null,p:null,R:null,sc:null,cam:null,cv:null,room:null,ents:new Map(),raf:0,idle:0,last:0,fN:0,fT:0,slow:0,vis:true,io:null,tex:null,stripe:null,dot:null,shT:null,sph:null,pln:null,w:0,h:0,dpr:0,GLTF:null,Skel:null,glbCache:{},glbBusy:{},hemi:null,keyL:null,force:1};
 const C3_RB=[0xff5a5a,0xffa14a,0xffe14a,0x5adf7a,0x4ab4ff,0x8a6aff,0xe06aff];
-/* Local GLB models — forced max realism (no 2D choice) */
+/* Local GLB — forced max realism on EVERY phone (PWA too) */
 const C3_GLB={
 "🦊":{url:"./pets/fox.glb",scale:42,y:0,face:Math.PI},
 "🦁":{url:"./pets/lion.glb",scale:38,y:0,face:Math.PI},
@@ -7853,14 +7853,16 @@ const C3S={
 "🐉":{b:0x289666,l:0xecd890,d:0x174830,e:0xffa818,ear:"horn",sn:.58,sz:1.22,aura:0xff7a1a,wings:1,spikes:1,dragon:1,tail:{n:10,L:1.05,r:.12,taper:1,base:-.18,curl:-.03}},
 "🐲":{b:0x4288e0,l:0xe4eeff,d:0x1a4490,e:0xffdc38,ear:"horn",sn:.52,sz:.98,aura:0xff7a1a,wings:1,spikes:1,dragon:1,tail:{n:9,L:.88,r:.105,taper:1,base:-.18,curl:-.03}}
 };
-/* FORCE 3D — only block if WebGL completely missing */
+/* FORCE 3D on any phone — only block if WebGL missing entirely */
 function c3dCan(){
   if(C3D.ok!==null)return C3D.ok;
   let ok=true;
   try{
-    try{localStorage.removeItem("c3d_off")}catch(_){}
+    try{localStorage.removeItem("c3d_off");localStorage.removeItem("fx_tier")}catch(_){}
+    try{document.documentElement.removeAttribute("data-fx")}catch(_){}
     const c=document.createElement("canvas");
-    if(!c.getContext("webgl")&&!c.getContext("webgl2")&&!c.getContext("experimental-webgl"))ok=false;
+    const gl=c.getContext("webgl2")||c.getContext("webgl")||c.getContext("experimental-webgl");
+    if(!gl)ok=false;
   }catch(_){ok=false}
   return C3D.ok=ok;
 }
@@ -7926,7 +7928,7 @@ function c3dStart(room){
 function c3dKick(){if(!C3D.raf&&C3D.room&&C3D.ok){C3D.last=performance.now();C3D.raf=requestAnimationFrame(c3dLoop)}}
 function c3dStop(){if(C3D.raf){cancelAnimationFrame(C3D.raf);C3D.raf=0}if(C3D.idle){clearTimeout(C3D.idle);C3D.idle=0}}
 function c3dOff(save){
-  /* force mode: never permanently disable 3D */
+  /* force mode: never permanently disable 3D on any phone */
   if(C3D.force){c3dStop();return}
   C3D.ok=false;
   try{if(save)localStorage.setItem("c3d_off",String(Date.now()))}catch(_){}
@@ -8042,7 +8044,7 @@ function c3dEnt(p,room){
   const sp=((p.querySelector(".pe")||{}).textContent||"").trim(),st=+p.dataset.st||4;
   if(!C3S[sp]&&!C3_GLB[sp])return null;
   const accs=[...p.querySelectorAll(".lf-acc")].map(x=>x.classList[1]).filter(Boolean);
-  const sig=sp+"|"+st+"|"+accs.join(",")+"|v57";
+  const sig=sp+"|"+st+"|"+accs.join(",")+"|v59";
   let e=C3D.ents.get(p);
   if(e&&e.sig===sig)return e;
   if(e){c3dKill(e)}
@@ -8206,7 +8208,6 @@ function c3dLoop(now){
     C3D.fN++;C3D.fT+=el;
     if(C3D.fN>=120){C3D.fN=0;C3D.fT=0;C3D.slow=0}
     c3dFit(room);
-    /* night lighting */
     if(C3D.hemi&&C3D.keyL){
       const night=room.classList.contains("night");
       C3D.hemi.color.set(night?0x8fa3ff:0xfff7ec);
@@ -8355,15 +8356,14 @@ window.addEventListener('appinstalled',()=>{
 })();
 </script>
 <script>
-/* v53: invisible auto-quality + haptics + keyboard lift. No UI, no settings. */
+/* v59: FORCE full quality always — 3D on every phone / PWA */
 (function(){
   try{
     var H=document.documentElement,N=navigator,C=N.connection||{};
-    var cached=null;try{cached=JSON.parse(localStorage.getItem("fx_tier")||"null")}catch(_){}
-    var fresh=!!(cached&&cached.t&&Date.now()-cached.at<6048e5);
-    var weak=(N.deviceMemory&&N.deviceMemory<=3)||(N.hardwareConcurrency&&N.hardwareConcurrency<=4)||C.saveData===true||/(^|-)2g$/.test(C.effectiveType||"");
-    H.setAttribute("data-fx",fresh?cached.t:(weak?"lite":"full"));
-    function save(t){H.setAttribute("data-fx",t);try{localStorage.setItem("fx_tier",JSON.stringify({t:t,at:Date.now()}))}catch(_){}}
+    try{localStorage.removeItem("fx_tier");localStorage.removeItem("c3d_off")}catch(_){}
+    H.setAttribute("data-fx","full");
+    function save(t){H.setAttribute("data-fx","full");try{localStorage.setItem("fx_tier",JSON.stringify({t:"full",at:Date.now()}))}catch(_){}}
+    var weak=false,fresh=false;
     function probe(ms,cb){
       var n=0,t0=0,hid=false;
       function f(t){
@@ -8374,10 +8374,7 @@ window.addEventListener('appinstalled',()=>{
       requestAnimationFrame(f);
     }
     function start(){
-      if(!fresh)setTimeout(function(){probe(1500,function(fps){
-        if(fps===null)return;
-        save(fps<38?"lite":(weak?"lite":"full"));
-      })},3500);
+      setTimeout(function(){save("full")},100);
       setTimeout(function(){
         if(H.getAttribute("data-fx")!=="full")return;
         probe(2000,function(fps){if(fps!==null&&fps<28)save("lite")});

@@ -1,6 +1,6 @@
-/* التفوق SW — v58 — GLB pets محلية + كاش آمن */
-const CACHE = "eltafawoq-v58";
-const BUILD = "20261018-v58";
+/* التفوق SW — v59 — GLB pets محلية + 3D إجباري + PWA */
+const CACHE = "eltafawoq-v59";
+const BUILD = "20261018-v59";
 const PETS = ["./pets/fox.glb","./pets/lion.glb","./pets/corgi.glb","./pets/hippo.glb","./pets/boar.glb","./pets/zebra.glb","./pets/trex.glb","./pets/spino.glb","./pets/sheep.glb","./pets/hare.glb"];
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
@@ -114,7 +114,7 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  /* cache local GLB pets */
+  /* cache local GLB pets for offline PWA */
   if (url.origin === self.location.origin && url.pathname.endsWith(".glb")) {
     e.respondWith(
       caches.open(CACHE).then((c) =>
