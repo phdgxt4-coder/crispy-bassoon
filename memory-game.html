@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a0a3e">
+<title>🧠 تحدي الذاكرة — التفوق</title>
+<style>
+/* ================= ألوان وأساسيات ================= */
+:root{
+  --bg1:#1a0a3e; --bg2:#0B5D57; --gold:#F0B93A; --gold2:#E3A81C;
+  --pri:#2FB5A8; --ind:#8B93FF; --pink:#F472B6; --card:#ffffff;
+  --ink:#fff; --mut:rgba(255,255,255,.75);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:'IBM Plex Sans Arabic',system-ui,'Segoe UI',sans-serif;
+  color:var(--ink); overflow-x:hidden; min-height:100vh;
+  background:
+    radial-gradient(60vmax 60vmax at 85% -10%, rgba(139,147,255,.35), transparent 60%),
+    radial-gradient(50vmax 50vmax at -10% 90%, rgba(47,181,168,.3), transparent 60%),
+    radial-gradient(40vmax 40vmax at 50% 50%, rgba(240,185,58,.12), transparent 70%),
+    linear-gradient(160deg,var(--bg1) 0%, #123 45%, var(--bg2) 100%);
+  background-attachment:fixed;
+}
+/* نجوم متحركة في الخلفية */
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.stars i{position:absolute;width:4px;height:4px;border-radius:50%;background:#fff;opacity:.7;animation:tw 3s ease-in-out infinite}
+@keyframes tw{50%{opacity:.15;transform:scale(.6)}}
+
+.wrap{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:18px 16px 60px;text-align:center}
+
+/* ================= الهيدر ================= */
+h1{font-size:clamp(26px,7vw,38px);font-weight:800;margin:6px 0 2px;
+  background:linear-gradient(90deg,var(--gold),#fff,var(--pri));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 4px 18px rgba(240,185,58,.35));}
+.sub{color:var(--mut);font-size:14px;margin-bottom:14px}
+
+/* ================= شريط الحالة ================= */
+.hud{display:flex;gap:8px;justify-content:center;margin-bottom:14px;flex-wrap:wrap}
+.chip{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(8px);
+  border-radius:99px;padding:7px 14px;font-size:13px;font-weight:700;min-width:86px}
+.chip b{color:var(--gold);font-size:16px;display:block;line-height:1.2}
+.chip.combo b{color:var(--pink)}
+.chip.bump{animation:bump .4s cubic-bezier(.3,1.6,.5,1)}
+@keyframes bump{40%{transform:scale(1.22)}}
+
+/* ================= شاشة البداية ================= */
+.screen{animation:enter .45s ease both}
+@keyframes enter{from{opacity:0;transform:translateY(18px) scale(.97)}}
+.panel{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(12px);
+  border-radius:22px;padding:22px 18px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.modes{display:grid;gap:10px;margin-top:14px}
+.mode{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.2);
+  border-radius:16px;padding:14px;cursor:pointer;color:#fff;font:inherit;font-weight:700;font-size:16px;text-align:start;transition:transform .18s,border-color .2s,background .2s}
+.mode:hover{background:rgba(255,255,255,.16);transform:translateY(-3px);border-color:var(--gold)}
+.mode:active{transform:scale(.96)}
+.mode .ic{font-size:30px;width:52px;height:52px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(135deg,var(--pri),var(--ind));flex:none}
+.mode small{display:block;font-weight:400;color:var(--mut);font-size:12px;margin-top:2px}
+.best{margin-top:14px;color:var(--mut);font-size:13px}
+.best b{color:var(--gold)}
+
+.btn{font:inherit;font-weight:800;border:0;border-radius:14px;padding:13px 26px;cursor:pointer;color:#2b2000;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));box-shadow:0 8px 24px rgba(240,185,58,.4);transition:transform .15s}
+.btn:active{transform:scale(.94)}
+.btn.ghost{background:rgba(255,255,255,.12);color:#fff;box-shadow:none;border:1.5px solid rgba(255,255,255,.3)}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+
+/* ================= شبكة الكروت ================= */
+.board{display:grid;gap:10px;justify-content:center;margin:0 auto;perspective:1200px}
+.card{aspect-ratio:1;cursor:pointer;position:relative;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.34,1.45,.64,1)}
+.card.flip{transform:rotateY(180deg)}
+.card.done{animation:done .5s ease;cursor:default}
+@keyframes done{40%{transform:rotateY(180deg) scale(1.14)}70%{transform:rotateY(180deg) scale(.94)}}
+.card .face{position:absolute;inset:0;border-radius:16px;display:grid;place-items:center;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.card .back{background:linear-gradient(145deg,#2b1b5e,#123a45);border:1.5px solid rgba(255,255,255,.22);
+  font-size:clamp(18px,5vw,26px);color:rgba(255,255,255,.85);font-weight:800;
+  box-shadow:0 6px 16px rgba(0,0,0,.35);transition:box-shadow .2s,border-color .2s}
+.card:hover .back{border-color:var(--gold);box-shadow:0 8px 22px rgba(240,185,58,.3)}
+.card .front{background:linear-gradient(145deg,#fff,#e8f6f4);transform:rotateY(180deg);font-size:clamp(26px,8vw,44px);
+  box-shadow:0 6px 16px rgba(0,0,0,.3), inset 0 0 0 2px rgba(47,181,168,.25)}
+.card.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:rotateY(180deg) translateX(-7px)}40%,80%{transform:rotateY(180deg) translateX(7px)}}
+
+/* ================= العداد والتأثيرات ================= */
+.timerbar{height:8px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden;margin:0 auto 14px;max-width:420px}
+.timerbar i{display:block;height:100%;width:100%;border-radius:99px;background:linear-gradient(90deg,var(--pri),var(--gold));transition:width .2s linear}
+.timerbar.low i{background:linear-gradient(90deg,#ef4444,#f97316)}
+.combo-pop{position:fixed;left:50%;top:35%;transform:translate(-50%,-50%);font-size:42px;font-weight:900;pointer-events:none;z-index:50;
+  background:linear-gradient(90deg,var(--pink),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:pop .8s cubic-bezier(.3,1.6,.5,1) both;filter:drop-shadow(0 6px 20px rgba(0,0,0,.5))}
+@keyframes pop{from{transform:translate(-50%,-50%) scale(0) rotate(-14deg)}to{transform:translate(-50%,-50%) scale(1) rotate(0);opacity:0}}
+.float{position:fixed;pointer-events:none;z-index:49;font-weight:900;font-size:22px;animation:floatUp 1s ease-out both}
+@keyframes floatUp{to{transform:translateY(-90px);opacity:0}}
+
+/* ================= نهاية الجولة ================= */
+.result-emoji{font-size:70px;animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-10px) rotate(6deg)}}
+.result-title{font-size:26px;font-weight:800;margin:8px 0}
+.stats2{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+.stat{background:rgba(255,255,255,.09);border-radius:14px;padding:12px 6px}
+.stat b{display:block;font-size:22px;color:var(--gold)}
+.stat span{font-size:12px;color:var(--mut)}
+.newbest{color:var(--pink);font-weight:800;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.5}}
+
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden}
+.confetti i{position:absolute;top:-16px;width:9px;height:15px;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+
+footer{margin-top:26px;color:var(--mut);font-size:12px}
+footer a{color:var(--gold);text-decoration:none;font-weight:700}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div class="wrap">
+  <h1>🧠 تحدي الذاكرة</h1>
+  <div class="sub">اقلب الكروت وكمّل الأزواج — أسرع وقت وأعلى كومبو! ⚡</div>
+
+  <!-- شاشة البداية -->
+  <div id="menu" class="screen panel">
+    <div class="modes">
+      <button class="mode" data-mode="easy"><span class="ic">🐣</span><span>سهل<small>4 × 3 كروت · 12 كارت</small></span></button>
+      <button class="mode" data-mode="medium"><span class="ic">🚀</span><span>متوسط<small>4 × 4 كروت · 16 كارت</small></span></button>
+      <button class="mode" data-mode="hard"><span class="ic">👑</span><span>صعب<small>5 × 4 كروت · 20 كارت</small></span></button>
+    </div>
+    <div class="best" id="bestLine"></div>
+  </div>
+
+  <!-- شاشة اللعب -->
+  <div id="game" class="hidden">
+    <div class="hud">
+      <div class="chip" id="cTime">⏱ الوقت<b>0:00</b></div>
+      <div class="chip" id="cMoves">🎯 المحاولات<b>0</b></div>
+      <div class="chip combo" id="cCombo">🔥 كومبو<b>×0</b></div>
+    </div>
+    <div class="timerbar" id="tbar"><i></i></div>
+    <div class="board" id="board"></div>
+    <div class="row"><button class="btn ghost" id="quitBtn">خروج</button></div>
+  </div>
+
+  <!-- شاشة النتيجة -->
+  <div id="over" class="screen panel hidden">
+    <div class="result-emoji" id="overEmoji">🏆</div>
+    <div class="result-title" id="overTitle">أحسنت!</div>
+    <div id="overBest"></div>
+    <div class="stats2">
+      <div class="stat"><b id="oTime">-</b><span>الوقت</span></div>
+      <div class="stat"><b id="oMoves">-</b><span>محاولات</span></div>
+      <div class="stat"><b id="oScore">-</b><span>النقاط</span></div>
+    </div>
+    <div class="row">
+      <button class="btn" id="againBtn">العب تاني ↺</button>
+      <button class="btn ghost" id="menuBtn">القائمة</button>
+    </div>
+  </div>
+
+  <footer>لعبة من <a href="./index.html">منصة التفوق</a> 🎓</footer>
+</div>
+
+<script>
+/* ================= أدوات ================= */
+const $=s=>document.querySelector(s);
+const EMOJIS=["🐱","🦁","🐼","🦊","🐸","🐙","🦄","🐝","🦖","🍕","🚀","🎮","⚽","🎁","🌙","⭐","🔥","💎"];
+const CONFIG={easy:{cols:4,pairs:6,time:75},medium:{cols:4,pairs:8,time:90},hard:{cols:5,pairs:10,time:120}};
+let mode=null, first=null, lock=false, moves=0, found=0, combo=0, bestCombo=0, sec=0, tInt=null, left=0, tInt2=null, score=0;
+
+/* نجوم الخلفية */
+(function(){const w=$("#stars");for(let i=0;i<45;i++){const s=document.createElement("i");
+s.style.left=Math.random()*100+"%";s.style.top=Math.random()*100+"%";
+s.style.animationDelay=(Math.random()*3)+"s";s.style.transform="scale("+(0.4+Math.random())+")";
+w.appendChild(s)}})();
+
+/* صوت خفيف بدون ملفات */
+function beep(f,d,type,vol){try{const c=new (window.AudioContext||window.webkitAudioContext)();const o=c.createOscillator(),g=c.createGain();
+o.type=type||"sine";o.frequency.value=f;g.gain.value=vol||0.07;o.connect(g);g.connect(c.destination);
+o.start();o.stop(c.currentTime+(d||0.12));}catch(e){}}
+const sFlip=()=>beep(520,.09,"triangle");
+const sMatch=()=>{beep(660,.12,"sine");setTimeout(()=>beep(880,.16,"sine"),90)};
+const sWrong=()=>beep(180,.2,"sawtooth",0.05);
+const sWin=()=>[523,659,784,1046,1318].forEach((f,i)=>setTimeout(()=>beep(f,.22,"sine",.08),i*120));
+
+/* أفضل النتائج */
+function bestKey(m){return "mem_best_"+m}
+function getBest(m){try{return JSON.parse(localStorage.getItem(bestKey(m))||"null")}catch(e){return null}}
+function showBests(){$("#bestLine").innerHTML=["easy","medium","hard"].map(m=>{
+  const b=getBest(m);const n={easy:"سهل",medium:"متوسط",hard:"صعب"}[m];
+  return b?`${n}: <b>${b.score}</b> نقطة (${fmtT(b.sec)})`:`${n}: لسه ملعبتهوش`;}).join(" · ")}
+function fmtT(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+
+function confetti(n){const c=document.createElement("div");c.className="confetti";
+const colors=["#F0B93A","#2FB5A8","#F472B6","#8B93FF","#fff"];
+for(let i=0;i<n;i++){const p=document.createElement("i");p.style.left=Math.random()*100+"%";
+p.style.background=colors[i%colors.length];p.style.animationDelay=(Math.random()*0.9)+"s";
+p.style.borderRadius=Math.random()>.5?"50%":"2px";c.appendChild(p)}
+document.body.appendChild(c);setTimeout(()=>c.remove(),3800)}
+
+function popText(txt){const p=document.createElement("div");p.className="combo-pop";p.textContent=txt;
+document.body.appendChild(p);setTimeout(()=>p.remove(),850)}
+function floatText(x,y,txt,color){const p=document.createElement("div");p.className="float";p.textContent=txt;
+p.style.left=x+"px";p.style.top=y+"px";p.style.color=color||"#F0B93A";document.body.appendChild(p);setTimeout(()=>p.remove(),1000)}
+
+/* ================= بدء الجولة ================= */
+document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>startGame(b.dataset.mode));
+$("#quitBtn").onclick=()=>{stopTimers();show($("#menu"))};
+$("#menuBtn").onclick=()=>show($("#menu"));
+$("#againBtn").onclick=()=>startGame(mode);
+
+function show(el){["#menu","#game","#over"].forEach(s=>$(s).classList.add("hidden"));el.classList.remove("hidden");showBests()}
+
+function startGame(m){
+  mode=m;const cfg=CONFIG[m];moves=0;found=0;combo=0;bestCombo=0;score=0;
+  first=null;lock=false;
+
+  // كروت
+  const pool=EMOJIS.slice(0,cfg.pairs);
+  const cards=[...pool,...pool].sort(()=>Math.random()-.5);
+  const board=$("#board");board.innerHTML="";
+  board.style.gridTemplateColumns=`repeat(${cfg.cols},minmax(52px,86px))`;
+  board.style.maxWidth=(cfg.cols*96)+"px";
+
+  cards.forEach((e,i)=>{
+    const c=document.createElement("div");c.className="card";c.dataset.emoji=e;
+    c.innerHTML=`<div class="face back">؟</div><div class="face front">${e}</div>`;
+    c.onclick=()=>onCard(c);
+    board.appendChild(c);
+    // ظهور متدرج
+    c.style.opacity="0";c.style.transform="translateY(24px) scale(.8)";
+    setTimeout(()=>{c.style.transition="opacity .4s,transform .5s cubic-bezier(.3,1.4,.5,1)";c.style.opacity="1";c.style.transform="none"},80+i*40);
+  });
+
+  // مؤقتات
+  sec=0;left=cfg.time;
+  updateHud();$("#tbar").classList.remove("low");$("#tbar i").style.width="100%";
+  stopTimers();
+  tInt=setInterval(()=>{sec++;$("#cTime b").textContent=fmtT(sec)},1000);
+  tInt2=setInterval(()=>{left--;const w=Math.max(0,left/cfg.time*100);$("#tbar i").style.width=w+"%";
+    if(left<=10)$("#tbar").classList.add("low");
+    if(left<=0)endGame(false)},1000);
+
+  show($("#game"));
+}
+function stopTimers(){clearInterval(tInt);clearInterval(tInt2)}
+
+function updateHud(){$("#cMoves b").textContent=moves;$("#cCombo b").textContent="×"+combo}
+
+/* ================= منطق اللعب ================= */
+function onCard(c){
+  if(lock||c.classList.contains("flip"))return;
+  c.classList.add("flip");sFlip();
+
+  if(!first){first=c;return}
+
+  moves++;updateHud();
+  if(first.dataset.emoji===c.dataset.emoji){
+    // تطابق!
+    combo++;bestCombo=Math.max(bestCombo,combo);found++;
+    const gained=10+combo*5;score+=gained;
+    [first,c].forEach(x=>x.classList.add("done"));
+    sMatch();bump("#cCombo");bump("#cMoves");
+    const r=c.getBoundingClientRect();
+    floatText(r.left+r.width/2,r.top, "+"+gained, "#F472B6");
+    if(combo>=2){popText("🔥 كومبو ×"+combo);beep(1200,.15,"sine",.09)}
+    first=null;
+    if(found===CONFIG[mode].pairs)setTimeout(()=>endGame(true),650);
+  }else{
+    // غلط
+    combo=0;updateHud();
+    const a=first,b=c;first=null;lock=true;
+    a.classList.add("shake");b.classList.add("shake");sWrong();
+    setTimeout(()=>{a.classList.remove("flip","shake");b.classList.remove("flip","shake");lock=false},620);
+  }
+}
+function bump(sel){const el=$(sel);el.classList.remove("bump");void el.offsetWidth;el.classList.add("bump")}
+
+function endGame(win){
+  stopTimers();
+  // نقاط إضافية على الوقت
+  if(win){const bonus=Math.max(0,left)*2;score+=bonus;
+    const old=getBest(mode);
+    if(!old||score>old.score){localStorage.setItem(bestKey(mode),JSON.stringify({score,sec,moves}));
+      $("#overBest").innerHTML='<div class="newbest">🎉 رقم قياسي جديد!</div>';sWin();confetti(70)}
+    else $("#overBest").innerHTML="";
+  }else $("#overBest").innerHTML="";
+
+  $("#overEmoji").textContent=win?(score>300?"👑":score>150?"🏆":"🎉"):"⏰";
+  $("#overTitle").textContent=win?"كمّلت كل الأزواج!":"خلص الوقت!";
+  $("#oTime").textContent=fmtT(sec);
+  $("#oMoves").textContent=moves;
+  $("#oScore").textContent=score;
+  if(!win)confetti(18);
+  show($("#over"));
+}
+showBests();
+</script>
+</body>
+</html>

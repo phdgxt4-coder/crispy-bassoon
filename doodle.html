@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>🪂 Doodle Jump — التفوق</title>
+<style>
+*{box-sizing:border-box;margin:0}body{background:#1a0a3e;color:#fff;font-family:system-ui;text-align:center;min-height:100vh}
+h1{margin:10px;font-size:22px}canvas{background:linear-gradient(#2b1b5e,#0B5D57);border-radius:12px;max-width:96vw;touch-action:none}
+.btn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:12px 22px;margin:8px;background:#F0B93A;color:#1a1408;cursor:pointer}
+a{color:#F0B93A}
+</style></head><body>
+<h1>🪂 Doodle Jump</h1>
+<div>ارتفاع: <b id="sc">0</b> · أفضل: <b id="bs">0</b></div>
+<canvas id="c" width="360" height="560"></canvas>
+<div><button class="btn" id="go">ابدأ</button> حرّك يمين/شمال · <a href="./index.html">المنصة</a></div>
+<script>
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+let sc=0,bs=+localStorage.getItem('dj_bs')||0,run=false,px=160,py=400,vy=0,plats=[],cam=0;
+document.getElementById('bs').textContent=bs;
+function gen(){plats=[];for(let i=0;i<12;i++)plats.push({x:Math.random()*280,y:520-i*55,w:80})}
+function reset(){sc=0;px=160;py=400;vy=-8;cam=0;gen();run=true}
+document.getElementById('go').onclick=()=>{if(!run)reset()};
+let mx=0;cv.addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect();mx=(e.clientX-r.left)/r.width*2-1});
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')mx=-1;if(e.key==='ArrowRight')mx=1});
+addEventListener('keyup',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight')mx=0});
+function loop(){
+  requestAnimationFrame(loop);x.clearRect(0,0,360,560);
+  if(run){
+    px+=mx*5;if(px<0)px=360;if(px>360)px=0;
+    vy+=0.25;py+=vy;
+    if(py-cam<200){cam-=200-(py-cam);sc=Math.max(sc,Math.floor(-cam/10))}
+    plats.forEach(p=>{if(vy>0&&py+20>p.y&&py+20<p.y+12&&px+20>p.x&&px<p.x+p.w)vy=-9});
+    plats=plats.filter(p=>p.y>cam-40);
+    while(plats.length<12){const top=Math.min(...plats.map(p=>p.y));plats.push({x:Math.random()*280,y:top-55-Math.random()*20,w:70+Math.random()*30})}
+    if(py-cam>560){run=false;if(sc>bs){bs=sc;localStorage.setItem('dj_bs',bs);document.getElementById('bs').textContent=bs}}
+  }
+  x.fillStyle='#2FB5A8';plats.forEach(p=>x.fillRect(p.x,p.y-cam,p.w,10));
+  x.fillStyle='#F0B93A';x.beginPath();x.arc(px+10,py-cam+10,14,0,7);x.fill();
+  document.getElementById('sc').textContent=sc;
+  if(!run&&sc>0){x.fillStyle='rgba(0,0,0,.5)';x.fillRect(0,0,360,560);x.fillStyle='#fff';x.font='bold 20px system-ui';x.textAlign='center';x.fillText('سقطت! اضغط ابدأ',180,280)}
+}
+loop();
+</script></body></html>

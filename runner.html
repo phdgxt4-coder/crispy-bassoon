@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>🏃 Endless Runner — التفوق</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{background:#0a1628;color:#fff;font-family:system-ui;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+h1{margin:12px;font-size:22px}.hud{display:flex;gap:12px;margin:6px}canvas{background:linear-gradient(#1a3a5c,#0a1628);border-radius:12px;max-width:96vw;touch-action:none}
+.btn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:12px 22px;margin:8px;background:#E3A81C;color:#1a1408;cursor:pointer}
+a{color:#E3A81C}
+</style></head><body>
+<h1>🏃 Endless Runner</h1>
+<div class="hud"><span>🪙 <b id="sc">0</b></span><span>أفضل: <b id="bs">0</b></span></div>
+<canvas id="c" width="360" height="520"></canvas>
+<div><button class="btn" id="go">ابدأ / قفز</button> <a href="./index.html">المنصة</a></div>
+<script>
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+let sc=0,bs=+localStorage.getItem('run_bs')||0,run=false,py=400,vy=0,g=0.55,obs=[],coins=[],t=0,spd=4;
+document.getElementById('bs').textContent=bs;
+function reset(){sc=0;py=400;vy=0;obs=[];coins=[];t=0;spd=4;run=true}
+function jump(){if(!run){reset();return}if(py>=399)vy=-11}
+document.getElementById('go').onclick=jump;cv.onclick=jump;
+addEventListener('keydown',e=>{if(e.code==='Space'||e.key==='ArrowUp'){e.preventDefault();jump()}});
+function loop(){
+  requestAnimationFrame(loop);
+  x.clearRect(0,0,360,520);
+  // ground
+  x.fillStyle='#1b5e4a';x.fillRect(0,440,360,80);
+  if(run){
+    t++;spd=4+t/400;vy+=g;py=Math.min(400,py+vy);if(py>=400)vy=0;
+    if(t%Math.max(40,90-spd*5)===0)obs.push({x:380,w:28+Math.random()*20,h:30+Math.random()*40});
+    if(t%55===0)coins.push({x:380,y:280+Math.random()*100,got:0});
+    obs.forEach(o=>o.x-=spd);coins.forEach(c=>c.x-=spd);
+    obs=obs.filter(o=>o.x>-50);coins=coins.filter(c=>c.x>-20);
+    // collide
+    for(const o of obs){if(o.x<70&&o.x+o.w>40&&py+30>440-o.h){run=false;if(sc>bs){bs=sc;localStorage.setItem('run_bs',bs);document.getElementById('bs').textContent=bs}}}
+    for(const c of coins){if(!c.got&&c.x<70&&c.x>20&&Math.abs(py-c.y)<36){c.got=1;sc+=5}}
+  }
+  // player
+  x.fillStyle='#F0B93A';x.fillRect(40,py,30,40);
+  x.fillStyle='#ef4444';obs.forEach(o=>x.fillRect(o.x,440-o.h,o.w,o.h));
+  x.fillStyle='#E3A81C';coins.forEach(c=>{if(!c.got){x.beginPath();x.arc(c.x,c.y,10,0,7);x.fill()}});
+  document.getElementById('sc').textContent=sc;
+  if(!run&&t>0){x.fillStyle='rgba(0,0,0,.5)';x.fillRect(0,0,360,520);x.fillStyle='#fff';x.font='bold 22px system-ui';x.textAlign='center';x.fillText('انتهت! اضغط للعب تاني',180,260)}
+}
+loop();
+</script></body></html>

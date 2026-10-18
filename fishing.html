@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>🎣 صيد السمك — التفوق</title>
+<style>
+*{box-sizing:border-box;margin:0}body{background:#0c2a3a;color:#fff;font-family:system-ui;text-align:center;min-height:100vh}
+h1{margin:10px}canvas{background:linear-gradient(#87CEEB 0 30%,#0a4a6e 30% 100%);border-radius:12px;max-width:96vw;touch-action:none}
+.btn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:12px 22px;margin:8px;background:#2FB5A8;color:#fff;cursor:pointer}
+a{color:#F0B93A}
+</style></head><body>
+<h1>🎣 صيد السمك</h1>
+<div>صيده: <b id="sc">0</b> · نادر: <b id="rare">0</b></div>
+<canvas id="c" width="360" height="480"></canvas>
+<div><button class="btn" id="go">ارمِ السنارة</button> <a href="./index.html">المنصة</a></div>
+<script>
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+let sc=0,rare=0,hookY=80,going=false,fish=[],caught=null,t=0;
+function spawn(){const kinds=[{c:'#F0B93A',p:5,r:0},{c:'#2FB5A8',p:10,r:0},{c:'#F472B6',p:30,r:1}];
+  const k=kinds[Math.random()<.12?2:Math.random()<.4?1:0];
+  fish.push({x:Math.random()*300+20,y:180+Math.random()*250,vx:(Math.random()-.5)*2,k})}
+for(let i=0;i<8;i++)spawn();
+document.getElementById('go').onclick=()=>{if(caught){caught=null;hookY=80;going=false;return}if(!going){going=true;hookY=80}};
+function loop(){
+  requestAnimationFrame(loop);t++;x.clearRect(0,0,360,480);
+  // water already bg
+  x.fillStyle='#5d4037';x.fillRect(160,20,40,50); // boat
+  x.strokeStyle='#fff';x.lineWidth=2;x.beginPath();x.moveTo(180,70);x.lineTo(180,hookY);x.stroke();
+  x.fillStyle='#E3A81C';x.beginPath();x.arc(180,hookY,6,0,7);x.fill();
+  if(going&&!caught){hookY+=4;if(hookY>460){going=false;hookY=80}
+    for(const f of fish){if(Math.abs(f.x-180)<18&&Math.abs(f.y-hookY)<16){caught=f;sc+=f.k.p;if(f.k.r)rare++;document.getElementById('sc').textContent=sc;document.getElementById('rare').textContent=rare;going=false}}}
+  if(caught){caught.x=180;caught.y=hookY;hookY=Math.max(80,hookY-5);if(hookY<=80){fish=fish.filter(f=>f!==caught);caught=null;spawn()}}
+  fish.forEach(f=>{f.x+=f.vx;if(f.x<10||f.x>350)f.vx*=-1;x.fillStyle=f.k.c;x.beginPath();x.ellipse(f.x,f.y,16,8,0,0,7);x.fill()});
+}
+loop();
+</script></body></html>

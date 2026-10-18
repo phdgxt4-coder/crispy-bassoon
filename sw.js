@@ -1,7 +1,7 @@
-/* التفوق SW — v61 — network-first HTML + GLB pets */
-const CACHE = "eltafawoq-v61";
-const BUILD = "20261018-v61";
-const PETS = ["./pets/fox.glb","./pets/lion.glb","./pets/corgi.glb","./pets/hippo.glb","./pets/boar.glb","./pets/zebra.glb","./pets/trex.glb","./pets/spino.glb","./pets/sheep.glb","./pets/hare.glb"];
+/* التفوق SW — v68 — arcade games + network-first HTML + GLB pets */
+const CACHE = "eltafawoq-v68";
+const BUILD = "20261018-v68";
+const PETS = [];
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
@@ -74,7 +74,7 @@ self.addEventListener("install", (e) => {
   self.skipWaiting();
   e.waitUntil(
     caches.open(CACHE).then((c) =>
-      c.addAll(["./index.html", "./manifest.json"]).catch(() => {}).then(() =>
+      c.addAll(["./index.html","./manifest.json","./memory-game.html","./draw-guess.html","./words-crush.html","./runner.html","./space.html","./doodle.html","./fishing.html","./push.html"]).catch(() => {}).then(() =>
         Promise.all(PETS.map((u) => c.add(u).catch(() => {})))
       )
     )

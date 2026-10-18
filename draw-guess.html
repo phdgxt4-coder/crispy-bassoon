@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a0a3e">
+<title>🎨 ارسم وخمّن — التفوق</title>
+<style>
+:root{
+  --bg1:#1a0a3e;--bg2:#0B5D57;--gold:#F0B93A;--gold2:#E3A81C;
+  --pri:#2FB5A8;--ind:#8B93FF;--pink:#F472B6;--ink:#fff;--mut:rgba(255,255,255,.75);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100%}
+body{
+  font-family:'IBM Plex Sans Arabic',system-ui,'Segoe UI',sans-serif;color:var(--ink);
+  background:
+    radial-gradient(55vmax 55vmax at 90% -10%, rgba(244,114,182,.22), transparent 60%),
+    radial-gradient(50vmax 50vmax at -10% 100%, rgba(47,181,168,.3), transparent 60%),
+    linear-gradient(160deg,var(--bg1) 0%, #14243a 50%, var(--bg2) 100%);
+  background-attachment:fixed;overflow-x:hidden;
+}
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0}
+.stars i{position:absolute;width:4px;height:4px;border-radius:50%;background:#fff;opacity:.7;animation:tw 3s ease-in-out infinite}
+@keyframes tw{50%{opacity:.12;transform:scale(.6)}}
+.wrap{position:relative;z-index:1;max-width:600px;margin:0 auto;padding:18px 14px 50px;text-align:center}
+
+h1{font-size:clamp(26px,7vw,38px);font-weight:800;margin:6px 0 2px;
+  background:linear-gradient(90deg,var(--pink),#fff,var(--gold));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 4px 18px rgba(244,114,182,.35))}
+.sub{color:var(--mut);font-size:14px;margin-bottom:14px}
+
+.screen{animation:enter .45s ease both}
+@keyframes enter{from{opacity:0;transform:translateY(18px) scale(.97)}}
+.panel{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(12px);
+  border-radius:22px;padding:20px 16px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.hidden{display:none!important}
+
+.btn{font:inherit;font-weight:800;border:0;border-radius:14px;padding:13px 26px;cursor:pointer;color:#2b2000;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));box-shadow:0 8px 24px rgba(240,185,58,.4);transition:transform .15s}
+.btn:active{transform:scale(.94)}
+.btn.ghost{background:rgba(255,255,255,.12);color:#fff;box-shadow:none;border:1.5px solid rgba(255,255,255,.3)}
+.btn.pink{background:linear-gradient(135deg,var(--pink),#e0447e);color:#fff;box-shadow:0 8px 24px rgba(244,114,182,.4)}
+.btn.sm{padding:9px 16px;font-size:14px;border-radius:11px}
+.row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.modes{display:grid;gap:10px;margin-top:14px}
+.mode{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.2);
+  border-radius:16px;padding:14px;cursor:pointer;color:#fff;font:inherit;font-weight:700;font-size:16px;text-align:start;transition:transform .18s,border-color .2s,background .2s}
+.mode:hover{background:rgba(255,255,255,.16);transform:translateY(-3px);border-color:var(--pink)}
+.mode:active{transform:scale(.96)}
+.mode .ic{font-size:30px;width:52px;height:52px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(135deg,var(--pink),var(--ind));flex:none}
+.mode small{display:block;font-weight:400;color:var(--mut);font-size:12px;margin-top:2px}
+
+/* ======== شاشة التسليم (سلّم الموبايل) ======== */
+.handover{padding:26px 10px}
+.handover .big{font-size:64px;animation:bob 1.5s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-10px) rotate(-6deg)}}
+.word-card{margin:18px auto;max-width:340px;background:rgba(255,255,255,.1);border:1.5px dashed var(--gold);border-radius:18px;padding:18px}
+.word-card small{color:var(--mut);display:block;margin-bottom:6px}
+.word-card b{font-size:30px;color:var(--gold);letter-spacing:.02em}
+
+/* ======== لوحة الرسم ======== */
+.toolbar{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
+.tool{width:38px;height:38px;border-radius:12px;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);cursor:pointer;font-size:17px;transition:transform .15s,border-color .2s}
+.tool:active{transform:scale(.9)}
+.tool.on{border-color:var(--gold);box-shadow:0 0 12px rgba(240,185,58,.5)}
+.sizes{display:flex;gap:6px;align-items:center}
+.sz{border:2px solid rgba(255,255,255,.3);background:var(--c,#fff);border-radius:50%;cursor:pointer;padding:0}
+.sz.on{border-color:var(--gold);box-shadow:0 0 10px rgba(240,185,58,.6)}
+.canvas-box{position:relative;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 14px 40px rgba(0,0,0,.4);touch-action:none}
+canvas{display:block;width:100%;touch-action:none}
+.word-strip{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:99px;padding:6px 16px;margin-bottom:10px;font-size:14px}
+.word-strip b{color:var(--gold);font-size:17px}
+.timerbar{height:8px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden;margin:10px auto;max-width:420px}
+.timerbar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--pri),var(--gold));transition:width .25s linear}
+.timerbar.low i{background:linear-gradient(90deg,#ef4444,#f97316)}
+
+/* ======== شاشة التخمين ======== */
+.dashes{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:14px 0;min-height:44px}
+.dash{width:32px;height:40px;border-bottom:3px solid var(--gold);font-size:24px;font-weight:800;display:grid;place-items:center;color:var(--gold)}
+.dash.space{border-bottom:none;width:12px}
+.guess-row{display:flex;gap:8px;justify-content:center;margin-top:8px}
+.guess-row input{flex:1;max-width:260px;font:inherit;font-size:18px;padding:11px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;text-align:center;outline:none}
+.guess-row input:focus{border-color:var(--gold)}
+.kbd{display:grid;grid-template-columns:repeat(9,1fr);gap:6px;max-width:430px;margin:14px auto 0}
+.kbd button{font:inherit;font-weight:700;font-size:15px;padding:9px 0;border-radius:10px;border:1.5px solid rgba(255,255,255,.22);background:rgba(255,255,255,.1);color:#fff;cursor:pointer;transition:transform .12s,background .15s}
+.kbd button:active{transform:scale(.9);background:rgba(240,185,58,.4)}
+.hintline{min-height:24px;color:var(--mut);font-size:13px;margin-top:10px}
+.hintline b{color:var(--ind)}
+.msg-pop{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);font-size:40px;font-weight:900;pointer-events:none;z-index:50;
+  animation:pop .9s cubic-bezier(.3,1.6,.5,1) both;filter:drop-shadow(0 6px 20px rgba(0,0,0,.5))}
+@keyframes pop{from{transform:translate(-50%,-50%) scale(0) rotate(-12deg)}60%{opacity:1}to{transform:translate(-50%,-50%) scale(1.15);opacity:0}}
+
+/* ======== النتيجة ======== */
+.scores{display:flex;gap:10px;justify-content:center;margin:16px 0}
+.score{flex:1;max-width:150px;background:rgba(255,255,255,.09);border:1.5px solid rgba(255,255,255,.18);border-radius:16px;padding:12px}
+.score b{display:block;font-size:26px;color:var(--gold)}
+.score span{font-size:13px;color:var(--mut)}
+.score.win{border-color:var(--gold);box-shadow:0 0 20px rgba(240,185,58,.35)}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden}
+.confetti i{position:absolute;top:-16px;width:9px;height:15px;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+footer{margin-top:26px;color:var(--mut);font-size:12px}
+footer a{color:var(--gold);text-decoration:none;font-weight:700}
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div class="wrap">
+  <h1>🎨 ارسم وخمّن</h1>
+  <div class="sub">ارسم الكلمة وصاحبك يخمّن من الرسمة — بالتتابع! 🖌</div>
+
+  <!-- القائمة -->
+  <div id="menu" class="screen panel">
+    <div class="modes">
+      <button class="mode" id="btnDuel"><span class="ic">⚔️</span><span>تحدي مع صاحبك<small>نفس الموبايل · رسّام وخمّن بالتناوب · 4 جولات</small></span></button>
+      <button class="mode" id="btnSolo"><span class="ic">🖌️</span><span>رسم حر<small>ارسم اللي تحبه — لوحة فاضية وألوان</small></span></button>
+    </div>
+  </div>
+
+  <!-- إعداد الأسماء -->
+  <div id="names" class="screen panel hidden">
+    <h2 style="margin-bottom:4px">من اللي هيلعبوا؟ 👥</h2>
+    <p style="color:var(--mut);font-size:13px;margin-bottom:14px">اكتب الاسمين — كل واحد هياخد دوره رسّام ودوره خمّن</p>
+    <label style="display:block;text-align:start;font-size:13px;margin:10px 0 4px">اللاعب ١</label>
+    <input id="p1name" value="اللاعب ١" style="width:100%;font:inherit;padding:11px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;outline:none">
+    <label style="display:block;text-align:start;font-size:13px;margin:12px 0 4px">اللاعب ٢</label>
+    <input id="p2name" value="اللاعب ٢" style="width:100%;font:inherit;padding:11px 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;outline:none">
+    <div class="row"><button class="btn pink" id="namesGo">يلا نبدأ 🎮</button></div>
+  </div>
+
+  <!-- تسليم الموبايل -->
+  <div id="handover" class="screen panel handover hidden">
+    <div class="big">📱</div>
+    <h2 id="hoTitle">سلّم الموبايل لـ…</h2>
+    <div class="word-card hidden" id="hoWordCard">
+      <small>✏️ الكلمة اللي هترسُمها (محدش غيرك شايفها)</small>
+      <b id="hoWord"></b>
+    </div>
+    <div class="row"><button class="btn" id="hoGo">تمام — أكمّل 👌</button></div>
+  </div>
+
+  <!-- الرسم -->
+  <div id="draw" class="screen hidden">
+    <div class="word-strip" id="dwStrip">✏️ ارسم: <b id="dwWord"></b></div>
+    <div class="timerbar" id="dTimer"><i></i></div>
+    <div class="canvas-box"><canvas id="cv"></canvas></div>
+    <div class="toolbar" style="margin-top:12px">
+      <button class="tool on" data-color="#111111" style="background:#111"></button>
+      <button class="tool" data-color="#e0245e" style="background:#e0245e"></button>
+      <button class="tool" data-color="#1d4ed8" style="background:#1d4ed8"></button>
+      <button class="tool" data-color="#059669" style="background:#059669"></button>
+      <button class="tool" data-color="#f59e0b" style="background:#f59e0b"></button>
+      <button class="tool" data-color="#7c3aed" style="background:#7c3aed"></button>
+      <div class="sizes">
+        <button class="sz on" data-w="4"  style="width:14px;height:14px;--c:#fff"></button>
+        <button class="sz" data-w="9"  style="width:22px;height:22px;--c:#fff"></button>
+        <button class="sz" data-w="16" style="width:30px;height:30px;--c:#fff"></button>
+      </div>
+      <button class="tool" id="undoBtn" title="تراجع">↩️</button>
+      <button class="tool" id="clearBtn" title="مسح الكل">🗑️</button>
+    </div>
+    <div class="row"><button class="btn pink" id="doneDraw">خلصت الرسمة ✅</button></div>
+  </div>
+
+  <!-- التخمين -->
+  <div id="guess" class="screen hidden">
+    <h2 id="gTitle" style="margin-bottom:2px">🕵️ دور التخمين</h2>
+    <p style="color:var(--mut);font-size:13px">شوف الرسمة بتتكمل قدامك وخمّن الكلمة!</p>
+    <div class="canvas-box" style="margin-top:10px"><canvas id="cv2"></canvas></div>
+    <div class="dashes" id="dashes"></div>
+    <div class="guess-row">
+      <input id="gInput" placeholder="اكتب تخمينك…" autocomplete="off">
+      <button class="btn sm" id="gTry">خمّن 🎯</button>
+    </div>
+    <div class="kbd" id="kbd"></div>
+    <div class="hintline" id="hintLine"></div>
+    <div class="row"><button class="btn ghost sm" id="hintBtn">💡 تلميح (<span id="hintN">2</span>)</button><button class="btn ghost sm" id="giveUp">مستسلم 😅</button></div>
+  </div>
+
+  <!-- النتيجة -->
+  <div id="over" class="screen panel hidden">
+    <div style="font-size:64px" id="ovEmoji">🏆</div>
+    <h2 id="ovTitle">النتيجة النهائية</h2>
+    <div class="scores" id="ovScores"></div>
+    <div class="row">
+      <button class="btn" id="againBtn">العب تاني ↺</button>
+      <button class="btn ghost" id="menuBtn2">القائمة</button>
+    </div>
+  </div>
+
+  <footer>لعبة من <a href="./index.html">منصة التفوق</a> 🎓</footer>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const WORDS=["تفاحة","قطة","بيت","شمس","قمر","سمكة","سيارة","شجرة","قلم","كتاب","كورة","نجمة","وردة","فراشة","قطار","طيارة","دب","أرنب","جمل","تمساح","مفتاح","عصير","بيتزا","قط","مظلة","ساعة","كرسي","باب","نافذة","جبل","نهر","حصان","دجاجة","عنب","موز","برتقالة","أسد","فيل","زرافة","دولاب"];
+const LETTERS="ابتثجحخدذرزسشصضطظعغفقكلمنهوي";
+const DRAW_TIME=70;
+
+/* نجوم */
+(function(){const w=$("#stars");for(let i=0;i<40;i++){const s=document.createElement("i");
+s.style.left=Math.random()*100+"%";s.style.top=Math.random()*100+"%";
+s.style.animationDelay=(Math.random()*3)+"s";w.appendChild(s)}})();
+
+function beep(f,d,t,v){try{const c=new (window.AudioContext||window.webkitAudioContext)();const o=c.createOscillator(),g=c.createGain();
+o.type=t||"sine";o.frequency.value=f;g.gain.value=v||.07;o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+(d||.12))}catch(e){}}
+const sOk=()=>{beep(660,.12);setTimeout(()=>beep(880,.18),90)};
+const sNo=()=>beep(170,.25,"sawtooth",.05);
+const sWin=()=>[523,659,784,1046].forEach((f,i)=>setTimeout(()=>beep(f,.22,"sine",.08),i*130));
+function pop(txt,color){const p=document.createElement("div");p.className="msg-pop";p.textContent=txt;p.style.color=color||"#F0B93A";
+document.body.appendChild(p);setTimeout(()=>p.remove(),950)}
+function confetti(n){const c=document.createElement("div");c.className="confetti";const cl=["#F0B93A","#2FB5A8","#F472B6","#8B93FF","#fff"];
+for(let i=0;i<n;i++){const p=document.createElement("i");p.style.left=Math.random()*100+"%";p.style.background=cl[i%5];
+p.style.animationDelay=(Math.random()*.9)+"s";c.appendChild(p)}document.body.appendChild(c);setTimeout(()=>c.remove(),3800)}
+function show(el){["#menu","#names","#handover","#draw","#guess","#over"].forEach(s=>$(s).classList.add("hidden"));el.classList.remove("hidden")}
+
+/* ================= حالة اللعبة ================= */
+let players=[{name:"اللاعب ١",score:0},{name:"اللاعب ٢",score:0}];
+let round=0;const ROUNDS=4;let curWord="",drawer=0,guesser=1;
+let strokes=[],curStroke=null,drawing=false,color="#111111",width=4;
+let timerInt=null,timeLeft=0,hintsLeft=2,tried=new Set();
+
+/* ================= اللوحة ================= */
+const cv=$("#cv"),ctx=cv.getContext("2d");
+const cv2=$("#cv2"),ctx2=cv2.getContext("2d");
+function fitCanvas(c){const box=c.parentElement;const dpr=Math.min(devicePixelRatio||1,2);
+const w=box.clientWidth,h=Math.min(Math.round(w*0.72),380);
+c.width=w*dpr;c.height=h*dpr;c.style.width=w+"px";c.style.height=h+"px";
+c.getContext("2d").setTransform(dpr,0,0,dpr,0,0);return{w,h}}
+let CW=0,CH=0;
+function initDraw(){const r=fitCanvas(cv);CW=r.w;CH=r.h;ctx.lineCap="round";ctx.lineJoin="round";ctx.fillStyle="#fff";ctx.fillRect(0,0,CW,CH)}
+function initReplay(){const r=fitCanvas(cv2);ctx2.lineCap="round";ctx2.lineJoin="round";ctx2.fillStyle="#fff";ctx2.fillRect(0,0,r.w,r.h)}
+
+function pos(e,c){const r=c.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return{x:t.clientX-r.left,y:t.clientY-r.top}}
+function startStroke(e){e.preventDefault();if(!drawingEnabled)return;drawing=true;
+const p=pos(e,cv);curStroke={color,width,pts:[{x:p.x,y:p.y,t:performance.now()}]};
+ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+.1,p.y+.1);ctx.stroke()}
+function moveStroke(e){if(!drawing||!curStroke)return;e.preventDefault();
+const p=pos(e,cv);curStroke.pts.push({x:p.x,y:p.y,t:performance.now()});
+const n=curStroke.pts.length,a=curStroke.pts[n-2],b=curStroke.pts[n-1];
+ctx.strokeStyle=color;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}
+function endStroke(){if(!drawing)return;drawing=false;if(curStroke){strokes.push(curStroke);curStroke=null}}
+
+cv.addEventListener("pointerdown",startStroke);
+cv.addEventListener("pointermove",moveStroke);
+addEventListener("pointerup",endStroke);
+cv.addEventListener("touchstart",startStroke,{passive:false});
+cv.addEventListener("touchmove",moveStroke,{passive:false});
+cv.addEventListener("touchend",endStroke);
+
+let drawingEnabled=true;
+document.querySelectorAll(".tool[data-color]").forEach(b=>b.onclick=()=>{
+document.querySelectorAll(".tool[data-color]").forEach(x=>x.classList.remove("on"));b.classList.add("on");color=b.dataset.color});
+document.querySelectorAll(".sz").forEach(b=>b.onclick=()=>{document.querySelectorAll(".sz").forEach(x=>x.classList.remove("on"));b.classList.add("on");width=+b.dataset.w});
+$("#clearBtn").onclick=()=>{strokes=[];ctx.fillStyle="#fff";ctx.fillRect(0,0,CW,CH)};
+$("#undoBtn").onclick=()=>{strokes.pop();redrawAll()};
+function redrawAll(){ctx.fillStyle="#fff";ctx.fillRect(0,0,CW,CH);
+for(const s of strokes){ctx.strokeStyle=s.color;ctx.lineWidth=s.width;ctx.beginPath();
+s.pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke()}}
+
+/* ================= التدفق ================= */
+$("#btnSolo").onclick=()=>{soloSetup();show($("#draw"));$("#dwStrip").style.display="none";$("#dTimer").style.display="none";$("#doneDraw").textContent="رسمة جديدة 🔄"};
+$("#btnDuel").onclick=()=>show($("#names"));
+$("#namesGo").onclick=()=>{
+  players[0].name=($("#p1name").value||"اللاعب ١").trim();
+  players[1].name=($("#p2name").value||"اللاعب ٢").trim();
+  players[0].score=0;players[1].score=0;round=0;startRound()};
+$("#menuBtn2").onclick=()=>show($("#menu"));
+$("#againBtn").onclick=()=>show($("#names"));
+
+function soloSetup(){initDraw();strokes=[];drawingEnabled=true;
+$("#dwStrip").style.display="none";$("#dTimer").style.display="none";stopTimer()}
+$("#doneDraw").onclick=()=>{
+  if($("#dTimer").style.display==="none"){strokes=[];redrawAll();return}
+  finishDrawing()};
+
+function startRound(){
+  drawer=round%2;guesser=1-drawer;
+  curWord=WORDS[Math.floor(Math.random()*WORDS.length)];
+  $("#hoTitle").textContent="سلّم الموبايل لـ "+players[drawer].name+" ✏️";
+  $("#hoWord").textContent=curWord;
+  $("#hoWordCard").classList.remove("hidden");
+  show($("#handover"));
+}
+$("#hoGo").onclick=()=>{
+  $("#hoWordCard").classList.add("hidden");
+  initDraw();strokes=[];redrawAll();drawingEnabled=true;
+  $("#dwStrip").style.display="inline-flex";$("#dTimer").style.display="block";
+  $("#dwWord").textContent=curWord;
+  $("#doneDraw").textContent="خلصت الرسمة ✅";
+  timeLeft=DRAW_TIME;$("#dTimer").classList.remove("low");$("#dTimer i").style.width="100%";
+  stopTimer();timerInt=setInterval(()=>{timeLeft--;$("#dTimer i").style.width=Math.max(0,timeLeft/DRAW_TIME*100)+"%";
+    if(timeLeft<=10)$("#dTimer").classList.add("low");
+    if(timeLeft<=0)finishDrawing()},1000);
+  show($("#draw"));
+};
+function stopTimer(){clearInterval(timerInt)}
+
+function finishDrawing(){stopTimer();drawingEnabled=false;
+  if(!strokes.length){strokes.push({color:"#999",width:4,pts:[{x:20,y:20,t:0},{x:80,y:80,t:1}]});}
+  $("#hoTitle").textContent="دلوقتي سلّمه لـ "+players[guesser].name+" 🕵️";
+  $("#hoWordCard").classList.add("hidden");
+  show($("#handover"));
+  $("#hoGo").onclick=()=>startGuessing();}
+
+/* ================= التخمين ================= */
+function startGuessing(){
+  $("#gTitle").textContent="🕵️ دور "+players[guesser].name;
+  hintsLeft=2;tried=new Set();
+  $("#hintN").textContent=hintsLeft;
+  $("#hintLine").innerHTML="";
+  $("#gInput").value="";
+  buildDashes();buildKbd();
+  show($("#guess"));
+  initReplay();replay();
+  setTimeout(()=>$("#gInput").focus(),300);
+}
+function buildDashes(){$("#dashes").innerHTML=[...curWord].map(ch=>
+ch===" "?`<span class="dash space"></span>`:`<span class="dash" data-ch="${ch}"></span>`).join("")}
+function buildKbd(){$("#kbd").innerHTML=[...LETTERS].map(l=>`<button data-l="${l}">${l}</button>`).join("");
+$("#kbd").querySelectorAll("button").forEach(b=>b.onclick=()=>{$("#gInput").value+=b.dataset.l;$("#gInput").focus()})}
+
+function replay(){
+  ctx2.fillStyle="#fff";ctx2.fillRect(0,0,cv2.width,cv2.height);
+  const all=[];strokes.forEach(s=>{for(let i=1;i<s.pts.length;i++)all.push({s,a:s.pts[i-1],b:s.pts[i]})});
+  if(!all.length)return;
+  const total=all.length,STEP=2;let i=0;
+  const t0=performance.now(),dur=Math.min(9000,1500+total*22);
+  (function step(){const p=Math.min(1,(performance.now()-t0)/dur);const target=Math.floor(p*total);
+    while(i<target){const{ s,a,b}=all[i];ctx2.strokeStyle=s.color;ctx2.lineWidth=s.width;
+      ctx2.beginPath();ctx2.moveTo(a.x,a.y);ctx2.lineTo(b.x,b.y);ctx2.stroke();i++}
+    if(p<1)requestAnimationFrame(step)})();
+}
+function revealAll(){ctx2.fillStyle="#fff";ctx2.fillRect(0,0,cv2.width,cv2.height);
+for(const s of strokes){ctx2.strokeStyle=s.color;ctx2.lineWidth=s.width;ctx2.beginPath();
+s.pts.forEach((p,i)=>i?ctx2.lineTo(p.x,p.y):ctx2.moveTo(p.x,p.y));ctx2.stroke()}}
+
+$("#gTry").onclick=tryGuess;
+$("#gInput").addEventListener("keydown",e=>{if(e.key==="Enter")tryGuess()});
+function tryGuess(){
+  const v=$("#gInput").value.trim();if(!v)return;$("#gInput").value="";
+  const guess=v.replace(/\s+/g,"");
+  if(guess===curWord){winRound();return}
+  tried.add(guess);
+  sNo();pop("❌ غلط","#ff8a80");
+  $("#hintLine").innerHTML="جرّبت قبل كده: <b>"+[...tried].map(esc).join(" · ")+"</b>";
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+$("#hintBtn").onclick=()=>{
+  if(hintsLeft<=0){pop("مفيش تلميحات 😅");return}
+  hintsLeft--;$("#hintN").textContent=hintsLeft;
+  const hidden=[...document.querySelectorAll(".dash[data-ch]")].filter(d=>!d.textContent);
+  if(hidden.length){const d=hidden[Math.floor(Math.random()*hidden.length)];d.textContent=d.dataset.ch;beep(880,.1)}
+};
+$("#giveUp").onclick=()=>endRound(false);
+
+function winRound(){
+  const gPts=100+(timeLeft>0?timeLeft:0)+hintsLeft*10;
+  const dPts=50;
+  players[guesser].score+=gPts;players[drawer].score+=dPts;
+  revealAll();sWin();confetti(60);pop("🎉 صح! +"+gPts,"#F0B93A");
+  setTimeout(()=>endRound(true),1400);
+}
+function endRound(){
+  round++;
+  if(round>=ROUNDS){finalScores();return}
+  $("#hoTitle").textContent="الجولة التالية 🔄 سلّم الموبايل لـ "+players[round%2].name;
+  $("#hoWord").textContent="";$("#hoWordCard").classList.add("hidden");
+  $("#hoGo").onclick=()=>{
+    curWord=WORDS[Math.floor(Math.random()*WORDS.length)];
+    $("#hoWord").textContent=curWord;
+    $("#hoWordCard").classList.remove("hidden");
+    $("#hoTitle").textContent="سلّم الموبايل لـ "+players[round%2].name+" ✏️";
+    show($("#handover"));
+    $("#hoGo").onclick=()=>{
+      $("#hoWordCard").classList.add("hidden");initDraw();strokes=[];drawingEnabled=true;
+      $("#dwStrip").style.display="inline-flex";$("#dTimer").style.display="block";
+      $("#dwWord").textContent=curWord;$("#doneDraw").textContent="خلصت الرسمة ✅";
+      timeLeft=DRAW_TIME;$("#dTimer").classList.remove("low");$("#dTimer i").style.width="100%";
+      stopTimer();timerInt=setInterval(()=>{timeLeft--;$("#dTimer i").style.width=Math.max(0,timeLeft/DRAW_TIME*100)+"%";
+        if(timeLeft<=10)$("#dTimer").classList.add("low");if(timeLeft<=0)finishDrawing()},1000);
+      show($("#draw"));
+    };
+  };
+  show($("#handover"));
+}
+function finalScores(){
+  const [a,b]=players;const tie=a.score===b.score;
+  const wIdx=a.score>b.score?0:1;
+  $("#ovEmoji").textContent=tie?"🤝":"👑";
+  $("#ovTitle").textContent=tie?"تعادل! العبوا تاني":"الفائز: "+players[wIdx].name+"!";
+  $("#ovScores").innerHTML=players.map((p,i)=>
+    `<div class="score ${!tie&&i===wIdx?"win":""}"><b>${p.score}</b><span>${esc(p.name)}${!tie&&i===wIdx?" 👑":""}</span></div>`).join("");
+  if(!tie){confetti(80);sWin()}
+  show($("#over"));
+}
+addEventListener("resize",()=>{if(!$("#draw").classList.contains("hidden")){const keep=strokes;initDraw();strokes=keep;redrawAll()}
+if(!$("#guess").classList.contains("hidden")){revealAll()}});
+</script>
+</body>
+</html>

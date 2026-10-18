@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>🧊 Push Arena — التفوق</title>
+<style>
+*{box-sizing:border-box;margin:0}body{background:#12151A;color:#fff;font-family:system-ui;text-align:center;min-height:100vh}
+h1{margin:10px}canvas{background:#1A1F27;border-radius:12px;max-width:96vw;touch-action:none}
+.btn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:12px 22px;margin:8px;background:#7C9CBF;color:#0E1218;cursor:pointer}
+a{color:#D4B56A}.hint{color:#9AA3B2;font-size:13px;margin:6px}
+</style></head><body>
+<h1>🧊 Push Arena</h1>
+<p class="hint">P1: A/D · P2: ←/→ · أو المس يسار/يمين الشاشة</p>
+<div><b id="msg">أول واحد يوقع التاني يفوز</b></div>
+<canvas id="c" width="360" height="420"></canvas>
+<div><button class="btn" id="go">ابدأ الجولة</button> <a href="./index.html">المنصة</a></div>
+<script>
+const cv=document.getElementById('c'),x=cv.getContext('2d');
+let p1={x:100,vx:0},p2={x:240,vx:0},run=false,keys={};
+const plat={x:40,y:320,w:280};
+document.getElementById('go').onclick=()=>{p1={x:100,vx:0};p2={x:240,vx:0};run=true;document.getElementById('msg').textContent='ادفع!'};
+addEventListener('keydown',e=>keys[e.key]=1);addEventListener('keyup',e=>keys[e.key]=0);
+cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect();const lx=(e.clientX-r.left)/r.width;if(lx<.5)keys.a=1;else keys.ArrowRight=1});
+cv.addEventListener('pointerup',()=>{keys.a=keys.d=keys.ArrowLeft=keys.ArrowRight=0});
+function loop(){
+  requestAnimationFrame(loop);x.clearRect(0,0,360,420);
+  x.fillStyle='#2A313C';x.fillRect(plat.x,plat.y,plat.w,24);
+  if(run){
+    if(keys.a||keys.A)p1.vx-=0.4;if(keys.d||keys.D)p1.vx+=0.4;
+    if(keys.ArrowLeft)p2.vx-=0.4;if(keys.ArrowRight)p2.vx+=0.4;
+    p1.vx*=0.92;p2.vx*=0.92;p1.x+=p1.vx;p2.x+=p2.vx;
+    // collide players
+    if(Math.abs(p1.x-p2.x)<36){const push=(p1.vx-p2.vx)*0.6;p1.vx-=push+Math.sign(p1.x-p2.x)*0.8;p2.vx+=push+Math.sign(p2.x-p1.x)*0.8}
+    if(p1.x<plat.x-10||p1.x>plat.x+plat.w){run=false;document.getElementById('msg').textContent='🏆 اللاعب ٢ فاز!'}
+    if(p2.x<plat.x-10||p2.x>plat.x+plat.w){run=false;document.getElementById('msg').textContent='🏆 اللاعب ١ فاز!'}
+  }
+  x.fillStyle='#2FB5A8';x.beginPath();x.arc(p1.x,plat.y-16,16,0,7);x.fill();
+  x.fillStyle='#F472B6';x.beginPath();x.arc(p2.x,plat.y-16,16,0,7);x.fill();
+}
+loop();
+</script></body></html>

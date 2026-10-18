@@ -1,0 +1,101 @@
+<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Words Crush - 100 مستوى</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg1:#2b1055;--bg2:#5b6fd6;--ink:#fff;--acc:#ffd24a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;min-height:100vh;background-color:#2b1055;background-image:linear-gradient(160deg,var(--bg1),var(--bg2));background-attachment:fixed;color:var(--ink);font-family:system-ui,"Segoe UI",Tahoma,sans-serif;display:flex;justify-content:center}
+#app{width:100%;max-width:460px;padding:12px}
+h1{text-align:center;margin:8px 0 4px;font-size:28px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.pill{background:#ffffff26;border-radius:20px;padding:6px 14px;font-weight:700}
+button{font:inherit;color:inherit;border:0;cursor:pointer}
+.btn{background:var(--acc);color:#2b1055;font-weight:800;border-radius:20px;padding:10px 18px}
+#lvls{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:12px}
+.lv{aspect-ratio:1;border-radius:16px;background:#ffffff2e;font-size:20px;font-weight:800}
+.lv.dn{background:#3ecf8e;color:#073}
+.lv:not(.dn):not(.lk){background:var(--acc);color:#2b1055}
+.lv.lk{opacity:.5}
+#theme{text-align:center;font-size:20px;font-weight:800;margin:4px 0 10px}
+#grid{display:grid;gap:6px;direction:ltr;touch-action:none;padding:10px;background:#0000004d;border-radius:18px;user-select:none;-webkit-user-select:none}
+.cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:clamp(18px,6vw,28px);border-radius:12px;background:#ffffff26;transition:background .1s}
+.cell.s{background:var(--acc);color:#2b1055;transform:scale(1.08)}
+.cell.h{outline:3px solid var(--acc);animation:p .5s 3}
+@keyframes p{50%{transform:scale(1.15)}}
+#words{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px 0;direction:ltr}
+.chip{background:#ffffff26;border-radius:14px;padding:6px 12px;font-weight:700;letter-spacing:1px}
+.chip.f{text-decoration:line-through;opacity:.6}
+.row{display:flex;gap:10px;justify-content:center}
+#win{position:fixed;inset:0;background:#000a;display:flex;align-items:center;justify-content:center;padding:20px}
+#win[hidden],[hidden]{display:none!important}
+.box{background:#3b2a85;border-radius:24px;padding:28px;text-align:center;max-width:320px;width:100%}
+.box h2{margin:0 0 8px;font-size:30px}
+</style></head><body><div id="app">
+<div id="menu"><h1>🔤 Words Crush</h1><div class="top"><span class="pill">المستوى المفتوح: <b id="mu"></b>/100</span><span class="pill">🪙 <b id="mc"></b></span></div><div id="lvls"></div></div>
+<div id="game" hidden>
+<div class="top"><button class="pill" onclick="menu()">☰ القائمة</button><span class="pill">المستوى <b id="gl"></b></span><span class="pill">🪙 <b id="gc"></b></span></div>
+<div id="theme"></div><div id="grid"></div><div id="words"></div>
+<div class="row"><button class="btn" onclick="hint()">💡 تلميح (10)</button></div></div>
+<div id="win" hidden><div class="box"><h2>🎉 أحسنت!</h2><p>خلصت المستوى <b id="wl"></b> (+20 🪙)</p><div class="row"><button class="btn" onclick="menu()">القائمة</button><button class="btn" id="nx" onclick="play(G.L+1)">التالي ▶</button></div></div></div>
+</div>
+<script>
+const TH=[["حيوانات","CAT DOG LION TIGER HORSE ZEBRA MONKEY RABBIT WOLF BEAR SHEEP EAGLE SNAKE PANDA"],
+["فواكه","APPLE MANGO LEMON GRAPE PEACH BANANA CHERRY MELON ORANGE PLUM LIME KIWI PEAR"],
+["ألوان","RED BLUE GREEN BLACK WHITE PINK GOLD GRAY BROWN PURPLE YELLOW SILVER"],
+["دول","EGYPT FRANCE SPAIN INDIA CHINA JAPAN ITALY BRAZIL KENYA CANADA TURKEY PERU"],
+["رياضة","SOCCER TENNIS GOLF RUGBY BOXING HOCKEY SKIING SWIM DIVING ROWING JUDO"],
+["طعام","PIZZA BREAD RICE PASTA CAKE SOUP BURGER SALAD HONEY CHEESE EGG"],
+["طبيعة","RIVER OCEAN FOREST MOUNTAIN DESERT CLOUD STORM RAIN SNOW BEACH VALLEY"],
+["فضاء","MOON STAR SUN MARS EARTH COMET ORBIT GALAXY PLANET VENUS ROCKET"],
+["جسم الإنسان","HEAD HAND FOOT KNEE ELBOW SHOULDER FINGER NOSE MOUTH TOOTH HEART"],
+["وظائف","DOCTOR PILOT CHEF TEACHER FARMER NURSE ARTIST DRIVER LAWYER BAKER"]].map(t=>[t[0],t[1].split(" ")]);
+const $=s=>document.querySelector(s);
+let S={u:1,c:50};
+try{Object.assign(S,JSON.parse(localStorage.getItem('wc')||'{}'))}catch(e){}
+const save=()=>{try{localStorage.setItem('wc',JSON.stringify(S))}catch(e){}};
+const rng=s=>()=>(s=(s*1664525+1013904223)>>>0)/4294967296;
+let G={};
+function build(L){
+ const R=rng(L*7919+13),n=L<20?5:L<40?6:L<60?7:8,cnt=Math.min(8,3+Math.floor((L-1)/14));
+ const D=[[0,1],[1,0]];if(L>10)D.push([1,1]);if(L>30)D.push([0,-1],[-1,0]);if(L>60)D.push([-1,-1],[1,-1],[-1,1]);
+ const th=TH[(L-1)%10],pool=th[1].filter(w=>w.length<=n).sort(()=>R()-.5);
+ const g=Array(n*n).fill(''),words=[];
+ for(const w of pool){if(words.length>=cnt)break;
+  for(let t=0;t<150;t++){const d=D[Math.floor(R()*D.length)],r=Math.floor(R()*n),c=Math.floor(R()*n),cells=[];let ok=true;
+   for(let k=0;k<w.length;k++){const rr=r+d[0]*k,cc=c+d[1]*k;if(rr<0||cc<0||rr>=n||cc>=n||(g[rr*n+cc]&&g[rr*n+cc]!=w[k])){ok=false;break}cells.push(rr*n+cc)}
+   if(ok){cells.forEach((x,k)=>g[x]=w[k]);words.push({w,cells,f:false});break}}}
+ for(let i=0;i<g.length;i++)if(!g[i])g[i]="ABCDEFGHIJKLMNOPRSTUW"[Math.floor(R()*21)];
+ return{L,n,g,words,theme:th[0],sel:[],s:null};
+}
+function menu(){$('#win').hidden=true;$('#game').hidden=true;$('#menu').hidden=false;$('#mc').textContent=S.c;$('#mu').textContent=S.u;
+ let h='';for(let i=1;i<=100;i++)h+=`<button class="lv ${i>S.u?'lk':i<S.u?'dn':''}" ${i>S.u?'disabled':''} onclick="play(${i})">${i>S.u?'🔒':i}</button>`;$('#lvls').innerHTML=h}
+function play(L){if(L>100){menu();return}
+ G=build(L);$('#win').hidden=true;$('#menu').hidden=true;$('#game').hidden=false;
+ $('#gl').textContent=L;$('#gc').textContent=S.c;$('#theme').textContent="الموضوع: "+G.theme;
+ const gr=$('#grid');gr.style.gridTemplateColumns=`repeat(${G.n},1fr)`;
+ gr.innerHTML=G.g.map((x,i)=>`<div class="cell" data-i="${i}">${x}</div>`).join('');
+ G.el=[...gr.children];
+ $('#words').innerHTML=G.words.map((w,i)=>`<span class="chip" id="w${i}">${w.w}</span>`).join('');
+ gr.onpointerdown=e=>{const i=at(e);if(i==null)return;G.s=i;G.sel=[i];paint()};
+ gr.onpointermove=e=>{if(G.s==null)return;const i=at(e);if(i==null)return;
+  const n=G.n,r0=Math.floor(G.s/n),c0=G.s%n,dr=Math.floor(i/n)-r0,dc=i%n-c0;
+  if(dr&&dc&&Math.abs(dr)!=Math.abs(dc))return;
+  const len=Math.max(Math.abs(dr),Math.abs(dc))+1,sr=Math.sign(dr),sc=Math.sign(dc);
+  G.sel=Array.from({length:len},(_,k)=>(r0+sr*k)*n+c0+sc*k);paint()};
+ gr.onpointerup=gr.onpointercancel=end}
+function at(e){const el=document.elementFromPoint(e.clientX,e.clientY);return el&&el.dataset.i!=null?+el.dataset.i:null}
+function paint(){G.el.forEach((el,k)=>el.classList.toggle('s',G.sel.includes(k)))}
+function end(){if(G.s==null)return;
+ const str=G.sel.map(i=>G.g[i]).join(''),rev=[...str].reverse().join('');
+ const w=G.words.find(x=>!x.f&&(x.w==str||x.w==rev));
+ if(w){w.f=true;const i=G.words.indexOf(w),col=`hsl(${i*47+10} 70% 50%)`;
+  w.cells.forEach(c=>{G.el[c].style.background=col;G.el[c].style.color='#fff'});
+  $('#w'+i).classList.add('f');S.c+=5;
+  if(G.words.every(x=>x.f)){S.c+=20;if(G.L>=S.u)S.u=Math.min(100,G.L+1);$('#wl').textContent=G.L;$('#nx').hidden=G.L>=100;setTimeout(()=>$('#win').hidden=false,500)}
+  save();$('#gc').textContent=S.c}
+ G.s=null;G.sel=[];paint()}
+function hint(){if(S.c<10)return;const w=G.words.find(x=>!x.f);if(!w)return;S.c-=10;save();$('#gc').textContent=S.c;
+ const el=G.el[w.cells[0]];el.classList.add('h');setTimeout(()=>el.classList.remove('h'),1600)}
+menu();
+</script></body></html>
