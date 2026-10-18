@@ -2,9 +2,9 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v68-arcade">
+<meta name="sw-build" content="v72-games">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v68-arcade";</script>
+<script>window.APP_BUILD="v72-games";</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <script>(function(){try{var m=localStorage.getItem("theme_mode"),c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#0B0A07",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
@@ -2035,10 +2035,10 @@ const header=(extra)=>`<div class="top"><div class="hdr-r">${logo}${aiBtn()}${bo
 const NOHDR="<span></span>";
 const studentNav=()=>`<nav class="bot">
 <button class="${S.view==="home"||S.view==="subject"||S.view==="exam"||S.view==="result"?"on":""}" data-act="home">المواد</button>
-<button class="${S.view==="progress"?"on":""}" data-act="progress">تقدمي${(S.unreadNotif||0)?` <span class="badge">${S.unreadNotif}</span>`:""}</button>
+${featOn("progress")?`<button class="${S.view==="progress"?"on":""}" data-act="progress">تقدمي${(S.unreadNotif||0)?` <span class="badge">${S.unreadNotif}</span>`:""}</button>`:""}
 ${featOn("chat")?`<button class="${S.view==="chatList"||S.view==="chatThread"?"on":""}" data-act="openChats">تواصل${(S.unreadChat||0)?` <span class="badge">${S.unreadChat}</span>`:""}</button>`:""}
 ${featOn("games")?`<button class="${S.view==="games"||S.view==="mathg"||S.view==="xo"||S.view==="hang"||S.view==="spin"||S.view==="react"||S.view&&String(S.view).startsWith("qb")?"on":""}" data-act="openGames">الألعاب</button>`:""}
-<button class="${S.view==="life"?"on":""}" data-act="openLife">المتجر</button>
+${featOn("life")?`<button class="${S.view==="life"?"on":""}" data-act="openLife">المتجر</button>`:""}
 <button class="${S.view==="me"||S.view==="profile"||S.view==="search"?"on":""}" data-act="openMe">أنا</button>
 </nav>`;
 
@@ -2083,8 +2083,8 @@ function homeView(){ /* stage1 polish */
   const resume=sess?`<div class="card" style="border-color:var(--gold);background:var(--ybg)"><b>▶ عندك امتحان متوقف</b><div class="mut" style="margin:4px 0">تقدر تكمّل من حيث وقفت — الإجابات محفوظة</div><button class="btn sm gold" data-act="resumeExam">استئناف الامتحان</button></div>`:"";
   return `<div class="wrap screen">${header(`<button class="btn ghost sm" data-act="logout">خروج</button>`)}
 <h2>أهلاً يا ${esc(((S.profile&&S.profile.name)||"طالب").split(" ")[0])}</h2><p class="mut">اختار المادة اللي عايز تمتحن فيها.</p>${inst||""}${skel}${an}${resume}
-<div class="grid">${S.examsLoaded?SUBJECTS.map(s=>{const l=ex.filter(e=>e.subject===s.id),done=l.filter(e=>(S.attempts[e.id]||[]).length).length,p=l.length?Math.round(done/l.length*100):0;
-  return `<button class="subj" style="background:linear-gradient(135deg,${s.c},${s.c2})" data-act="openSubject" data-id="${s.id}"><span class="g">${s.g}</span><b>${s.name}</b><small>${l.length?l.length+" امتحان · خلصت "+done:"مفيش امتحانات لسه"}</small><div class="sp"><i style="--w:${p}%"></i></div></button>`}).join("")+`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#0B5D57)" data-act="openAsms"><span class="g">A+</span><div><b>التقييمات</b><br><small>${S.asms.length?S.asms.length+" تقييم · حلول ونماذج":"مفيش تقييمات لسه"}</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#166534,#B45309)" data-act="openGames"><span class="g">🎮</span><div><b>الألعاب</b><br><small>العب ضد الروبوت أو ضد صاحبك</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#9D174D,#BE185D)" data-act="openFadaye7"><span class="g">😂</span><div><b>فضايح</b><br><small>${(S.fadaye7||[]).length?((Array.isArray(S.fadaye7)?S.fadaye7:[]).length)+" لقطة":"صور وفيديوهات من الأدمن"}</small></div></button><button class="subj wide" style="background:linear-gradient(135deg,#1e3a5f,#0B5D57)" data-act="openBooks"><span class="g">📚</span><div><b>الكتب</b><br><small>PDF وملفات للتحميل</small></div></button>${(typeof isAsmManager==="function"&&isAsmManager()&&!S.isAdmin)?`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#6366F1)" data-act="openAsmAdmin"><span class="g">📝</span><div><b>إدارة التقييمات</b><br><small>مسؤول تقييمات</small></div></button>`:""}<button class="subj wide" style="background:linear-gradient(135deg,#BE185D,#F472B6)" data-act="openTanagha"><span class="g">💗</span><div><b>خاص لأولاد التناغه</b><br><small>أجمل شلة · صورنا</small></div></button>`:SUBJECTS.map(()=>`<div class="sk"></div>`).join("")}</div>
+<div class="grid">${S.examsLoaded?(featOn("subjects")?SUBJECTS.map(s=>{const l=ex.filter(e=>e.subject===s.id),done=l.filter(e=>(S.attempts[e.id]||[]).length).length,p=l.length?Math.round(done/l.length*100):0;
+  return `<button class="subj" style="background:linear-gradient(135deg,${s.c},${s.c2})" data-act="openSubject" data-id="${s.id}"><span class="g">${s.g}</span><b>${s.name}</b><small>${l.length?l.length+" امتحان · خلصت "+done:"مفيش امتحانات لسه"}</small><div class="sp"><i style="--w:${p}%"></i></div></button>`}).join(""):"")+(featOn("asms")?`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#0B5D57)" data-act="openAsms"><span class="g">A+</span><div><b>التقييمات</b><br><small>${S.asms.length?S.asms.length+" تقييم · حلول ونماذج":"مفيش تقييمات لسه"}</small></div></button>`:"")+(featOn("games")?`<button class="subj wide" style="background:linear-gradient(135deg,#166534,#B45309)" data-act="openGames"><span class="g">🎮</span><div><b>الألعاب</b><br><small>العب ضد الروبوت أو ضد صاحبك</small></div></button>`:"")+(featOn("fadaye7")?`<button class="subj wide" style="background:linear-gradient(135deg,#9D174D,#BE185D)" data-act="openFadaye7"><span class="g">😂</span><div><b>فضايح</b><br><small>${(S.fadaye7||[]).length?((Array.isArray(S.fadaye7)?S.fadaye7:[]).length)+" لقطة":"صور وفيديوهات من الأدمن"}</small></div></button>`:"")+(featOn("books")?`<button class="subj wide" style="background:linear-gradient(135deg,#1e3a5f,#0B5D57)" data-act="openBooks"><span class="g">📚</span><div><b>الكتب</b><br><small>PDF وملفات للتحميل</small></div></button>`:"")+(typeof isAsmManager==="function"&&isAsmManager()&&!S.isAdmin&&featOn("asms")?`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#6366F1)" data-act="openAsmAdmin"><span class="g">📝</span><div><b>إدارة التقييمات</b><br><small>مسؤول تقييمات</small></div></button>`:"")+(featOn("tanagha")?`<button class="subj wide" style="background:linear-gradient(135deg,#BE185D,#F472B6)" data-act="openTanagha"><span class="g">💗</span><div><b>خاص لأولاد التناغه</b><br><small>أجمل شلة · صورنا</small></div></button>`:""):SUBJECTS.map(()=>`<div class="sk"></div>`).join("")}</div>
 </div>${studentNav()}`}
 function subjectView(){
   const s=SUBJECTS.find(x=>x.id===S.subject),ex=(Array.isArray(S.exams)?S.exams:[]).filter(e=>e&&e.subject===s.id&&vis(e));
@@ -2444,16 +2444,21 @@ ${gcard("⚡","linear-gradient(135deg,#059669,#34D399)","سرعة اللمس","�
       <b style="font-size:17px">آخر واحد واقف</b>
       <div class="mut">مواجهة · المنطقة بتضيق</div>
       <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
-        <a class="btn sm" href="last-one-standing.html">🤖 العب</a>
+        <a class="btn sm" href="push.html">🤖 العب</a>
         <button class="btn sm ghost" data-act="openGameFriends" data-game="los">👥 صاحبك</button>
       </div>
     </div>
   </div>
 </div>
 
-<div class="card mut" style="font-size:13px">
-  <b>قريب جدًا:</b> 🎳 بولينج · 🏰 دفاع القلعة · 👾 Alien Defense · 💣 Bomber · 🧊 Ice Sliding · 🎭 Hide & Seek · 🏠 Mini Room
-</div>
+${gcard("🎳","linear-gradient(135deg,#B45309,#F59E0B)","بولينج","صوّب واسقط القوائم","", "bowling","bowling.html")}
+${gcard("🧊","linear-gradient(135deg,#0ea5e9,#38bdf8)","تزحلق الجليد","تفادى العوائق على الجليد","", "ice","ice.html")}
+${gcard("👾","linear-gradient(135deg,#7c3aed,#a78bfa)","دفاع الفضائيين","احمِ القاعدة من الغزاة","", "alien","alien.html")}
+${gcard("💣","linear-gradient(135deg,#475569,#94a3b8)","بومبر","متاهة · قنابل وأعداء","", "bomber","bomber.html")}
+${gcard("🏰","linear-gradient(135deg,#166534,#4ade80)","دفاع القلعة","ابنِ أبراج وصدّ الموجات","", "tower","tower.html")}
+${gcard("🎭","linear-gradient(135deg,#9d174d,#f472b6)","اختباء وبحث","اختبئ أو دور على أصحابك","", "hide","hide.html")}
+${gcard("🏠","linear-gradient(135deg,#1e3a5f,#60a5fa)","غرفتي","زيّن غرفتك واعرضها","", "room","room.html")}
+
 
 <div class="card" style="background:linear-gradient(135deg,color-mix(in srgb,var(--pri) 12%,var(--card)),var(--card));border-color:var(--pri)">
   <h3 style="margin:0 0 6px">👥 غرف الأصدقاء</h3>
@@ -3943,19 +3948,22 @@ const uiConfirm=(msg,o)=>uiDialog(Object.assign({msg},o||{}));
 const uiPrompt=(msg,def,o)=>uiDialog(Object.assign({msg,input:true,def:def||""},o||{}));
 
 /* ===== مرحلة 2: مفاتيح الأقسام + سجل تدقيق + حظر مؤقت + إعدادات AI محمية ===== */
-const FEATURES=[["chat","💬 التواصل (شات وجروبات)"],["calls","📞 المكالمات"],["games","🎮 الألعاب"],["fadaye7","😂 الفضائح"],["tanagha","💗 التناغه"],["books","📚 الكتب"],["asms","📝 التقييمات"],["ai","🤖 المساعد 么"]];
-const FEAT_ACT={openChats:"chat",openChat:"chat",startChat:"chat",startCall:"calls",openGames:"games",qbCreateRoom:"games",qbStartBot:"games",qbBot:"games",qbJoinRoom:"games",qbFriends:"games",openTanagha:"tanagha",openGallery:"tanagha",openFadaye7:"fadaye7",openBooks:"books",openAsms:"asms",openAI:"ai"};
+const FEATURES=[["chat","💬 التواصل (شات وجروبات)"],["calls","📞 المكالمات"],["games","🎮 الألعاب"],["fadaye7","😂 الفضائح"],["tanagha","💗 التناغه"],["books","📚 الكتب"],["asms","📝 التقييمات"],["ai","🤖 المساعد 么"],["life","🛒 المتجر والحيوان"],["progress","📊 تقدمي ولوحة الشرف"],["subjects","📚 المواد والامتحانات"]];
+const FEAT_ACT={openChats:"chat",openChat:"chat",startChat:"chat",startCall:"calls",openGames:"games",qbCreateRoom:"games",qbStartBot:"games",qbBot:"games",qbJoinRoom:"games",qbFriends:"games",openGameFriends:"games",openMath:"games",openXo:"games",openHang:"games",openSpin:"games",openReact:"games",openMemory:"games",openDraw:"games",openTanagha:"tanagha",openGallery:"tanagha",openFadaye7:"fadaye7",openBooks:"books",openAsms:"asms",openAI:"ai",openLife:"life",openProgress:"progress",openSubject:"subjects"};
 function featState(k){return !(S.features&&S.features[k]===false)}
 function featOn(k){return S.isAdmin||featState(k)}
 function featOfView(v){
   v=String(v||"");
   if(v==="chatList"||v==="chatThread"||v==="groupThread")return "chat";
-  if(v==="games"||v.indexOf("qb")===0)return "games";
+  if(v==="games"||v.indexOf("qb")===0||v==="mathg"||v==="xo"||v==="hang"||v==="spin"||v==="react")return "games";
   if(v==="gallery"||v==="tanagha")return "tanagha";
   if(v==="fadaye7")return "fadaye7";
   if(v==="books")return "books";
   if(v==="asmList"||v==="asm")return "asms";
   if(v==="ai")return "ai";
+  if(v==="life")return "life";
+  if(v==="progress"||v==="profile")return "progress";
+  if(v==="subject"||v==="exam"||v==="result"||v==="review")return "subjects";
   return "";
 }
 function featOffView(){return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">الرئيسية</button>`)}<div class="card empty"><div class="ei">⛔</div><b>القسم ده متوقف مؤقتاً</b><div class="mut" style="margin:8px auto 14px">المدرس قفله دلوقتي. جرّب بعدين.</div><button class="btn" data-act="home">الرجوع للرئيسية</button></div></div>${studentNav()}`}

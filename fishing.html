@@ -1,35 +1,70 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>🎣 صيد السمك — التفوق</title>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>صيد سمك — التفوق</title>
 <style>
-*{box-sizing:border-box;margin:0}body{background:#0c2a3a;color:#fff;font-family:system-ui;text-align:center;min-height:100vh}
-h1{margin:10px}canvas{background:linear-gradient(#87CEEB 0 30%,#0a4a6e 30% 100%);border-radius:12px;max-width:96vw;touch-action:none}
-.btn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:12px 22px;margin:8px;background:#2FB5A8;color:#fff;cursor:pointer}
-a{color:#F0B93A}
-</style></head><body>
-<h1>🎣 صيد السمك</h1>
-<div>صيده: <b id="sc">0</b> · نادر: <b id="rare">0</b></div>
-<canvas id="c" width="360" height="480"></canvas>
-<div><button class="btn" id="go">ارمِ السنارة</button> <a href="./index.html">المنصة</a></div>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0b1020;color:#f1f5f9;font-family:system-ui,-apple-system,sans-serif;overscroll-behavior:none}
+body{display:flex;flex-direction:column;align-items:center;min-height:100dvh}
+.top{width:100%;max-width:420px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.top a{color:#94a3b8;text-decoration:none;font-size:14px}
+.top h1{font-size:17px;font-weight:800}
+.hud{display:flex;gap:14px;font-size:14px;color:#cbd5e1}
+canvas{width:min(360px,96vw);height:auto;border-radius:16px;background:#151b2e;box-shadow:0 10px 40px #0008;touch-action:none;display:block}
+.bot{width:100%;max-width:420px;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+.btn{appearance:none;border:0;border-radius:14px;padding:12px 20px;font:inherit;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff}
+.btn.gold{background:linear-gradient(135deg,#E3A81C,#B45309);color:#1a1408}
+.btn:active{transform:scale(.97)}
+.hint{font-size:12px;color:#94a3b8;text-align:center;width:100%}
+.ov{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:20;padding:16px}
+.ov.on{display:flex}
+.panel{background:#1e293b;border-radius:20px;padding:22px;text-align:center;max-width:300px;width:100%}
+.panel h2{margin-bottom:6px}
+.panel p{color:#94a3b8;margin-bottom:14px}
+</style>
+</head>
+<body>
+<div class="top"><a href="./index.html">← المنصة</a><h1>🎣 صيد سمك</h1><div class="hud"><span>⭐ <b id="sc">0</b></span><span>🏆 <b id="bs">0</b></span></div></div>
+<canvas id="c" width="360" height="520"></canvas>
+<div class="bot">
+  <button class="btn gold" id="go">ابدأ</button>
+  <div class="hint" id="hint">حرّك الخط · ارفع لما تلمس سمكة</div>
+</div>
+<div class="ov" id="ov"><div class="panel"><h2 id="ot">انتهت</h2><p id="om"></p><button class="btn gold" id="again">العب تاني</button></div></div>
 <script>
-const cv=document.getElementById('c'),x=cv.getContext('2d');
-let sc=0,rare=0,hookY=80,going=false,fish=[],caught=null,t=0;
-function spawn(){const kinds=[{c:'#F0B93A',p:5,r:0},{c:'#2FB5A8',p:10,r:0},{c:'#F472B6',p:30,r:1}];
-  const k=kinds[Math.random()<.12?2:Math.random()<.4?1:0];
-  fish.push({x:Math.random()*300+20,y:180+Math.random()*250,vx:(Math.random()-.5)*2,k})}
-for(let i=0;i<8;i++)spawn();
-document.getElementById('go').onclick=()=>{if(caught){caught=null;hookY=80;going=false;return}if(!going){going=true;hookY=80}};
-function loop(){
-  requestAnimationFrame(loop);t++;x.clearRect(0,0,360,480);
-  // water already bg
-  x.fillStyle='#5d4037';x.fillRect(160,20,40,50); // boat
-  x.strokeStyle='#fff';x.lineWidth=2;x.beginPath();x.moveTo(180,70);x.lineTo(180,hookY);x.stroke();
-  x.fillStyle='#E3A81C';x.beginPath();x.arc(180,hookY,6,0,7);x.fill();
-  if(going&&!caught){hookY+=4;if(hookY>460){going=false;hookY=80}
-    for(const f of fish){if(Math.abs(f.x-180)<18&&Math.abs(f.y-hookY)<16){caught=f;sc+=f.k.p;if(f.k.r)rare++;document.getElementById('sc').textContent=sc;document.getElementById('rare').textContent=rare;going=false}}}
-  if(caught){caught.x=180;caught.y=hookY;hookY=Math.max(80,hookY-5);if(hookY<=80){fish=fish.filter(f=>f!==caught);caught=null;spawn()}}
-  fish.forEach(f=>{f.x+=f.vx;if(f.x<10||f.x>350)f.vx*=-1;x.fillStyle=f.k.c;x.beginPath();x.ellipse(f.x,f.y,16,8,0,0,7);x.fill()});
-}
-loop();
-</script></body></html>
+
+const cv=document.getElementById('c'),g=cv.getContext('2d');
+const scEl=document.getElementById('sc'),bsEl=document.getElementById('bs');
+let score=0,best=+(localStorage.getItem('fsh_bs')||0),run=false;
+let hx=180,hy=200,fish=[],pull=false,t=0;
+const kinds=[{c:'#38bdf8',p:5},{c:'#a78bfa',p:12},{c:'#fbbf24',p:25},{c:'#ef4444',p:40}];
+bsEl.textContent=best;
+function spawn(){const k=kinds[Math.random()<.05?3:Math.random()<.15?2:Math.random()<.4?1:0];fish.push({x:Math.random()*320+20,y:260+Math.random()*200,vx:(Math.random()-.5)*2.5,k})}
+function endRound(){/* endless */}
+function reset(){score=0;hx=180;hy=200;fish=[];t=0;run=true;scEl.textContent=0;for(let i=0;i<6;i++)spawn();document.getElementById('ov').classList.remove('on')}
+document.getElementById('go').onclick=()=>{if(!run)reset();else pull=true};
+document.getElementById('again').onclick=()=>{document.getElementById('ov').classList.remove('on');reset()};
+cv.addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect();hx=(e.clientX-r.left)/r.width*360;hy=Math.max(120,Math.min(500,(e.clientY-r.top)/r.height*520))});
+cv.addEventListener('pointerdown',e=>{e.preventDefault();if(!run){reset();return}pull=true});
+cv.addEventListener('pointerup',()=>pull=false);
+(function loop(){
+  requestAnimationFrame(loop);
+  g.fillStyle='#0c4a6e';g.fillRect(0,0,360,520);
+  g.fillStyle='#075985';g.fillRect(0,0,360,140);
+  if(run){
+    t++;if(t%40===0)spawn();
+    fish.forEach(f=>{f.x+=f.vx;if(f.x<15||f.x>345)f.vx*=-1});
+    fish=fish.filter(f=>f.y<520);
+    if(pull){for(let i=fish.length-1;i>=0;i--){const f=fish[i];if(Math.hypot(f.x-hx,f.y-hy)<22){score+=f.k.p;scEl.textContent=score;if(score>best){best=score;localStorage.setItem('fsh_bs',best);bsEl.textContent=best};fish.splice(i,1);break}}}
+  }
+  // line
+  g.strokeStyle='#e2e8f0';g.beginPath();g.moveTo(180,0);g.lineTo(hx,hy);g.stroke();
+  g.fillStyle='#f8fafc';g.beginPath();g.arc(hx,hy,6,0,Math.PI*2);g.fill();
+  fish.forEach(f=>{g.fillStyle=f.k.c;g.beginPath();g.ellipse(f.x,f.y,16,8,0,0,Math.PI*2);g.fill()});
+  if(!run){g.fillStyle='#94a3b8';g.font='15px system-ui';g.textAlign='center';g.fillText('اضغط ابدأ',180,200)}
+})();
+
+</script>
+</body></html>

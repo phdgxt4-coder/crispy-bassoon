@@ -1,44 +1,68 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>🚀 Space Shooter — التفوق</title>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Space Shooter — التفوق</title>
 <style>
-*{box-sizing:border-box;margin:0}body{background:#050510;color:#fff;font-family:system-ui;text-align:center;min-height:100vh}
-h1{margin:10px;font-size:22px}canvas{background:#0a0a1e;border-radius:12px;max-width:96vw;touch-action:none}
-.btn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:12px 22px;margin:8px;background:#8B93FF;color:#fff;cursor:pointer}
-a{color:#F0B93A}
-</style></head><body>
-<h1>🚀 Space Shooter</h1>
-<div>💀 <b id="sc">0</b> · أفضل <b id="bs">0</b></div>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0b1020;color:#f1f5f9;font-family:system-ui,-apple-system,sans-serif;overscroll-behavior:none}
+body{display:flex;flex-direction:column;align-items:center;min-height:100dvh}
+.top{width:100%;max-width:420px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.top a{color:#94a3b8;text-decoration:none;font-size:14px}
+.top h1{font-size:17px;font-weight:800}
+.hud{display:flex;gap:14px;font-size:14px;color:#cbd5e1}
+canvas{width:min(360px,96vw);height:auto;border-radius:16px;background:#151b2e;box-shadow:0 10px 40px #0008;touch-action:none;display:block}
+.bot{width:100%;max-width:420px;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+.btn{appearance:none;border:0;border-radius:14px;padding:12px 20px;font:inherit;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff}
+.btn.gold{background:linear-gradient(135deg,#E3A81C,#B45309);color:#1a1408}
+.btn:active{transform:scale(.97)}
+.hint{font-size:12px;color:#94a3b8;text-align:center;width:100%}
+.ov{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:20;padding:16px}
+.ov.on{display:flex}
+.panel{background:#1e293b;border-radius:20px;padding:22px;text-align:center;max-width:300px;width:100%}
+.panel h2{margin-bottom:6px}
+.panel p{color:#94a3b8;margin-bottom:14px}
+</style>
+</head>
+<body>
+<div class="top"><a href="./index.html">← المنصة</a><h1>🚀 Space Shooter</h1><div class="hud"><span>⭐ <b id="sc">0</b></span><span>🏆 <b id="bs">0</b></span></div></div>
 <canvas id="c" width="360" height="520"></canvas>
-<div><button class="btn" id="go">ابدأ / إطلاق</button> <a href="./index.html">المنصة</a></div>
+<div class="bot">
+  <button class="btn gold" id="go">ابدأ</button>
+  <div class="hint" id="hint">حرّك · اضغط إطلاق</div>
+</div>
+<div class="ov" id="ov"><div class="panel"><h2 id="ot">انتهت</h2><p id="om"></p><button class="btn gold" id="again">العب تاني</button></div></div>
 <script>
-const cv=document.getElementById('c'),x=cv.getContext('2d');
-let sc=0,bs=+localStorage.getItem('sp_bs')||0,run=false,px=160,bullets=[],enemies=[],t=0;
-document.getElementById('bs').textContent=bs;
-function reset(){sc=0;px=160;bullets=[];enemies=[];t=0;run=true}
-function fire(){if(!run){reset();return}bullets.push({x:px+15,y:470})}
-document.getElementById('go').onclick=fire;
-cv.addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect();px=Math.max(0,Math.min(330,(e.clientX-r.left)*360/r.width-15))});
-cv.addEventListener('pointerdown',fire);
-function loop(){
-  requestAnimationFrame(loop);x.clearRect(0,0,360,520);
-  // stars
-  x.fillStyle='#fff';for(let i=0;i<40;i++)x.fillRect((i*97+t)%360,(i*53)%520,2,2);
+
+const cv=document.getElementById('c'),g=cv.getContext('2d');
+const scEl=document.getElementById('sc'),bsEl=document.getElementById('bs');
+let score=0,best=+(localStorage.getItem('spc_bs')||0),run=false;
+let ship=180,bullets=[],enemies=[],t=0,cool=0;
+bsEl.textContent=best;
+function end(){run=false;if(score>best){best=score;localStorage.setItem('spc_bs',best);bsEl.textContent=best}
+  document.getElementById('ot').textContent='انفجرت!';document.getElementById('om').textContent='نقاط: '+score;document.getElementById('ov').classList.add('on')}
+function reset(){score=0;ship=180;bullets=[];enemies=[];t=0;cool=0;run=true;scEl.textContent=0;document.getElementById('ov').classList.remove('on')}
+document.getElementById('go').onclick=()=>{if(!run)reset();else bullets.push({x:ship,y:470})};
+document.getElementById('again').onclick=()=>{document.getElementById('ov').classList.remove('on');reset()};
+cv.addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect();ship=Math.max(20,Math.min(340,(e.clientX-r.left)/r.width*360))});
+cv.addEventListener('pointerdown',e=>{e.preventDefault();if(!run){reset();return}if(cool<=0){bullets.push({x:ship,y:470});cool=8}});
+(function loop(){
+  requestAnimationFrame(loop);
+  g.fillStyle='#020617';g.fillRect(0,0,360,520);
+  for(let i=0;i<30;i++){g.fillStyle='#fff';g.fillRect((i*97+t)%360,(i*53)%520,2,2)}
   if(run){
-    t++;if(t%28===0)enemies.push({x:Math.random()*320,y:-20,hp:1});
-    if(t%12===0)bullets.push({x:px+15,y:470});
-    bullets.forEach(b=>b.y-=9);enemies.forEach(e=>e.y+=2.2+t/800);
-    bullets=bullets.filter(b=>b.y>0);enemies=enemies.filter(e=>e.y<540);
-    for(const e of enemies){for(const b of bullets){if(Math.abs(b.x-e.x-12)<16&&Math.abs(b.y-e.y)<16){e.hp=0;b.y=-99;sc+=10}}}
-    enemies=enemies.filter(e=>e.hp>0);
-    for(const e of enemies){if(e.y>460&&Math.abs(e.x-px)<40){run=false;if(sc>bs){bs=sc;localStorage.setItem('sp_bs',bs);document.getElementById('bs').textContent=bs}}}
+    t++;if(cool>0)cool--;
+    if(t%28===0)enemies.push({x:30+Math.random()*300,y:-20,hp:1+Math.floor(score/80),s:1.5+Math.random()});
+    bullets.forEach(b=>b.y-=9);enemies.forEach(e=>e.y+=e.s);
+    enemies.forEach(e=>{bullets.forEach(b=>{if(Math.abs(b.x-e.x)<18&&Math.abs(b.y-e.y)<18){e.hp--;b.y=-99;if(e.hp<=0){e.y=999;score+=10;scEl.textContent=score}}})});
+    enemies.forEach(e=>{if(e.y>500||(Math.abs(e.x-ship)<22&&e.y>460)){e.y=999;end()}});
+    bullets=bullets.filter(b=>b.y>0);enemies=enemies.filter(e=>e.y<520);
   }
-  x.fillStyle='#2FB5A8';x.fillRect(px,470,30,30);
-  x.fillStyle='#F0B93A';bullets.forEach(b=>x.fillRect(b.x,b.y,4,12));
-  x.fillStyle='#F472B6';enemies.forEach(e=>{x.beginPath();x.arc(e.x+12,e.y+12,14,0,7);x.fill()});
-  document.getElementById('sc').textContent=sc;
-  if(!run&&t>0){x.fillStyle='rgba(0,0,0,.55)';x.fillRect(0,0,360,520);x.fillStyle='#fff';x.font='bold 20px system-ui';x.textAlign='center';x.fillText('انتهت! اضغط للعب تاني',180,260)}
-}
-loop();
-</script></body></html>
+  g.fillStyle='#38bdf8';g.beginPath();g.moveTo(ship,470);g.lineTo(ship-16,505);g.lineTo(ship+16,505);g.fill();
+  g.fillStyle='#fbbf24';bullets.forEach(b=>g.fillRect(b.x-2,b.y,4,12));
+  g.fillStyle='#ef4444';enemies.forEach(e=>{g.fillRect(e.x-14,e.y-10,28,20)});
+})();
+
+</script>
+</body></html>

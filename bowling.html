@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>بولينج — التفوق</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0b1020;color:#f1f5f9;font-family:system-ui,-apple-system,sans-serif;overscroll-behavior:none}
+body{display:flex;flex-direction:column;align-items:center;min-height:100dvh}
+.top{width:100%;max-width:420px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.top a{color:#94a3b8;text-decoration:none;font-size:14px}
+.top h1{font-size:17px;font-weight:800}
+.hud{display:flex;gap:14px;font-size:14px;color:#cbd5e1}
+canvas{width:min(360px,96vw);height:auto;border-radius:16px;background:#151b2e;box-shadow:0 10px 40px #0008;touch-action:none;display:block}
+.bot{width:100%;max-width:420px;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+.btn{appearance:none;border:0;border-radius:14px;padding:12px 20px;font:inherit;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff}
+.btn.gold{background:linear-gradient(135deg,#E3A81C,#B45309);color:#1a1408}
+.btn:active{transform:scale(.97)}
+.hint{font-size:12px;color:#94a3b8;text-align:center;width:100%}
+.ov{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:20;padding:16px}
+.ov.on{display:flex}
+.panel{background:#1e293b;border-radius:20px;padding:22px;text-align:center;max-width:300px;width:100%}
+.panel h2{margin-bottom:6px}
+.panel p{color:#94a3b8;margin-bottom:14px}
+</style>
+</head>
+<body>
+<div class="top"><a href="./index.html">← المنصة</a><h1>🎳 بولينج</h1><div class="hud"><span>⭐ <b id="sc">0</b></span><span>🏆 <b id="bs">0</b></span></div></div>
+<canvas id="c" width="360" height="520"></canvas>
+<div class="bot">
+  <button class="btn gold" id="go">ابدأ</button>
+  <div class="hint" id="hint">حرّك للتصويب · اضغط للإطلاق</div>
+</div>
+<div class="ov" id="ov"><div class="panel"><h2 id="ot">انتهت</h2><p id="om"></p><button class="btn gold" id="again">العب تاني</button></div></div>
+<script>
+
+const cv=document.getElementById('c'),g=cv.getContext('2d');
+const scEl=document.getElementById('sc'),bsEl=document.getElementById('bs');
+let score=0,best=+(localStorage.getItem('bwl_bs')||0),balls=8,pins=[],ball=null,run=false,aim=0,power=0,charging=false;
+bsEl.textContent=best;
+function resetPins(){pins=[];for(let r=0;r<4;r++)for(let i=0;i<=r;i++)pins.push({x:180-r*18+i*36,y:70+r*34,up:true})}
+function end(){run=false;if(score>best){best=score;localStorage.setItem('bwl_bs',best);bsEl.textContent=best}
+  document.getElementById('ot').textContent='انتهت الكرات';document.getElementById('om').textContent='نقاط: '+score;document.getElementById('ov').classList.add('on')}
+function reset(){score=0;balls=8;ball=null;aim=0;power=0;charging=false;resetPins();run=true;scEl.textContent=0;document.getElementById('ov').classList.remove('on');document.getElementById('hint').textContent='كرات: 8'}
+document.getElementById('go').onclick=()=>{if(!run)reset()};
+document.getElementById('again').onclick=()=>{document.getElementById('ov').classList.remove('on');reset()};
+cv.addEventListener('pointermove',e=>{if(!run||ball)return;const r=cv.getBoundingClientRect();aim=((e.clientX-r.left)/r.width*360-180)*0.35;aim=Math.max(-55,Math.min(55,aim))});
+cv.addEventListener('pointerdown',e=>{e.preventDefault();if(!run){reset();return}if(ball)return;charging=true;power=15});
+cv.addEventListener('pointerup',()=>{if(!charging)return;charging=false;ball={x:180+aim,y:485,vx:aim*0.035,vy:-(5.5+power/18)};power=0});
+setInterval(()=>{if(charging)power=Math.min(100,power+4)},40);
+(function loop(){
+  requestAnimationFrame(loop);
+  g.fillStyle='#1a1f35';g.fillRect(0,0,360,520);
+  g.fillStyle='#3d2b1f';g.fillRect(50,0,260,520);
+  g.strokeStyle='#5c4033';g.strokeRect(50,0,260,520);
+  pins.forEach(p=>{if(!p.up)return;g.fillStyle='#f8fafc';g.beginPath();g.arc(p.x,p.y,11,0,Math.PI*2);g.fill();g.fillStyle='#ef4444';g.fillRect(p.x-3,p.y-9,6,5)});
+  if(ball){
+    ball.x+=ball.vx;ball.y+=ball.vy;ball.vy*=0.998;
+    pins.forEach(p=>{if(!p.up)return;const dx=p.x-ball.x,dy=p.y-ball.y;if(dx*dx+dy*dy<380){p.up=false;score+=10;scEl.textContent=score}});
+    if(ball.y<30||ball.x<55||ball.x>305){ball=null;balls--;document.getElementById('hint').textContent='كرات: '+balls+' · واقف: '+pins.filter(p=>p.up).length;
+      if(pins.every(p=>!p.up)){resetPins();score+=20;scEl.textContent=score}
+      if(balls<=0)end()}
+    g.fillStyle='#e2e8f0';g.beginPath();g.arc(ball.x,ball.y,15,0,Math.PI*2);g.fill();
+  } else if(run){
+    g.fillStyle='#94a3b8';g.beginPath();g.arc(180+aim,485,15,0,Math.PI*2);g.fill();
+    g.strokeStyle='#fbbf24';g.beginPath();g.moveTo(180+aim,470);g.lineTo(180+aim*1.15,200);g.stroke();
+    if(charging){g.fillStyle='#22c55e';g.fillRect(60,505,power*2.4,8)}
+  }
+})();
+
+</script>
+</body></html>

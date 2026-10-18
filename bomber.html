@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>بومبر — التفوق</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0b1020;color:#f1f5f9;font-family:system-ui,-apple-system,sans-serif;overscroll-behavior:none}
+body{display:flex;flex-direction:column;align-items:center;min-height:100dvh}
+.top{width:100%;max-width:420px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.top a{color:#94a3b8;text-decoration:none;font-size:14px}
+.top h1{font-size:17px;font-weight:800}
+.hud{display:flex;gap:14px;font-size:14px;color:#cbd5e1}
+canvas{width:min(360px,96vw);height:auto;border-radius:16px;background:#151b2e;box-shadow:0 10px 40px #0008;touch-action:none;display:block}
+.bot{width:100%;max-width:420px;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+.btn{appearance:none;border:0;border-radius:14px;padding:12px 20px;font:inherit;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff}
+.btn.gold{background:linear-gradient(135deg,#E3A81C,#B45309);color:#1a1408}
+.btn:active{transform:scale(.97)}
+.hint{font-size:12px;color:#94a3b8;text-align:center;width:100%}
+.ov{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:20;padding:16px}
+.ov.on{display:flex}
+.panel{background:#1e293b;border-radius:20px;padding:22px;text-align:center;max-width:300px;width:100%}
+.panel h2{margin-bottom:6px}
+.panel p{color:#94a3b8;margin-bottom:14px}
+</style>
+</head>
+<body>
+<div class="top"><a href="./index.html">← المنصة</a><h1>💣 بومبر</h1><div class="hud"><span>⭐ <b id="sc">0</b></span><span>🏆 <b id="bs">0</b></span></div></div>
+<canvas id="c" width="360" height="520"></canvas>
+<div class="bot">
+  <button class="btn gold" id="go">ابدأ</button>
+  <div class="hint" id="hint">اسحب للحركة · اضغط للقصف</div>
+</div>
+<div class="ov" id="ov"><div class="panel"><h2 id="ot">انتهت</h2><p id="om"></p><button class="btn gold" id="again">العب تاني</button></div></div>
+<script>
+
+const cv=document.getElementById('c'),g=cv.getContext('2d');
+const scEl=document.getElementById('sc'),bsEl=document.getElementById('bs');
+const COLS=9,ROWS=11,SZ=36;
+let grid=[],px=1,py=1,bombs=[],run=false,score=0,enemies=[],best=+(localStorage.getItem('bmb_bs')||0);
+bsEl.textContent=best;
+function carve(){grid=Array.from({length:ROWS},()=>Array(COLS).fill(1));
+  for(let y=1;y<ROWS-1;y++)for(let x=1;x<COLS-1;x++)if((x+y)%2)grid[y][x]=Math.random()>0.28?0:2;
+  grid[1][1]=grid[1][2]=grid[2][1]=0;enemies=[{x:COLS-2,y:ROWS-2},{x:COLS-2,y:1},{x:1,y:ROWS-2}]}
+function end(msg){run=false;if(score>best){best=score;localStorage.setItem('bmb_bs',best);bsEl.textContent=best}
+  document.getElementById('ot').textContent=msg;document.getElementById('om').textContent='نقاط: '+score;document.getElementById('ov').classList.add('on')}
+function explode(bx,by){
+  [[0,0],[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{
+    const x=bx+dx,y=by+dy;if(y<0||x<0||y>=ROWS||x>=COLS)return;
+    if(grid[y][x]===2){grid[y][x]=0;score+=5;scEl.textContent=score}
+    if(px===x&&py===y)end('انفجرت!');
+    enemies=enemies.filter(e=>{if(e.x===x&&e.y===y){score+=25;scEl.textContent=score;return false}return true});
+  });
+  if(run&&!enemies.length)end('خلصت الأعداء! 🏆');
+}
+function tryMove(dx,dy){if(!run)return;const nx=px+dx,ny=py+dy;if(ny<0||nx<0||ny>=ROWS||nx>=COLS)return;if(grid[ny][nx]!==0)return;px=nx;py=ny;if(enemies.some(e=>e.x===px&&e.y===py))end('مسكك العدو!')}
+function placeBomb(){if(!run)return;if(bombs.some(b=>b.x===px&&b.y===py))return;const b={x:px,y:py};bombs.push(b);setTimeout(()=>{bombs=bombs.filter(x=>x!==b);if(run)explode(b.x,b.y)},1400)}
+function reset(){carve();px=1;py=1;bombs=[];score=0;run=true;scEl.textContent=0;document.getElementById('ov').classList.remove('on')}
+document.getElementById('go').onclick=()=>{if(!run)reset()};
+document.getElementById('again').onclick=()=>{document.getElementById('ov').classList.remove('on');reset()};
+let ts=null;
+cv.addEventListener('pointerdown',e=>{ts={x:e.clientX,y:e.clientY,t:Date.now()};if(!run)reset()});
+cv.addEventListener('pointerup',e=>{if(!ts)return;const dx=e.clientX-ts.x,dy=e.clientY-ts.y;
+  if(Date.now()-ts.t<220&&Math.abs(dx)<12&&Math.abs(dy)<12)placeBomb();
+  else if(Math.abs(dx)>Math.abs(dy))tryMove(dx>0?-1:1,0); else tryMove(0,dy>0?1:-1);
+  ts=null});
+addEventListener('keydown',e=>{const k=e.key;if(k==='ArrowUp'||k==='w')tryMove(0,-1);if(k==='ArrowDown'||k==='s')tryMove(0,1);if(k==='ArrowLeft'||k==='a')tryMove(-1,0);if(k==='ArrowRight'||k==='d')tryMove(1,0);if(k===' '||k==='Enter')placeBomb()});
+(function loop(){
+  requestAnimationFrame(loop);
+  g.fillStyle='#0f172a';g.fillRect(0,0,360,520);
+  for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){const v=grid[y][x];g.fillStyle=v===1?'#334155':v===2?'#78716c':'#1e293b';g.fillRect(x*SZ+8,y*SZ+24,SZ-3,SZ-3)}
+  bombs.forEach(b=>{g.fillStyle='#f97316';g.beginPath();g.arc(b.x*SZ+26,b.y*SZ+42,10,0,Math.PI*2);g.fill()});
+  if(run&&Math.random()<0.025){enemies.forEach(e=>{const dirs=[[1,0],[-1,0],[0,1],[0,-1]].sort(()=>Math.random()-0.5);
+    for(const[dx,dy]of dirs){const nx=e.x+dx,ny=e.y+dy;if(ny>0&&nx>0&&ny<ROWS-1&&nx<COLS-1&&grid[ny][nx]===0){e.x=nx;e.y=ny;break}}
+    if(e.x===px&&e.y===py)end('مسكك العدو!')})}
+  g.font='20px serif';enemies.forEach(e=>g.fillText('😈',e.x*SZ+14,e.y*SZ+48));
+  g.fillText('🧑',px*SZ+12,py*SZ+48);
+})();
+
+</script>
+</body></html>

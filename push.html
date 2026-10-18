@@ -1,40 +1,70 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>🧊 Push Arena — التفوق</title>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Push Arena — التفوق</title>
 <style>
-*{box-sizing:border-box;margin:0}body{background:#12151A;color:#fff;font-family:system-ui;text-align:center;min-height:100vh}
-h1{margin:10px}canvas{background:#1A1F27;border-radius:12px;max-width:96vw;touch-action:none}
-.btn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:12px 22px;margin:8px;background:#7C9CBF;color:#0E1218;cursor:pointer}
-a{color:#D4B56A}.hint{color:#9AA3B2;font-size:13px;margin:6px}
-</style></head><body>
-<h1>🧊 Push Arena</h1>
-<p class="hint">P1: A/D · P2: ←/→ · أو المس يسار/يمين الشاشة</p>
-<div><b id="msg">أول واحد يوقع التاني يفوز</b></div>
-<canvas id="c" width="360" height="420"></canvas>
-<div><button class="btn" id="go">ابدأ الجولة</button> <a href="./index.html">المنصة</a></div>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0b1020;color:#f1f5f9;font-family:system-ui,-apple-system,sans-serif;overscroll-behavior:none}
+body{display:flex;flex-direction:column;align-items:center;min-height:100dvh}
+.top{width:100%;max-width:420px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.top a{color:#94a3b8;text-decoration:none;font-size:14px}
+.top h1{font-size:17px;font-weight:800}
+.hud{display:flex;gap:14px;font-size:14px;color:#cbd5e1}
+canvas{width:min(360px,96vw);height:auto;border-radius:16px;background:#151b2e;box-shadow:0 10px 40px #0008;touch-action:none;display:block}
+.bot{width:100%;max-width:420px;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+.btn{appearance:none;border:0;border-radius:14px;padding:12px 20px;font:inherit;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff}
+.btn.gold{background:linear-gradient(135deg,#E3A81C,#B45309);color:#1a1408}
+.btn:active{transform:scale(.97)}
+.hint{font-size:12px;color:#94a3b8;text-align:center;width:100%}
+.ov{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:20;padding:16px}
+.ov.on{display:flex}
+.panel{background:#1e293b;border-radius:20px;padding:22px;text-align:center;max-width:300px;width:100%}
+.panel h2{margin-bottom:6px}
+.panel p{color:#94a3b8;margin-bottom:14px}
+</style>
+</head>
+<body>
+<div class="top"><a href="./index.html">← المنصة</a><h1>🧊 Push Arena</h1><div class="hud"><span>⭐ <b id="sc">0</b></span><span>🏆 <b id="bs">0</b></span></div></div>
+<canvas id="c" width="360" height="520"></canvas>
+<div class="bot">
+  <button class="btn gold" id="go">ابدأ</button>
+  <div class="hint" id="hint">P1: لمس يسار · P2: لمس يمين · أو A/D و ←/→</div>
+</div>
+<div class="ov" id="ov"><div class="panel"><h2 id="ot">انتهت</h2><p id="om"></p><button class="btn gold" id="again">العب تاني</button></div></div>
 <script>
-const cv=document.getElementById('c'),x=cv.getContext('2d');
-let p1={x:100,vx:0},p2={x:240,vx:0},run=false,keys={};
-const plat={x:40,y:320,w:280};
-document.getElementById('go').onclick=()=>{p1={x:100,vx:0};p2={x:240,vx:0};run=true;document.getElementById('msg').textContent='ادفع!'};
+
+const cv=document.getElementById('c'),g=cv.getContext('2d');
+const scEl=document.getElementById('sc'),bsEl=document.getElementById('bs');
+let p1={x:110,vx:0},p2={x:250,vx:0},run=false,keys={},w1=0,w2=0;
+scEl.textContent='0-0';bsEl.textContent='—';
+const plat={x:40,y:340,w:280};
+function reset(){p1={x:110,vx:0};p2={x:250,vx:0};run=true;document.getElementById('ov').classList.remove('on');document.getElementById('hint').textContent='ادفع خصمك خارج المنصة'}
+function win(who){run=false;if(who===1)w1++;else w2++;scEl.textContent=w1+'-'+w2;
+  document.getElementById('ot').textContent='🏆 اللاعب '+who+' فاز';document.getElementById('om').textContent='النتيجة '+w1+'-'+w2;document.getElementById('ov').classList.add('on')}
+document.getElementById('go').onclick=reset;
+document.getElementById('again').onclick=reset;
 addEventListener('keydown',e=>keys[e.key]=1);addEventListener('keyup',e=>keys[e.key]=0);
-cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect();const lx=(e.clientX-r.left)/r.width;if(lx<.5)keys.a=1;else keys.ArrowRight=1});
+cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect();const lx=(e.clientX-r.left)/r.width;if(lx<.5){keys.a=1;keys.d=0}else{keys.ArrowRight=1;keys.ArrowLeft=0}});
 cv.addEventListener('pointerup',()=>{keys.a=keys.d=keys.ArrowLeft=keys.ArrowRight=0});
-function loop(){
-  requestAnimationFrame(loop);x.clearRect(0,0,360,420);
-  x.fillStyle='#2A313C';x.fillRect(plat.x,plat.y,plat.w,24);
+cv.addEventListener('pointercancel',()=>{keys.a=keys.d=keys.ArrowLeft=keys.ArrowRight=0});
+(function loop(){
+  requestAnimationFrame(loop);
+  g.fillStyle='#0f172a';g.fillRect(0,0,360,520);
+  g.fillStyle='#334155';g.fillRect(plat.x,plat.y,plat.w,22);
   if(run){
-    if(keys.a||keys.A)p1.vx-=0.4;if(keys.d||keys.D)p1.vx+=0.4;
-    if(keys.ArrowLeft)p2.vx-=0.4;if(keys.ArrowRight)p2.vx+=0.4;
-    p1.vx*=0.92;p2.vx*=0.92;p1.x+=p1.vx;p2.x+=p2.vx;
-    // collide players
-    if(Math.abs(p1.x-p2.x)<36){const push=(p1.vx-p2.vx)*0.6;p1.vx-=push+Math.sign(p1.x-p2.x)*0.8;p2.vx+=push+Math.sign(p2.x-p1.x)*0.8}
-    if(p1.x<plat.x-10||p1.x>plat.x+plat.w){run=false;document.getElementById('msg').textContent='🏆 اللاعب ٢ فاز!'}
-    if(p2.x<plat.x-10||p2.x>plat.x+plat.w){run=false;document.getElementById('msg').textContent='🏆 اللاعب ١ فاز!'}
+    if(keys.a||keys.A)p1.vx-=0.45;if(keys.d||keys.D)p1.vx+=0.45;
+    if(keys.ArrowLeft)p2.vx-=0.45;if(keys.ArrowRight)p2.vx+=0.45;
+    p1.vx*=0.9;p2.vx*=0.9;p1.x+=p1.vx;p2.x+=p2.vx;
+    if(Math.abs(p1.x-p2.x)<34){const mid=(p1.x+p2.x)/2;const force=1.2;if(p1.x<p2.x){p1.vx-=force;p2.vx+=force}else{p1.vx+=force;p2.vx-=force}}
+    if(p1.x<plat.x-8||p1.x>plat.x+plat.w+8)win(2);
+    if(p2.x<plat.x-8||p2.x>plat.x+plat.w+8)win(1);
   }
-  x.fillStyle='#2FB5A8';x.beginPath();x.arc(p1.x,plat.y-16,16,0,7);x.fill();
-  x.fillStyle='#F472B6';x.beginPath();x.arc(p2.x,plat.y-16,16,0,7);x.fill();
-}
-loop();
-</script></body></html>
+  g.fillStyle='#2dd4bf';g.beginPath();g.arc(p1.x,plat.y-16,16,0,Math.PI*2);g.fill();
+  g.fillStyle='#f472b6';g.beginPath();g.arc(p2.x,plat.y-16,16,0,Math.PI*2);g.fill();
+  g.fillStyle='#94a3b8';g.font='13px system-ui';g.textAlign='center';g.fillText('P1',p1.x,plat.y-36);g.fillText('P2',p2.x,plat.y-36);
+})();
+
+</script>
+</body></html>

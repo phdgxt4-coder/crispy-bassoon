@@ -1,42 +1,68 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>🪂 Doodle Jump — التفوق</title>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Doodle Jump — التفوق</title>
 <style>
-*{box-sizing:border-box;margin:0}body{background:#1a0a3e;color:#fff;font-family:system-ui;text-align:center;min-height:100vh}
-h1{margin:10px;font-size:22px}canvas{background:linear-gradient(#2b1b5e,#0B5D57);border-radius:12px;max-width:96vw;touch-action:none}
-.btn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:12px 22px;margin:8px;background:#F0B93A;color:#1a1408;cursor:pointer}
-a{color:#F0B93A}
-</style></head><body>
-<h1>🪂 Doodle Jump</h1>
-<div>ارتفاع: <b id="sc">0</b> · أفضل: <b id="bs">0</b></div>
-<canvas id="c" width="360" height="560"></canvas>
-<div><button class="btn" id="go">ابدأ</button> حرّك يمين/شمال · <a href="./index.html">المنصة</a></div>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0b1020;color:#f1f5f9;font-family:system-ui,-apple-system,sans-serif;overscroll-behavior:none}
+body{display:flex;flex-direction:column;align-items:center;min-height:100dvh}
+.top{width:100%;max-width:420px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.top a{color:#94a3b8;text-decoration:none;font-size:14px}
+.top h1{font-size:17px;font-weight:800}
+.hud{display:flex;gap:14px;font-size:14px;color:#cbd5e1}
+canvas{width:min(360px,96vw);height:auto;border-radius:16px;background:#151b2e;box-shadow:0 10px 40px #0008;touch-action:none;display:block}
+.bot{width:100%;max-width:420px;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+.btn{appearance:none;border:0;border-radius:14px;padding:12px 20px;font:inherit;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff}
+.btn.gold{background:linear-gradient(135deg,#E3A81C,#B45309);color:#1a1408}
+.btn:active{transform:scale(.97)}
+.hint{font-size:12px;color:#94a3b8;text-align:center;width:100%}
+.ov{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:20;padding:16px}
+.ov.on{display:flex}
+.panel{background:#1e293b;border-radius:20px;padding:22px;text-align:center;max-width:300px;width:100%}
+.panel h2{margin-bottom:6px}
+.panel p{color:#94a3b8;margin-bottom:14px}
+</style>
+</head>
+<body>
+<div class="top"><a href="./index.html">← المنصة</a><h1>🪂 Doodle Jump</h1><div class="hud"><span>⭐ <b id="sc">0</b></span><span>🏆 <b id="bs">0</b></span></div></div>
+<canvas id="c" width="360" height="520"></canvas>
+<div class="bot">
+  <button class="btn gold" id="go">ابدأ</button>
+  <div class="hint" id="hint">حرّك يمين ويسار</div>
+</div>
+<div class="ov" id="ov"><div class="panel"><h2 id="ot">انتهت</h2><p id="om"></p><button class="btn gold" id="again">العب تاني</button></div></div>
 <script>
-const cv=document.getElementById('c'),x=cv.getContext('2d');
-let sc=0,bs=+localStorage.getItem('dj_bs')||0,run=false,px=160,py=400,vy=0,plats=[],cam=0;
-document.getElementById('bs').textContent=bs;
-function gen(){plats=[];for(let i=0;i<12;i++)plats.push({x:Math.random()*280,y:520-i*55,w:80})}
-function reset(){sc=0;px=160;py=400;vy=-8;cam=0;gen();run=true}
+
+const cv=document.getElementById('c'),g=cv.getContext('2d');
+const scEl=document.getElementById('sc'),bsEl=document.getElementById('bs');
+let score=0,best=+(localStorage.getItem('doo_bs')||0),run=false;
+let px=180,py=400,vx=0,vy=0,plats=[],cam=0;
+bsEl.textContent=best;
+function mkPlats(){plats=[];for(let i=0;i<9;i++)plats.push({x:20+Math.random()*260,y:480-i*60,w:70})}
+function end(){run=false;if(score>best){best=score;localStorage.setItem('doo_bs',best);bsEl.textContent=best}
+  document.getElementById('ot').textContent='سقطت!';document.getElementById('om').textContent='ارتفاع: '+score;document.getElementById('ov').classList.add('on')}
+function reset(){score=0;px=180;py=400;vx=0;vy=-11;cam=0;mkPlats();run=true;scEl.textContent=0;document.getElementById('ov').classList.remove('on')}
 document.getElementById('go').onclick=()=>{if(!run)reset()};
-let mx=0;cv.addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect();mx=(e.clientX-r.left)/r.width*2-1});
-addEventListener('keydown',e=>{if(e.key==='ArrowLeft')mx=-1;if(e.key==='ArrowRight')mx=1});
-addEventListener('keyup',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight')mx=0});
-function loop(){
-  requestAnimationFrame(loop);x.clearRect(0,0,360,560);
+document.getElementById('again').onclick=()=>{document.getElementById('ov').classList.remove('on');reset()};
+cv.addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect();const tx=(e.clientX-r.left)/r.width*360;vx=(tx-px)*0.12});
+cv.addEventListener('pointerdown',e=>{if(!run)reset()});
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')vx=-4;if(e.key==='ArrowRight')vx=4});
+(function loop(){
+  requestAnimationFrame(loop);
+  g.fillStyle='#0f172a';g.fillRect(0,0,360,520);
   if(run){
-    px+=mx*5;if(px<0)px=360;if(px>360)px=0;
-    vy+=0.25;py+=vy;
-    if(py-cam<200){cam-=200-(py-cam);sc=Math.max(sc,Math.floor(-cam/10))}
-    plats.forEach(p=>{if(vy>0&&py+20>p.y&&py+20<p.y+12&&px+20>p.x&&px<p.x+p.w)vy=-9});
-    plats=plats.filter(p=>p.y>cam-40);
-    while(plats.length<12){const top=Math.min(...plats.map(p=>p.y));plats.push({x:Math.random()*280,y:top-55-Math.random()*20,w:70+Math.random()*30})}
-    if(py-cam>560){run=false;if(sc>bs){bs=sc;localStorage.setItem('dj_bs',bs);document.getElementById('bs').textContent=bs}}
+    vy+=0.35;px+=vx;vx*=0.92;py+=vy;
+    if(px<0)px=360;if(px>360)px=0;
+    if(vy>0){for(const p of plats){if(px>p.x&&px<p.x+p.w&&py+16>p.y&&py+16<p.y+12&&py<p.y+20){vy=-10}}}
+    if(py<220){const d=220-py;py=220;cam+=d;plats.forEach(p=>p.y+=d);score=Math.floor(cam/10);scEl.textContent=score}
+    plats.forEach(p=>{if(p.y>520){p.y-=560;p.x=20+Math.random()*260}});
+    if(py>530)end();
   }
-  x.fillStyle='#2FB5A8';plats.forEach(p=>x.fillRect(p.x,p.y-cam,p.w,10));
-  x.fillStyle='#F0B93A';x.beginPath();x.arc(px+10,py-cam+10,14,0,7);x.fill();
-  document.getElementById('sc').textContent=sc;
-  if(!run&&sc>0){x.fillStyle='rgba(0,0,0,.5)';x.fillRect(0,0,360,560);x.fillStyle='#fff';x.font='bold 20px system-ui';x.textAlign='center';x.fillText('سقطت! اضغط ابدأ',180,280)}
-}
-loop();
-</script></body></html>
+  g.fillStyle='#22c55e';plats.forEach(p=>g.fillRect(p.x,p.y,p.w,10));
+  g.fillStyle='#fbbf24';g.beginPath();g.arc(px,py,14,0,Math.PI*2);g.fill();
+})();
+
+</script>
+</body></html>
