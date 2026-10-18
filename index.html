@@ -16,7 +16,7 @@
 <title>التفوق</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Reem+Kufi:wght@600;700&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Reem+Kufi:wght@600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'"><noscript><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Reem+Kufi:wght@600;700&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{--bg:#EEF3F2;--card:#fff;--ink:#12302D;--mut:#5B726F;--pri:#0B5D57;--pri2:#084a45;--onpri:#fff;--gold:#E3A81C;--ind:#4F46E5;--line:#D5E0DE;--sel:#e3efed;--ok:#157F3B;--bad:#B42318;--gbg:#dcf3e3;--rbg:#fde8e6;--ybg:#fff3cf;--yfg:#7a5700;--sh:0 1px 2px rgba(16,48,45,.06),0 10px 28px rgba(16,48,45,.08)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0C1716;--card:#142624;--ink:#E6F1EF;--mut:#8FA9A5;--pri:#2FB5A8;--pri2:#4cc7ba;--onpri:#04201D;--gold:#F0B93A;--ind:#8B93FF;--line:#244240;--sel:#1b3836;--ok:#4cd081;--bad:#ff8a80;--gbg:#183d2a;--rbg:#4a1f1b;--ybg:#3f3210;--yfg:#f0d27a;--sh:0 10px 28px rgba(0,0,0,.4)}}
@@ -2060,7 +2060,7 @@ ${reg?`<label class="f" for="nm">الاسم بالكامل</label><input id="nm"
 <input id="pw" class="ltr" type="password" autocomplete="${reg?"new-password":"current-password"}" required>
 ${S.error?`<div class="err">${esc(S.error)}</div>`:""}
 <div style="margin-top:16px"><button class="btn block" id="go">${reg?"إنشاء الحساب":"دخول"}</button></div>
-${S.adminLogin?"":`<p class="mut" style="font-size:12px;margin:10px 0 0;text-align:center">بنسجّل نوع الجهاز وعنوان الاتصال لأغراض الأمان.</p>`}
+${S.adminLogin?"":`<p style="font-size:14px;margin:12px 0 0;text-align:center"><a href="https://wa.me/201013905431?text=%D9%86%D8%B3%D9%8A%D8%AA%20%D9%83%D9%84%D9%85%D8%A9%20%D8%A7%D9%84%D8%B3%D8%B1%20%D9%88%D8%B1%D9%82%D9%85%D9%8A%20%D9%87%D9%88%3A%20" target="_blank" rel="noopener" style="color:var(--gold,#d4a017);font-weight:600">نسيت كلمة السر؟</a></p>`}
 ${S.adminLogin?"":`<p class="mut" style="text-align:center;margin:14px 0 0">${reg?"عندك حساب؟":"أول مرة؟"} <a href="#" data-act="mode" style="color:var(--pri);font-weight:600">${reg?"سجّل دخول":"أنشئ حساب"}</a></p>`}
 </form>${S.adminLogin?`<p style="text-align:center;margin:8px 0 0"><a href="#" data-act="studentLink" class="mut">رجوع</a></p>`:""}</div>`}
 
@@ -5034,7 +5034,7 @@ const A={
       for(const f of files){
         if(!/^image\//.test(f.type))continue;
         // صورة واحدة خفيفة عشان متعدّاش حد Firestore
-        images.push(await packImage(f,1500,0.85,900000));
+        images.push(await packImage(f,1400,0.82,620000));
       }
       if(!images.length){toast("مفيش صور صالحة");return}
       // كل صورة مستند لوحدها عشان الحجم
@@ -5043,7 +5043,7 @@ const A={
         try{
           const payload={
             kind, title: images.length>1?(title+" ("+(i+1)+")"):title,
-            images:[images[i]], url:images[i],
+            images:[images[i]],
             authorUid:S.user.uid,
             authorName:(S.profile&&S.profile.name||(S.isAdmin?"أدمن":"طالب")).split(" ")[0],
             status:S.isAdmin?"approved":"pending",
