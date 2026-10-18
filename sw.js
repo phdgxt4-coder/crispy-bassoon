@@ -1,6 +1,6 @@
-/* التفوق SW — v51 — شبكة أولاً + كاش آمن + Offline صريح */
-const CACHE = "eltafawoq-v51";
-const BUILD = "20261018-v51";
+/* التفوق SW — v52 — شبكة أولاً + كاش آمن + Offline صريح */
+const CACHE = "eltafawoq-v52";
+const BUILD = "20261018-v52";
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
@@ -142,21 +142,22 @@ self.addEventListener("fetch", (e) => {
 
   if (isNav) {
     e.respondWith(
-      caches.match("./index.html").then((cached) => {
-        const net = fetch(e.request, { cache: "no-cache" })
-          .then((res) => {
-            if (isHtmlResponse(res)) {
-              const copy = res.clone();
-              caches.open(CACHE).then((c) => c.put("./index.html", copy)).catch(() => {});
-            }
-            return res;
-          })
-          .catch(() => null);
-        if (cached) { e.waitUntil(net); return cached; }
-        return net.then((res) => res || new Response("<h1>التفوق</h1><p>مفيش نت — افتح تاني</p>", {
-          headers: { "Content-Type": "text/html; charset=utf-8" }
-        }));
-      })
+      (async () => {
+        const cache = await caches.open(CACHE);
+        try {
+          const ctl = new AbortController();
+          const t = setTimeout(() => ctl.abort(), 6000);
+          const res = await fetch(e.request, { cache: "no-cache", signal: ctl.signal });
+          clearTimeout(t);
+          if (isHtmlResponse(res)) cache.put("./index.html", res.clone()).catch(() => {});
+          return res;
+        } catch (_) {
+          const cached = await cache.match("./index.html");
+          return cached || new Response("<h1>التفوق</h1><p>مفيش نت — افتح تاني</p>", {
+            headers: { "Content-Type": "text/html; charset=utf-8" }
+          });
+        }
+      })()
     );
     return;
   }

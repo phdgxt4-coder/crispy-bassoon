@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v51">
+<meta name="sw-build" content="v52">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <script>(function(){try{var m=localStorage.getItem("theme_mode"),c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#0B0A07",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
@@ -775,6 +775,44 @@ img,video,canvas,svg{max-width:100%}
 .lf-pet.fly .b.pt{animation:ptfloat 2.6s ease-in-out infinite}
 @keyframes ptfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
 .lf-pet.fly .sh{opacity:.5;transform:translateY(54px) scale(.7)}
+
+/* ===== Pet v4: knees, fur, eyes, idle life ===== */
+.pt .lo{animation:none}
+.pt .far{filter:brightness(.72)}
+.lf-pet.walk .pt .l1,.lf-pet.walk .pt .l4{animation:ptleg .34s ease-in-out infinite alternate}
+.lf-pet.walk .pt .l1 .lo,.lf-pet.walk .pt .l4 .lo{animation:ptknee .34s ease-in-out infinite alternate}
+.lf-pet.walk .pt .l2 .lo,.lf-pet.walk .pt .l3 .lo{animation:ptknee .34s ease-in-out infinite alternate-reverse}
+@keyframes ptknee{from{transform:rotate(2deg)}to{transform:rotate(-42deg)}}
+.pt .pu{transition:transform .2s;transform:translate(calc(var(--px,0)*1.5px),calc(var(--py,0)*1.3px))}
+.pt .hf{transform-origin:46px 70px;transform:rotate(calc(var(--px,0)*-4deg)) translateY(calc(var(--py,0)*1.5px));transition:transform .3s}
+.pt .mo{transform-box:fill-box;transform-origin:50% 0;transform:scaleY(0);transition:transform .25s}
+.lf-pet.yawn .pt .mo{transform:scaleY(1)}
+.lf-pet.yawn .pt .eye,.lf-pet.happy .pt .eye{animation:none;transform:scaleY(.2)}
+.lf-pet.yawn .pt .hd{animation:none;transform:rotate(-10deg) translateY(-2px);transition:transform .4s}
+.lf-pet.stretch .pt svg{transform:rotate(6deg);transform-origin:90% 100%;transition:transform .5s}
+.lf-pet.stretch .pt .l1,.lf-pet.stretch .pt .l2{transform:rotate(34deg);transition:transform .5s}
+.lf-pet.stretch .pt .hd{animation:none;transform:translateY(10px) rotate(16deg);transition:transform .5s}
+.lf-pet.stretch .pt .tl{animation:none;transform:rotate(-24deg)}
+.lf-pet.scratch .pt .l4{animation:ptscr .16s ease-in-out infinite alternate}
+@keyframes ptscr{from{transform:rotate(-50deg)}to{transform:rotate(-78deg)}}
+.lf-pet.scratch .pt .hd{animation:none;transform:rotate(9deg) translateY(2px)}
+.lf-pet.scratch .pt .eye{transform:scaleY(.35)}
+.lf-pet.sniff .pt .hd{animation:ptsniff .5s ease-in-out 3 alternate}
+@keyframes ptsniff{from{transform:translateY(3px) rotate(6deg)}to{transform:translateY(8px) rotate(14deg)}}
+.lf-pet.look .pt .hd{animation:none;transform:rotate(-8deg) translateX(-3px);transition:transform .4s}
+.lf-pet.happy .pt .tl{animation-duration:.18s}
+.lf-pet.happy .pt .mo{transform:scaleY(.55)}
+.lf-pet.eat .pt .mo{animation:ptchew .3s ease-in-out infinite alternate}
+@keyframes ptchew{from{transform:scaleY(.1)}to{transform:scaleY(.8)}}
+.pet-bowl{position:absolute;bottom:8px;right:3%;width:52px;z-index:1;cursor:pointer}
+.pet-bowl svg{display:block;width:100%;height:auto}
+.pet-bowl .fd{transition:transform .4s,opacity .4s;transform-origin:50% 100%}
+.pet-bowl.on .fd{transform:scale(.7,.2) translateY(14px);opacity:.3}
+.pet-home{left:2%;inset-inline-start:auto}
+.lf-room::after{content:"";position:absolute;left:0;right:0;bottom:0;height:38%;z-index:0;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.16),transparent 35%,rgba(255,255,255,.07)),radial-gradient(80% 120% at 30% 0%,rgba(255,240,200,.22),transparent 70%)}
+.lf-room.night::after{background:linear-gradient(180deg,rgba(0,0,30,.3),transparent 40%)}
+.lf-3d .ly svg{width:1.7em}
+#verBadge{position:fixed;bottom:2px;left:6px;font:10px/1 monospace;opacity:.35;pointer-events:none;z-index:5}
 </style>
 </head>
 <body>
@@ -787,7 +825,7 @@ img,video,canvas,svg{max-width:100%}
     <div class="splash-bar"><i></i></div>
   </div>
 </div>
-<div id="app"></div>
+<div id="app"></div><div id="verBadge">v52</div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
@@ -7456,7 +7494,7 @@ function lfOnXp(reason,xp0){if(!S.life||S.isAdmin)return;if(reason==="exam"||rea
 function lfPet(l,xp,px){if(!l||!l.pet)return"";const st=lfStage(xp);const acc=(l.eq.acc||[]).map(id=>lfItem(id)).filter(Boolean).map(a=>`<span class="lf-acc ${a.k}">${a.i}</span>`).join("");return `<div class="lf-pet ${st===5?"aura":""}" data-act="petTap" style="font-size:${Math.round(px*LF_SC[st])}px"><span class="b ${st===0?"egg":""}">${st===0?"🥚":l.pet.t}${st>0?acc:""}</span><i class="sh"></i></div>`}
 function lfFr(h,l){const f=l&&lfItem((l.eq||{}).frame);return f?`<div class="fr fr-${f.k}">${h}</div>`:h}
 function lfTitle(l){const t=l&&lfItem((l.eq||{}).title);return t?`<div class="title-pill">${t.i} ${esc(t.n)}</div>`:""}
-function lfChip(){const l=S.life;if(!l)return"";const xp=(S.profile||{}).xp||0,st=lfStage(xp),em=l.pet&&st>0?l.pet.t:"🥚";const orbit=[...(l.eq.acc||[]),...Object.values(l.eq.room||{})].map(lfItem).filter(Boolean).slice(0,6);const acc=st>0?(l.eq.acc||[]).map(lfItem).filter(Boolean).map(a=>`<span class="lf-acc ${a.k}">${a.i}</span>`).join(""):"";const ly=[0,1,2,3,4,5].map(i=>`<span class="ly" style="transform:translateZ(${-i*4}px);filter:brightness(${1-i*.09})">${em}</span>`).join("");
+function lfChip(){const l=S.life;if(!l)return"";const xp=(S.profile||{}).xp||0,st=lfStage(xp),em=l.pet&&st>0?`<span class="pt" style="display:block">${lfAnyPet(l.pet.t,st)}</span>`:"🥚";const orbit=[...(l.eq.acc||[]),...Object.values(l.eq.room||{})].map(lfItem).filter(Boolean).slice(0,6);const acc=st>0?(l.eq.acc||[]).map(lfItem).filter(Boolean).map(a=>`<span class="lf-acc ${a.k}">${a.i}</span>`).join(""):"";const ly=[0,1,2,3].map(i=>`<span class="ly" style="transform:translateZ(${-i*7}px);filter:brightness(${1-i*.14})">${em}</span>`).join("");
 return `<div class="lf-3d"><div class="plate"></div><div class="orb">${orbit.map((it,i)=>`<i style="--i:${i};--n:${orbit.length}">${it.i}</i>`).join("")}</div><div class="obj ${st===5?"aura":""}" style="font-size:${Math.round(66*LF_SC[st])}px"><span class="front">${ly}${acc}</span></div></div>${l.pet?`<div><b>${esc(l.pet.n)}</b> · ${LF_STN[st]}</div>`:""}${lfTitle(l)}<div style="margin:8px 0"><b>🪙 ${l.coins}</b> · اتحرك بصباعك على الحيوان 👆</div><button class="btn sm gold" data-act="openLife">🏠 غرفتي والمتجر</button>`}
 function lfCountdown(){const left=(S.life.lucky||0)+864e5-Date.now();if(left<=0)return null;const h=Math.floor(left/36e5),m=Math.floor(left%36e5/6e4);return h+"س "+m+"د"}
 function lifeView(){
@@ -7499,7 +7537,7 @@ Object.assign(A,{
   openLife(){S.view="life";render(true)},
   lifeTab(d){S.lifeTab=d.t;render(true)},lifeCat(d){S.lifeCat=d.c;render(true)},
   async pickPet(d){if(!LF_PETS.includes(d.e))return;const n=await uiPrompt("اسم رفيقك؟","Spark");if(n===null)return;S.life.pet={t:d.e,n:(n||"Spark").slice(0,14)};lfSave();lfSfx("win");render(true);if((S.life.q.done||[]).length||S.life.tot.ex>0||S.life.ach.length)setTimeout(lfHatch,500)},
-  petTap(d,b){const el=b.closest?b.closest(".lf-pet"):b;if(!el)return;el.classList.remove("jump");void el.offsetWidth;el.classList.add("jump");const h=document.createElement("span");h.className="lf-heart";h.textContent="💖";h.style.cssText="left:50%;top:-10px";el.appendChild(h);setTimeout(()=>h.remove(),1100);lfSfx("coin")},
+  petTap(d,b){const el=b.closest?b.closest(".lf-pet"):b;if(!el)return;el.classList.remove("jump","happy");void el.offsetWidth;el.classList.add("jump","happy");setTimeout(()=>el.classList.remove("happy"),1800);const h=document.createElement("span");h.className="lf-heart";h.textContent="💖";h.style.cssText="left:50%;top:-10px";el.appendChild(h);setTimeout(()=>h.remove(),1100);lfSfx("coin")},
   buy(d){const it=lfItem(d.id);if(!it||!S.life||!lfAvail(it))return;if(S.shopCfg===undefined){toast("ثانية واحدة… بحمّل الأسعار");return}const l=S.life;if(xpLevel((S.profile||{}).xp||0)<it.lv)return;const disc=lfStage((S.profile||{}).xp)>=5?.9:1,base=lfPrice(it),pr=Math.round(base*disc);if(l.inv.includes(it.id)||l.coins<pr)return;l.coins-=pr;l.inv.push(it.id);l.paid=l.paid||{};l.paid[it.id]=[base,pr];lfEquipSet(it,true);lfApply();lfSave();lfSfx("buy");lfBurst("✨",8);toast(`اشتريت ${it.n} ${it.i}`,true);lfBought(it);render(true)},
   equip(d){const it=lfItem(d.id);if(!it||!S.life.inv.includes(it.id))return;lfEquipSet(it,!lfOn(it));lfBurst("✨",4);lfSfx("coin");lfApply();lfSave();render(true)},
   openBox(){const l=S.life;if(lfCountdown())return;l.lucky=Date.now();const r=Math.random()*100;let pz;const own=c=>LF_SHOP.filter(x=>x.c===c&&!l.inv.includes(x.id)&&lfAvail(x));const pick=c=>{const a=own(c);return a.length?a[Math.floor(Math.random()*a.length)]:null};
@@ -7675,7 +7713,7 @@ function lfRoomHtml(l,xp,uid){
   const acc=stg>0?(eq.acc||[]).map(lfItem).filter(Boolean).map(a=>`<span class="lf-acc ${a.k}">${a.i}</span>`).join(""):"";
   const main=l.pet?`<div class="lf-pet m ${stg===5?"aura":""} ${stg===0?"isegg":""}" data-act="petTap" data-k="m" style="--x:${px("m",42)}%;font-size:${Math.round(52*LF_SC[stg])}px"><span class="b ${stg===0?"egg":"pt"}">${stg===0?"🥚":lfPetSvg(l.pet.t,stg)}${acc}</span><i class="sh"></i></div>`:"";
   const ex=(eq.pets||[]).map(lfItem).filter(Boolean).slice(0,3).map((it,i)=>`<div class="lf-pet ex ${LF_FLY.includes(it.k)?"fly":""}" data-act="petTap" data-k="e${i}" style="--x:${px("e"+i,[24,72,58][i])}%;font-size:30px"><span class="b pt">${lfAnyPet(it.k,4)}</span><i class="sh"></i></div>`).join("");
-  return `<div class="lf-room rm3 ${night?"night":""}" data-live="1" data-uid="${esc(uid)}" data-mood="${mood}" style="${bg}"><div class="sky"><i class="sun"></i><b class="cl c1"></b><b class="cl c2"></b></div><div class="boards"></div>${LF_SLOTS.map(sl).join("")}${l.pet&&stg>0?lfHouseSvg():""}${ex}${main}</div>`;
+  return `<div class="lf-room rm3 ${night?"night":""}" data-live="1" data-uid="${esc(uid)}" data-mood="${mood}" style="${bg}"><div class="sky"><i class="sun"></i><b class="cl c1"></b><b class="cl c2"></b></div><div class="boards"></div>${LF_SLOTS.map(sl).join("")}${l.pet&&stg>0?lfHouseSvg()+lfBowlSvg():""}${ex}${main}</div>`;
 }
 function lfPetGo(room,p,x){
   x=Math.max(4,Math.min(78,x-8));
@@ -7688,6 +7726,12 @@ function lfPetGo(room,p,x){
 function lfPetBrain(room,p,i){
   if(p.classList.contains("isegg"))return;
   const k=p.dataset.k;
+  if(k==="m")p._goEat=()=>{
+    const bowl=room.querySelector(".pet-bowl");if(!bowl||p.classList.contains("home"))return;
+    const cur=parseFloat(p.style.getPropertyValue("--x"))||40;lfPetGo(room,p,90);
+    const dur=Math.max(.5,Math.abs(72-cur)/24)*1000+250;
+    setTimeout(()=>{if(!p.isConnected)return;p.classList.remove("walk");p.classList.add("fl","eat");bowl.classList.add("on");
+      setTimeout(()=>{p.classList.remove("eat");bowl.classList.remove("on");const sy=document.createElement("em");sy.className="say";sy.textContent="😋";p.appendChild(sy);setTimeout(()=>sy.remove(),1700)},3200)},dur)};
   if(k==="m")p._goHome=()=>{
     const house=room.querySelector(".pet-home");if(!house||p.classList.contains("home"))return;
     const cur=parseFloat(p.style.getPropertyValue("--x"))||40;lfPetGo(room,p,12);
@@ -7695,22 +7739,26 @@ function lfPetBrain(room,p,i){
     setTimeout(()=>{if(!p.isConnected)return;p.classList.add("home");house.classList.add("on");
       setTimeout(()=>{if(!p.isConnected)return;house.classList.remove("on");p.classList.remove("home");p.classList.add("hop");setTimeout(()=>p.classList.remove("hop"),1400);lfPetGo(room,p,40+Math.random()*30)},7000)},dur)};
   const say=t=>{const s=document.createElement("em");s.className="say";s.textContent=t;p.appendChild(s);setTimeout(()=>s.remove(),1700)};
-  const act=(c,ms)=>{["hop","spin","sit","sleep","eat"].forEach(x=>p.classList.remove(x));void p.offsetWidth;p.classList.add(c);clearTimeout(p._at);p._at=setTimeout(()=>p.classList.remove(c),ms)};
+  const act=(c,ms)=>{["hop","spin","sit","sleep","eat","yawn","stretch","scratch","sniff","happy","look"].forEach(x=>p.classList.remove(x));void p.offsetWidth;p.classList.add(c);clearTimeout(p._at);p._at=setTimeout(()=>p.classList.remove(c),ms)};
   const tick=()=>{
     if(!p.isConnected||!room.isConnected)return;
     if(p.classList.contains("home")){setTimeout(tick,1500);return}
     const mood=room.dataset.mood,r=Math.random();let next=2400+Math.random()*3200;
     if(k==="m"&&room.querySelector(".pet-home")&&((mood==="sleepy"&&r<.45)||r<.05)){p._goHome();setTimeout(tick,9000);return}
     if(mood==="sleepy"&&r<.7){act("sleep",6000);say("💤");next=6200}
-    else if(r<.38||(mood==="hyper"&&r<.55)){
+    else if(r<.34||(mood==="hyper"&&r<.5)){
       const main=room.querySelector('.lf-pet[data-k="m"]');let x=Math.random()*70+12;
       if(k!=="m"&&main&&Math.random()<.4)x=(parseFloat(main.style.getPropertyValue("--x"))||40)+(Math.random()<.5?-14:14)+8;
       lfPetGo(room,p,x)}
-    else if(r<.52)act("hop",1300);
-    else if(r<.62)act("spin",900);
-    else if(r<.74){act("sit",3000);if(mood==="calm")say("😌")}
-    else if(r<.84){act("eat",1300);say("🍎")}
-    else if(r<.92)say(["💖","✨","🎵","📚"][Math.floor(Math.random()*4)]);
+    else if(r<.43)act("sniff",1800);
+    else if(r<.51){act("look",2400);p.classList.toggle("fl",Math.random()<.5)}
+    else if(r<.58)act("yawn",1900);
+    else if(r<.64)act("stretch",2300);
+    else if(r<.70)act("scratch",1900);
+    else if(r<.78){act("sit",3200);if(mood==="calm")say("😌")}
+    else if(r<.86){if(k==="m"&&p._goEat)p._goEat();else{act("eat",1400);say("🍎")}}
+    else if(r<.92)act("hop",1300);
+    else if(r<.96)say(["💖","✨","🎵","📚"][Math.floor(Math.random()*4)]);
     setTimeout(tick,next)
   };
   setTimeout(tick,700+i*900);
@@ -7736,6 +7784,7 @@ function lfChatAnim(){
 
 /* ===== Pet v3: realistic full-body pets (SVG) + house ===== */
 Object.assign(A,{petHome(){const p=document.querySelector('.lf-room .lf-pet[data-k="m"]');if(p&&p._goHome)p._goHome();lfSfx&&lfSfx("coin")}});
+Object.assign(A,{petEat(){const p=document.querySelector('.lf-room .lf-pet[data-k="m"]');if(p&&p._goEat)p._goEat();lfSfx&&lfSfx("coin")}});
 let __ptN=0;
 const LF_SP={
 "🐱":{c:"#e8a65d",d:"#b9722f",b:"#fff1db",ear:"point",sn:.8,tail:"curl",mark:"stripe",nose:"#e58f8f"},
@@ -7760,8 +7809,8 @@ function lfPetSvg(t,st,w){
   if(t==="🐸")return lfFrogSvg(id,st,W);
   const p=LF_SP[t]||LF_SP["🐱"],hs=[1,1.35,1.2,1.08,1,1][st]||1;
   const D=p.d,C=p.c,B=p.b,leg=p.legD||C,ly=p.short?24:32;
-  const defs=`<defs><linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${C}"/><stop offset="1" stop-color="${D}"/></linearGradient><radialGradient id="${id}h" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>`;
-  const legs=(x,cls,fill)=>`<g class="lg ${cls}" style="transform-origin:${x}px 68px"><rect x="${x-6}" y="68" width="12" height="${ly}" rx="6" fill="${fill}"/><ellipse cx="${x-1}" cy="${68+ly}" rx="8" ry="4" fill="${p.mark==="socks"?"#2a1a12":(p.legD||D)}"/></g>`;
+  const defs=`<defs><pattern id="${id}f" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(62)"><path d="M1 0v4M4.5 3v4" stroke="${D}" stroke-width="1" stroke-linecap="round" opacity=".32"/></pattern><linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${C}"/><stop offset="1" stop-color="${D}"/></linearGradient><radialGradient id="${id}h" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>`;
+  const legs=(x,cls,fill,far)=>`<g class="lg ${cls}${far?" far":""}" style="transform-origin:${x}px 66px"><rect x="${x-6.5}" y="64" width="13" height="24" rx="6.5" fill="${fill}"/><g class="lo" style="transform-origin:${x}px 86px"><rect x="${x-4.8}" y="84" width="9.6" height="${ly-16}" rx="4.8" fill="${fill}"/><ellipse cx="${x-1.5}" cy="${66+ly}" rx="7.8" ry="3.9" fill="${p.mark==="socks"?"#2a1a12":(p.legD||D)}"/></g></g>`;
   let tail="";
   const tp={curl:`<path d="M108 64C132 62 140 40 127 27" stroke="${C}" stroke-width="7" stroke-linecap="round" fill="none"/>`,
    short:`<path d="M108 62Q121 52 119 40" stroke="${C}" stroke-width="7" stroke-linecap="round" fill="none"/>`,
@@ -7780,18 +7829,18 @@ function lfPetSvg(t,st,w){
    big:`<circle cx="26" cy="38" r="13" fill="${D}"/><circle cx="26" cy="38" r="7" fill="#d8dde3"/><circle cx="52" cy="32" r="13" fill="${D}"/>`,
    long:`<g class="ear"><ellipse cx="34" cy="12" rx="6" ry="20" fill="${C}" transform="rotate(-8 34 30)"/><ellipse cx="34" cy="12" rx="2.8" ry="14" fill="#f6b6c6" transform="rotate(-8 34 30)"/></g><ellipse cx="50" cy="10" rx="6" ry="19" fill="${C}" transform="rotate(8 50 30)"/>`,
    horn:`<path d="M30 38L22 14L38 32Z" fill="#f2e29a"/><path d="M48 32L50 10L60 34Z" fill="#f2e29a"/>`,uni:`<path d="M26 36L30 18L40 34Z" fill="${C}"/><path d="M34 34L40 4L46 34Z" fill="#ffd86b"/><path d="M36 26l8-3M37 18l7-3" stroke="#e0a800" stroke-width="1.4"/>`,none:""}[p.ear]||"";
-  const sx=Math.round(10*p.sn);const mane=p.mane?`<circle cx="42" cy="58" r="27" fill="${p.mane}"/>`:"";const fan=p.fan?`<ellipse cx="46" cy="58" rx="14" ry="20" fill="${D}"/><ellipse cx="46" cy="58" rx="8" ry="13" fill="#d8a0a8" opacity=".5"/>`:"";const trunk=p.trunk?`<path d="M20 60C4 68 6 92 20 94" stroke="${C}" stroke-width="11" stroke-linecap="round" fill="none"/>`:"";
+  const es=[1,1.3,1.2,1.1,1,1][st]||1;const iris=({"🐱":"#a6d234","🐶":"#7a4a1e","🦊":"#e6a020","🐺":"#e0b030","🐲":"#ffcc33","🦁":"#d49a2a","🐯":"#d4a020","🦖":"#e8c030","🦄":"#7aa8f0"})[t]||"#6b4a1e";const sx=Math.round(10*p.sn);const mane=p.mane?`<circle cx="42" cy="58" r="27" fill="${p.mane}"/>`:"";const fan=p.fan?`<ellipse cx="46" cy="58" rx="14" ry="20" fill="${D}"/><ellipse cx="46" cy="58" rx="8" ry="13" fill="#d8a0a8" opacity=".5"/>`:"";const trunk=p.trunk?`<path d="M20 60C4 68 6 92 20 94" stroke="${C}" stroke-width="11" stroke-linecap="round" fill="none"/>`:"";
   const mask=p.mark==="panda"?`<ellipse cx="29" cy="48" rx="6.5" ry="8" fill="#222" transform="rotate(-15 29 48)"/>`:p.mark==="mask2"?`<path d="M18 62Q30 52 40 56L34 66Q24 70 18 62Z" fill="${B}" opacity=".7"/>`:"";
-  const head=`<g class="hd"><g transform="translate(36 56) scale(${hs}) translate(-36 -56)">
-${mane}${ears}<circle cx="36" cy="54" r="19" fill="url(#${id}b)"/>${fan}${trunk}
+  const head=`<g class="hd"><g class="hf"><g transform="translate(36 56) scale(${hs}) translate(-36 -56)">
+${mane}${ears}<circle cx="36" cy="54" r="19" fill="url(#${id}b)"/><circle cx="36" cy="54" r="19" fill="url(#${id}f)"/>${fan}${trunk}
 ${p.trunk?"":`<ellipse cx="${22-sx/2}" cy="60" rx="${6+sx}" ry="9" fill="${B}"/>`}${mask}
-${p.trunk?"":`<ellipse cx="${14-sx/3}" cy="${p.bigNose?54:57}" rx="${p.bigNose?6:3.4}" ry="${p.bigNose?7:2.6}" fill="${p.nose}"/><path d="M${14-sx/3} 60Q${18} 68 ${26} 64" stroke="#3a2418" stroke-width="1.6" fill="none" stroke-linecap="round"/>`}
-<g class="eye"><ellipse cx="33" cy="49" rx="3.4" ry="4.4" fill="#1b1410"/><circle cx="34.2" cy="47.5" r="1.3" fill="#fff"/></g>
-<circle cx="42" cy="60" r="4.5" fill="#ff8da1" opacity=".22"/><ellipse cx="32" cy="42" rx="11" ry="6" fill="url(#${id}h)"/></g></g>`;
+${p.trunk?"":`<ellipse cx="${14-sx/3}" cy="${p.bigNose?54:57}" rx="${p.bigNose?6:3.4}" ry="${p.bigNose?7:2.6}" fill="${p.nose}"/><path d="M${14-sx/3} 60Q${18} 68 ${26} 64" stroke="#3a2418" stroke-width="1.6" fill="none" stroke-linecap="round"/><g class="mo"><path d="M${16-sx/3} 61Q22 76 34 67Z" fill="#7a1f2a"/><path d="M21 69Q25 74 30 68Z" fill="#ff7a8a"/></g>`}
+<g class="eye"><ellipse cx="33" cy="49" rx="${4.4*es}" ry="${5*es}" fill="${iris}"/><g class="pu"><ellipse cx="32.4" cy="49" rx="${2.1*es}" ry="${3.8*es}" fill="#0b0b0b"/></g><circle cx="34.4" cy="47" r="1.4" fill="#fff"/><circle cx="31.4" cy="51.4" r=".8" fill="#fff" opacity=".7"/></g>
+<circle cx="42" cy="60" r="4.5" fill="#ff8da1" opacity=".22"/><ellipse cx="32" cy="42" rx="11" ry="6" fill="url(#${id}h)"/></g></g></g>`;
   return `<svg viewBox="0 0 150 110"${W} xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${defs}
 <ellipse cx="72" cy="102" rx="46" ry="5" fill="rgba(0,0,0,.28)"/>${tail}${wings}
-${legs(98,"l3",leg)}${legs(52,"l1",leg)}
-<g class="bd"><ellipse cx="76" cy="66" rx="40" ry="23" fill="url(#${id}b)"/><ellipse cx="76" cy="76" rx="32" ry="12" fill="${B}" opacity=".85"/><ellipse cx="70" cy="52" rx="28" ry="8" fill="url(#${id}h)"/>${stripes}${shell}${spikes}</g>
+${legs(98,"l3",leg,1)}${legs(52,"l1",leg,1)}
+<g class="bd"><ellipse cx="76" cy="66" rx="40" ry="23" fill="url(#${id}b)"/><ellipse cx="76" cy="66" rx="40" ry="23" fill="url(#${id}f)"/><ellipse cx="76" cy="84" rx="34" ry="6" fill="#000" opacity=".12"/><ellipse cx="76" cy="76" rx="32" ry="12" fill="${B}" opacity=".85"/><ellipse cx="70" cy="52" rx="28" ry="8" fill="url(#${id}h)"/>${stripes}${shell}${spikes}</g>
 ${legs(88,"l4",leg)}${legs(44,"l2",leg)}${head}</svg>`;
 }
 function lfPengSvg(id,st,W){
@@ -7830,6 +7879,7 @@ function lfExtraSvg(t,st){
 }
 const LF_FLY=["🦋","🦉","🦅","🐬"],LF_CUSTOM=["🦋","🦉","🦅","🐙","🐬"];
 function lfAnyPet(t,st,w){return LF_CUSTOM.includes(t)?lfExtraSvg(t,st).replace("<svg",w?`<svg style="width:${w}"`:"<svg"):lfPetSvg(t,st,w)}
+function lfBowlSvg(){return `<div class="pet-bowl" data-act="petEat"><svg viewBox="0 0 80 50" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><ellipse cx="40" cy="44" rx="30" ry="5" fill="rgba(0,0,0,.25)"/><g class="fd"><ellipse cx="40" cy="22" rx="22" ry="8" fill="#b9722f"/><circle cx="30" cy="18" r="4" fill="#d58a3e"/><circle cx="42" cy="15" r="4.5" fill="#c97d34"/><circle cx="52" cy="19" r="3.6" fill="#d58a3e"/></g><path d="M10 24C10 44 70 44 70 24Z" fill="#4a8fe0"/><ellipse cx="40" cy="24" rx="30" ry="7" fill="#2f6fc4"/><ellipse cx="40" cy="24" rx="23" ry="5" fill="none"/><path d="M16 30C24 40 56 40 64 30" stroke="#fff" stroke-width="2" opacity=".35" fill="none"/></svg></div>`}
 function lfHouseSvg(){
   return `<div class="pet-home" data-act="petHome"><i class="zz">💤</i><svg viewBox="0 0 100 86" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="phw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c58b52"/><stop offset="1" stop-color="#8a5a2c"/></linearGradient></defs>
 <rect x="10" y="34" width="80" height="48" rx="3" fill="url(#phw)"/><path d="M10 40H90M10 50H90M10 60H90M10 70H90" stroke="#6b4320" stroke-width="1.3" opacity=".5"/>
