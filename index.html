@@ -2,8 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v61-force3d-img1500">
-<script>window.APP_BUILD="v61-force3d-img1500";</script>
+<meta name="sw-build" content="v62-glb-root">
+<script>window.APP_BUILD="v62-glb-root";</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <script>(function(){try{var m=localStorage.getItem("theme_mode"),c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#0B0A07",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
@@ -914,7 +914,7 @@ let __cmtUnsub=null;
 let __fadUnsub=null,__galUnsub=null;
 function ensureFadaye7Listen(){
   if(__fadUnsub||!db)return;
-  __fadUnsub=onSnapshot(query(collection(db,"fadaye7"),limit(1500)),s=>{
+  __fadUnsub=onSnapshot(query(collection(db,"fadaye7"),limit(40)),s=>{
     S.fadaye7=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt));
     if(S.view==="fadaye7")scheduleRender();
   },err=>console.warn("fad",err));
@@ -939,7 +939,7 @@ function ensureAsmsListen(){
 
 function ensureGalleriesListen(){
   if(__galUnsub||!db)return;
-  __galUnsub=onSnapshot(query(collection(db,"galleries"),limit(1500)),s=>{
+  __galUnsub=onSnapshot(query(collection(db,"galleries"),limit(80)),s=>{
     S.galleries=s.docs.map(d=>({id:d.id,...d.data()}));
     if((S.view==="admin"&&S.tab==="tanagha")||S.view==="gallery"||S.view==="tanagha")scheduleRender();
   },err=>console.warn("gal",err));
@@ -2883,7 +2883,7 @@ ${kind==="sourna"?`<p class="mut">هنا تقدر تحفظ صورك منغير �
   <b>رفع صور ${S.isAdmin?"(أدمن)":"(بموافقة الأدمن)"}</b>
   <label class="f">وصف</label>
   <input id="galTitle" type="text" maxlength="100" placeholder="وصف قصير…">
-  <label class="f">صور (حد أقصى 1500 صورة)</label>
+  <label class="f">صور (أكتر من صورة)</label>
   <input id="galFiles" type="file" accept="image/*" multiple>
   <button class="btn" style="margin-top:10px" data-act="submitGallery">رفع</button>
 </div>
@@ -2995,7 +2995,7 @@ function fadaye7View(){
 </div>
 <div class="card">
   <b>انشر فضيحة</b>
-  <p class="mut" style="margin:4px 0 8px">بتنزل على طول · حد أقصى 1500 صورة مرة واحدة</p>
+  <p class="mut" style="margin:4px 0 8px">بتنزل على طول · تقدر تختار أكتر من صورة</p>
   <label class="f">وصف</label>
   <input id="stuFadTitle" type="text" maxlength="120" placeholder="وصف قصير…">
   <label class="f">صور</label>
@@ -3224,7 +3224,7 @@ ${groups.map(g=>`<div style="margin-bottom:10px">
 </div>`).join("")}
 ${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,tanagha:adminTanagha,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,suspicious:adminSuspicious,managers:adminManagers,security:adminSecurity,tgreq:adminTgReq,settings:adminSettings,shopadm:adminShop}[t]||adminDash)()}
 ${t==="exams"?`<button class="fab" data-act="newExam" aria-label="امتحان جديد">+</button>`:""}
-<div id="build-ver" style="position:fixed;bottom:10px;left:10px;z-index:9999;font-size:11px;opacity:.7;background:rgba(0,0,0,.65);color:#ffd76a;padding:4px 10px;border-radius:8px;font-family:monospace;pointer-events:none;direction:ltr">v61-force3d-img1500 · 3D</div>
+<div id="build-ver" style="position:fixed;bottom:10px;left:10px;z-index:9999;font-size:11px;opacity:.7;background:rgba(0,0,0,.65);color:#ffd76a;padding:4px 10px;border-radius:8px;font-family:monospace;pointer-events:none;direction:ltr">v62-glb-root · 3D</div>
 </div>`}
 const chart=(days,vals,cls)=>{const mx=Math.max(1,...vals);return `<div class="bars">${vals.map((v,i)=>`<div>${v||""}<i class="${cls||""}" style="height:${Math.max(3,v/mx*68)}%"></i><span>${days[i].l}</span></div>`).join("")}</div>`};
 
@@ -3389,7 +3389,7 @@ ${pend.length?`<div class="card" style="border:2px solid var(--gold);margin-bott
   <p class="mut">صور: ارفع من الجهاز · فيديو: الصق رابط (يوتيوب / Drive)</p>
   <label class="f">عنوان / تعليق</label>
   <input id="fadTitle" type="text" placeholder="مثال: لما أحمد نسي الكود…" maxlength="120">
-  <label class="f">صور من الجهاز (حد أقصى 1500 صورة مرة واحدة)</label>
+  <label class="f">صور من الجهاز (أكتر من صورة مرة واحدة)</label>
   <input id="fadFile" type="file" accept="image/*" multiple>
   <label class="f">أو رابط فيديو / صورة</label>
   <input id="fadLink" class="ltr" type="url" placeholder="https://…">
@@ -4900,7 +4900,7 @@ const A={
     const kind=(S.isAdmin?S.adminGalKind:S.galleryKind)||"shilla";
     const title=($("#galTitle")&&$("#galTitle").value||"").trim()||"بدون وصف";
     const inp=$("#galFiles");
-    const files=inp&&inp.files?[...inp.files].slice(0,1500):[];
+    const files=inp&&inp.files?[...inp.files].slice(0,3):[];
     if(!files.length){toast("اختار صورة واحدة على الأقل");return}
     try{
       toast("جاري تجهيز الصور…");
@@ -5026,7 +5026,7 @@ const A={
     if(!S.isAdmin)return;
     const title=($("#fadTitle")?.value||"").trim()||"فضيحة";
     const link=($("#fadLink")?.value||"").trim();
-    const files=[...($("#fadFile")?.files||[])].slice(0,1500);
+    const files=[...($("#fadFile")?.files||[])].slice(0,10);
     if(!files.length&&!link){toast("ارفع صورة أو الصق رابط فيديو/صورة");return}
     try{
       const batchId="b"+Date.now();
@@ -5088,7 +5088,7 @@ const A={
     if(!S.user||S.isAdmin)return;
     const title=($("#stuFadTitle")?.value||"").trim()||"فضيحة";
     const link=($("#stuFadLink")?.value||"").trim();
-    const files=[...($("#stuFadFile")?.files||[])].slice(0,1500);
+    const files=[...($("#stuFadFile")?.files||[])].slice(0,10);
     if(!files.length&&!link){toast("ارفع صورة أو الصق رابط");return}
     try{
       const batchId="b"+Date.now();
@@ -7378,7 +7378,7 @@ document.addEventListener("change",e=>{
   }
   if(e.target.type==="radio"&&S.view==="exam"){updProg();saveExamDraft();if(navigator.vibrate)navigator.vibrate(8)}
   if(e.target.id==="qbChatImg"&&e.target.files&&e.target.files[0]&&S.qb&&S.qb.roomCode){
-    const files=[...e.target.files].slice(0,1500);e.target.value="";
+    const files=[...e.target.files].slice(0,10);e.target.value="";
     (async()=>{
       try{
       let n=0;for(const f of files){
@@ -7395,7 +7395,7 @@ document.addEventListener("change",e=>{
     })();
   }
   if(e.target.id==="grpImg"&&e.target.files&&e.target.files[0]&&S.groupId){
-    const files=[...e.target.files].slice(0,1500);e.target.value="";
+    const files=[...e.target.files].slice(0,10);e.target.value="";
     (async()=>{
       try{
       let n=0;for(const f of files){
@@ -7414,7 +7414,7 @@ document.addEventListener("change",e=>{
     })();
   }
   if(e.target.id==="dmImg"&&e.target.files&&e.target.files[0]&&S.chatThread){
-    const files=[...e.target.files].slice(0,1500);e.target.value="";
+    const files=[...e.target.files].slice(0,10);e.target.value="";
     (async()=>{
       try{
       let n=0;for(const f of files){
@@ -7833,16 +7833,16 @@ const C3D={ok:null,T:null,p:null,R:null,sc:null,cam:null,cv:null,room:null,ents:
 const C3_RB=[0xff5a5a,0xffa14a,0xffe14a,0x5adf7a,0x4ab4ff,0x8a6aff,0xe06aff];
 /* Local GLB — forced max realism on EVERY phone (PWA too) */
 const C3_GLB={
-"🦊":{url:"./pets/fox.glb",scale:42,y:0,face:Math.PI},
-"🦁":{url:"./pets/lion.glb",scale:38,y:0,face:Math.PI},
-"🐱":{url:"./pets/corgi.glb",scale:48,y:0,face:Math.PI},
-"🐻":{url:"./pets/hippo.glb",scale:34,y:0,face:Math.PI},
-"🐺":{url:"./pets/boar.glb",scale:40,y:0,face:Math.PI},
-"🐯":{url:"./pets/lion.glb",scale:38,y:0,face:Math.PI,tint:0xe8882c},
-"🦄":{url:"./pets/zebra.glb",scale:36,y:0,face:Math.PI},
-"🐉":{url:"./pets/trex.glb",scale:28,y:0,face:Math.PI},
-"🐲":{url:"./pets/spino.glb",scale:26,y:0,face:Math.PI},
-"🐼":{url:"./pets/sheep.glb",scale:40,y:0,face:Math.PI}
+"🦊":{url:"./fox.glb",scale:42,y:0,face:Math.PI},
+"🦁":{url:"./lion.glb",scale:38,y:0,face:Math.PI},
+"🐱":{url:"./corgi.glb",scale:48,y:0,face:Math.PI},
+"🐻":{url:"./hippo.glb",scale:34,y:0,face:Math.PI},
+"🐺":{url:"./boar.glb",scale:40,y:0,face:Math.PI},
+"🐯":{url:"./lion.glb",scale:38,y:0,face:Math.PI,tint:0xe8882c},
+"🦄":{url:"./zebra.glb",scale:36,y:0,face:Math.PI},
+"🐉":{url:"./trex.glb",scale:28,y:0,face:Math.PI},
+"🐲":{url:"./spino.glb",scale:26,y:0,face:Math.PI},
+"🐼":{url:"./sheep.glb",scale:40,y:0,face:Math.PI}
 };
 const C3S={
 "🐺":{b:0x6e788a,l:0xe2e6ec,d:0x252a33,e:0xffc83d,ear:"point",sn:.55,sz:1,aura:0x7ad0ff,tail:{n:7,L:.68,r:.08,bush:.9,base:-.28,curl:-.02}},
