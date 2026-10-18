@@ -1,6 +1,7 @@
-/* التفوق SW — v57 — GLB pets + شبكة أولاً + كاش آمن */
-const CACHE = "eltafawoq-v57";
-const BUILD = "20261018-v57";
+/* التفوق SW — v58 — GLB pets محلية + كاش آمن */
+const CACHE = "eltafawoq-v58";
+const BUILD = "20261018-v58";
+const PETS = ["./pets/fox.glb","./pets/lion.glb","./pets/corgi.glb","./pets/hippo.glb","./pets/boar.glb","./pets/zebra.glb","./pets/trex.glb","./pets/spino.glb","./pets/sheep.glb","./pets/hare.glb"];
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
@@ -72,7 +73,7 @@ self.addEventListener("notificationclick", (e) => {
 self.addEventListener("install", (e) => {
   self.skipWaiting();
   e.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(["./index.html", "./manifest.json"]).catch(() => {}))
+    caches.open(CACHE).then((c) => c.addAll(["./index.html", "./manifest.json"].concat(PETS)).catch(() => {}))
   );
 });
 
@@ -108,6 +109,19 @@ self.addEventListener("fetch", (e) => {
           if (res && res.ok) c.put(e.request, res.clone()).catch(() => {});
           return res;
         }))
+      )
+    );
+    return;
+  }
+
+  /* cache local GLB pets */
+  if (url.origin === self.location.origin && url.pathname.endsWith(".glb")) {
+    e.respondWith(
+      caches.open(CACHE).then((c) =>
+        c.match(e.request).then((hit) => hit || fetch(e.request).then((res) => {
+          if (res && res.ok) c.put(e.request, res.clone()).catch(() => {});
+          return res;
+        }).catch(() => hit))
       )
     );
     return;
