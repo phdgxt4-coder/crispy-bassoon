@@ -1,6 +1,6 @@
-/* التفوق SW — v53 — شبكة أولاً + كاش آمن + Offline صريح */
-const CACHE = "eltafawoq-v53";
-const BUILD = "20261018-v53";
+/* التفوق SW — v54 — شبكة أولاً + كاش آمن + Offline صريح */
+const CACHE = "eltafawoq-v54";
+const BUILD = "20261018-v54";
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
@@ -100,6 +100,18 @@ function isHtmlResponse(res) {
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") { e.respondWith(fetch(e.request)); return; }
   const url = new URL(e.request.url);
+
+  if (url.hostname === "cdn.jsdelivr.net" && url.pathname.indexOf("/npm/three@") === 0) {
+    e.respondWith(
+      caches.open(CACHE).then((c) =>
+        c.match(e.request).then((hit) => hit || fetch(e.request).then((res) => {
+          if (res && res.ok) c.put(e.request, res.clone()).catch(() => {});
+          return res;
+        }))
+      )
+    );
+    return;
+  }
 
   if (url.hostname === "www.gstatic.com" && url.pathname.indexOf("/firebasejs/") === 0) {
     e.respondWith(
