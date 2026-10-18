@@ -708,6 +708,51 @@ button,.btn,.tab,.lf-chips button{touch-action:manipulation}
 .online-dot:not(.off){animation:lfonline 2s ease-in-out infinite}
 @keyframes lfonline{50%{box-shadow:0 0 0 5px rgba(34,197,94,.18)}}
 @media (prefers-reduced-motion:reduce){.lf-room[data-live]{transform:none}.tk-bubble.nw{animation:none!important}.lf-pet .b{animation:none!important}}
+
+/* ===== Pet v3: full-body SVG pets + house ===== */
+.b.pt{animation:none}
+.pt svg{display:block;width:1.7em;height:auto;overflow:visible}
+.pt .tl{transform-origin:108px 62px;animation:ptwag 1.8s ease-in-out infinite alternate}
+.lf-room[data-mood=hyper] .pt .tl{animation-duration:.4s}
+@keyframes ptwag{from{transform:rotate(-9deg)}to{transform:rotate(13deg)}}
+.pt .bd{transform-origin:76px 92px;animation:ptbreath 3.2s ease-in-out infinite}
+@keyframes ptbreath{50%{transform:scale(1,1.03)}}
+.pt .hd{transform-origin:46px 70px;animation:pthead 6s ease-in-out infinite}
+@keyframes pthead{0%,100%{transform:rotate(0)}30%{transform:rotate(-3deg)}65%{transform:rotate(2.5deg)}}
+.pt .eye{transform-box:fill-box;transform-origin:center;animation:ptblink 4.6s infinite}
+@keyframes ptblink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.08)}}
+.pt .ear{transform-origin:40px 40px;animation:ptear 7s ease-in-out infinite}
+@keyframes ptear{0%,90%,100%{transform:rotate(0)}94%{transform:rotate(-9deg)}97%{transform:rotate(3deg)}}
+.pt .wg{transform-origin:84px 50px;animation:ptwing 2.4s ease-in-out infinite alternate}
+@keyframes ptwing{from{transform:rotate(-4deg)}to{transform:rotate(9deg)}}
+.lf-pet.walk .pt .l1,.lf-pet.walk .pt .l4{animation:ptleg .34s ease-in-out infinite alternate}
+.lf-pet.walk .pt .l2,.lf-pet.walk .pt .l3{animation:ptleg .34s ease-in-out infinite alternate-reverse}
+@keyframes ptleg{from{transform:rotate(-28deg)}to{transform:rotate(28deg)}}
+.lf-pet.walk .b.pt{animation:ptbob .34s ease-in-out infinite}
+@keyframes ptbob{50%{transform:translateY(-3px)}}
+.lf-pet.walk .pt .tl{animation-duration:.5s}
+.lf-pet.sleep .pt .eye{animation:none;transform:scaleY(.1)}
+.lf-pet.sleep .pt svg{transform:translateY(5px) scale(1,.9);transform-origin:50% 100%}
+.lf-pet.sleep .pt .tl{animation-play-state:paused}
+.lf-pet.sit .pt .l3,.lf-pet.sit .pt .l4{transform:rotate(-70deg)}
+.lf-pet.eat .pt .hd{animation:pteat .28s ease-in-out 4}
+@keyframes pteat{50%{transform:rotate(12deg) translateY(5px)}}
+.lf-pet.r-sad .pt .hd{animation:none;transform:rotate(15deg) translateY(5px)}
+.lf-pet.r-sad .pt .tl{animation:none;transform:rotate(30deg)}
+.lf-pet.r-dance .pt .l1,.lf-pet.r-dance .pt .l3{animation:ptleg .22s ease-in-out infinite alternate}
+.lf-pet.r-dance .pt .l2,.lf-pet.r-dance .pt .l4{animation:ptleg .22s ease-in-out infinite alternate-reverse}
+.lf-pet.home{opacity:0;pointer-events:none;transition:opacity .35s}
+.lf-pet:not(.home){transition:left var(--wd,2s) linear,opacity .35s}
+.pet-home{position:absolute;bottom:10px;inset-inline-start:2%;width:84px;z-index:1;cursor:pointer}
+.pet-home svg{display:block;width:100%;height:auto;filter:drop-shadow(0 4px 3px rgba(0,0,0,.25))}
+.pet-home .dr{fill:#2b1d12;transition:fill .5s}
+.pet-home.on .dr{fill:#ffcf6b}
+.pet-home .zz{position:absolute;top:-6px;inset-inline-end:8px;font-style:normal;font-size:16px;opacity:0}
+.pet-home.on .zz{animation:ptzz 2s ease-out infinite}
+@keyframes ptzz{from{transform:translateY(8px);opacity:0}30%{opacity:1}to{transform:translateY(-22px) scale(1.3);opacity:0}}
+.lf-room.night .pet-home .dr{fill:#ffcf6b}
+.lf-it .ic .pt svg{width:64px;margin:0 auto}
+@media (prefers-reduced-motion:reduce){.pt *{animation:none!important}}
 </style>
 </head>
 <body>
@@ -7400,7 +7445,7 @@ function lifeView(){
   const tabs=[["room","🏠 غرفتي"],["shop","🛒 المتجر"],["quests","✅ المهام"],["ach","🏅 إنجازات"]].map(t=>`<button class="${tab===t[0]?"on":""}" data-act="lifeTab" data-t="${t[0]}">${t[1]}</button>`).join("");
   let body="";
   if(tab==="room"){
-    if(!l.pet)body=`<div class="card"><b>اختار رفيقك 🥚</b><p class="mut">بيكبر بالـ XP بتاعك — مش بالأيام. وكل مرحلة بتفتحلك مكافأة.</p><div class="lf-grid">${LF_PETS.map(e=>`<div class="lf-it"><div class="ic">${e}</div><button data-act="pickPet" data-e="${e}">اختار</button></div>`).join("")}</div></div>`;
+    if(!l.pet)body=`<div class="card"><b>اختار رفيقك 🥚</b><p class="mut">بيكبر بالـ XP بتاعك — مش بالأيام. وكل مرحلة بتفتحلك مكافأة.</p><div class="lf-grid">${LF_PETS.map(e=>`<div class="lf-it"><div class="ic"><span class="pt">${lfPetSvg(e,3,"64px")}</span></div><button data-act="pickPet" data-e="${e}">اختار</button></div>`).join("")}</div></div>`;
     else{
       const sl=s=>{const id=l.eq.room[s],it=lfItem(id);if(it&&s==="rug")return `<span class="slot s-rug" style="background:${it.k}"></span>`;return it?`<span class="slot s-${s}">${it.i}</span>`:""};
       const q=(l.q.done||[]).length,mood=q>=3?"متحمس 🤩":q>=1?"سعيد 😊":"نعسان 😴";
@@ -7604,9 +7649,9 @@ function lfRoomHtml(l,xp,uid){
   const mood=night?"sleepy":done>=3?"hyper":done>=1?"happy":"calm";
   const pos=window.__rmPos=window.__rmPos||{},px=(k,d)=>pos[uid+k]!=null?pos[uid+k]:d;
   const acc=stg>0?(eq.acc||[]).map(lfItem).filter(Boolean).map(a=>`<span class="lf-acc ${a.k}">${a.i}</span>`).join(""):"";
-  const main=l.pet?`<div class="lf-pet m ${stg===5?"aura":""} ${stg===0?"isegg":""}" data-act="petTap" data-k="m" style="--x:${px("m",42)}%;font-size:${Math.round(60*LF_SC[stg])}px"><span class="b ${stg===0?"egg":""}">${stg===0?"🥚":l.pet.t}${acc}</span><i class="sh"></i></div>`:"";
+  const main=l.pet?`<div class="lf-pet m ${stg===5?"aura":""} ${stg===0?"isegg":""}" data-act="petTap" data-k="m" style="--x:${px("m",42)}%;font-size:${Math.round(52*LF_SC[stg])}px"><span class="b ${stg===0?"egg":"pt"}">${stg===0?"🥚":lfPetSvg(l.pet.t,stg)}${acc}</span><i class="sh"></i></div>`:"";
   const ex=(eq.pets||[]).map(lfItem).filter(Boolean).slice(0,3).map((it,i)=>`<div class="lf-pet ex" data-act="petTap" data-k="e${i}" style="--x:${px("e"+i,[12,72,58][i])}%;font-size:38px"><span class="b">${it.k}</span><i class="sh"></i></div>`).join("");
-  return `<div class="lf-room rm3 ${night?"night":""}" data-live="1" data-uid="${esc(uid)}" data-mood="${mood}" style="${bg}"><div class="sky"><i class="sun"></i><b class="cl c1"></b><b class="cl c2"></b></div><div class="boards"></div>${LF_SLOTS.map(sl).join("")}${ex}${main}</div>`;
+  return `<div class="lf-room rm3 ${night?"night":""}" data-live="1" data-uid="${esc(uid)}" data-mood="${mood}" style="${bg}"><div class="sky"><i class="sun"></i><b class="cl c1"></b><b class="cl c2"></b></div><div class="boards"></div>${LF_SLOTS.map(sl).join("")}${l.pet&&stg>0?lfHouseSvg():""}${ex}${main}</div>`;
 }
 function lfPetGo(room,p,x){
   x=Math.max(4,Math.min(78,x-8));
@@ -7619,11 +7664,19 @@ function lfPetGo(room,p,x){
 function lfPetBrain(room,p,i){
   if(p.classList.contains("isegg"))return;
   const k=p.dataset.k;
+  if(k==="m")p._goHome=()=>{
+    const house=room.querySelector(".pet-home");if(!house||p.classList.contains("home"))return;
+    const cur=parseFloat(p.style.getPropertyValue("--x"))||40;lfPetGo(room,p,12);
+    const dur=Math.max(.5,Math.abs(6-cur)/24)*1000+200;
+    setTimeout(()=>{if(!p.isConnected)return;p.classList.add("home");house.classList.add("on");
+      setTimeout(()=>{if(!p.isConnected)return;house.classList.remove("on");p.classList.remove("home");p.classList.add("hop");setTimeout(()=>p.classList.remove("hop"),1400);lfPetGo(room,p,40+Math.random()*30)},7000)},dur)};
   const say=t=>{const s=document.createElement("em");s.className="say";s.textContent=t;p.appendChild(s);setTimeout(()=>s.remove(),1700)};
   const act=(c,ms)=>{["hop","spin","sit","sleep","eat"].forEach(x=>p.classList.remove(x));void p.offsetWidth;p.classList.add(c);clearTimeout(p._at);p._at=setTimeout(()=>p.classList.remove(c),ms)};
   const tick=()=>{
     if(!p.isConnected||!room.isConnected)return;
+    if(p.classList.contains("home")){setTimeout(tick,1500);return}
     const mood=room.dataset.mood,r=Math.random();let next=2400+Math.random()*3200;
+    if(k==="m"&&room.querySelector(".pet-home")&&((mood==="sleepy"&&r<.45)||r<.05)){p._goHome();setTimeout(tick,9000);return}
     if(mood==="sleepy"&&r<.7){act("sleep",6000);say("💤");next=6200}
     else if(r<.38||(mood==="hyper"&&r<.55)){
       const main=room.querySelector('.lf-pet[data-k="m"]');let x=Math.random()*70+12;
@@ -7655,6 +7708,89 @@ function lfChatAnim(){
   if(key!==__ck){__ck=key;__seen=new Set();bs.forEach(b=>__seen.add(b.dataset.mid));return}
   bs.forEach(b=>{const m=b.dataset.mid;if(!__seen.has(m)){__seen.add(m);b.classList.add("nw")}});
   if(__seen.size>800)__seen=new Set([...__seen].slice(-300));
+}
+
+/* ===== Pet v3: realistic full-body pets (SVG) + house ===== */
+Object.assign(A,{petHome(){const p=document.querySelector('.lf-room .lf-pet[data-k="m"]');if(p&&p._goHome)p._goHome();lfSfx&&lfSfx("coin")}});
+let __ptN=0;
+const LF_SP={
+"🐱":{c:"#e8a65d",d:"#b9722f",b:"#fff1db",ear:"point",sn:.8,tail:"curl",mark:"stripe",nose:"#e58f8f"},
+"🐶":{c:"#c98d52",d:"#7a4a24",b:"#f6e3c6",ear:"float",sn:1.1,tail:"short",mark:"patch",nose:"#222"},
+"🦊":{c:"#e8742a",d:"#a8420f",b:"#fff",ear:"point",earD:"#2a1a12",sn:1.05,tail:"bush",tip:"#fff",mark:"socks",nose:"#222"},
+"🐼":{c:"#fafafa",d:"#d2d2d2",b:"#fff",ear:"round",earD:"#222",sn:.8,tail:"stub",mark:"panda",legD:"#222",nose:"#222"},
+"🐨":{c:"#9aa3ad",d:"#6d7680",b:"#e7eaee",ear:"big",sn:.7,tail:"none",nose:"#222",bigNose:1},
+"🐰":{c:"#f1e7df",d:"#cdb8a8",b:"#fff",ear:"long",sn:.6,tail:"puff",nose:"#f58fb0"},
+"🐺":{c:"#8b95a3",d:"#4e5663",b:"#dfe4ea",ear:"point",earD:"#3a414c",sn:1.25,tail:"bush",mark:"mask2",nose:"#222"},
+"🐢":{c:"#7fb35a",d:"#3d6b2a",b:"#d8e8b0",ear:"none",sn:.7,tail:"nub",shell:1,short:1,nose:"#3d6b2a"},
+"🐲":{c:"#3fa86b",d:"#1f6b42",b:"#f2e29a",ear:"horn",sn:1,tail:"drag",wings:1,spikes:1,nose:"#143d27"}
+};
+function lfPetSvg(t,st,w){
+  const id="pg"+(++__ptN),W=w?` style="width:${w}"`:"";
+  if(t==="🐧")return lfPengSvg(id,st,W);
+  if(t==="🐸")return lfFrogSvg(id,st,W);
+  const p=LF_SP[t]||LF_SP["🐱"],hs=[1,1.35,1.2,1.08,1,1][st]||1;
+  const D=p.d,C=p.c,B=p.b,leg=p.legD||C,ly=p.short?24:32;
+  const defs=`<defs><linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${C}"/><stop offset="1" stop-color="${D}"/></linearGradient><radialGradient id="${id}h" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>`;
+  const legs=(x,cls,fill)=>`<g class="lg ${cls}" style="transform-origin:${x}px 68px"><rect x="${x-6}" y="68" width="12" height="${ly}" rx="6" fill="${fill}"/><ellipse cx="${x-1}" cy="${68+ly}" rx="8" ry="4" fill="${p.mark==="socks"?"#2a1a12":(p.legD||D)}"/></g>`;
+  let tail="";
+  const tp={curl:`<path d="M108 64C132 62 140 40 127 27" stroke="${C}" stroke-width="7" stroke-linecap="round" fill="none"/>`,
+   short:`<path d="M108 62Q121 52 119 40" stroke="${C}" stroke-width="7" stroke-linecap="round" fill="none"/>`,
+   bush:`<path d="M106 66C134 74 142 44 128 28C126 48 116 54 106 56Z" fill="${C}"/>${p.tip?`<path d="M128 28C133 38 134 48 130 56C138 50 140 38 128 28Z" fill="${p.tip}"/>`:""}`,
+   stub:`<circle cx="112" cy="62" r="6" fill="${C}"/>`,puff:`<circle cx="113" cy="64" r="8" fill="#fff"/>`,nub:`<path d="M108 74l12 4-12 3z" fill="${C}"/>`,
+   drag:`<path d="M106 66C126 74 142 62 138 44C130 58 120 58 106 56Z" fill="${C}"/><path d="M136 40l9-6-3 11z" fill="${D}"/>`,none:""};
+  tail=`<g class="tl">${tp[p.tail]||""}</g>`;
+  const wings=p.wings?`<g class="wg"><path d="M84 52C92 24 112 14 124 20C116 30 118 42 108 48C108 56 96 60 84 60Z" fill="${D}" opacity=".92"/><path d="M92 50C98 36 108 28 118 26" stroke="${C}" stroke-width="2" fill="none"/></g>`:"";
+  const spikes=p.spikes?[60,72,84,96].map(x=>`<path d="M${x-5} 46l5-10 5 10z" fill="${D}"/>`).join(""):"";
+  const shell=p.shell?`<path d="M40 68C42 30 112 30 114 68Z" fill="#8a6a3a"/><path d="M40 68C42 30 112 30 114 68Z" fill="url(#${id}h)"/><path d="M62 40l14 8 14-8M76 48v20M52 56l24-8 24 8" stroke="#5e4524" stroke-width="2" fill="none" opacity=".7"/>`:"";
+  const stripes=p.mark==="stripe"?`<path d="M62 46q4 8 0 14M74 44q4 9 0 16M86 46q4 8 0 14" stroke="${D}" stroke-width="3.5" stroke-linecap="round" fill="none" opacity=".75"/>`:p.mark==="patch"?`<ellipse cx="86" cy="58" rx="12" ry="9" fill="${D}" opacity=".55"/>`:"";
+  const earD=p.earD||D;
+  const ears={point:`<g class="ear"><path d="M26 40L30 14L46 34Z" fill="${C}"/><path d="M30 36L32 22L40 34Z" fill="${p.earD||"#f2a9a0"}"/></g><g class="ear" style="transform-origin:50px 40px"><path d="M44 34L58 14L62 42Z" fill="${C}" opacity=".95"/></g>`,
+   float:`<g class="ear"><path d="M40 36C28 38 24 62 34 70C42 64 46 48 44 36Z" fill="${D}"/></g>`,
+   round:`<circle cx="28" cy="36" r="9" fill="${earD}"/><circle cx="50" cy="32" r="9" fill="${earD}"/>`,
+   big:`<circle cx="26" cy="38" r="13" fill="${D}"/><circle cx="26" cy="38" r="7" fill="#d8dde3"/><circle cx="52" cy="32" r="13" fill="${D}"/>`,
+   long:`<g class="ear"><ellipse cx="34" cy="12" rx="6" ry="20" fill="${C}" transform="rotate(-8 34 30)"/><ellipse cx="34" cy="12" rx="2.8" ry="14" fill="#f6b6c6" transform="rotate(-8 34 30)"/></g><ellipse cx="50" cy="10" rx="6" ry="19" fill="${C}" transform="rotate(8 50 30)"/>`,
+   horn:`<path d="M30 38L22 14L38 32Z" fill="#f2e29a"/><path d="M48 32L50 10L60 34Z" fill="#f2e29a"/>`,none:""}[p.ear]||"";
+  const sx=Math.round(10*p.sn);
+  const mask=p.mark==="panda"?`<ellipse cx="29" cy="48" rx="6.5" ry="8" fill="#222" transform="rotate(-15 29 48)"/>`:p.mark==="mask2"?`<path d="M18 62Q30 52 40 56L34 66Q24 70 18 62Z" fill="${B}" opacity=".7"/>`:"";
+  const head=`<g class="hd"><g transform="translate(36 56) scale(${hs}) translate(-36 -56)">
+${ears}<circle cx="36" cy="54" r="19" fill="url(#${id}b)"/>
+<ellipse cx="${22-sx/2}" cy="60" rx="${6+sx}" ry="9" fill="${B}"/>${mask}
+<ellipse cx="${14-sx/3}" cy="${p.bigNose?54:57}" rx="${p.bigNose?6:3.4}" ry="${p.bigNose?7:2.6}" fill="${p.nose}"/>
+<path d="M${14-sx/3} 60Q${18} 68 ${26} 64" stroke="#3a2418" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+<g class="eye"><ellipse cx="33" cy="49" rx="3.4" ry="4.4" fill="#1b1410"/><circle cx="34.2" cy="47.5" r="1.3" fill="#fff"/></g>
+<circle cx="42" cy="60" r="4.5" fill="#ff8da1" opacity=".22"/><ellipse cx="32" cy="42" rx="11" ry="6" fill="url(#${id}h)"/></g></g>`;
+  return `<svg viewBox="0 0 150 110"${W} xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${defs}
+<ellipse cx="72" cy="102" rx="46" ry="5" fill="rgba(0,0,0,.28)"/>${tail}${wings}
+${legs(98,"l3",leg)}${legs(52,"l1",leg)}
+<g class="bd"><ellipse cx="76" cy="66" rx="40" ry="23" fill="url(#${id}b)"/><ellipse cx="76" cy="76" rx="32" ry="12" fill="${B}" opacity=".85"/><ellipse cx="70" cy="52" rx="28" ry="8" fill="url(#${id}h)"/>${stripes}${shell}${spikes}</g>
+${legs(88,"l4",leg)}${legs(44,"l2",leg)}${head}</svg>`;
+}
+function lfPengSvg(id,st,W){
+  const hs=[1,1.3,1.2,1.08,1,1][st]||1;
+  return `<svg viewBox="0 0 150 110"${W} xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b4a63"/><stop offset="1" stop-color="#141b29"/></linearGradient></defs>
+<ellipse cx="72" cy="102" rx="34" ry="5" fill="rgba(0,0,0,.28)"/>
+<g class="bd" style="transform-origin:72px 100px"><g class="lg l1" style="transform-origin:62px 90px"><ellipse cx="60" cy="98" rx="11" ry="5" fill="#f59e0b"/></g><g class="lg l2" style="transform-origin:84px 90px"><ellipse cx="86" cy="98" rx="11" ry="5" fill="#f59e0b"/></g>
+<ellipse cx="72" cy="60" rx="30" ry="40" fill="url(#${id}b)"/><ellipse cx="68" cy="68" rx="20" ry="30" fill="#fbfbfb"/>
+<g class="wg" style="transform-origin:44px 56px"><path d="M44 50C28 60 28 82 38 86C46 76 48 62 48 52Z" fill="#1f2a3d"/></g><g class="wg" style="transform-origin:100px 56px"><path d="M100 50C116 60 116 82 106 86C98 76 96 62 96 52Z" fill="#1f2a3d"/></g>
+<g class="hd" style="transform-origin:72px 40px"><g transform="translate(70 34) scale(${hs}) translate(-70 -34)"><circle cx="70" cy="30" r="20" fill="#202c42"/><ellipse cx="62" cy="34" rx="12" ry="11" fill="#fff"/><path d="M44 34l-16 5 16 6z" fill="#f59e0b"/>
+<g class="eye"><ellipse cx="56" cy="27" rx="3.2" ry="4.2" fill="#111"/><circle cx="57" cy="25.6" r="1.2" fill="#fff"/></g><circle cx="62" cy="40" r="4" fill="#ff8da1" opacity=".25"/></g></g></g></svg>`;
+}
+function lfFrogSvg(id,st,W){
+  const hs=[1,1.3,1.2,1.08,1,1][st]||1;
+  return `<svg viewBox="0 0 150 110"${W} xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7bd35a"/><stop offset="1" stop-color="#3a8f35"/></linearGradient></defs>
+<ellipse cx="74" cy="102" rx="44" ry="5" fill="rgba(0,0,0,.28)"/>
+<g class="lg l3" style="transform-origin:104px 84px"><ellipse cx="106" cy="86" rx="16" ry="12" fill="#4aa341"/><ellipse cx="116" cy="98" rx="14" ry="4.5" fill="#3a8f35"/></g>
+<g class="bd" style="transform-origin:76px 96px"><ellipse cx="74" cy="76" rx="42" ry="26" fill="url(#${id}b)"/><ellipse cx="68" cy="86" rx="28" ry="12" fill="#e9f7b8"/><ellipse cx="66" cy="62" rx="26" ry="8" fill="#fff" opacity=".18"/></g>
+<g class="lg l1" style="transform-origin:44px 84px"><rect x="38" y="84" width="11" height="14" rx="5" fill="#4aa341"/><ellipse cx="42" cy="98" rx="10" ry="4" fill="#3a8f35"/></g>
+<g class="hd" style="transform-origin:40px 70px"><g transform="translate(40 60) scale(${hs}) translate(-40 -60)"><ellipse cx="38" cy="62" rx="26" ry="18" fill="url(#${id}b)"/><circle cx="30" cy="42" r="10" fill="#7bd35a"/><circle cx="50" cy="42" r="10" fill="#7bd35a"/>
+<g class="eye"><circle cx="30" cy="41" r="6" fill="#fff"/><circle cx="29" cy="41" r="3.4" fill="#111"/></g><g class="eye"><circle cx="50" cy="41" r="6" fill="#fff"/><circle cx="49" cy="41" r="3.4" fill="#111"/></g>
+<path d="M16 66Q36 80 58 66" stroke="#24602a" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="22" cy="58" r="1.4" fill="#24602a"/><circle cx="52" cy="62" r="4.5" fill="#ff8da1" opacity=".3"/></g></g></svg>`;
+}
+function lfHouseSvg(){
+  return `<div class="pet-home" data-act="petHome"><i class="zz">💤</i><svg viewBox="0 0 100 86" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="phw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c58b52"/><stop offset="1" stop-color="#8a5a2c"/></linearGradient></defs>
+<rect x="10" y="34" width="80" height="48" rx="3" fill="url(#phw)"/><path d="M10 40H90M10 50H90M10 60H90M10 70H90" stroke="#6b4320" stroke-width="1.3" opacity=".5"/>
+<path d="M2 38L50 6L98 38Z" fill="#b5452f"/><path d="M2 38L50 6L98 38" stroke="#7d2a1b" stroke-width="3" fill="none" stroke-linejoin="round"/><path d="M14 36L50 12L86 36" stroke="#e0775f" stroke-width="1.5" fill="none" opacity=".6"/>
+<path class="dr" d="M34 82V58C34 46 66 46 66 58V82Z"/><rect x="40" y="26" width="20" height="9" rx="2" fill="#f1d9a8"/><path d="M44 31h12" stroke="#8a5a2c" stroke-width="1.5"/></svg></div>`;
 }
 
 </script>
