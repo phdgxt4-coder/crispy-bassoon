@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v79-fresh">
+<meta name="sw-build" content="v84">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v79-fresh";</script>
+<script>window.APP_BUILD="v84";</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <script>(function(){try{var m=localStorage.getItem("theme_mode"),c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#0F1220",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
@@ -1005,9 +1005,22 @@ let __fadUnsub=null,__galUnsub=null;
 function ensureFadaye7Listen(){
   if(__fadUnsub||!db)return;
   __fadUnsub=onSnapshot(query(collection(db,"fadaye7"),orderBy("createdAt","desc"),limit(S.fadLimit||60)),s=>{
-    S.fadaye7=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tsMs(b.createdAt)-tsMs(a.createdAt));
+    S.fadOffline=s.metadata.fromCache&&!s.docs.length;
+    /* ترتيب: الدفعة الأجدد فوق خالص · جوّه الدفعة الأقدم الأول (seq) */
+    const arr=s.docs.map(d=>({id:d.id,...d.data()}));
+    const gt={};
+    arr.forEach(f=>{const k=f.batchId||f.id;const t=tsMs(f.createdAt);gt[k]=Math.max(gt[k]||0,t)});
+    arr.sort((a,b)=>{
+      const ka=a.batchId||a.id,kb=b.batchId||b.id;
+      if(ka===kb)return ((a.seq!=null?a.seq:0)-(b.seq!=null?b.seq:0));
+      return (gt[kb]||0)-(gt[ka]||0);
+    });
+    S.fadaye7All=arr;
+    /* المكرر مش بيظهر — نسخة واحدة بس (الأجدد) */
+    const seenF=new Set();
+    S.fadaye7=arr.filter(f=>{const k=f.fp||f.url;if(!k)return true;if(seenF.has(k))return false;seenF.add(k);return true});
     if(S.view==="fadaye7")scheduleRender();
-  },err=>console.warn("fad",err));
+  },err=>{console.warn("fad",err);S.fadOffline=true;if(S.view==="fadaye7")scheduleRender()});
 }
 function ensureBooksListen(){
   if(window.__bookUnsub||!db)return;
@@ -3287,16 +3300,17 @@ function fadaye7View(){
 </div>
 <div class="card">
   <b>انشر فضيحة</b>
-  <p class="mut" style="margin:4px 0 8px">بتنزل على طول · تقدر تختار أكتر من صورة</p>
+  <p class="mut" style="margin:4px 0 8px">بتنزل على طول · صور أو فيديوهات من الجهاز · أكتر من ملف مرة واحدة</p>
   <label class="f">وصف</label>
   <input id="stuFadTitle" type="text" maxlength="120" placeholder="وصف قصير…">
-  <label class="f">صور</label>
-  <input id="stuFadFile" type="file" accept="image/*" multiple>
+  <label class="f">صور أو فيديوهات</label>
+  <input id="stuFadFile" type="file" accept="image/*,video/mp4,video/webm,video/quicktime,video/3gpp" multiple>
   <label class="f">أو رابط</label>
   <input id="stuFadLink" class="ltr" type="url" placeholder="https://…">
   <button class="btn sm" style="margin-top:10px" data-act="submitFadaye7">نشر</button>
+  <p class="mut" id="stuFadProg"></p>
 </div>
-${list.length?list.map(card).join("")+fadMoreBtn():(tab==="mine"?emptyBox("📝","مفيش منشورات ليك","انشر أول فضيحة من فوق"):emptyBox("😂","لسه مفيش فضايح","كن أول من ينشر"))}
+${list.length?list.map(card).join("")+fadMoreBtn():(tab==="mine"?emptyBox("📝","مفيش منشورات ليك","انشر أول فضيحة من فوق"):(S.fadOffline?emptyBox("📡","مفيش اتصال بالسيرفر","اتأكد من الإنترنت — الفضايح هتظهر أول ما يرجع"):emptyBox("😂","لسه مفيش فضايح","كن أول من ينشر")))}
 </div>${studentNav()}`;
 }
 
@@ -3678,14 +3692,16 @@ ${pend.length?`<div class="card" style="border:2px solid var(--gold);margin-bott
 </div>
 <div class="card">
   <h3 style="margin-top:0">إضافة فضيحة جديدة</h3>
-  <p class="mut">صور: ارفع من الجهاز · فيديو: الصق رابط (يوتيوب / Drive)</p>
+  <p class="mut">صور وفيديوهات: ارفع من الجهاز · أو الصق رابط (يوتيوب / Drive)</p>
   <label class="f">عنوان / تعليق</label>
   <input id="fadTitle" type="text" placeholder="مثال: لما أحمد نسي الكود…" maxlength="120">
-  <label class="f">صور من الجهاز (أكتر من صورة مرة واحدة)</label>
-  <input id="fadFile" type="file" accept="image/*" multiple>
+  <label class="f">صور / فيديوهات من الجهاز (أكتر من ملف مرة واحدة · الفيديو لحد 1 جيجا)</label>
+  <input id="fadFile" type="file" accept="image/*,video/mp4,video/webm,video/quicktime,video/3gpp" multiple>
   <label class="f">أو رابط فيديو / صورة</label>
   <input id="fadLink" class="ltr" type="url" placeholder="https://…">
   <button class="btn" style="margin-top:12px" data-act="addFadaye7">نشر</button>
+  <p class="mut" id="fadProg"></p>
+  <button class="btn ghost sm" style="margin-top:10px" data-act="fadDedupe">🧹 حذف المنشورات المكررة (من اللي ظاهر)</button>
 </div>
 ${published.length?published.map(f=>{
   const hid=new Set(f.hideFrom||[]);
@@ -3720,7 +3736,7 @@ ${hideLine}
 <button class="btn gold sm" data-act="openFadHide" data-id="${f.id}">👥 مين يشوف؟</button>
 <button class="btn danger sm" data-act="delFadaye7" data-id="${f.id}">حذف</button>
 </div></div>${panel}</div>`;
-}).join(""):`<div class="card mut">لسه مفيش فضايح — انشر أول واحدة 😂</div>`}
+}).join(""):(S.fadOffline?`<div class="card mut">📡 مفيش اتصال بالسيرفر — اتأكد من الإنترنت.<br>الفضايح المنشورة هتظهر أول ما الاتصال يرجع.</div>`:`<div class="card mut">لسه مفيش فضايح — انشر أول واحدة 😂</div>`)}
 `;
 }
 
@@ -5595,25 +5611,48 @@ const A={
     const files=[...($("#fadFile")?.files||[])].slice(0,1500);
     if(!files.length&&!link){toast("ارفع صورة أو الصق رابط فيديو/صورة");return}
     try{
+      if(!await dbServerOk()){toast("⚠️ مفيش اتصال بسيرفر التطبيق — اتأكد من الإنترنت (واي فاي/بيانات) وجرب تاني",false,4200);if($("#fadProg"))$("#fadProg").textContent="";return}
       const batchId="b"+Date.now();
       const base={title,status:"approved",published:true,fromAdmin:true,authorName:"الأدمن",authorUid:S.user.uid,batchId};
       if(link){
         if(!/^https?:\/\//i.test(link)){toast("الرابط لازم يبدأ بـ http");return}
+        const ex=await getDocs(query(collection(db,"fadaye7"),where("fp","==","u:"+link),limit(1)));
+        if(!ex.empty){toast("الرابط ده منشور قبل كده ⏭️");return}
         const kind=(ytId(link)||/\.(mp4|webm|mov)(\?|$)/i.test(link)||/youtube|youtu\.be|vimeo|drive\.google/i.test(link))?"video":"image";
-        await addDoc(collection(db,"fadaye7"),{...base,url:link,kind,createdAt:serverTimestamp()});
+        await addDoc(collection(db,"fadaye7"),{...base,fp:"u:"+link,url:link,kind,createdAt:serverTimestamp()});
       }
-      let n=0;
-      for(const f of files){
-        if(!/^image\//.test(f.type)){toast("من الجهاز: صور فقط — الفيديو بالرابط");continue}
-        toast("جاري تجهيز الصورة "+(n+1)+" من "+files.length+"…");
-        const url=await packImage(f,1500,0.85,900000);
-        await addDoc(collection(db,"fadaye7"),{...base,url,kind:"image",createdAt:serverTimestamp()});
-        n++;
-      }
+      let n=0,fail=0,dup=0;
+      const prog=$("#fadProg");
+      const fps=await Promise.all(files.map(f=>fileFingerprint(f)));
+      const seen=new Set(),dupIdx=new Set(),dupSrv=new Set();
+      files.forEach((f,i)=>{const k=fps[i];if(!k)return;if(seen.has(k))dupIdx.add(i);else seen.add(k)});
+      const res=await runPool(files,4,async (f,i)=>{
+        if(dupIdx.has(i))throw new Error("dup");
+        const fp=fps[i];
+        if(fp){
+          const ex=await getDocs(query(collection(db,"fadaye7"),where("fp","==",fp),limit(1)));
+          if(!ex.empty){dupSrv.add(i);throw new Error("dup")}
+        }
+        if(/^video\//.test(f.type)){
+          if(f.size>1073741824)throw new Error("big");
+          const ext=((f.name||"").split(".").pop()||"mp4").replace(/[^a-z0-9]/gi,"").slice(0,4)||"mp4";
+          const tmo=Math.min(5400000,Math.max(300000,Math.round(f.size/512)*2));
+          const url=await withTimeout(uploadMedia(f,"chat/"+S.user.uid+"/fad_"+batchId+"_"+i+"."+ext),tmo,"net");
+          await withTimeout(addDoc(collection(db,"fadaye7"),{...base,seq:i,fp,url,kind:"video",createdAt:serverTimestamp()}),45000,"net");
+          return;
+        }
+        if(!/^image\//.test(f.type))throw new Error("skip");
+        const url=await withTimeout(packImage(f,1200,0.8,600000),30000,"img");
+        await withTimeout(addDoc(collection(db,"fadaye7"),{...base,seq:i,fp,url,kind:"image",createdAt:serverTimestamp()}),45000,"net");
+      },(done,total)=>{if(prog)prog.textContent="🚀 اترفع "+done+" من "+total+"…"});
+      res.forEach((ok,i)=>{if(ok)n++;else if(dupIdx.has(i)||dupSrv.has(i))dup++;else fail++});
+      if(prog)prog.textContent="";
       if($("#fadTitle"))$("#fadTitle").value="";
       if($("#fadFile"))$("#fadFile").value="";
       if($("#fadLink"))$("#fadLink").value="";
-      toast("اتنشرت الفضيحة 😂",true);
+      if(n>0&&(S.fadLimit||60)<n+10){S.fadLimit=n+10;if(__fadUnsub){try{__fadUnsub()}catch(_){}__fadUnsub=null}try{ensureFadaye7Listen()}catch(_){}}
+      if(!n){toast(dup?"مكرر — منشور قبل كده، مفيش حاجة جديدة ⏭️":(fail?"فشل رفع الملفات — جرّب تاني":"فشل النشر"))}
+      else toast(fail?("اتنشرت "+n+(dup?("+ مكرر اتجاهل "+dup):"")+"، وفشلت "+fail+" ⚠️"):("اتنشرت "+n+(dup?("+ مكرر اتجاهل "+dup):"")+" ✓"),true);
     }catch(e){console.error(e);const c=e.code||"";toast(c.includes("permission")?"صلاحيات الفضائح — انشر firestore.rules من Firebase":c.includes("size")||String(e.message||"").includes("longer")?"الصورة كبيرة أوي — صغّرها":("فشل النشر: "+(c||e.message||"")))}
   },
   async dmSendLink(){
@@ -5650,6 +5689,18 @@ const A={
     if(!await uiConfirm("تمسح الفضيحة دي؟"))return;
     const prev=S.fadaye7;S.fadaye7=(S.fadaye7||[]).filter(x=>x.id!==d.id);render(true);try{await deleteDoc(doc(db,"fadaye7",d.id));toast("اتمسحت",true)}catch(e){S.fadaye7=prev;render(true);toast("فشل الحذف")}
   },
+  async fadDedupe(){
+    if(!S.isAdmin)return;
+    const list=S.fadaye7All||S.fadaye7||[];
+    const keep={};
+    list.forEach(f=>{const k=f.fp||f.url;if(!k)return;if(!keep[k]||tsMs(f.createdAt)>tsMs(keep[k].createdAt))keep[k]=f});
+    const dups=list.filter(f=>{const k=f.fp||f.url;return k&&keep[k]&&f.id!==keep[k].id});
+    if(!dups.length){toast("مفيش مكرر في اللي محمّل 🎉",true);return}
+    if(!await uiConfirm("تمام — حذف "+dups.length+" منشور مكرر؟"))return;
+    let ok=0,bad=0;
+    for(const d of dups){try{await deleteDoc(doc(db,"fadaye7",d.id));ok++}catch(e){bad++}}
+    toast(bad?("اتحذف "+ok+"، وفشل "+bad+" ⚠️"):("اتحذف "+ok+" منشور مكرر ✓"),!bad);
+  },
   async submitFadaye7(){
     if(!S.user||S.isAdmin)return;
     const title=($("#stuFadTitle")?.value||"").trim()||"فضيحة";
@@ -5657,23 +5708,46 @@ const A={
     const files=[...($("#stuFadFile")?.files||[])].slice(0,1500);
     if(!files.length&&!link){toast("ارفع صورة أو الصق رابط");return}
     try{
+      if(!await dbServerOk()){toast("⚠️ مفيش اتصال بسيرفر التطبيق — اتأكد من الإنترنت (واي فاي/بيانات) وجرب تاني",false,4200);if($("#stuFadProg"))$("#stuFadProg").textContent="";return}
       const batchId="b"+Date.now();
       const base={title,status:"approved",published:true,fromAdmin:false,authorUid:S.user.uid,authorName:S.profile.name||"طالب",batchId};
       if(link){
         if(!/^https?:\/\//i.test(link)){toast("رابط غير صالح");return}
+        const ex=await getDocs(query(collection(db,"fadaye7"),where("fp","==","u:"+link),limit(1)));
+        if(!ex.empty){toast("الرابط ده منشور قبل كده ⏭️");return}
         const kind=(ytId(link)||/\.(mp4|webm|mov)(\?|$)/i.test(link)||/youtube|youtu\.be/i.test(link))?"video":"image";
-        await addDoc(collection(db,"fadaye7"),{...base,url:link,kind,createdAt:serverTimestamp()});
+        await addDoc(collection(db,"fadaye7"),{...base,fp:"u:"+link,url:link,kind,createdAt:serverTimestamp()});
       }
-      let n=0;
-      for(const f of files){
-        if(!/^image\//.test(f.type)){toast("صورة فقط من الجهاز");continue}
-        toast("جاري رفع الصورة "+(n+1)+" من "+files.length+"…");
-        const url=await packImage(f,1500,0.85,900000);
-        await addDoc(collection(db,"fadaye7"),{...base,url,kind:"image",createdAt:serverTimestamp()});
-        n++;
-      }
-      sendPush({type:"admin_event",event:"fadaye7"},"adm_fad",60000);
-      toast("اتنشرت ✓",true);
+      let n=0,fail=0,dup=0;
+      const prog=$("#stuFadProg");
+      const fps=await Promise.all(files.map(f=>fileFingerprint(f)));
+      const seen=new Set(),dupIdx=new Set(),dupSrv=new Set();
+      files.forEach((f,i)=>{const k=fps[i];if(!k)return;if(seen.has(k))dupIdx.add(i);else seen.add(k)});
+      const res=await runPool(files,4,async (f,i)=>{
+        if(dupIdx.has(i))throw new Error("dup");
+        const fp=fps[i];
+        if(fp){
+          const ex=await getDocs(query(collection(db,"fadaye7"),where("fp","==",fp),limit(1)));
+          if(!ex.empty){dupSrv.add(i);throw new Error("dup")}
+        }
+        if(/^video\//.test(f.type)){
+          if(f.size>1073741824)throw new Error("big");
+          const ext=((f.name||"").split(".").pop()||"mp4").replace(/[^a-z0-9]/gi,"").slice(0,4)||"mp4";
+          const tmo=Math.min(5400000,Math.max(300000,Math.round(f.size/512)*2));
+          const url=await withTimeout(uploadMedia(f,"chat/"+S.user.uid+"/fad_"+batchId+"_"+i+"."+ext),tmo,"net");
+          await withTimeout(addDoc(collection(db,"fadaye7"),{...base,seq:i,fp,url,kind:"video",createdAt:serverTimestamp()}),45000,"net");
+          return;
+        }
+        if(!/^image\//.test(f.type))throw new Error("skip");
+        const url=await withTimeout(packImage(f,1200,0.8,600000),30000,"img");
+        await withTimeout(addDoc(collection(db,"fadaye7"),{...base,seq:i,fp,url,kind:"image",createdAt:serverTimestamp()}),45000,"net");
+      },(done,total)=>{if(prog)prog.textContent="🚀 اترفع "+done+" من "+total+"…"});
+      res.forEach((ok,i)=>{if(ok)n++;else if(dupIdx.has(i)||dupSrv.has(i))dup++;else fail++});
+      if(prog)prog.textContent="";
+      if(n>0)sendPush({type:"admin_event",event:"fadaye7"},"adm_fad",60000);
+      if(n>0&&(S.fadLimit||60)<n+10){S.fadLimit=n+10;if(__fadUnsub){try{__fadUnsub()}catch(_){}__fadUnsub=null}try{ensureFadaye7Listen()}catch(_){}}
+      if(!n){toast(dup?"مكرر — منشور قبل كده، مفيش حاجة جديدة ⏭️":(fail?"فشل رفع الملفات — جرّب تاني":"فشل النشر"))}
+      else toast(fail?("اتنشرت "+n+(dup?("+ مكرر اتجاهل "+dup):"")+"، وفشلت "+fail+" ⚠️"):("اتنشرت "+n+(dup?("+ مكرر اتجاهل "+dup):"")+" ✓"),true);
       if($("#stuFadTitle"))$("#stuFadTitle").value="";
       if($("#stuFadFile"))$("#stuFadFile").value="";
       if($("#stuFadLink"))$("#stuFadLink").value="";
@@ -7315,6 +7389,37 @@ async function migrateAvatar(uid,dataUrl){
 }
 function packImage(file,maxSide,quality,maxBytes){
   maxSide=maxSide||800;quality=quality==null?0.7:quality;maxBytes=maxBytes||400000;
+  return drawPacked(file,maxSide).then(c=>{
+    let q=quality,data=c.toDataURL("image/jpeg",q);
+    // نقلّل الجودة تدريجي بس لو عدّينا الحد (Firestore ~1MB)
+    while(data.length>maxBytes&&q>0.4){q-=0.05;data=c.toDataURL("image/jpeg",q)}
+    if(data.length>maxBytes){
+      // صغّر الأبعاد شوية كمان
+      const c2=document.createElement("canvas");
+      c2.width=Math.max(1,Math.round(c.width*0.75));c2.height=Math.max(1,Math.round(c.height*0.75));
+      c2.getContext("2d").drawImage(c,0,0,c2.width,c2.height);
+      data=c2.toDataURL("image/jpeg",Math.max(0.45,q));
+    }
+    return data;
+  });
+}
+/* تحويل الصورة لكانفاس — مسار سريع بـ createImageBitmap (فك تشفير مباشر من غير base64 للملف الأصلي = أسرع بمرتين وأخف على الرام) */
+function drawPacked(file,maxSide){
+  if(window.createImageBitmap){
+    return createImageBitmap(file).then(bmp=>{
+      try{
+        let w=bmp.width,h=bmp.height;
+        if(w>maxSide||h>maxSide){const s=Math.min(maxSide/w,maxSide/h);w=Math.round(w*s);h=Math.round(h*s)}
+        const c=document.createElement("canvas");c.width=Math.max(1,w);c.height=Math.max(1,h);
+        const ctx=c.getContext("2d");ctx.imageSmoothingQuality="high";
+        ctx.drawImage(bmp,0,0,w,h);
+        return c;
+      }finally{if(bmp.close)try{bmp.close()}catch(_){}}
+    }).catch(()=>drawPackedFallback(file,maxSide));
+  }
+  return drawPackedFallback(file,maxSide);
+}
+function drawPackedFallback(file,maxSide){
   return new Promise((resolve,reject)=>{
     const r=new FileReader();
     r.onerror=()=>reject(new Error("read"));
@@ -7325,23 +7430,60 @@ function packImage(file,maxSide,quality,maxBytes){
         if(w>maxSide||h>maxSide){const s=Math.min(maxSide/w,maxSide/h);w=Math.round(w*s);h=Math.round(h*s)}
         const c=document.createElement("canvas");c.width=Math.max(1,w);c.height=Math.max(1,h);
         c.getContext("2d").drawImage(img,0,0,w,h);
-        let q=quality,data=c.toDataURL("image/jpeg",q);
-        // نقلّل الجودة تدريجي بس لو عدّينا الحد (Firestore ~1MB)
-        while(data.length>maxBytes&&q>0.4){q-=0.05;data=c.toDataURL("image/jpeg",q)}
-        if(data.length>maxBytes){
-          // صغّر الأبعاد شوية كمان
-          const c2=document.createElement("canvas");
-          c2.width=Math.round(w*0.75);c2.height=Math.round(h*0.75);
-          c2.getContext("2d").drawImage(c,0,0,c2.width,c2.height);
-          data=c2.toDataURL("image/jpeg",Math.max(0.45,q));
-        }
-        resolve(data);
+        resolve(c);
       };
       img.onerror=()=>reject(new Error("img"));
       img.src=r.result;
     };
     r.readAsDataURL(file);
   });
+}
+function withTimeout(p,ms,msg){return Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error(msg||"timeout")),ms))])}
+/* رفع متوازي: كذا عنصر مع بعض في نفس الوقت بدل واحد ورا التاني */
+async function runPool(items,concurrency,worker,onDone){
+  const res=new Array(items.length).fill(false);
+  let idx=0,done=0;
+  const cnt=Math.max(1,Math.min(concurrency,items.length||1));
+  const runners=[];
+  for(let r=0;r<cnt;r++){
+    runners.push((async()=>{
+      while(idx<items.length){
+        const i=idx++;
+        try{await worker(items[i],i);res[i]=true}
+        catch(e){console.error(e)}
+        done++;
+        if(onDone)try{onDone(done,items.length,res[i])}catch(_){}
+      }
+    })());
+  }
+  await Promise.all(runners);
+  return res;
+}
+/* بصمة الملف — من غير ما نحمل الملف كله في الرام: الحجم + أول وآخر 256KB */
+async function fileFingerprint(f){
+  try{
+    if(!f||!f.size||!window.crypto||!crypto.subtle)return null;
+    const H=Math.min(f.size,262144);
+    const parts=[new Uint8Array(await f.slice(0,H).arrayBuffer())];
+    if(f.size>H*2)parts.push(new Uint8Array(await f.slice(f.size-H).arrayBuffer()));
+    const enc=new TextEncoder().encode(String(f.size)+":");
+    let len=enc.length;parts.forEach(p=>len+=p.length);
+    const all=new Uint8Array(len);
+    all.set(enc,0);let off=enc.length;
+    parts.forEach(p=>{all.set(p,off);off+=p.length});
+    const h=new Uint8Array(await crypto.subtle.digest("SHA-256",all));
+    return Array.from(h).map(x=>x.toString(16).padStart(2,"0")).join("");
+  }catch(e){console.warn("fp",e);return null}
+}
+async function dbServerOk(){
+  if(!db)return false;
+  try{
+    await Promise.race([
+      getDocs(query(collection(db,"fadaye7"),limit(1)),{source:"server"}),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),9000))
+    ]);
+    return true;
+  }catch(e){return false}
 }
 /** صورة بروفايل مصغّرة للغرف (مش بنحط الأصلية عشان متتفخّش وثيقة الغرفة) */
 function packTinyAvatar(dataUrl){
@@ -8824,8 +8966,8 @@ function c3dLoop(now){
 }
 
 /* ---------- feed: more than 40 items (paged, up to 1500) ---------- */
-function fadMoreBtn(){const lim=S.fadLimit||60;return ((S.fadaye7||[]).length>=lim&&lim<1500)?`<button class="btn block ghost" data-act="fadMore" style="margin:10px 0">عرض المزيد</button>`:""}
-Object.assign(A,{fadMore(){S.fadLimit=Math.min(1500,(S.fadLimit||60)+60);if(__fadUnsub){try{__fadUnsub()}catch(_){}__fadUnsub=null}ensureFadaye7Listen();toast("جاري تحميل المزيد…")}});
+function fadMoreBtn(){const lim=S.fadLimit||60;return ((S.fadaye7||[]).length>=lim&&lim<2000)?`<button class="btn block ghost" data-act="fadMore" style="margin:10px 0">⬇ عرض المزيد — في لقطات أقدم</button>`:""}
+Object.assign(A,{fadMore(){S.fadLimit=Math.min(2000,(S.fadLimit||60)+120);if(__fadUnsub){try{__fadUnsub()}catch(_){}__fadUnsub=null}ensureFadaye7Listen();toast("جاري تحميل المزيد…")}});
 
 /* ---------- garden props (Nature Kit) ---------- */
 const C3_PS={Hill:{w:.95,y:.35},HillSand:{w:.95,y:.35},MountainFar:{w:1.05,y:.33},Mountain:{w:.75,y:.33},Cliff:{w:.5,y:.33},Cloud:{w:.26},TreeHigh:{h:.68},TreeMed:{h:.54},TreeLow:{h:.4},Bush:{h:.16},Reed:{h:.25},Rock:{h:.12},Grass:{h:.085}};

@@ -1,6 +1,6 @@
-/* التفوق SW — v79 — fresh: aurora theme + cleanup + instant cache */
-const CACHE = "eltafawoq-v79";
-const BUILD = "20261019-v79";
+/* التفوق SW — v84 — fresh: aurora theme + cleanup + instant cache */
+const CACHE = "eltafawoq-v84";
+const BUILD = "20261019-v84";
 const PETS = [];
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
