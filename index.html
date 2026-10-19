@@ -2,16 +2,16 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v77-rocket">
+<meta name="sw-build" content="v79-fresh">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v77-rocket";</script>
+<script>window.APP_BUILD="v79-fresh";</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
-<script>(function(){try{var m=localStorage.getItem("theme_mode"),c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#0B0A07",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
+<script>(function(){try{var m=localStorage.getItem("theme_mode"),c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#0F1220",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="التفوق">
@@ -26,7 +26,7 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0C1716;--card:#142624;--ink:#E6F1EF;--mut:#8FA9A5;--pri:#2FB5A8;--pri2:#4cc7ba;--onpri:#04201D;--gold:#F0B93A;--ind:#8B93FF;--line:#244240;--sel:#1b3836;--ok:#4cd081;--bad:#ff8a80;--gbg:#183d2a;--rbg:#4a1f1b;--ybg:#3f3210;--yfg:#f0d27a;--sh:0 10px 28px rgba(0,0,0,.4)}}
 
 :root[data-theme="morning"]{--bg:#F7FBFF;--card:#fff;--ink:#0F2744;--mut:#5A6F86;--pri:#2563EB;--pri2:#1D4ED8;--onpri:#fff;--gold:#E3A81C;--line:#D6E4F0;--sel:#E8F0FE;--sh:0 1px 2px rgba(15,39,68,.06),0 10px 28px rgba(15,39,68,.08)}
-:root[data-theme="golden"]{--bg:#0B0A07;--card:#16130E;--ink:#F5E6C8;--mut:#B8A078;--pri:#E3A81C;--pri2:#C49212;--onpri:#1A1408;--gold:#F0C14A;--line:#3A3224;--sel:#2A2418;--sh:0 10px 28px rgba(0,0,0,.5)}
+:root[data-theme="golden"]{--bg:#0F1220;--card:#181D31;--ink:#E9ECFF;--mut:#9BA3C7;--pri:#7C6CFF;--pri2:#5B4FE0;--onpri:#fff;--gold:#FFC94D;--ind:#38BDF8;--line:#28304E;--sel:#232B4A;--ok:#4cd081;--bad:#ff8a80;--gbg:#183d2a;--rbg:#4a1f1b;--ybg:#332816;--yfg:#f5d27a;--sh:0 1px 2px rgba(8,10,20,.35),0 12px 32px rgba(8,10,20,.45)}
 :root[data-theme="comfort"]{--bg:#F3EDE3;--card:#FFF9F0;--ink:#3D3428;--mut:#7A6E5E;--pri:#6B8F71;--pri2:#557A5B;--onpri:#fff;--gold:#C4A35A;--line:#E0D5C4;--sel:#E8E0D2;--sh:0 1px 2px rgba(61,52,40,.06),0 10px 24px rgba(61,52,40,.08)}
 :root[data-theme="nightread"]{--bg:#12151A;--card:#1A1F27;--ink:#E8ECF2;--mut:#9AA3B2;--pri:#7C9CBF;--pri2:#6A89AB;--onpri:#0E1218;--gold:#D4B56A;--line:#2A313C;--sel:#222831;--sh:0 10px 28px rgba(0,0,0,.45)}
 :root[data-theme="nightread"] body{letter-spacing:.01em;line-height:1.85}
@@ -149,7 +149,7 @@ textarea{min-height:320px;line-height:1.8;font-size:15px}
 .lb-rest .row{padding:10px 0;border-bottom:1px solid var(--line)}
 .warnbar{display:none;background:var(--rbg);color:var(--bad);border:1.5px solid var(--bad);border-radius:10px;padding:8px 12px;margin-bottom:10px;font-weight:600;animation:shake .45s}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
-.tab{font:inherit;font-weight:600;border:1.5px solid var(--line);background:var(--card);border-radius:10px;padding:8px 14px;cursor:pointer;color:var(--ink);transition:background-color .2s,color .2s}
+.tab{font:inherit;font-weight:600;border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;cursor:pointer;color:var(--ink);transition:background-color .2s,color .2s}
 .tab.on{background:var(--pri);color:var(--onpri);border-color:var(--pri)}
 .badge{display:inline-block;background:var(--gold);color:#2b2000;border-radius:99px;padding:0 8px;font-size:13px;margin-inline-start:6px;animation:bp 1.8s ease-in-out infinite}
 @keyframes bp{50%{transform:scale(1.18)}}
@@ -465,7 +465,7 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 .top{align-items:flex-start}
 /* خلفية شاشة البداية حسب الوضع */
 html{background:var(--bg)}
-:root[data-theme="golden"] #splash{background:radial-gradient(120% 90% at 50% 30%,#2B2210 0%,#14100A 55%,#0B0A07 100%)}
+:root[data-theme="golden"] #splash{background:radial-gradient(120% 90% at 50% 30%,#2B2A6B 0%,#181D31 55%,#0F1220 100%)}
 :root[data-theme="dark"] #splash{background:linear-gradient(160deg,#10302D 0%,#0C1716 60%,#081110 100%)}
 :root[data-theme="nightread"] #splash{background:linear-gradient(160deg,#1F2630 0%,#12151A 100%)}
 :root[data-theme="morning"] #splash{background:linear-gradient(160deg,#2563EB 0%,#1D4ED8 45%,#0F2744 100%)}
@@ -764,8 +764,8 @@ button,.btn,.tab,.lf-chips button{touch-action:manipulation}
 html,body{max-width:100%;overflow-x:hidden}
 body{overflow-wrap:anywhere;word-break:normal}
 .card,.row>*,.tk-bubble,.lf-it,.pill,.btn,h1,h2,h3,h4,b,small,td,th{min-width:0;overflow-wrap:anywhere}
-.card{border-radius:18px;box-shadow:var(--sh),0 1px 0 rgba(255,255,255,.04) inset}
-.btn{border-radius:14px;transition:transform .14s,box-shadow .2s,background-color .2s,border-color .2s,opacity .2s}
+.card{border-radius:22px;box-shadow:var(--sh),0 1px 0 rgba(255,255,255,.05) inset}
+.btn{border-radius:999px;background:linear-gradient(135deg,var(--pri),var(--pri2));box-shadow:0 4px 14px rgba(0,0,0,.18);transition:transform .14s,box-shadow .2s,background-color .2s,border-color .2s,opacity .2s}
 .btn:active{transform:scale(.95)}
 .btn:not(:disabled):hover{box-shadow:0 6px 18px rgba(0,0,0,.18)}
 input,select,textarea{border-radius:12px;transition:box-shadow .2s,border-color .2s}
@@ -907,10 +907,7 @@ html[data-fx="lite"] .lf-card>div::after{display:none}
 .lf-pet.r-run .b{animation-duration:.2s}
 html[data-fx="lite"] .lf-room .star,html[data-fx="lite"] .lf-room .ffly,html[data-fx="lite"] .lf-room .bfly,html[data-fx="lite"] .lf-room .leaf{display:none}
 @media (prefers-reduced-motion:reduce){.lf-room .star,.lf-room .ffly,.lf-room .bfly,.lf-room .leaf,.lf-pet.dig .b,.lf-pet.wig .b{animation:none!important}.lf-room .leaf{display:none}}
-/* ===== v76: حزمة الهمّة — اقتباس اليوم + الهدية + التركيز + الملاحظات ===== */
-.v76-quote{display:flex;gap:10px;align-items:flex-start;border-color:var(--gold);background:var(--ybg);margin:10px 0}
-.v76-quote .qi{font-size:22px;line-height:1.2}
-.v76-quote .qtxt{margin-top:4px;font-weight:700;line-height:1.7}
+/* ===== v76: حزمة الهمّة — الهدية + التركيز + الملاحظات ===== */
 .v76-gift{display:flex;gap:12px;align-items:center;cursor:pointer;border-color:#F59E0B;background:linear-gradient(135deg,rgba(245,158,11,.14),rgba(217,119,6,.10));margin:10px 0;padding:14px}
 .v76-gift:active{transform:scale(.98)}
 .v76-gift .gi{font-size:30px;animation:v76shake 2.4s ease-in-out infinite}
@@ -1862,7 +1859,7 @@ if(configured){
   onSnapshot(doc(db,"config","site"),s=>{
     const d=s.exists()?s.data():{};
     const was=S.site.maintenance;
-    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",pushUrl:d.pushUrl||"",resetPassUrl:d.resetPassUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0};
+    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",pushUrl:d.pushUrl||"",resetPassUrl:d.resetPassUrl||"",booksUrl:d.booksUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0};
     S.siteRaw=d;applyAiCfg();
     // أدمن طلب تسريع للجميع → امسح كاش الجهاز ده مرة
     try{
@@ -2014,7 +2011,7 @@ function render(force){
     h=S.view==="editAsm"?asmEditor():`<div class="wrap wide">${header(`<button class="btn ghost sm" data-act="home">الرئيسية</button><button class="btn ghost sm" data-act="logout">خروج</button>`)}${adminAsm()}</div>`;
   }else if(isBlockedP(S.profile)){h=blockedView()}
   else{
-    const m={games:gamesView,mathg:mathView,xo:xoView,hang:hangView,spin:spinView,react:reactView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView,life:lifeView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View,tanagha:tanaghaView,gallery:galleryView,groups:groupsView,groupThread:groupThreadView,ai:aiView,books:booksView,focus:focusView,notes:notesView};
+    const m={games:gamesView,mathg:mathView,xo:xoView,hang:hangView,spin:spinView,react:reactView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView,life:lifeView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View,tanagha:tanaghaView,gallery:galleryView,groups:groupsView,groupThread:groupThreadView,ai:aiView,books:booksView,bag:bagView,focus:focusView,notes:notesView};
     let fn=m[S.view];
     {const __ft=featOfView(S.view);if(__ft&&!featOn(__ft))fn=featOffView}
     if(S.view==="tanaghaLock"||(isTgView(S.view)&&tanaghaState(S.profile)!=="approved"))fn=tanaghaLockedView;
@@ -2819,6 +2816,105 @@ ${(p.badges||[]).length?`<div style="margin-top:10px;display:flex;flex-wrap:wrap
 }
 
 
+/* ===== v78-ai: كتب الـ AI + وكيل الأدمن ===== */
+function bkUrl(){return ((S.site&&S.site.booksUrl)||"").trim().replace(/\/+$/,"")}
+function bkKey(){return ((S.aiCfg&&S.aiCfg.booksKey)||"").trim()}
+async function bkApi(path,body,needKey){
+  const u=bkUrl();
+  if(!u)throw new Error("وسيط الكتب مش مضبوط من الإعدادات");
+  const h={"Content-Type":"application/json"};
+  if(needKey){
+    if(!bkKey())throw new Error("حط مفتاح ADMIN_KEY بتاع الكتب في الإعدادات");
+    h["Authorization"]="Bearer "+bkKey();
+  }
+  const r=await fetch(u+path,{method:"POST",headers:h,body:JSON.stringify(body||{})});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok||!j.ok)throw new Error((j&&j.error)||("خطأ "+r.status));
+  return j;
+}
+function bkLoadList(){
+  if(!bkUrl()||S.bkList||S.bkListLoading)return;
+  S.bkListLoading=true;
+  bkApi("/list",{},false).then(j=>{S.bkList=j.books||[];S.bkListLoading=false;scheduleRender()})
+    .catch(()=>{S.bkListLoading=false;scheduleRender()});
+}
+async function ensurePdfjs(){
+  if(window.pdfjsLib)return window.pdfjsLib;
+  await new Promise((res,rej)=>{
+    const s=document.createElement("script");
+    s.src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js";
+    s.onload=res;s.onerror=()=>rej(new Error("فشل تحميل قارئ الـ PDF — شوف النت"));
+    document.head.appendChild(s);
+  });
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+  return window.pdfjsLib;
+}
+async function aiChatEndpoint(message,system,history){
+  const url=(S.site&&(S.site.aiProxy||S.site.aiUrl))||"";
+  if(!url)throw new Error("مفيش وسيط AI مضبوط في الإعدادات");
+  const headers={"Content-Type":"application/json"};
+  if(S.site.aiProxy){try{headers["Authorization"]="Bearer "+await auth.currentUser.getIdToken()}catch(_){}}
+  else if(S.site.aiKey)headers["Authorization"]="Bearer "+S.site.aiKey;
+  const r=await fetch(url,{method:"POST",headers,body:JSON.stringify({message,uid:(S.user&&S.user.uid)||"admin",name:"admin",view:"admin",system,history:history||[]})});
+  if(!r.ok)throw new Error("الـ AI مردش (حالة "+r.status+")");
+  const j=await r.json().catch(()=>null);
+  const reply=j&&(j.reply||j.text||j.message);
+  if(!reply)throw new Error("الـ AI رجّع رد فاضي");
+  return String(reply);
+}
+function agentExtractJson(txt){
+  if(!txt)return null;
+  let s=String(txt).replace(/```json|```/g,"").trim();
+  const a=s.indexOf("{"),b=s.lastIndexOf("}");
+  if(a>=0&&b>a){try{return JSON.parse(s.slice(a,b+1))}catch(_){}}
+  try{return JSON.parse(s)}catch(_){return null}
+}
+function agentActLabel(a){
+  switch(a&&a.act){
+    case "broadcast":return "📢 إشعار لكل الطلاب: "+(a.text||"");
+    case "maintenance":return "🛠 "+(a.on?"تشغيل":"إيقاف")+" وضع الصيانة";
+    case "addxp":return "⭐ إضافة "+(a.amount||0)+" XP للرقم "+(a.phone||"؟");
+    case "publishexam":return "📝 نشر امتحان: "+(a.title||"");
+    case "hideexam":return "🙈 إخفاء امتحان: "+(a.title||"");
+    case "genexam":return "🎲 توليد امتحان "+(a.count||10)+" سؤال من «"+(a.book||"")+"»";
+    default:return JSON.stringify(a);
+  }
+}
+function bagView(){
+  const msgs=(S.bagMsgs&&S.bagMsgs.length)?S.bagMsgs:[{role:"bot",text:"أهلاً بك في «اسأل من الكتب» 📚🤖\nاكتب أي سؤال من المنهق — أدوّر في الكتب وأجاوبك وأقولك اسم الكتاب ورقم الصفحة."}];
+  return `<div class="wrap chat-wrap">${header(`<button class="btn ghost sm" data-act="openBooks">رجوع</button>`)}
+<h2>📚🤖 اسأل من الكتب</h2>
+<div class="card">
+  <div class="ai-log" id="bagLog">${msgs.map(m=>`<div class="ai-bubble ${m.role==="me"?"me":"bot"}" dir="auto">${esc(m.text)}${m.cites&&m.cites.length?`<div style="margin-top:6px">${m.cites.map(c=>`<span class="pill i" style="margin:2px 0 0 4px">📖 «${esc(c.title)}» ص ${esc(String(c.page))}</span>`).join("")}</div>`:""}</div>`).join("")}</div>
+  <form class="tk-compose" style="position:relative;bottom:auto;left:auto;right:auto;margin-top:12px;display:flex;gap:6px;align-items:center" data-submit="bagSend">
+    <input id="bagIn" type="text" maxlength="800" placeholder="اكتب سؤالك من الكتاب…" autocomplete="off" style="flex:1">
+    <button class="btn sm" type="submit">➤</button>
+  </form>
+  ${S.bagBusy?`<p class="mut" style="margin:6px 0 0">🤖 بدوّر في الكتب…</p>`:""}
+</div>
+</div>${studentNav()}`;
+}
+function adminAgent(){
+  const msgs=(S.agentMsgs&&S.agentMsgs.length)?S.agentMsgs:[{role:"bot",text:"أنا وكيل الأدمن 🤖👑\nقولي بالعربي وأنا أنفّذ — أعرضلك الخطة الأول وتوافق:\n• «ابعت إشعار لكل الطلاب إن المراجعة بكرة»\n• «شغّل وضع الصيانة»\n• «ضيف 50 XP للطالب رقمه 01234567890»\n• «انشر امتحان الفلسفة» / «خبّي امتحان التاريخ»\n• «ولّد امتحان 10 أسئلة من كتاب التاريخ»\nواسألني برضه عن حالة المنصة وأجاوبك."}];
+  const plan=S.agentPlan||[];
+  const planCard=plan.length?`<div class="card" style="border-color:var(--gold)">
+  <h3 style="margin-top:0">📋 خطة التنفيذ (${plan.length} خطوة)</h3>
+  ${plan.map(a=>`<div style="padding:6px 0;border-bottom:1px solid var(--line)"><b>${esc(agentActLabel(a))}</b></div>`).join("")}
+  <div class="row" style="margin-top:10px"><button class="btn" data-act="agentRun">✅ تنفيذ</button><button class="btn ghost" data-act="agentClear">إلغاء</button></div></div>`:"";
+  return `<div class="wrap chat-wrap">${header(`<button class="btn ghost sm" data-act="backAdmin">رجوع</button>`)}
+<h2>🤖👑 وكيل الأدمن</h2>
+${planCard}
+<div class="card">
+  <div class="ai-log" id="agLog">${msgs.map(m=>`<div class="ai-bubble ${m.role==="me"?"me":"bot"}" dir="auto">${esc(m.text)}</div>`).join("")}</div>
+  <form class="tk-compose" style="position:relative;bottom:auto;left:auto;right:auto;margin-top:12px;display:flex;gap:6px;align-items:center" data-submit="agentSend">
+    <input id="agentIn" type="text" maxlength="500" placeholder="قولي أنفّذ إيه…" autocomplete="off" style="flex:1">
+    <button class="btn sm" type="submit">➤</button>
+  </form>
+  ${S.agentBusy?`<p class="mut" style="margin:6px 0 0">🤖 بفكّر…</p>`:""}
+</div>
+<p class="mut">الوكيل بيتصل بنفس وسيط الـ AI الموجود عندك، وبينفّذ الأفعال بحد أقصى 10 خطوات في الخطة، وانت اللي بيعتمد قبل أي تنفيذ.</p>
+</div>`;
+}
 function aiView(){
   const msgs=S.aiMsgs||[{role:"bot",text:"أهلاً! أنا 么 🤖\nصاحبك على المنصة — اسأل عن أي درس أو امتحان أو خطوة.\nتقدر ترفع ملف ملخص (نص/PDF صغير) من الزر 📎 وأنا أراجعه معاك."}];
   return `<div class="wrap chat-wrap">${header(`<button class="btn ghost sm" data-act="openMe">رجوع</button>`)}
@@ -2980,31 +3076,13 @@ function aiLocalReply(q){
   })();
 }
 
-/* v77: مكتبة ذاكرولي — كتب أساسية جاهزة للطالب */
-const DK_LIB=[
-{t:"الامتحان — تاريخ · أول ثانوي · ترم 1",s:"تاريخ 1ث",v:"./books/tarekh.pdf"},
-{t:"الامتحان — علوم متكاملة · أول ثانوي · ترم 1",s:"علوم متكاملة 1ث",v:"./books/oloom.pdf"},
-{t:"الامتحان — فلسفة · أول ثانوي · ترم 1",s:"فلسفة 1ث",v:"./books/falsafa.pdf"},
-{t:"المعاصر — رياضيات · أول ثانوي · ترم 1",s:"رياضيات 1ث",v:"./books/math.pdf"},
-{t:"كتاب كبير 1 (جوجل درايف)",s:"Drive · تحميل مباشر",v:"https://drive.google.com/file/d/1NrT5519BfkDYfNzsKKdcKbbX4TXT293U/view",d:"https://drive.google.com/uc?export=download&id=1NrT5519BfkDYfNzsKKdcKbbX4TXT293U"},
-{t:"كتاب كبير 2 (جوجل درايف)",s:"Drive · تحميل مباشر",v:"https://drive.google.com/file/d/1tpQcGnmQ85WGrZDCV-o4hfuYYUnR2sYy/view",d:"https://drive.google.com/uc?export=download&id=1tpQcGnmQ85WGrZDCV-o4hfuYYUnR2sYy"}
-];
+/* v79: صفحة الكتب — كتب الأدمن + اسأل من الكتب */
 function booksView(){
   const list=S.books||[];
-  const lib=DK_LIB.map(b=>`<div class="card book-card">
-  <div class="ico">📘</div>
-  <div style="flex:1;min-width:0"><b>${esc(b.t)}</b>
-  <div class="mut">${esc(b.s)}</div></div>
-  <div style="display:flex;flex-direction:column;gap:6px">
-    ${b.v?`<a class="btn sm" href="${esc(b.v)}" target="_blank" rel="noopener">فتح</a>`:""}
-    ${b.d?`<a class="btn ghost sm" href="${esc(b.d)}" target="_blank" rel="noopener">⬇ تنزيل</a>`:`<a class="btn ghost sm" href="${esc(b.v)}" download>⬇ تنزيل</a>`}
-  </div>
-</div>`).join("");
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
 <h2>📚 الكتب</h2>
 <p class="mut">ملفات وكتب للتحميل أو الفتح</p>
-<div class="card" style="border-color:var(--gold);background:var(--ybg)"><b>🎓 مكتبة ذاكرولي — أول ثانوي · ترم أول</b><div class="mut" style="margin-top:4px">كتب الامتحانات والملزمة جاهزة تحت — افتحها أو نزّلها على طول.</div></div>
-${lib}
+${(S.site&&S.site.booksUrl)?`<button class="subj wide" style="background:linear-gradient(135deg,#6D28D9,#A78BFA);margin-bottom:12px" data-act="openBag"><span class="g">🤖</span><div><b>اسأل الذكاء من الكتب</b><br><small>اسأل أي سؤال من المنهج — يجاوبك ويقولك الكتاب ورقم الصفحة</small></div></button>`:""}
 ${list.length?list.map(b=>{
   const href=b.b64?("data:application/pdf;base64,"+b.b64):(b.url&&String(b.url).indexOf("data:")!==0?b.url:"");
   return `<div class="card book-card">
@@ -3020,8 +3098,19 @@ ${list.length?list.map(b=>{
 </div>${studentNav()}`;
 }
 function adminBooks(){
+  if(bkUrl())bkLoadList();
   const list=S.books||[];
   return `<div class="row" style="margin-bottom:12px"><div class="mut">${list.length} كتاب</div></div>
+<div class="card" style="border-color:var(--gold)"><h3 style="margin-top:0">🤖 كتب الـ AI — «اسأل من الكتب» + توليد الامتحانات</h3>
+<p class="mut" style="font-size:12px">ارفع PDF كتاب هنا — الوسيط بيقراه صفحة صفحة. الطالب بعدها يسأل من تبويب الكتب والـ AI يجاوبه بذكر الكتاب والصفحة، وانت تولّد امتحانات من الكتاب من تبويب الامتحانات.</p>
+<div class="mut" style="margin-bottom:8px">${bkUrl()?("🔗 الوسيط متظبط: "+esc(bkUrl())):"⚠ وسط الكتب مش مضبوط — ظبّط الرابط + مفتاح ADMIN_KEY من الإعدادات"}</div>
+<div id="bkList">${(S.bkList||[]).map(b=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><div style="flex:1"><b>${esc(b.title)}</b><div class="mut">${b.pages} صفحة</div></div><button class="btn danger sm" data-act="bkDel" data-id="${esc(b.id)}">حذف</button></div>`).join("")||(S.bkListLoading?`<div class="mut">⏳ جاري التحميل…</div>`:`<div class="mut">مفيش كتب مرفوعة للـ AI لسه.</div>`)}</div>
+<label class="f" style="margin-top:10px">رفع كتاب PDF جديد للـ AI</label>
+<input id="bkFile" type="file" accept="application/pdf,.pdf" data-change="bkUpload">
+<p class="mut" id="bkProg" style="margin-top:6px">${esc(S.bkProg||"")}</p>
+<div class="row" style="gap:8px;margin-top:6px"><button class="btn ghost sm" data-act="bkRefresh">🔄 تحديث القائمة</button><button class="btn ghost sm" data-act="openBag">🧪 جرّب سؤال زي الطالب</button></div>
+<p class="mut" style="font-size:12px">لحد ~400 صفحة في الكتاب الواحد. الكتب اللي نصها سكان صور مش هتتنفع (محتاجة نص أصلي).</p>
+</div>
 <div class="card"><h3 style="margin-top:0">إضافة كتاب / ملف</h3>
 <label class="f">العنوان</label>
 <input id="bookTitle" type="text" maxlength="80" placeholder="مثال: ملخص الأدب الجاهلي">
@@ -3416,7 +3505,7 @@ function adminView(){
     {title:"محتوى", items:[["exams","امتحانات"],["asm","تقييمات"],["books","كتب"]]},
     {title:"مجتمع", items:[["fadaye7","فضايح 😂"],["tanagha","التناغه 💗"],["tgreq","طلبات التناغه"],["students","طلاب"]]},
     {title:"رقابة", items:[["results","نتايج"],["alerts","تنبيهات"],["suspicious","احتيالي"]]},
-    {title:"إدارة", items:[["managers","المسؤولين"],["security","🛡 الأمان"],["shopadm","🛒 المتجر"],["settings","إعدادات"]]}
+    {title:"إدارة", items:[["managers","المسؤولين"],["security","🛡 الأمان"],["shopadm","🛒 المتجر"],["agent","🤖 الوكيل"],["settings","إعدادات"]]}
   ];
   const bd={tgreq:(Array.isArray(S.students)?S.students:[]).filter(x=>x.tanaghaAccess==="pending").length,results:S.unread,alerts:S.unreadAlerts,live:liveActive().length,suspicious:(S.suspicious||[]).filter(x=>!x.seen).length};
   return `<div class="wrap wide">${header(`${pill("أدمن","i")}<button class="btn ghost sm" data-act="logout">خروج</button>`)}
@@ -3425,7 +3514,7 @@ ${groups.map(g=>`<div style="margin-bottom:10px">
   <div class="mut" style="font-size:11px;font-weight:700;margin-bottom:4px;opacity:.75">${g.title}</div>
   <div class="tabs" style="margin-bottom:0">${g.items.map(([k,v])=>`<button class="tab ${t===k?"on":""}" data-act="tab" data-id="${k}">${v}${bd[k]?`<span class="badge">${bd[k]}</span>`:""}</button>`).join("")}</div>
 </div>`).join("")}
-${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,tanagha:adminTanagha,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,suspicious:adminSuspicious,managers:adminManagers,security:adminSecurity,tgreq:adminTgReq,settings:adminSettings,shopadm:adminShop}[t]||adminDash)()}
+${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,tanagha:adminTanagha,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,suspicious:adminSuspicious,managers:adminManagers,security:adminSecurity,tgreq:adminTgReq,settings:adminSettings,shopadm:adminShop,agent:adminAgent}[t]||adminDash)()}
 ${t==="exams"?`<button class="fab" data-act="newExam" aria-label="امتحان جديد">+</button>`:""}
 
 </div>`}
@@ -3743,7 +3832,30 @@ ${chats.length?"":(recentAll.length?recentAll.map(c=>{
 }).join(""):"")}
 ${old.length?`<h3 style="margin-top:18px">⚪ امتحان — انقطع الاتصال (${old.length})</h3>${old.map(row).join("")}`:""}`}
 function adminExams(){
+  if(bkUrl())bkLoadList();
+  const bkOpts=(S.bkList&&S.bkList.length)?S.bkList:[{id:"",title:"⚠ مفيش كتب — ارفع كتاب من تبويب الكتب",pages:0}];
+  const genCard=`<div class="card" style="border-color:var(--gold)">
+  <h3 style="margin-top:0">🎲 توليد امتحان بالـ AI من الكتاب</h3>
+  <p class="mut" style="font-size:12px">اختار الكتاب وعدد الأسئلة — الـ AI يقرأ صفحات الكتاب ويولّد أسئلة اختيار من متعدد (مع رقم صفحة كل سؤال). الامتحان بيتحفظ «مخفي» تراجعه بنفسك.</p>
+  <div class="row" style="flex-wrap:wrap;gap:8px">
+    <select id="geBook" style="flex:2;min-width:160px">${bkOpts.map(b=>`<option value="${esc(b.id)}" ${(S.genPrefill&&S.genPrefill.book===b.id)?"selected":""}>${esc(b.title)} (${b.pages} ص)</option>`).join("")}</select>
+    <input id="geCount" type="number" min="3" max="30" value="${(S.genPrefill&&S.genPrefill.count)||10}" style="width:64px" title="عدد الأسئلة">
+  </div>
+  <div class="row" style="flex-wrap:wrap;gap:8px;margin-top:8px">
+    <select id="geSubj" style="flex:1;min-width:100px">${SUBJECTS.map(s=>`<option value="${s.id}">${s.name}</option>`).join("")}</select>
+    <select id="geLevel" style="flex:1;min-width:90px"><option>سهل</option><option selected>متوسط</option><option>صعب</option></select>
+  </div>
+  <input id="geSubject" type="text" maxlength="30" placeholder="ملاحظة مادة (اختياري)" style="margin-top:8px" value="${esc((S.genPrefill&&S.genPrefill.subject)||"")}">
+  <input id="geTitle" type="text" maxlength="60" placeholder="عنوان الامتحان (اختياري)" style="margin-top:6px" value="${esc((S.genPrefill&&S.genPrefill.title)||"")}">
+  <button class="btn sm gold" style="margin-top:8px" data-act="genExam">${S.genBusy?"⏳ الـ AI بيولّد…":"🎲 ولّد الأسئلة"}</button>
+  ${S.genErr?`<div class="err" style="margin-top:8px">${esc(S.genErr)}</div>`:""}
+  </div>`;
+  const genOut=S.genOut?`<div class="card"><h3 style="margin-top:0">👁 معاينة الأسئلة — ${esc(S.genOut.title)}</h3>
+  ${S.genOut.questions.map((q,i)=>`<div style="padding:8px 0;border-bottom:1px solid var(--line)"><b>${i+1}. ${esc(q.q)}</b> ${q.page?`<span class="pill i">📖 ص ${esc(String(q.page))}</span>`:""}<div class="mut">${(q.o||[]).map((o,oi)=>`${oi===q.a?"✅ ":"• "}${esc(o)}`).join(" · ")}</div></div>`).join("")}
+  <div class="row" style="margin-top:10px"><button class="btn" data-act="genExamSave">💾 حفظ كامتحان (مخفي)</button><button class="btn ghost" data-act="genExamClear">إلغاء</button></div></div>`:"";
   return `<div class="row" style="margin-bottom:12px"><div class="mut">${S.exams.length} امتحان</div><button class="btn" data-act="newExam">امتحان جديد</button></div>
+${genCard}
+${genOut}
 ${S.exams.length?S.exams.map(e=>{const n=(Array.isArray(S.results)?S.results:[]).filter(r=>r.examId===e.id).length;return `<div class="card"><div class="row"><div><b>${esc(e.title)}</b> ${pill(subName(e.subject))} ${pill(e.published?(e.publishAt&&!vis(e)?"مجدول":"ظاهر للطلاب"):"مخفي",e.published?(e.publishAt&&!vis(e)?"i":"g"):"y")}
 <div class="mut">${gcount(e)} سؤال${e.questions.length>gcount(e)?" + ألغاز":""} · ${e.minutes?e.minutes+" دقيقة":"بدون وقت"} · ${e.passMark>0?"النجاح من "+e.passMark:"بدون درجة نجاح"} · ${n} محاولة${e.publishAt?" · ينزل "+new Date(e.publishAt).toLocaleString("ar-EG",{dateStyle:"short",timeStyle:"short"}):""}</div></div>
 <div class="row"><button class="btn ghost sm" data-act="editExam" data-id="${e.id}">تعديل</button><button class="btn ghost sm" data-act="dupExam" data-id="${e.id}">نسخ</button><button class="btn ghost sm" data-act="togglePub" data-id="${e.id}">${e.published?"إخفاء":"إظهار"}</button><button class="btn danger sm" data-act="delExam" data-id="${e.id}">حذف</button></div></div></div>`}).join(""):`<div class="card mut">لسه مفيش امتحانات. دوس "+" وابدأ.</div>`}`}
@@ -3942,6 +4054,12 @@ function adminSettings(){
 <input id="resetUrlIn" name="reset_worker_x" class="ltr" type="text" inputmode="url" placeholder="https://mora-reset.xxxx.workers.dev/reset-pass" value="${esc(/^https?:\/\//i.test(S.site.resetPassUrl||"")?S.site.resetPassUrl:"")}" autocomplete="off" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')">
 <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sm" data-act="saveResetUrl">💾 حفظ وسيط الاستعادة</button></div>
 <div class="mut" style="margin-top:6px">لو حظيته: الطالب اللي نسي كلمة السر يفتح صفحة الدخول → «نسيت كلمة السر؟» → يدخل رقمه + الكود اللي انت أصدرته من ملف الطالب + كلمة سر جديدة. (الكود بيتولّد من زرار «🔑 كود استعادة» في ملف الطالب عندك).</div>
+<label class="f" style="margin-top:12px">📚 رابط وسيط كتب الـ AI (Cloudflare Worker)</label>
+<input id="booksUrlIn" name="books_worker_x" class="ltr" type="text" inputmode="url" placeholder="https://mora-books.xxxx.workers.dev" value="${esc(/^https?:\/\//i.test(S.site.booksUrl||"")?S.site.booksUrl:"")}" autocomplete="off" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')">
+<label class="f" style="margin-top:6px">🔑 مفتاح أدمن الكتب (ADMIN_KEY بتاع الوسيط)</label>
+<input id="booksKeyIn" name="books_secret_x" class="ltr" type="text" style="-webkit-text-security:disc" placeholder="نفس الـ ADMIN_KEY اللي حطيته في Cloudflare" value="${esc((S.aiCfg&&S.aiCfg.booksKey)||"")}" autocomplete="off" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')">
+<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sm" data-act="saveBooksUrl">💾 حفظ الرابط</button><button class="btn sm" data-act="saveBooksKey">🔑 حفظ المفتاح</button><button class="btn sm gold" data-act="testBooksUrl">اختبار الوسيط</button></div>
+<div class="mut" style="margin-top:6px">ده اللي بيشغّل «اسأل من الكتب» للطلاب + توليد الامتحانات بالـ AI من الكتاب. ارفع books-worker.js على Cloudflare مع KV binding اسمه <b>KV</b> وحط سر <b>ADMIN_KEY</b> — الخطوات كاملة جوّه الملف.</div>
 <p id="pushStatus" class="mut" style="font-size:12px;margin:8px 0 0">حالة الإشعارات: ${typeof pushStateText==="function"?pushStateText():""}</p></div>
 <div class="card"><h3 style="margin-top:0">📞 تحسين وصول المكالمات (TURN — اختياري)</h3>
 <p class="mut" style="font-size:12px">لو المكالمة بترن وبتتوصل بس الصوت مش بيسمع على بعض الشبكات (داتا الموبايل)، سجّل مجاناً في metered.ca أو أي مزود TURN والصق البيانات هنا. لو سيبتها فاضية المكالمات بتشتغل زي ما هي.</p>
@@ -4055,7 +4173,7 @@ const uiPrompt=(msg,def,o)=>uiDialog(Object.assign({msg,input:true,def:def||""},
 
 /* ===== مرحلة 2: مفاتيح الأقسام + سجل تدقيق + حظر مؤقت + إعدادات AI محمية ===== */
 const FEATURES=[["chat","💬 التواصل (شات وجروبات)"],["calls","📞 المكالمات"],["games","🎮 الألعاب"],["fadaye7","😂 الفضائح"],["tanagha","💗 التناغه"],["books","📚 الكتب"],["asms","📝 التقييمات"],["ai","🤖 المساعد 么"],["life","🛒 المتجر والحيوان"],["progress","📊 تقدمي ولوحة الشرف"],["subjects","📚 المواد والامتحانات"]];
-const FEAT_ACT={openChats:"chat",openChat:"chat",startChat:"chat",startCall:"calls",openGames:"games",qbCreateRoom:"games",qbStartBot:"games",qbBot:"games",qbJoinRoom:"games",qbFriends:"games",openGameFriends:"games",openMath:"games",openXo:"games",openHang:"games",openSpin:"games",openReact:"games",openMemory:"games",openDraw:"games",openTanagha:"tanagha",openGallery:"tanagha",openFadaye7:"fadaye7",openBooks:"books",openAsms:"asms",openAI:"ai",openLife:"life",openProgress:"progress",openSubject:"subjects"};
+const FEAT_ACT={openChats:"chat",openChat:"chat",startChat:"chat",startCall:"calls",openGames:"games",qbCreateRoom:"games",qbStartBot:"games",qbBot:"games",qbJoinRoom:"games",qbFriends:"games",openGameFriends:"games",openMath:"games",openXo:"games",openHang:"games",openSpin:"games",openReact:"games",openMemory:"games",openDraw:"games",openTanagha:"tanagha",openGallery:"tanagha",openFadaye7:"fadaye7",openBooks:"books",openBag:"books",openAsms:"asms",openAI:"ai",openLife:"life",openProgress:"progress",openSubject:"subjects"};
 function featState(k){return !(S.features&&S.features[k]===false)}
 function featOn(k){return S.isAdmin||featState(k)}
 function featOfView(v){
@@ -4149,6 +4267,30 @@ const A={
     try{await setDoc(doc(db,"config","site"),{resetPassUrl:u},{merge:true});if(S.site)S.site.resetPassUrl=u;toast(u?"اتحفظ وسيط الاستعادة ✓":"اتشال وسيط الاستعادة",true)}
     catch(e){toast("فشل الحفظ",true)}
   },
+  async saveBooksUrl(){
+    if(!S.isAdmin)return;
+    const u=($("#booksUrlIn")&&$("#booksUrlIn").value||"").trim().replace(/\/+$/,"");
+    if(u&&!/^https:\/\/[^\s]+\.[^\s]+$/i.test(u)){toast("الرابط لازم يبدأ بـ https://",true);return}
+    try{await setDoc(doc(db,"config","site"),{booksUrl:u},{merge:true});if(S.site)S.site.booksUrl=u;toast(u?"اتحفظ وسيط كتب الـ AI ✓":"اتشال وسيط الكتب",true)}
+    catch(e){toast("فشل الحفظ",true)}
+  },
+  async saveBooksKey(){
+    if(!S.isAdmin)return;
+    const k=($("#booksKeyIn")&&$("#booksKeyIn").value||"").trim();
+    try{await setDoc(doc(db,"config","ai"),{booksKey:k},{merge:true});S.aiCfg={...(S.aiCfg||{}),booksKey:k};toast(k?"اتحفظ مفتاح الكتب ✓":"اتشال المفتاح",true)}
+    catch(e){toast("فشل حفظ المفتاح",true)}
+  },
+  async testBooksUrl(){
+    const u=(($("#booksUrlIn")&&$("#booksUrlIn").value)||(S.site&&S.site.booksUrl)||"").trim().replace(/\/+$/,"");
+    if(!/^https:\/\//i.test(u)){toast("الصق رابط وسيط الكتب الأول",true);return}
+    toast("جاري اختبار الوسيط…");
+    try{
+      const r=await fetch(u,{method:"GET"});
+      const j=await r.json().catch(()=>({}));
+      if(r.ok&&j.service==="books")toast("الوسيط شغّال ✓ "+(j.kv?"KV مربوط":"⚠ KV مش مربوط — راجع Bindings")+" · "+(j.llm?"الـ AI مربوط ✓":"⚠ الـ AI مش مربوط — راجع CHAT_URL"),true);
+      else toast("الرد غريب (حالة "+r.status+") — اتأكد إن ده وسيط الكتب",true);
+    }catch(e){toast("فشل الاتصال — اتأكد من الرابط",true)}
+  },
   async testPushUrl(){
     const u=(($("#pushUrlIn")&&$("#pushUrlIn").value)||(S.site&&S.site.pushUrl)||"").trim().replace(/\/+$/,"");
     if(!/^https:\/\//i.test(u)){toast("الصق رابط الوسيط الأول",true);return}
@@ -4187,7 +4329,7 @@ const A={
     try{
       await setDoc(doc(db,"config","ai"),{aiUrl:url,aiKey:key,proxyUrl:proxy},{merge:true});
       try{await updateDoc(doc(db,"config","site"),{aiUrl:deleteField(),aiKey:deleteField()})}catch(_){}
-      S.aiCfg={aiUrl:url,aiKey:key,proxyUrl:proxy};
+      S.aiCfg={aiUrl:url,aiKey:key,proxyUrl:proxy,booksKey:(S.aiCfg&&S.aiCfg.booksKey)||""};
       if(S.site){S.site.aiUrl=url;S.site.aiKey=key;S.site.aiProxy=proxy}
       toast((url||proxy)?"اتربط المساعد ✓":"اتشال الرابط — المحلي شغال",true);
     }catch(e){toast("فشل الحفظ")}
@@ -4382,6 +4524,171 @@ const A={
     const prev=S.books;S.books=(S.books||[]).filter(x=>x.id!==d.id);render(true);toast("🗑 تم حذف الكتاب",true);
     try{await deleteDoc(doc(db,"books",d.id))}catch(e){S.books=prev;render(true);window.__cancel=true;toast("فشل الحذف",true)}
   },
+  openBag(){
+    if(!bkUrl()){toast("خاصية الكتب لسه مش متظبطة من الأدمن",true);return}
+    if(!S.bagMsgs){try{S.bagMsgs=JSON.parse(localStorage.getItem("bag_msgs")||"null")||[]}catch(_){S.bagMsgs=[]}}
+    S.view="bag";render(true);
+  },
+  bagClear(){S.bagMsgs=[];try{localStorage.removeItem("bag_msgs")}catch(_){};render(true)},
+  async bagSend(){
+    const inp=$("#bagIn");if(!inp)return;
+    const q=(inp.value||"").trim();if(!q||S.bagBusy)return;
+    S.bagMsgs=(S.bagMsgs||[]);S.bagMsgs.push({role:"me",text:q,at:Date.now()});
+    S.bagBusy=true;render(true);
+    try{
+      const j=await bkApi("/ask",{q,uid:(S.user&&S.user.uid)||"anon"});
+      S.bagMsgs.push({role:"bot",text:j.reply||"…",cites:j.cites||[],at:Date.now()});
+    }catch(e){S.bagMsgs.push({role:"bot",text:"⚠ "+((e&&e.message)||"حصلت مشكلة — جرّب تاني"),at:Date.now()})}
+    S.bagBusy=false;
+    try{localStorage.setItem("bag_msgs",JSON.stringify(S.bagMsgs.slice(-40)))}catch(_){}
+    render(true);
+    requestAnimationFrame(()=>{const el=$("#bagLog");if(el)el.scrollTop=el.scrollHeight});
+  },
+  async bkUpload(d,el){
+    if(!S.isAdmin)return;
+    const f=el&&el.files&&el.files[0];if(!f)return;
+    if(!bkUrl()){toast("ظبّط وسيط الكتب من الإعدادات الأول",true);return}
+    S.bkProg="⏳ جاري تحميل قارئ الـ PDF…";render(true);
+    try{
+      const pdfjs=await ensurePdfjs();
+      S.bkProg="⏳ جاري قراءة الـ PDF…";render(true);
+      const buf=await f.arrayBuffer();
+      const pdf=await pdfjs.getDocument({data:buf}).promise;
+      const n=Math.min(pdf.numPages,400),pages=[];
+      for(let i=1;i<=n;i++){
+        const pg=await pdf.getPage(i);
+        const tc=await pg.getTextContent();
+        const t=tc.items.map(it=>it.str).join(" ").replace(/\s+/g," ").trim();
+        if(t.length>8)pages.push({p:i,t});
+        if(i%20===0){try{const pe=$("#bkProg");if(pe)pe.textContent="⏳ قرأت "+i+" من "+n+" صفحة…"}catch(_){}}
+      }
+      if(!pages.length)throw new Error("الـ PDF مافيهوش نص مقروء (غالبًا سكان صور) — جرّب كتاب نصه أصلي");
+      const id="bk"+Date.now().toString(36);
+      const title=(f.name||"كتاب").replace(/\.pdf$/i,"").replace(/[_-]+/g," ").trim().slice(0,80);
+      try{const pe=$("#bkProg");if(pe)pe.textContent="⏳ رافع "+pages.length+" صفحة للوسيط…"}catch(_){}
+      const j=await bkApi("/ingest",{id,title,pages},true);
+      S.bkProg="✓ اتحفظ «"+title+"» — "+j.pages+" صفحة · "+j.chunks+" مقطع للـ AI";
+      S.bkList=null;bkLoadList();
+      toast("الكتاب اتحفظ في وسيط الكتب ✓",true);
+    }catch(e){S.bkProg="⚠ "+((e&&e.message)||"فشل رفع الكتاب");toast("فشل رفع الكتاب",true)}
+    render(true);
+  },
+  bkRefresh(){S.bkList=null;bkLoadList();scheduleRender()},
+  async bkDel(d){
+    if(!S.isAdmin||!d.id)return;
+    if(!await uiConfirm("مسح الكتاب من الـ AI؟ (الملف الأصلي مش بيتمسح)"))return;
+    try{await bkApi("/del",{id:d.id},true);S.bkList=null;bkLoadList();toast("اتمسح من الوسيط ✓",true)}
+    catch(e){toast((e&&e.message)||"فشل المسح",true)}
+  },
+  async genExam(){
+    if(!S.isAdmin||S.genBusy)return;
+    const bookSel=$("#geBook"),id=bookSel&&bookSel.value;
+    if(!id){toast("ارفع كتاب للـ AI الأول من تبويب الكتب",true);return}
+    const count=Math.min(30,Math.max(3,+($("#geCount")&&$("#geCount").value)||10));
+    const level=($("#geLevel")&&$("#geLevel").value)||"متوسط";
+    const subjectKey=($("#geSubj")&&$("#geSubj").value)||"arabic";
+    const subject=($("#geSubject")&&$("#geSubject").value||"").trim();
+    const title=($("#geTitle")&&$("#geTitle").value||"").trim();
+    S.genBusy=true;S.genErr="";render(true);
+    try{
+      const j=await bkApi("/gen-exam",{id,count,level,subject,title},true);
+      S.genOut={questions:j.questions||[],title:title||("امتحان AI — "+(j.book||"كتاب")),subjectId:subjectKey};
+    }catch(e){S.genErr=(e&&e.message)||"فشل التوليد — جرّب تاني"}
+    S.genBusy=false;render(true);
+  },
+  async genExamSave(){
+    if(!S.isAdmin||!S.genOut)return;
+    try{
+      const qs=S.genOut.questions.map(q=>({q:q.q,o:q.o,a:q.a,page:q.page}));
+      await addDoc(collection(db,"exams"),{subject:S.genOut.subjectId||"arabic",title:S.genOut.title,minutes:Math.max(5,qs.length*2),passMark:0,shuffle:true,published:false,showAnswers:true,questions:qs,createdAt:serverTimestamp()});
+      toast("اتحفظ الامتحان (مخفي) — راجعه من القائمة وعدّله براحتك ✓",true);
+      S.genOut=null;S.genPrefill=null;S.tab="exams";render(true);
+    }catch(e){toast("فشل الحفظ",true)}
+  },
+  genExamClear(){S.genOut=null;S.genErr="";render(true)},
+  async agentSend(){
+    if(!S.isAdmin)return;
+    const inp=$("#agentIn");if(!inp)return;
+    const q=(inp.value||"").trim();if(!q||S.agentBusy)return;
+    S.agentMsgs=(S.agentMsgs||[]);S.agentMsgs.push({role:"me",text:q,at:Date.now()});
+    S.agentBusy=true;render(true);
+    try{
+      const ctx={
+        maintenance:!!(S.site&&S.site.maintenance),
+        students:(S.students||[]).slice(0,150).map(s=>({name:s.name,phone:s.phone,xp:s.xp||0})),
+        exams:(S.exams||[]).map(e=>({title:e.title,published:!!e.published})),
+        books:(S.bkList||[]).map(b=>({title:b.title,pages:b.pages}))
+      };
+      const sys=["أنت وكيل أدمن لمنصة تعليمية اسمها التفوق. مهمتك تحويل كلام الأدمن لخطة تنفيذ.",
+        'رجّع JSON فقط بدون أي كلام إضافي بالشكل: {"actions":[{"act":"..."}]}',
+        "الأفعال المتاحة حصريًا:",
+        '- broadcast: {"act":"broadcast","text":"نص الإشعار"}',
+        '- maintenance: {"act":"maintenance","on":true أو false}',
+        '- addxp: {"act":"addxp","phone":"01xxxxxxxxx","amount":رقم}',
+        '- publishexam: {"act":"publishexam","title":"عنوان الامتحان من القائمة"}',
+        '- hideexam: {"act":"hideexam","title":"..."}',
+        '- genexam: {"act":"genexam","book":"عنوان كتاب من القائمة","count":رقم,"subject":"اسم المادة"}',
+        '- answer: {"act":"answer","text":"رد نصي"} — للأسئلة اللي مش أوامر تنفيذ',
+        "بيانات المنصة دلوقتي:",JSON.stringify(ctx).slice(0,4000)].join("\n");
+      const hist=S.agentMsgs.slice(-8).map(m=>({role:m.role==="me"?"user":"assistant",content:String(m.text).slice(0,500)}));
+      const reply=await aiChatEndpoint(q,sys,hist);
+      const j=agentExtractJson(reply);
+      if(j&&Array.isArray(j.actions)&&j.actions.length){
+        S.agentPlan=j.actions.filter(a=>a&&typeof a.act==="string").slice(0,10);
+        S.agentMsgs.push({role:"bot",text:"جهزت خطة بـ "+S.agentPlan.length+" خطوة 👇 اقراها فوق واعتمد التنفيذ.",at:Date.now()});
+      }else if(j&&typeof j.act==="string"){
+        S.agentPlan=[j].slice(0,10);S.agentMsgs.push({role:"bot",text:"جهزت خطة بـ خطوة واحدة 👇",at:Date.now()});
+      }else{
+        S.agentMsgs.push({role:"bot",text:reply,at:Date.now()});
+      }
+    }catch(e){S.agentMsgs.push({role:"bot",text:"⚠ "+((e&&e.message)||"حصلت مشكلة — جرّب تاني"),at:Date.now()})}
+    S.agentBusy=false;render(true);
+    requestAnimationFrame(()=>{const el=$("#agLog");if(el)el.scrollTop=el.scrollHeight});
+  },
+  async agentRun(){
+    if(!S.isAdmin||!S.agentPlan)return;
+    const plan=S.agentPlan.slice(0,10);S.agentPlan=null;
+    const log=[];
+    for(const a of plan){
+      try{
+        if(a.act==="broadcast"){
+          const txt=String(a.text||"").slice(0,300);
+          await addDoc(collection(db,"notifications"),{uid:"__all__",broadcast:true,text:txt,createdAt:serverTimestamp(),fromAdmin:true});
+          const st=(S.students||[]).slice(0,80);
+          await Promise.all(st.map(s=>addDoc(collection(db,"notifications"),{uid:s.id,text:txt,createdAt:serverTimestamp(),fromAdmin:true,read:false})));
+          sendPush({type:"broadcast",title:"📢 التفوق",body:txt});
+          log.push("✓ اتبعت الإشعار لكل الطلاب");
+        }else if(a.act==="maintenance"){
+          await updateDoc(doc(db,"config","site"),{maintenance:!!a.on});
+          log.push("✓ وضع الصيانة: "+(a.on?"اتشغّل":"اتقف"));
+        }else if(a.act==="addxp"){
+          const ph=String(a.phone||"").replace(/\D/g,"");
+          const st=(S.students||[]).find(s=>String(s.phone||"")===ph);
+          if(!st)log.push("✗ مفيش طالب بالرقم "+ph);
+          else{await updateDoc(doc(db,"students",st.id),{xp:(st.xp||0)+(Number(a.amount)||0)});log.push("✓ اتضاف "+(Number(a.amount)||0)+" XP لـ "+(st.name||ph))}
+        }else if(a.act==="publishexam"||a.act==="hideexam"){
+          const want=String(a.title||"").trim();
+          if(!want){log.push("✗ عنوان الامتحان فاضي");continue}
+          const ex=(S.exams||[]).find(e=>(e.title||"").trim()===want)||(S.exams||[]).find(e=>(e.title||"").includes(want));
+          if(!ex)log.push("✗ ملقتش امتحان اسمه «"+want+"»");
+          else{await updateDoc(doc(db,"exams",ex.id),{published:a.act==="publishexam"});log.push("✓ "+(a.act==="publishexam"?"اتنشر":"اتخبّي")+": "+ex.title)}
+        }else if(a.act==="genexam"){
+          const pref={count:Math.min(30,Math.max(3,Number(a.count)||10)),subject:String(a.subject||"").slice(0,30),book:""};
+          const b=(S.bkList||[]).find(x=>(x.title||"").includes(String(a.book||"").trim()));
+          if(b)pref.book=b.id;
+          S.genPrefill=pref;S.tab="exams";
+          log.push("🎲 فتحتلك تبويب الامتحانات مع مولّد الأسئلة جاهز"+(b?" على «"+b.title+"»":"")+" — دوس «ولّد الأسئلة» هناك");
+        }else if(a.act==="answer"){
+          log.push("ℹ️ "+String(a.text||"").slice(0,400));
+        }else log.push("✗ فعل مش معروف: "+a.act);
+      }catch(e){log.push("✗ خطأ في خطوة: "+((e&&e.message)||e))}
+    }
+    S.agentMsgs=(S.agentMsgs||[]);
+    S.agentMsgs.push({role:"bot",text:log.join("\n"),at:Date.now()});
+    render(true);
+    requestAnimationFrame(()=>{const el=$("#agLog");if(el)el.scrollTop=el.scrollHeight});
+  },
+  agentClear(){S.agentPlan=null;render(true)},
   async broadcastNotif(){
     if(!S.isAdmin)return;
     const msg=await uiPrompt("نص الإشعار لكل الطلاب:");
@@ -8587,33 +8894,14 @@ function c3dNight(night,dt){
   L.key.color.setHex(night?0xaab8ff:0xfff0d8);
 }
 
-/* ===== v76: حزمة الهمّة — اقتباس اليوم + الهدية اليومية + وضع التركيز + ملاحظاتي ===== */
-var v76Q=[
-"النجاح مش صدفة — عادة صغيرة بتحافظ عليها كل يوم.",
-"ساعة تركيز صافي تغلب ليلة كاملة تشتت.",
-"لو حسيت إنك عايز تسيب، اعرف إن دي بالظبط اللحظة اللي بتتحدد فيها الشطارة.",
-"كل سؤال بتحله النهارده درجة بتاخدها بكرة.",
-"الطريق الصعب هو الصح — السهل مبيوصلكش لحاجة.",
-"مش المهم تبدأ بقوة… المهم ما تسيبش.",
-"عقلك زي العضلة: بيقوى بالتدريب مش بالمشاهدة.",
-"امتحان بكرة بيبدأ بمراجعة النهارده.",
-"الدرجات العالية عادة… مش حظ.",
-"نفسك تكون أحسن من امبارح — ده بس اللي يهم.",
-"التركيز عضلة: كل مرة تسيب الموبايل وتذاكر بتقواها.",
-"مفيش فشل في المحاولة… فيه بس وقفة قبل النجاح.",
-"اللي هيراجع بكرة هندم على اللي مذاكرش النهارده.",
-"التعلم مش حفظ — فهم بيتحول لحل.",
-"من غير خطة الجهد بيتبخر: اكتب اللي هتعمله دلوقتي.",
-"شوف نفسك فين بعد سنة من النهارده — وابدأ من دلوقتي."
-];
+/* ===== v76: حزمة الهمّة — الهدية اليومية + وضع التركيز + ملاحظاتي ===== */
 function v76Day(){const d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()}
-function v76Qotd(){const d=new Date();const s=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);return v76Q[s%v76Q.length]}
 function v76Time(){try{return new Date().toLocaleDateString("ar-EG",{day:"numeric",month:"long"})+" · "+new Date().toLocaleTimeString("ar-EG",{hour:"2-digit",minute:"2-digit"})}catch(_){return v76Day()}}
 function v76GiftTaken(){try{return localStorage.getItem("gift_day")===v76Day()}catch(_){return true}}
 function v76HomeExtras(){
   try{
     if(S.isAdmin)return "";
-    let out='<div class="card v76-quote"><span class="qi">✍️</span><div><b>اقتباس اليوم</b><div class="qtxt">'+v76Qotd()+'</div></div></div>';
+    let out='';
     if(!v76GiftTaken())out+='<div class="card v76-gift" data-act="giftOpen"><span class="gi">🎁</span><div class="gt"><b>هدية النهارده!</b><div class="mut" style="margin-top:2px">افتحها وخد XP وقطط — مرة واحدة كل يوم</div></div><span class="btn sm gold">افتح</span></div>';
     out+='<div class="v76-row"><button type="button" class="v76-tile" style="background:linear-gradient(135deg,#7C3AED,#4338CA)" data-act="openFocus"><span class="g">🎯</span><span><b>وضع التركيز</b><br><small>جلسة هدوء وبالوقت — وتجيب XP</small></span></button><button type="button" class="v76-tile" style="background:linear-gradient(135deg,#B45309,#92400E)" data-act="openNotes"><span class="g">📝</span><span><b>ملاحظاتي</b><br><small>سجّل أي حاجة مهمة على طول</small></span></button></div>';
     return out;
