@@ -2,9 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v75-pets">
+<meta name="sw-build" content="v77-rocket">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+<link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v75-pets";</script>
+<script>window.APP_BUILD="v77-rocket";</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <script>(function(){try{var m=localStorage.getItem("theme_mode"),c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#0B0A07",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
@@ -903,6 +907,32 @@ html[data-fx="lite"] .lf-card>div::after{display:none}
 .lf-pet.r-run .b{animation-duration:.2s}
 html[data-fx="lite"] .lf-room .star,html[data-fx="lite"] .lf-room .ffly,html[data-fx="lite"] .lf-room .bfly,html[data-fx="lite"] .lf-room .leaf{display:none}
 @media (prefers-reduced-motion:reduce){.lf-room .star,.lf-room .ffly,.lf-room .bfly,.lf-room .leaf,.lf-pet.dig .b,.lf-pet.wig .b{animation:none!important}.lf-room .leaf{display:none}}
+/* ===== v76: حزمة الهمّة — اقتباس اليوم + الهدية + التركيز + الملاحظات ===== */
+.v76-quote{display:flex;gap:10px;align-items:flex-start;border-color:var(--gold);background:var(--ybg);margin:10px 0}
+.v76-quote .qi{font-size:22px;line-height:1.2}
+.v76-quote .qtxt{margin-top:4px;font-weight:700;line-height:1.7}
+.v76-gift{display:flex;gap:12px;align-items:center;cursor:pointer;border-color:#F59E0B;background:linear-gradient(135deg,rgba(245,158,11,.14),rgba(217,119,6,.10));margin:10px 0;padding:14px}
+.v76-gift:active{transform:scale(.98)}
+.v76-gift .gi{font-size:30px;animation:v76shake 2.4s ease-in-out infinite}
+.v76-gift .gt{flex:1}
+@keyframes v76shake{0%,86%,100%{transform:rotate(0)}89%{transform:rotate(-10deg)}92%{transform:rotate(10deg)}95%{transform:rotate(-5deg)}}
+.v76-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+@media(max-width:420px){.v76-row{grid-template-columns:1fr}}
+.v76-tile{display:flex;align-items:center;gap:12px;text-align:start;border:0;border-radius:14px;padding:12px 14px;color:#fff;font:inherit;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.25);min-height:64px}
+.v76-tile:active{transform:scale(.98)}
+.v76-tile .g{font-size:26px;line-height:1}
+.v76-tile small{opacity:.88}
+.fc-card{text-align:center;padding:24px 14px}
+.fc-presets{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
+.fc-clock{font-size:66px;font-weight:900;letter-spacing:2px;font-variant-numeric:tabular-nums;line-height:1.1;margin:8px 0 16px}
+.fc-clock.run{color:var(--gold);text-shadow:0 0 26px rgba(245,197,66,.28)}
+.fc-bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+.fc-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#F59E0B,#FCD34D);border-radius:99px;transition:width .6s}
+.nt-compose textarea{width:100%;padding:12px;border-radius:12px;border:1.5px solid var(--line);font:inherit;resize:vertical;background:var(--bg);color:var(--ink);margin-bottom:10px;box-sizing:border-box}
+.nt-item .nt-x{white-space:pre-wrap;line-height:1.8}
+html[data-fx="lite"] .v76-gift .gi,html.lite .v76-gift .gi{animation:none}
+html[data-fx="lite"] .fc-bar i,html.lite .fc-bar i{transition:none}
+@media (prefers-reduced-motion:reduce){.v76-gift .gi{animation:none}.fc-bar i{transition:none}.v76-tile:active,.v76-gift:active{transform:none}}
 </style>
 </head>
 <body>
@@ -1832,7 +1862,7 @@ if(configured){
   onSnapshot(doc(db,"config","site"),s=>{
     const d=s.exists()?s.data():{};
     const was=S.site.maintenance;
-    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",pushUrl:d.pushUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0};
+    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",pushUrl:d.pushUrl||"",resetPassUrl:d.resetPassUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0};
     S.siteRaw=d;applyAiCfg();
     // أدمن طلب تسريع للجميع → امسح كاش الجهاز ده مرة
     try{
@@ -1984,7 +2014,7 @@ function render(force){
     h=S.view==="editAsm"?asmEditor():`<div class="wrap wide">${header(`<button class="btn ghost sm" data-act="home">الرئيسية</button><button class="btn ghost sm" data-act="logout">خروج</button>`)}${adminAsm()}</div>`;
   }else if(isBlockedP(S.profile)){h=blockedView()}
   else{
-    const m={games:gamesView,mathg:mathView,xo:xoView,hang:hangView,spin:spinView,react:reactView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView,life:lifeView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View,tanagha:tanaghaView,gallery:galleryView,groups:groupsView,groupThread:groupThreadView,ai:aiView,books:booksView};
+    const m={games:gamesView,mathg:mathView,xo:xoView,hang:hangView,spin:spinView,react:reactView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView,life:lifeView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View,tanagha:tanaghaView,gallery:galleryView,groups:groupsView,groupThread:groupThreadView,ai:aiView,books:booksView,focus:focusView,notes:notesView};
     let fn=m[S.view];
     {const __ft=featOfView(S.view);if(__ft&&!featOn(__ft))fn=featOffView}
     if(S.view==="tanaghaLock"||(isTgView(S.view)&&tanaghaState(S.profile)!=="approved"))fn=tanaghaLockedView;
@@ -2024,6 +2054,8 @@ function render(force){
     cr.style.display=noCr?"none":"";document.body.classList.toggle("has-credit",!noCr);
     cr.classList.toggle("nav",!!S.user&&!S.isAdmin&&!noCr&&!(typeof isAsmManager==="function"&&S.view==="asmAdmin"));
   }catch(_){}
+  let __chatKeepTop=0;
+  try{if(S.view==="chatThread"||S.view==="groupThread"){const __ck=chatLogEl();if(__ck)__chatKeepTop=__ck.scrollTop}}catch(_){}
   app.innerHTML=h||`<div class="wrap"><div class="card mut">جاري التحميل…</div></div>`;
   if(__aeId){const el=document.getElementById(__aeId);if(el){if(__aeVal!=null&&"value" in el)el.value=__aeVal;el.focus();if(__aePos!=null)try{el.setSelectionRange(__aePos,__aePos)}catch(_){}}}
 
@@ -2031,6 +2063,7 @@ function render(force){
   if(S.view==="chatThread"||S.view==="groupThread"){
     bindChatScroll();
     if(S.chatStickBottom!==false)scrollChatBottom(false);
+    else if(__chatKeepTop>0){const __nk=chatLogEl();if(__nk){try{__nk.scrollTop=__chatKeepTop}catch(_){}}}
     if(S.view==="chatThread"){
       const din=$("#dmIn");
       if(din&&!din._typingBound){
@@ -2075,18 +2108,27 @@ ${S.user?`<button class="btn ghost" data-act="logout">تسجيل خروج</butto
 
 function authView(){
   const reg=S.mode==="register"&&!S.adminLogin;
+  const rec=!!S.recoverMode&&!reg&&!S.adminLogin;
   return `<div class="wrap">${header()}
-<form class="card" data-submit="${reg?"doRegister":"doLogin"}" autocomplete="on">
-<h2>${S.adminLogin?"دخول الأدمن":reg?"إنشاء حساب جديد":"تسجيل الدخول"}</h2>
+<form class="card" data-submit="${reg?"doRegister":rec?"doRecover":"doLogin"}" autocomplete="on">
+<h2>${S.adminLogin?"دخول الأدمن":reg?"إنشاء حساب جديد":rec?"استعادة كلمة السر 🔑":"تسجيل الدخول"}</h2>
 ${reg?`<label class="f" for="nm">الاسم بالكامل</label><input id="nm" type="text" autocomplete="name" required>`:""}
+${rec?`<div class="mut" style="margin:0 0 8px">اطلب من الأدمن «كود استعادة» لرقمك، وبعدين اكتب رقمك + الكود + كلمة السر الجديدة.</div>
+<label class="f" for="rid">رقم التليفون</label>
+<input id="rid" class="ltr" type="tel" inputmode="numeric" autocomplete="username" placeholder="01xxxxxxxxx" required>
+<label class="f" for="rcode">كود الاستعادة (6 أرقام من الأدمن)</label>
+<input id="rcode" class="ltr" type="text" inputmode="numeric" placeholder="123456" maxlength="6" autocomplete="one-time-code" required>
+<label class="f" for="rpw">كلمة السر الجديدة (6+)</label>
+<input id="rpw" class="ltr" type="password" autocomplete="new-password" minlength="6" required>
+`:`
 <label class="f" for="id">رقم التليفون</label>
 <input id="id" class="ltr" type="tel" inputmode="numeric" autocomplete="username" placeholder="01xxxxxxxxx" required value="${esc((()=>{try{return localStorage.getItem("last_phone")||""}catch(_){return""}})())}">
 <label class="f" for="pw">كلمة السر</label>
-<input id="pw" class="ltr" type="password" autocomplete="${reg?"new-password":"current-password"}" required>
+<input id="pw" class="ltr" type="password" autocomplete="${reg?"new-password":"current-password"}" required>`}
 ${S.error?`<div class="err">${esc(S.error)}</div>`:""}
-<div style="margin-top:16px"><button class="btn block" id="go">${reg?"إنشاء الحساب":"دخول"}</button></div>
-${S.adminLogin?"":`<p style="font-size:14px;margin:12px 0 0;text-align:center"><a href="https://wa.me/201013905431?text=%D9%86%D8%B3%D9%8A%D8%AA%20%D9%83%D9%84%D9%85%D8%A9%20%D8%A7%D9%84%D8%B3%D8%B1%20%D9%88%D8%B1%D9%82%D9%85%D9%8A%20%D9%87%D9%88%3A%20" target="_blank" rel="noopener" style="color:var(--gold,#d4a017);font-weight:600">نسيت كلمة السر؟</a></p>`}
-${S.adminLogin?"":`<p class="mut" style="text-align:center;margin:14px 0 0">${reg?"عندك حساب؟":"أول مرة؟"} <a href="#" data-act="mode" style="color:var(--pri);font-weight:600">${reg?"سجّل دخول":"أنشئ حساب"}</a></p>`}
+<div style="margin-top:16px"><button class="btn block" id="go">${reg?"إنشاء الحساب":rec?"غيّر كلمة السر ✓":"دخول"}</button></div>
+${S.adminLogin?"":(rec?`<p style="font-size:14px;margin:12px 0 0;text-align:center"><a href="#" data-act="recoverToggle" style="color:var(--pri);font-weight:600">← رجوع لتسجيل الدخول</a></p>`:`<p style="font-size:14px;margin:12px 0 0;text-align:center"><a href="#" data-act="recoverToggle" style="color:var(--gold,#d4a017);font-weight:600">نسيت كلمة السر؟ خد كود استعادة من الأدمن</a></p>`)}
+${S.adminLogin||rec?"":`<p class="mut" style="text-align:center;margin:14px 0 0">${reg?"عندك حساب؟":"أول مرة؟"} <a href="#" data-act="mode" style="color:var(--pri);font-weight:600">${reg?"سجّل دخول":"أنشئ حساب"}</a></p>`}
 </form>${S.adminLogin?`<p style="text-align:center;margin:8px 0 0"><a href="#" data-act="studentLink" class="mut">رجوع</a></p>`:""}</div>`}
 
 /* ---------- الطالب ---------- */
@@ -2107,7 +2149,7 @@ function homeView(){ /* stage1 polish */
   const sess=peekExamSession();
   const resume=sess?`<div class="card" style="border-color:var(--gold);background:var(--ybg)"><b>▶ عندك امتحان متوقف</b><div class="mut" style="margin:4px 0">تقدر تكمّل من حيث وقفت — الإجابات محفوظة</div><button class="btn sm gold" data-act="resumeExam">استئناف الامتحان</button></div>`:"";
   return `<div class="wrap screen">${header(`<button class="btn ghost sm" data-act="logout">خروج</button>`)}
-<h2>أهلاً يا ${esc(((S.profile&&S.profile.name)||"طالب").split(" ")[0])}</h2><p class="mut">اختار المادة اللي عايز تمتحن فيها.</p>${inst||""}${skel}${an}${resume}
+<h2>أهلاً يا ${esc(((S.profile&&S.profile.name)||"طالب").split(" ")[0])}</h2><p class="mut">اختار المادة اللي عايز تمتحن فيها.</p>${inst||""}${skel}${an}${resume}${v76HomeExtras()}
 <div class="grid">${S.examsLoaded?(featOn("subjects")?SUBJECTS.map(s=>{const l=ex.filter(e=>e.subject===s.id),done=l.filter(e=>(S.attempts[e.id]||[]).length).length,p=l.length?Math.round(done/l.length*100):0;
   return `<button class="subj" style="background:linear-gradient(135deg,${s.c},${s.c2})" data-act="openSubject" data-id="${s.id}"><span class="g">${s.g}</span><b>${s.name}</b><small>${l.length?l.length+" امتحان · خلصت "+done:"مفيش امتحانات لسه"}</small><div class="sp"><i style="--w:${p}%"></i></div></button>`}).join(""):"")+(featOn("asms")?`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#0B5D57)" data-act="openAsms"><span class="g">A+</span><div><b>التقييمات</b><br><small>${S.asms.length?S.asms.length+" تقييم · حلول ونماذج":"مفيش تقييمات لسه"}</small></div></button>`:"")+(featOn("games")?`<button class="subj wide" style="background:linear-gradient(135deg,#166534,#B45309)" data-act="openGames"><span class="g">🎮</span><div><b>الألعاب</b><br><small>العب ضد الروبوت أو ضد صاحبك</small></div></button>`:"")+(featOn("fadaye7")?`<button class="subj wide" style="background:linear-gradient(135deg,#9D174D,#BE185D)" data-act="openFadaye7"><span class="g">😂</span><div><b>فضايح</b><br><small>${(S.fadaye7||[]).length?((Array.isArray(S.fadaye7)?S.fadaye7:[]).length)+" لقطة":"صور وفيديوهات من الأدمن"}</small></div></button>`:"")+(featOn("books")?`<button class="subj wide" style="background:linear-gradient(135deg,#1e3a5f,#0B5D57)" data-act="openBooks"><span class="g">📚</span><div><b>الكتب</b><br><small>PDF وملفات للتحميل</small></div></button>`:"")+(typeof isAsmManager==="function"&&isAsmManager()&&!S.isAdmin&&featOn("asms")?`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#6366F1)" data-act="openAsmAdmin"><span class="g">📝</span><div><b>إدارة التقييمات</b><br><small>مسؤول تقييمات</small></div></button>`:"")+(featOn("tanagha")?`<button class="subj wide" style="background:linear-gradient(135deg,#BE185D,#F472B6)" data-act="openTanagha"><span class="g">💗</span><div><b>خاص لأولاد التناغه</b><br><small>أجمل شلة · صورنا</small></div></button>`:""):SUBJECTS.map(()=>`<div class="sk"></div>`).join("")}</div>
 </div>${studentNav()}`}
@@ -2938,11 +2980,31 @@ function aiLocalReply(q){
   })();
 }
 
+/* v77: مكتبة ذاكرولي — كتب أساسية جاهزة للطالب */
+const DK_LIB=[
+{t:"الامتحان — تاريخ · أول ثانوي · ترم 1",s:"تاريخ 1ث",v:"./books/tarekh.pdf"},
+{t:"الامتحان — علوم متكاملة · أول ثانوي · ترم 1",s:"علوم متكاملة 1ث",v:"./books/oloom.pdf"},
+{t:"الامتحان — فلسفة · أول ثانوي · ترم 1",s:"فلسفة 1ث",v:"./books/falsafa.pdf"},
+{t:"المعاصر — رياضيات · أول ثانوي · ترم 1",s:"رياضيات 1ث",v:"./books/math.pdf"},
+{t:"كتاب كبير 1 (جوجل درايف)",s:"Drive · تحميل مباشر",v:"https://drive.google.com/file/d/1NrT5519BfkDYfNzsKKdcKbbX4TXT293U/view",d:"https://drive.google.com/uc?export=download&id=1NrT5519BfkDYfNzsKKdcKbbX4TXT293U"},
+{t:"كتاب كبير 2 (جوجل درايف)",s:"Drive · تحميل مباشر",v:"https://drive.google.com/file/d/1tpQcGnmQ85WGrZDCV-o4hfuYYUnR2sYy/view",d:"https://drive.google.com/uc?export=download&id=1tpQcGnmQ85WGrZDCV-o4hfuYYUnR2sYy"}
+];
 function booksView(){
   const list=S.books||[];
+  const lib=DK_LIB.map(b=>`<div class="card book-card">
+  <div class="ico">📘</div>
+  <div style="flex:1;min-width:0"><b>${esc(b.t)}</b>
+  <div class="mut">${esc(b.s)}</div></div>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    ${b.v?`<a class="btn sm" href="${esc(b.v)}" target="_blank" rel="noopener">فتح</a>`:""}
+    ${b.d?`<a class="btn ghost sm" href="${esc(b.d)}" target="_blank" rel="noopener">⬇ تنزيل</a>`:`<a class="btn ghost sm" href="${esc(b.v)}" download>⬇ تنزيل</a>`}
+  </div>
+</div>`).join("");
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
 <h2>📚 الكتب</h2>
 <p class="mut">ملفات وكتب للتحميل أو الفتح</p>
+<div class="card" style="border-color:var(--gold);background:var(--ybg)"><b>🎓 مكتبة ذاكرولي — أول ثانوي · ترم أول</b><div class="mut" style="margin-top:4px">كتب الامتحانات والملزمة جاهزة تحت — افتحها أو نزّلها على طول.</div></div>
+${lib}
 ${list.length?list.map(b=>{
   const href=b.b64?("data:application/pdf;base64,"+b.b64):(b.url&&String(b.url).indexOf("data:")!==0?b.url:"");
   return `<div class="card book-card">
@@ -3038,6 +3100,11 @@ function adminTanagha(){
   const all=(S.galleries||[]).filter(g=>g.kind===kind);
   const pend=all.filter(g=>g.status==="pending");
   const ok=all.filter(g=>g.status==="approved"||g.status==="published");
+  const gall=(S.galleries||[]);
+  const pendAll=gall.filter(g=>g.status==="pending").sort((a,b)=>tms(b.createdAt||0)-tms(a.createdAt||0));
+  const pendShilla=gall.filter(g=>g.status==="pending"&&g.kind==="shilla").length;
+  const pendSourna=gall.filter(g=>g.status==="pending"&&g.kind==="sourna").length;
+  const galKindName=k=>k==="sourna"?"صورنا 📸":"أجمل شلة 💗";
   const tq=(S.tgq||"").trim().toLowerCase();
   const students=(S.students||[]).filter(s=>s.tanaghaSave||(tq&&((s.name||"").toLowerCase().includes(tq)||String(s.phone||"").includes(tq)))).slice(0,40);
   const secKey="gal_"+kind;
@@ -3045,9 +3112,13 @@ function adminTanagha(){
   <h3 style="margin-top:0">خاص لأولاد التناغه 😂💗</h3>
   <p class="mut" style="margin:0">إدارة أجمل شلة وصورنا · الصور محمية من الحفظ افتراضيًا</p>
 </div>
+${pendAll.length?`<div class="card" style="border-color:var(--gold);background:var(--ybg)"><b>📥 طلبات معلقة (${pendAll.length}) — من كل الأقسام</b>
+${pendAll.slice(0,15).map(g=>`<div class="row" style="justify-content:space-between;margin-top:8px;gap:8px"><span>📌 ${galKindName(g.kind)} · <b>${esc(g.title||"بدون وصف")}</b> · ${esc(g.authorName||"طالب")} · ${fmt(g.createdAt)}</span><span style="display:flex;gap:6px"><button class="btn sm" data-act="approveGal" data-id="${g.id}">✓ موافقة</button><button class="btn ghost sm" data-act="rejectGal" data-id="${g.id}">✗ رفض</button></span></div>`).join("")}
+${pendAll.length>15?`<div class="mut" style="margin-top:6px">وفيه ${pendAll.length-15} طلب كمان تحت في التاب بتاع كل قسم.</div>`:""}
+</div>`:""}
 <div class="tabs" style="margin:12px 0">
-  <button class="tab ${kind==="shilla"?"on":""}" data-act="adminGalKind" data-kind="shilla">أجمل شلة 💗</button>
-  <button class="tab ${kind==="sourna"?"on":""}" data-act="adminGalKind" data-kind="sourna">صورنا 📸</button>
+  <button class="tab ${kind==="shilla"?"on":""}" data-act="adminGalKind" data-kind="shilla">أجمل شلة 💗${pendShilla?` <span class="badge">${pendShilla}</span>`:""}</button>
+  <button class="tab ${kind==="sourna"?"on":""}" data-act="adminGalKind" data-kind="sourna">صورنا 📸${pendSourna?` <span class="badge">${pendSourna}</span>`:""}</button>
 </div>
 <div class="card"><b>⬆ رفع صور (أدمن) — ${kind==="shilla"?"أجمل شلة 💗":"صورنا 📸"}</b>
   <p class="mut" style="margin:4px 0 0">بتتنشر فورًا من غير موافقة.</p>
@@ -3724,7 +3795,8 @@ ${roleBtns}
 <div style="flex:1"><h2 style="margin:0">${esc(s.name)} ${s.blocked?pill("موقوف","r"):pill("نشط","g")}</h2><div class="mut" dir="auto">${esc(s.phone)}</div></div></div>
 <div class="row" style="margin-top:12px;justify-content:flex-start">${s.phone?`<a class="btn ghost sm" href="tel:${esc(s.phone)}">📞 اتصال</a>`:""}${wa?`<a class="btn ghost sm" href="${wa}" target="_blank" rel="noopener">💬 واتساب</a>`:""}${s.blocked?pill("⛔ موقوف — مش هيقدر يدخل المنصة","r"):""}${(s.hiddenSections&&s.hiddenSections.length)?pill("🙈 مخفي عنه "+s.hiddenSections.length+" قسم (يدخل بس مش بيشوف القسم)","y"):""}
 <button class="btn ${s.blocked?"":"danger"} sm" data-act="${s.blocked?"unblock":"block"}" data-id="${s.id}">${s.blocked?"✅ فك الحظر (يرجع يستخدم المنصة)":"⛔ حظر نهائي (يقفل الحساب)"}</button>
-<button class="btn ghost sm" data-act="adminResetPass" data-id="${s.id}" data-phone="${esc(s.phone||"")}">🔑 كلمة سر جديدة</button></div></div>
+<button class="btn ghost sm" data-act="adminResetPass" data-id="${s.id}" data-phone="${esc(s.phone||"")}">🔑 كلمة سر جديدة</button>
+<button class="btn gold sm" data-act="adminRecoverCode" data-id="${s.id}" data-phone="${esc(s.phone||"")}">🔑 إصدار كود استعادة للطالب</button></div></div>
 <div class="card" id="resetPassBox" style="display:none"><h3>تعيين كلمة سر جديدة</h3>
 <p class="mut">للإيميل في Firebase: <b dir="ltr">${esc((s.phone||"")+"@eltafawoq.app")}</b></p>
 <label class="f">كلمة السر الجديدة (6+)</label>
@@ -3735,6 +3807,11 @@ ${roleBtns}
 </div>
 <p class="mut" style="margin-top:8px">لو ظهرت رسالة إن التغيير من الكونسول: Firebase → Authentication → Users → دور على الإيميل فوق → Reset password / Edit.</p>
 </div>
+${(S.recoverShown&&S.recoverShown.uid===s.id&&(Date.now()-(S.recoverShown.at||0)<14*60*1000))?`<div class="card" style="border-color:var(--gold);background:var(--ybg)"><h3 style="margin-top:0">🔑 كود الاستعادة — ${esc(S.recoverShown.phone||"")}</h3>
+<div style="font-size:34px;font-weight:900;letter-spacing:8px;text-align:center;margin:8px 0" dir="ltr">${esc(String(S.recoverShown.code))}</div>
+<div class="mut" style="text-align:center">صالح 15 دقيقة من الإصدار — ابعته للطالب وهو يدخله من صفحة الدخول → «نسيت كلمة السر؟»</div>
+<div style="text-align:center;margin-top:8px"><button class="btn sm" data-act="copyRecoverCode">📋 نسخ الكود</button></div>
+</div>`:""}
 <div class="card"><h3>بيانات الحساب</h3>
 <div class="tl"><span>🆕</span><span>تاريخ التسجيل: <b>${fmt(s.createdAt)||"-"}</b></span></div>
 <div class="tl"><span>🔑</span><span>آخر دخول: <b>${fmt(s.lastLogin)||"-"}</b></span></div>
@@ -3861,6 +3938,10 @@ function adminSettings(){
 <label class="f" style="margin-top:12px">🔔 رابط وسيط الإشعارات (Cloudflare Worker)</label>
 <input id="pushUrlIn" name="push_worker_x" class="ltr" type="text" inputmode="url" placeholder="https://mora-push.xxxx.workers.dev" value="${esc(/^https?:\/\//i.test(S.site.pushUrl||"")?S.site.pushUrl:"")}" autocomplete="off" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')">
 <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sm" data-act="savePushUrl">💾 حفظ الوسيط</button><button class="btn sm gold" data-act="testPushUrl">اختبار الوسيط</button></div>
+<label class="f" style="margin-top:12px">🔗 وسيط استعادة كلمة السر (Cloudflare Worker) — لخاصية «نسيت كلمة السر»</label>
+<input id="resetUrlIn" name="reset_worker_x" class="ltr" type="text" inputmode="url" placeholder="https://mora-reset.xxxx.workers.dev/reset-pass" value="${esc(/^https?:\/\//i.test(S.site.resetPassUrl||"")?S.site.resetPassUrl:"")}" autocomplete="off" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')">
+<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sm" data-act="saveResetUrl">💾 حفظ وسيط الاستعادة</button></div>
+<div class="mut" style="margin-top:6px">لو حظيته: الطالب اللي نسي كلمة السر يفتح صفحة الدخول → «نسيت كلمة السر؟» → يدخل رقمه + الكود اللي انت أصدرته من ملف الطالب + كلمة سر جديدة. (الكود بيتولّد من زرار «🔑 كود استعادة» في ملف الطالب عندك).</div>
 <p id="pushStatus" class="mut" style="font-size:12px;margin:8px 0 0">حالة الإشعارات: ${typeof pushStateText==="function"?pushStateText():""}</p></div>
 <div class="card"><h3 style="margin-top:0">📞 تحسين وصول المكالمات (TURN — اختياري)</h3>
 <p class="mut" style="font-size:12px">لو المكالمة بترن وبتتوصل بس الصوت مش بيسمع على بعض الشبكات (داتا الموبايل)، سجّل مجاناً في metered.ca أو أي مزود TURN والصق البيانات هنا. لو سيبتها فاضية المكالمات بتشتغل زي ما هي.</p>
@@ -4059,6 +4140,13 @@ const A={
     const u=($("#pushUrlIn")&&$("#pushUrlIn").value||"").trim().replace(/\/+$/,"");
     if(u&&!/^https:\/\/[^\s]+\.[^\s]+$/i.test(u)){toast("الرابط لازم يبدأ بـ https://",true);return}
     try{await setDoc(doc(db,"config","site"),{pushUrl:u},{merge:true});if(S.site)S.site.pushUrl=u;toast(u?"اتحفظ وسيط الإشعارات ✓":"اتشال الوسيط",true)}
+    catch(e){toast("فشل الحفظ",true)}
+  },
+  async saveResetUrl(){
+    if(!S.isAdmin)return;
+    const u=($("#resetUrlIn")&&$("#resetUrlIn").value||"").trim().replace(/\/+$/,"");
+    if(u&&!/^https:\/\/[^\s]+\.[^\s]+$/i.test(u)){toast("الرابط لازم يبدأ بـ https://",true);return}
+    try{await setDoc(doc(db,"config","site"),{resetPassUrl:u},{merge:true});if(S.site)S.site.resetPassUrl=u;toast(u?"اتحفظ وسيط الاستعادة ✓":"اتشال وسيط الاستعادة",true)}
     catch(e){toast("فشل الحفظ",true)}
   },
   async testPushUrl(){
@@ -4356,6 +4444,25 @@ const A={
     catch(e){if(st)st.roles=prev;render(true);window.__cancel=true;toast("فشل — حدّث rules",true)}
   },
   openMe(){S.view="me";render(true)},
+  async adminRecoverCode(d){
+    if(!S.isAdmin||!d.id)return;
+    const s=(S.students||[]).find(x=>x.id===d.id)||{};
+    const phone=(s.phone||d.phone||"").trim();
+    if(!/^01[0-9]{9}$/.test(phone)){toast("رقم الطالب مش موجود أو غلط");return}
+    if(!await uiConfirm("إصدار كود استعادة كلمة السر لـ "+phone+"؟\\n\\nالكود صالح 15 دقيقة والطالب بيدخله من صفحة الدخول → «نسيت كلمة السر؟».\\nملاحظة: لازم وسيط الاستعادة يكون متظبط في الإعدادات عشان يشتغل."))return;
+    const code=String(Math.floor(100000+Math.random()*900000));
+    try{
+      await updateDoc(doc(db,"students",d.id),{resetCode:code,resetExp:Date.now()+15*60*1000,resetPhone:phone,resetAt:serverTimestamp()});
+      S.recoverShown={uid:d.id,phone,code,at:Date.now()};
+      try{await navigator.clipboard.writeText(code);toast("الكود اتنسخ ✓",true)}catch(_){toast("الكود صدر ✓",true)}
+      render(true);
+    }catch(e){toast("فشل إصدار الكود: "+((e&&e.code)||""),true)}
+  },
+  async copyRecoverCode(){
+    const c=S.recoverShown&&S.recoverShown.code;
+    if(!c)return;
+    try{await navigator.clipboard.writeText(String(c));toast("الكود اتنسخ ✓",true)}catch(_){toast("انسخه يدوي: "+c)}
+  },
   adminResetPass(d){
     const box=document.getElementById("resetPassBox");
     if(box){box.style.display=box.style.display==="none"?"block":"none";const inp=$("#adminNewPw");if(inp){inp.value="";inp.focus()}}
@@ -5878,6 +5985,34 @@ const A={
     render(true);toast("✅ تم فك الحظر — الطالب رجع يستخدم المنصة",true);
     try{await updateDoc(doc(db,"students",d.id),{blocked:false,blockedUntil:0,blockReason:""})}
     catch(e){if(st&&prev)Object.assign(st,prev);render(true);window.__cancel=true;toast("مقدرتش أفك الحظر",true)}
+  },
+  recoverToggle(){S.recoverMode=!S.recoverMode;S.error="";render(true)},
+  async doRecover(){
+    if(!configured){S.error="المنصة تحت التعديل.";render(true);return}
+    const phone=norm($("#rid").value),code=($("#rcode").value||"").trim(),pw=$("#rpw").value;
+    if(!/^01[0-9]{9}$/.test(phone))return fail("رقم التليفون لازم 11 رقم ويبدأ بـ 01.");
+    if(!/^[0-9]{6}$/.test(code))return fail("الكود لازم 6 أرقام — خده من الأدمن.");
+    if(pw.length<6)return fail("كلمة السر لازم 6 حروف أو أرقام على الأقل.");
+    const base=((S.site&&S.site.resetPassUrl)||"").trim();
+    if(!base||!/^https:\/\//i.test(base)){S.error="نظام الاستعادة لسه مش متظبط من الأدمن — كلّمه يفعّل وسيط الاستعادة.";render(true);return}
+    const go=$("#go");if(go)go.disabled=true;S.error="";
+    try{
+      const r=await fetch(base,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({phone,code,password:pw})});
+      const j=await r.json().catch(()=>({}));
+      if(r.ok&&j&&j.ok){
+        S.recoverMode=false;S.error="";
+        try{localStorage.setItem("last_phone",phone)}catch(_){}
+        toast("كلمة السر اتغيرت ✓ سجّل دخول بالجديدة",true);
+        render(true);return;
+      }
+      S.error=(j&&j.error)||(r.status===404?"الوسيط مش موجود — راجع الرابط مع الأدمن.":"الكود غلط أو انتهى صلاحيته — خد كود جديد من الأدمن.");
+      if(go)go.disabled=false;
+      render(true);
+    }catch(e){
+      S.error="الوسيط مش بيرد — جرب تاني أو كلّم الأدمن.";
+      if(go)go.disabled=false;
+      render(true);
+    }
   },
   async doLogin(){
     if(!configured){S.error="المنصة تحت التعديل.";render(true);return}
@@ -7439,6 +7574,11 @@ function leave(){
   if(c.tabs<=10)addDoc(collection(db,"alerts"),{uid:S.user.uid,name:S.profile.name,phone:S.profile.phone,examId:c.exam.id,examTitle:c.exam.title,attempt:c.n,count:c.tabs,createdAt:serverTimestamp()}).catch(()=>{});
 }
 function back(){const c=S.cur;if(S.view==="exam"&&c&&!c.done&&c.away){c.away=false;liveUpdate({away:false})}}
+/* v77: قفل النسخ واللصق والكليك يمين وقت الامتحان — بدون إزعاج الطالب */
+document.addEventListener("copy",e=>{if(S.cur&&S.view==="exam"&&!S.isAdmin){e.preventDefault();toast("النسخ مقفول وقت الامتحان")}},true);
+document.addEventListener("cut",e=>{if(S.cur&&S.view==="exam"&&!S.isAdmin)e.preventDefault()},true);
+document.addEventListener("paste",e=>{if(S.cur&&S.view==="exam"&&!S.isAdmin){e.preventDefault();toast("اللصق مقفول وقت الامتحان")}},true);
+document.addEventListener("contextmenu",e=>{if(S.cur&&S.view==="exam"&&!S.isAdmin)e.preventDefault()},true);
 document.addEventListener("visibilitychange",()=>{
   if(document.hidden){
     try{if(S.cur&&!S.cur.done&&S.view==="exam")saveExamDraft()}catch(_){}
@@ -8446,6 +8586,123 @@ function c3dNight(night,dt){
   L.hemi.intensity=L.h0*(1-.5*k);L.key.intensity=L.k0*(1-.55*k);L.fill.intensity=L.f0*(1+.5*k);
   L.key.color.setHex(night?0xaab8ff:0xfff0d8);
 }
+
+/* ===== v76: حزمة الهمّة — اقتباس اليوم + الهدية اليومية + وضع التركيز + ملاحظاتي ===== */
+var v76Q=[
+"النجاح مش صدفة — عادة صغيرة بتحافظ عليها كل يوم.",
+"ساعة تركيز صافي تغلب ليلة كاملة تشتت.",
+"لو حسيت إنك عايز تسيب، اعرف إن دي بالظبط اللحظة اللي بتتحدد فيها الشطارة.",
+"كل سؤال بتحله النهارده درجة بتاخدها بكرة.",
+"الطريق الصعب هو الصح — السهل مبيوصلكش لحاجة.",
+"مش المهم تبدأ بقوة… المهم ما تسيبش.",
+"عقلك زي العضلة: بيقوى بالتدريب مش بالمشاهدة.",
+"امتحان بكرة بيبدأ بمراجعة النهارده.",
+"الدرجات العالية عادة… مش حظ.",
+"نفسك تكون أحسن من امبارح — ده بس اللي يهم.",
+"التركيز عضلة: كل مرة تسيب الموبايل وتذاكر بتقواها.",
+"مفيش فشل في المحاولة… فيه بس وقفة قبل النجاح.",
+"اللي هيراجع بكرة هندم على اللي مذاكرش النهارده.",
+"التعلم مش حفظ — فهم بيتحول لحل.",
+"من غير خطة الجهد بيتبخر: اكتب اللي هتعمله دلوقتي.",
+"شوف نفسك فين بعد سنة من النهارده — وابدأ من دلوقتي."
+];
+function v76Day(){const d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()}
+function v76Qotd(){const d=new Date();const s=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);return v76Q[s%v76Q.length]}
+function v76Time(){try{return new Date().toLocaleDateString("ar-EG",{day:"numeric",month:"long"})+" · "+new Date().toLocaleTimeString("ar-EG",{hour:"2-digit",minute:"2-digit"})}catch(_){return v76Day()}}
+function v76GiftTaken(){try{return localStorage.getItem("gift_day")===v76Day()}catch(_){return true}}
+function v76HomeExtras(){
+  try{
+    if(S.isAdmin)return "";
+    let out='<div class="card v76-quote"><span class="qi">✍️</span><div><b>اقتباس اليوم</b><div class="qtxt">'+v76Qotd()+'</div></div></div>';
+    if(!v76GiftTaken())out+='<div class="card v76-gift" data-act="giftOpen"><span class="gi">🎁</span><div class="gt"><b>هدية النهارده!</b><div class="mut" style="margin-top:2px">افتحها وخد XP وقطط — مرة واحدة كل يوم</div></div><span class="btn sm gold">افتح</span></div>';
+    out+='<div class="v76-row"><button type="button" class="v76-tile" style="background:linear-gradient(135deg,#7C3AED,#4338CA)" data-act="openFocus"><span class="g">🎯</span><span><b>وضع التركيز</b><br><small>جلسة هدوء وبالوقت — وتجيب XP</small></span></button><button type="button" class="v76-tile" style="background:linear-gradient(135deg,#B45309,#92400E)" data-act="openNotes"><span class="g">📝</span><span><b>ملاحظاتي</b><br><small>سجّل أي حاجة مهمة على طول</small></span></button></div>';
+    return out;
+  }catch(_){return ""}
+}
+/* --- وضع التركيز --- */
+function focusState(){if(!S.focus)S.focus={mins:25,left:25*60,run:false,fin:false};if(S.focus._iv==null)S.focus._iv=null}
+function focusStopIv(){try{if(S.focus&&S.focus._iv){clearInterval(S.focus._iv);S.focus._iv=null}}catch(_){}}
+function focusFmt(s){s=Math.max(0,s|0);const m=Math.floor(s/60),x=s%60;return (m<10?"0":"")+m+":"+(x<10?"0":"")+x}
+function v76FocusDone(mins){
+  try{navigator.vibrate&&navigator.vibrate([30,60,30])}catch(_){}
+  let tot=0;try{tot=(+(localStorage.getItem("focus_min_total")||0))+mins;localStorage.setItem("focus_min_total",String(tot))}catch(_){}
+  const dk=v76Day();let dn=0;try{dn=(+(localStorage.getItem("focus_cnt_"+dk)||0))+1;localStorage.setItem("focus_cnt_"+dk,String(dn))}catch(_){}
+  toast("خلصت جلسة تركيز "+mins+" دقيقة 🎉",true);
+  try{if(typeof lfBurst==="function")lfBurst("🎉",8)}catch(_){}
+  try{if(typeof lfSfx==="function")lfSfx("coin")}catch(_){}
+  try{addXP(Math.min(15,Math.max(6,Math.round(mins/5))),"focus_session")}catch(_){}
+  try{if(typeof lfAdd==="function")lfAdd(Math.min(30,Math.round(mins/5)*3),"تركيز",true)}catch(_){}
+  render(true);
+}
+function focusView(){
+  focusState();const f=S.focus;
+  let tot=0,dn=0;try{tot=+(localStorage.getItem("focus_min_total")||0);dn=+(localStorage.getItem("focus_cnt_"+v76Day())||0)}catch(_){}
+  const presets=[15,25,50].map(m=>`<button type="button" class="btn sm ${f.mins===m?"gold":"ghost"}" data-act="focusPick" data-m="${m}" ${f.run?"disabled":""}>${m} دقيقة</button>`).join("");
+  const pct=Math.round((1-f.left/(f.mins*60))*100);
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
+<h2>🎯 وضع التركيز</h2><p class="mut">اختار مدة الجلسة وشغّل العدّاد — سيب الموبايل وركّز. كل جلسة كاملة بتجيب XP وقطط.</p>
+<div class="card fc-card">
+<div class="fc-presets">${presets}</div>
+<div class="fc-clock ${f.run?"run":""}" id="fcClock">${focusFmt(f.left)}</div>
+<div class="fc-bar"><i id="fcBar" style="width:${pct}%"></i></div>
+<div class="row" style="justify-content:center;margin-top:16px">
+${f.fin?`<button class="btn gold" data-act="focusReset">🎉 خلصت! ابدأ جلسة جديدة</button>`:f.run?`<button class="btn" data-act="focusToggle">⏸ وقفة</button>`:`<button class="btn gold" data-act="focusToggle">${f.left<f.mins*60?"▶ كمّل التركيز":"▶ ابدأ التركيز"}</button>`}
+${!f.fin&&!f.run&&f.left<f.mins*60?`<button class="btn ghost" data-act="focusReset">↺ من الأول</button>`:""}
+</div>
+</div>
+<div class="card"><b>📈 إحصائيات تركيزك</b><div class="mut" style="margin-top:6px">النهارده: <b>${dn}</b> جلسة · إجمالي دقايق التركيز: <b>${tot}</b> دقيقة</div></div>
+</div>${studentNav()}`;
+}
+/* --- ملاحظاتي --- */
+function notesLoad(){try{return JSON.parse(localStorage.getItem("my_notes_v76")||"[]")||[]}catch(_){return []}}
+function notesSave(a){try{localStorage.setItem("my_notes_v76",JSON.stringify(a))}catch(_){}}
+function notesView(){
+  const a=notesLoad();
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
+<h2>📝 ملاحظاتي</h2><p class="mut">اكتب أي حاجة محتاج تفتكرها — واجب، ميعاد، حاجة مهمة. محفوظة على موبايلك بس ومش بتتبعت لأي حد.</p>
+<div class="card nt-compose"><textarea id="noteIn" rows="3" dir="auto" placeholder="اكتب ملاحظتك هنا..."></textarea><button type="button" class="btn sm gold" data-act="noteAdd">➕ حفظ الملاحظة</button></div>
+${a.length?a.map((n,i)=>`<div class="card nt-item"><div class="nt-x" dir="auto">${esc(n.x)}</div><div class="row" style="justify-content:space-between;margin-top:8px"><span class="mut" style="font-size:12px">${esc(n.t||"")}</span><button type="button" class="btn ghost sm" data-act="noteDel" data-i="${i}">🗑 حذف</button></div></div>`).join(""):`<div class="card empty"><div class="ei">🗒️</div><b>مفيش ملاحظات لسه</b><div class="mut" style="margin:8px auto 14px">أول ملاحظة هتكتبها هتظهر هنا.</div></div>`}
+</div>${studentNav()}`;
+}
+/* --- أفعال v76 --- */
+Object.assign(A,{
+  giftOpen(){
+    if(v76GiftTaken())return;
+    try{localStorage.setItem("gift_day",v76Day())}catch(_){}
+    const coins=10+Math.floor(Math.random()*21);
+    try{navigator.vibrate&&navigator.vibrate(20)}catch(_){}
+    try{if(typeof lfBurst==="function")lfBurst("🎁",10)}catch(_){}
+    try{if(typeof lfAdd==="function")lfAdd(coins,"هدية",true)}catch(_){}
+    toast("🎉 فتحت هدية النهارده! +"+coins+" 🪙 و +8 XP",true);
+    try{addXP(8,"daily_gift")}catch(_){}
+    render(true);
+  },
+  openFocus(){focusStopIv();focusState();S.view="focus";render(true)},
+  focusPick(d){focusStopIv();focusState();const m=Math.max(5,Math.min(120,+d.m||25));S.focus={mins:m,left:m*60,run:false,fin:false,_iv:null};render(true)},
+  focusToggle(){
+    focusState();const f=S.focus;if(f.fin)return;
+    if(f.run){focusStopIv();f.run=false;render(true);return}
+    if(f.left<=0)f.left=f.mins*60;
+    f.run=true;render(true);
+    f._iv=setInterval(()=>{
+      const g=S.focus;if(!g)return;
+      if(S.view!=="focus"||!g.run){focusStopIv();if(g)g.run=false;return}
+      g.left--;
+      const c=document.getElementById("fcClock");if(c)c.textContent=focusFmt(g.left);
+      const b=document.getElementById("fcBar");if(b)b.style.width=(Math.round((1-g.left/(g.mins*60))*100))+"%";
+      if(g.left<=0){focusStopIv();g.run=false;g.fin=true;v76FocusDone(g.mins)}
+    },1000);
+  },
+  focusReset(){focusStopIv();focusState();S.focus.left=S.focus.mins*60;S.focus.run=false;S.focus.fin=false;render(true)},
+  openNotes(){S.view="notes";render(true)},
+  noteAdd(){
+    const el=document.getElementById("noteIn");const v=el?String(el.value||"").trim():"";
+    if(!v){toast("اكتب حاجة الأول");return}
+    const a=notesLoad();a.unshift({x:v.slice(0,2000),t:v76Time()});notesSave(a);
+    toast("اتبعتت الملاحظة ✓",true);render(true);
+  },
+  noteDel(d){const a=notesLoad();const i=+d.i;if(!(i>=0&&i<a.length))return;a.splice(i,1);notesSave(a);render(true)}
+});
 
 </script>
 <script>

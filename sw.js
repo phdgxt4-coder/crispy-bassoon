@@ -1,6 +1,6 @@
-/* التفوق SW — v75 — arcade games + network-first HTML + GLB pets */
-const CACHE = "eltafawoq-v75";
-const BUILD = "20261019-v75";
+/* التفوق SW — v77 — rocket: instant-cache HTML + recovery-ready */
+const CACHE = "eltafawoq-v77";
+const BUILD = "20261019-v77";
 const PETS = [];
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
@@ -171,19 +171,28 @@ self.addEventListener("fetch", (e) => {
         /\/crispy-bassoon\/?$/.test(url.pathname)));
 
   if (isNav) {
+    /* v77 rocket: فتح فوري من الكاش + تحديث في الخلفية — أسرع إحساس ممكن */
     e.respondWith(
       (async () => {
         const cache = await caches.open(CACHE);
+        const cached = await cache.match("./index.html");
+        /* حدّث في الخلفية دايماً — النسخة الجديدة تظهر من المرة الجاية */
+        fetch(e.request, { cache: "no-store" })
+          .then((res) => {
+            if (isHtmlResponse(res)) cache.put("./index.html", res.clone()).catch(() => {});
+          })
+          .catch(() => {});
+        if (cached) return cached;
         try {
           const ctl = new AbortController();
           const t = setTimeout(() => ctl.abort(), 6000);
-          const res = await fetch(e.request, { cache: "no-cache", signal: ctl.signal });
+          const res = await fetch(e.request, { cache: "no-store", signal: ctl.signal });
           clearTimeout(t);
           if (isHtmlResponse(res)) cache.put("./index.html", res.clone()).catch(() => {});
           return res;
         } catch (_) {
-          const cached = await cache.match("./index.html");
-          return cached || new Response("<h1>التفوق</h1><p>مفيش نت — افتح تاني</p>", {
+          const cached2 = await cache.match("./index.html");
+          return cached2 || new Response("<h1>التفوق</h1><p>مفيش نت — افتح تاني</p>", {
             headers: { "Content-Type": "text/html; charset=utf-8" }
           });
         }
