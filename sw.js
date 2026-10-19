@@ -1,6 +1,6 @@
-/* التفوق SW — v68 — arcade games + network-first HTML + GLB pets */
-const CACHE = "eltafawoq-v68";
-const BUILD = "20261018-v68";
+/* التفوق SW — v75 — arcade games + network-first HTML + GLB pets */
+const CACHE = "eltafawoq-v75";
+const BUILD = "20261019-v75";
 const PETS = [];
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");

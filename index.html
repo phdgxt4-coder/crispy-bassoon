@@ -2,9 +2,9 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v72-games">
+<meta name="sw-build" content="v75-pets">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v72-games";</script>
+<script>window.APP_BUILD="v75-pets";</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <script>(function(){try{var m=localStorage.getItem("theme_mode"),c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#0B0A07",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
@@ -880,6 +880,29 @@ html.fx-hidden *,html.fx-hidden *::before,html.fx-hidden *::after{animation-play
 .lf-card .xpb i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--pri),var(--gold));animation:v55fill 1s ease-out}
 @keyframes v55fill{from{width:0}}
 html[data-fx="lite"] .lf-card>div::after{display:none}
+/* ===== v75: pet motion pack + garden life ===== */
+.lf-room .star{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;box-shadow:0 0 6px 1px rgba(255,255,255,.8);opacity:.9;animation:twk 2.8s ease-in-out infinite;pointer-events:none;z-index:5}
+@keyframes twk{0%,100%{opacity:.95;transform:scale(1)}50%{opacity:.2;transform:scale(.55)}}
+.lf-room .ffly{position:absolute;width:5px;height:5px;border-radius:50%;background:#ffe97a;box-shadow:0 0 9px 2px rgba(255,233,122,.8);pointer-events:none;z-index:5;animation:fflym 6s ease-in-out infinite alternate}
+@keyframes fflym{0%{transform:translate(0,0);opacity:.2}30%{opacity:1}100%{transform:translate(30px,-22px);opacity:.7}}
+.lf-room .bfly{position:absolute;left:-6%;font-size:15px;line-height:1;pointer-events:none;z-index:3;animation:bflypath linear infinite;filter:drop-shadow(0 2px 3px rgba(0,0,0,.2))}
+@keyframes bflypath{0%{left:-6%}100%{left:106%}}
+.lf-room .bfly::after{content:"🦋";display:block;animation:bflybob 2.1s ease-in-out infinite alternate,bflyflap .4s ease-in-out infinite}
+@keyframes bflybob{from{transform:translateY(0)}to{transform:translateY(-16px)}}
+@keyframes bflyflap{50%{transform:scaleX(.35)}}
+.lf-room .bfly.flee{filter:brightness(1.3) drop-shadow(0 0 6px rgba(255,255,160,.9));animation-duration:6s!important}
+.lf-room .leaf{position:absolute;top:-22px;font-size:15px;line-height:1;pointer-events:none;z-index:1;animation:leaffall linear forwards}
+@keyframes leaffall{0%{transform:translate(0,-20px) rotate(0)}30%{transform:translate(24px,80px) rotate(90deg)}60%{transform:translate(-16px,160px) rotate(200deg)}100%{transform:translate(20px,268px) rotate(330deg);opacity:.25}}
+.lf-room .s-plant{animation-duration:3.4s}
+.lf-room .s-bush,.lf-room .s-bush2{transform-origin:bottom;animation:lfsway 4.2s ease-in-out infinite alternate}
+.lf-pet .b{will-change:transform}
+.lf-pet.dig .b{animation:lfdig .4s ease-in-out infinite}
+@keyframes lfdig{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-5px) rotate(-7deg)}}
+.lf-pet.wig .b{animation:lftig .8s cubic-bezier(.3,1.5,.5,1)}
+@keyframes lftig{0%,100%{transform:rotate(0)}25%{transform:rotate(-9deg)}60%{transform:rotate(8deg)}}
+.lf-pet.r-run .b{animation-duration:.2s}
+html[data-fx="lite"] .lf-room .star,html[data-fx="lite"] .lf-room .ffly,html[data-fx="lite"] .lf-room .bfly,html[data-fx="lite"] .lf-room .leaf{display:none}
+@media (prefers-reduced-motion:reduce){.lf-room .star,.lf-room .ffly,.lf-room .bfly,.lf-room .leaf,.lf-pet.dig .b,.lf-pet.wig .b{animation:none!important}.lf-room .leaf{display:none}}
 </style>
 </head>
 <body>
@@ -892,6 +915,8 @@ html[data-fx="lite"] .lf-card>div::after{display:none}
     <div class="splash-bar"><i></i></div>
   </div>
 </div>
+<style>html.lite *,html.lite *::before,html.lite *::after{animation:none!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}html.lite canvas#bgfx,html.lite .bgfx{display:none!important}</style>
+<script>(function(){try{var c=navigator.connection||{},weak=(navigator.deviceMemory&&navigator.deviceMemory<=2)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2)||c.saveData;var m=localStorage.getItem("lite_mode");if(m==="1"||(m!=="0"&&weak))document.documentElement.classList.add("lite")}catch(e){}})()</script>
 <div id="app"></div><div id="verBadge">v66</div>
 <div id="toast" role="status" aria-live="polite"></div>
 
@@ -1934,7 +1959,7 @@ async function clearLocalSpeedCache(reason){
   return true;
 }
 function render(force){
-  if(!force&&(S.view==="exam"||S.view==="editExam"||S.view==="editAsm"))return;
+  if(!force&&(S.view==="exam"||S.view==="editExam"||S.view==="editAsm"||S.view==="chatThread"||S.view==="groupThread"))return;
   if(!force){
     if(__rendPend)return;
     __rendPend=true;
@@ -4377,7 +4402,8 @@ const A={
     toast("جاري تسريع المنصة…");
     try{
       await clearLocalSpeedCache("manual");
-      toast("تم مسح الكاش — هتحدث ✓",true);
+      try{localStorage.setItem("lite_mode","1")}catch(_){}
+      toast("تم مسح الكاش + تفعيل الوضع الخفيف — هتحدث ✓",true);
       setTimeout(function(){location.reload()},500);
     }catch(e){toast("تعذر المسح — حدّث الصفحة يدويًا")}
   },
@@ -4627,7 +4653,7 @@ const A={
       await updateDoc(doc(db,"conversations",cid,"msgs",d.id),{deleted:true,text:"",img:null});
       const m=(S.chatMsgs||[]).find(x=>x.id===d.id);
       if(m){m.deleted=true;m.text="";m.img=null}
-      if(S.view==="chatThread")scheduleRender();
+      if(S.view==="chatThread")scheduleRender(true);
       toast("اتمسحت");
     }catch(e){console.error(e);toast("مقدرش أحذف — تأكد من القواعد")}
   },
@@ -5963,6 +5989,9 @@ function clearDmTyping(){
 function signalDmTyping(){
   if(!S.user||!S.chatThread)return;
   clearTimeout(window.__typingT);
+  const __now=Date.now();
+  if(__now-(window.__typingLast||0)<3000){clearTimeout(window.__typingClear);window.__typingClear=setTimeout(clearDmTyping,2500);return}
+  window.__typingLast=__now;
   window.__typingT=setTimeout(()=>{
     try{
       const cid=convIdFor(S.user.uid,S.chatThread.uid);
@@ -6588,11 +6617,15 @@ function listenMyChats(){
       return {id:c.id,otherUid,otherName,otherAvatar,lastText:c.lastText,lastAt:c.lastAt||c.updatedAt,unread};
     });
     const apply=()=>{
+      const __old=window.__chatSig;
       S.chats=build();
       S.unreadChat=S.chats.reduce((a,c)=>a+(c.unread||0),0);
+      const __sig=S.chats.map(c=>c.id+"|"+(c.lastText||"")+"|"+tms(c.lastAt)+"|"+c.unread+"|"+c.otherName).join("~");
+      window.__chatSig=__sig;
+      if(__old===__sig)return;
       try{localStorage.setItem(chatsCacheKey(),JSON.stringify(S.chats.map(c=>({id:c.id,otherUid:c.otherUid,otherName:c.otherName,otherAvatar:(c.otherAvatar&&String(c.otherAvatar).length<5000)?c.otherAvatar:null,lastText:c.lastText,lastAt:c.lastAt&&c.lastAt.seconds?{seconds:c.lastAt.seconds}:(typeof c.lastAt==="number"?c.lastAt:null),unread:c.unread}))))}catch(_){}
       if(S.view==="chatList"||S.view==="home")scheduleRender();
-      else{const nav=document.querySelector('nav.bot');if(nav&&S.unreadChat)scheduleRender()}
+      else{try{const b=document.querySelector('nav.bot [data-act="openChats"]');if(b){let sp=b.querySelector(".badge");if(S.unreadChat){if(!sp){sp=document.createElement("span");sp.className="badge";b.appendChild(sp);b.insertBefore(document.createTextNode(" "),sp)}sp.textContent=S.unreadChat}else if(sp)sp.remove()}}catch(_){}}
     };
     apply(); // فوري — من غير انتظار بيانات الزملاء
     // هات الزملاء الناقصين بالتوازي، وبعدها حدّث مرة واحدة
@@ -7694,7 +7727,14 @@ Object.assign(A,{
   openLife(){S.view="life";render(true)},
   lifeTab(d){S.lifeTab=d.t;render(true)},lifeCat(d){S.lifeCat=d.c;render(true)},
   async pickPet(d){if(!LF_PETS.includes(d.e))return;const n=await uiPrompt("اسم رفيقك؟","Spark");if(n===null)return;S.life.pet={t:d.e,n:(n||"Spark").slice(0,14)};lfSave();lfSfx("win");render(true);if((S.life.q.done||[]).length||S.life.tot.ex>0||S.life.ach.length)setTimeout(lfHatch,500)},
-  petTap(d,b){const el=b.closest?b.closest(".lf-pet"):b;if(!el)return;el.classList.remove("jump","happy");void el.offsetWidth;el.classList.add("jump","happy");setTimeout(()=>el.classList.remove("happy"),1800);const h=document.createElement("span");h.className="lf-heart";h.textContent="💖";h.style.cssText="left:50%;top:-10px";el.appendChild(h);setTimeout(()=>h.remove(),1100);lfSfx("coin")},
+  petTap(d,b){const el=b.closest?b.closest(".lf-pet"):b;if(!el)return;
+    el.classList.remove("jump","happy");void el.offsetWidth;el.classList.add("jump","happy");
+    try{navigator.vibrate&&navigator.vibrate(12)}catch(_){}
+    setTimeout(()=>el.classList.remove("happy"),1800);
+    for(let i=0;i<2;i++){const h=document.createElement("span");h.className="lf-heart";h.textContent="💖";
+      h.style.cssText="left:"+(40+i*20)+"%;top:-10px;animation-delay:"+(i*160)+"ms";el.appendChild(h);
+      setTimeout(()=>h.remove(),1300)}
+    lfSfx("coin")},
   buy(d){const it=lfItem(d.id);if(!it||!S.life||!lfAvail(it))return;if(S.shopCfg===undefined){toast("ثانية واحدة… بحمّل الأسعار");return}const l=S.life;if(xpLevel((S.profile||{}).xp||0)<it.lv)return;const disc=lfStage((S.profile||{}).xp)>=5?.9:1,base=lfPrice(it),pr=Math.round(base*disc);if(l.inv.includes(it.id)||l.coins<pr)return;l.coins-=pr;l.inv.push(it.id);l.paid=l.paid||{};l.paid[it.id]=[base,pr];lfEquipSet(it,true);lfApply();lfSave();lfSfx("buy");lfBurst("✨",8);toast(`اشتريت ${it.n} ${it.i}`,true);lfBought(it);render(true)},
   equip(d){const it=lfItem(d.id);if(!it||!S.life.inv.includes(it.id))return;lfEquipSet(it,!lfOn(it));lfBurst("✨",4);lfSfx("coin");lfApply();lfSave();render(true)},
   openBox(){const l=S.life;if(lfCountdown())return;l.lucky=Date.now();const r=Math.random()*100;let pz;const own=c=>LF_SHOP.filter(x=>x.c===c&&!l.inv.includes(x.id)&&lfAvail(x));const pick=c=>{const a=own(c);return a.length?a[Math.floor(Math.random()*a.length)]:null};
@@ -7872,62 +7912,128 @@ function lfRoomHtml(l,xp,uid){
   const ex=(eq.pets||[]).map(lfItem).filter(Boolean).slice(0,3).map((it,i)=>`<div class="lf-pet ex ${LF_FLY.includes(it.k)?"fly":""}" data-act="petTap" data-k="e${i}" data-st="4" style="--x:${px("e"+i,[24,72,58][i])}%;font-size:30px"><span class="b pt">${lfAnyPet(it.k,4)}</span><i class="sh"></i></div>`).join("");
   return `<div class="lf-room rm3 ${night?"night":""}" data-live="1" data-uid="${esc(uid)}" data-mood="${mood}" style="${bg}"><div class="sky"><i class="sun"></i><b class="cl c1"></b><b class="cl c2"></b></div><div class="boards"></div>${LF_SLOTS.map(sl).join("")}${l.pet&&stg>0?lfHouseSvg()+lfBowlSvg():""}${ex}${main}</div>`;
 }
-function lfPetGo(room,p,x){
+function lfPetGo(room,p,x,spd){
   x=Math.max(4,Math.min(78,x-8));
   const cur=parseFloat(p.style.getPropertyValue("--x"))||40,dist=Math.abs(x-cur);if(dist<2)return;
-  const dur=Math.max(.5,dist/24);
-  p.style.setProperty("--wd",dur+"s");p.classList.toggle("fl",x>cur);p.classList.add("walk");p.style.setProperty("--x",x+"%");
+  const v=spd||24,dur=Math.max(.5,dist/v),run=!!spd&&spd>=40;
+  p.style.setProperty("--wd",dur+"s");p.classList.toggle("fl",x>cur);p.classList.add("walk");p.classList.toggle("r-run",run);p.style.setProperty("--x",x+"%");
   (window.__rmPos=window.__rmPos||{})[(room.dataset.uid||"")+p.dataset.k]=x;
-  clearTimeout(p._wt);p._wt=setTimeout(()=>p.classList.remove("walk"),dur*1000+60);
+  clearTimeout(p._wt);p._wt=setTimeout(()=>{p.classList.remove("walk");p.classList.remove("r-run")},dur*1000+60);
+}
+function lfSay(p,t,ms){const s=document.createElement("em");s.className="say";s.textContent=t;p.appendChild(s);setTimeout(()=>s.remove(),ms||1700)}
+function lfZoomies(room,p){
+  lfSay(p,"🌀",1600);
+  let dir=Math.random()<.5?-1:1,n=0;
+  const go=()=>{if(!p.isConnected||n>=3)return;n++;
+    const cx=parseFloat(p.style.getPropertyValue("--x"))||40;
+    const nx=Math.max(8,Math.min(74,cx+dir*(24+Math.random()*18)));dir*=-1;
+    lfPetGo(room,p,nx,62);setTimeout(go,850+Math.random()*500)};
+  go();
+}
+function lfChase(room,p){
+  const bf=room.querySelector(".bfly:not(.flee)");if(!bf)return false;
+  bf.classList.add("flee");
+  const r=room.getBoundingClientRect(),b=bf.getBoundingClientRect();
+  lfPetGo(room,p,(b.left-r.left)/r.width*100,46);
+  p.classList.remove("hop");void p.offsetWidth;p.classList.add("hop");
+  setTimeout(()=>p.classList.remove("hop"),1300);
+  lfSay(p,"🦋",1600);
+  setTimeout(()=>{if(bf.isConnected)bf.classList.remove("flee")},4200);
+  return true;
 }
 function lfPetBrain(room,p,i){
-  if(p.classList.contains("isegg"))return;
   const k=p.dataset.k;
+  if(p.classList.contains("isegg")){
+    const et=()=>{if(!p.isConnected||!room.isConnected)return;
+      if(Math.random()<.55){p.classList.remove("wig");void p.offsetWidth;p.classList.add("wig")}
+      if(Math.random()<.35)lfSay(p,"✨");
+      setTimeout(et,2600+Math.random()*3400)};
+    setTimeout(et,1600+i*700);return;
+  }
   if(k==="m")p._goEat=()=>{
     const bowl=room.querySelector(".pet-bowl");if(!bowl||p.classList.contains("home"))return;
     const cur=parseFloat(p.style.getPropertyValue("--x"))||40;lfPetGo(room,p,90);
     const dur=Math.max(.5,Math.abs(72-cur)/24)*1000+250;
     setTimeout(()=>{if(!p.isConnected)return;p.classList.remove("walk");p.classList.add("fl","eat");bowl.classList.add("on");
-      setTimeout(()=>{p.classList.remove("eat");bowl.classList.remove("on");const sy=document.createElement("em");sy.className="say";sy.textContent="😋";p.appendChild(sy);setTimeout(()=>sy.remove(),1700)},3200)},dur)};
+      setTimeout(()=>{p.classList.remove("eat");bowl.classList.remove("on");lfSay(p,"😋")},3200)},dur)};
   if(k==="m")p._goHome=()=>{
     const house=room.querySelector(".pet-home");if(!house||p.classList.contains("home"))return;
     const cur=parseFloat(p.style.getPropertyValue("--x"))||40;lfPetGo(room,p,12);
     const dur=Math.max(.5,Math.abs(6-cur)/24)*1000+200;
     setTimeout(()=>{if(!p.isConnected)return;p.classList.add("home");house.classList.add("on");
       setTimeout(()=>{if(!p.isConnected)return;house.classList.remove("on");p.classList.remove("home");p.classList.add("hop");setTimeout(()=>p.classList.remove("hop"),1400);lfPetGo(room,p,40+Math.random()*30)},7000)},dur)};
-  const say=t=>{const s=document.createElement("em");s.className="say";s.textContent=t;p.appendChild(s);setTimeout(()=>s.remove(),1700)};
-  const act=(c,ms)=>{["hop","spin","sit","sleep","eat","yawn","stretch","scratch","sniff","happy","look"].forEach(x=>p.classList.remove(x));void p.offsetWidth;p.classList.add(c);clearTimeout(p._at);p._at=setTimeout(()=>p.classList.remove(c),ms)};
+  const act=(c,ms)=>{["hop","spin","sit","sleep","eat","yawn","stretch","scratch","sniff","happy","look","dig","wig"].forEach(x=>p.classList.remove(x));void p.offsetWidth;p.classList.add(c);clearTimeout(p._at);p._at=setTimeout(()=>p.classList.remove(c),ms)};
   const tick=()=>{
     if(!p.isConnected||!room.isConnected)return;
     if(p.classList.contains("home")){setTimeout(tick,1500);return}
     const mood=room.dataset.mood,r=Math.random();let next=2400+Math.random()*3200;
     if(k==="m"&&room.querySelector(".pet-home")&&((mood==="sleepy"&&r<.45)||r<.05)){p._goHome();setTimeout(tick,9000);return}
-    if(mood==="sleepy"&&r<.7){act("sleep",6000);say("💤");next=6200}
+    if(mood==="sleepy"&&r<.7){act("sleep",6000);lfSay(p,"💤");next=6200}
     else if(r<.34||(mood==="hyper"&&r<.5)){
       const main=room.querySelector('.lf-pet[data-k="m"]');let x=Math.random()*70+12;
       if(k!=="m"&&main&&Math.random()<.4)x=(parseFloat(main.style.getPropertyValue("--x"))||40)+(Math.random()<.5?-14:14)+8;
-      lfPetGo(room,p,x)}
+      lfPetGo(room,p,x,mood==="hyper"?38:24)}
     else if(r<.43)act("sniff",1800);
     else if(r<.51){act("look",2400);p.classList.toggle("fl",Math.random()<.5)}
     else if(r<.58)act("yawn",1900);
     else if(r<.64)act("stretch",2300);
     else if(r<.70)act("scratch",1900);
-    else if(r<.78){act("sit",3200);if(mood==="calm")say("😌")}
-    else if(r<.86){if(k==="m"&&p._goEat)p._goEat();else{act("eat",1400);say("🍎")}}
+    else if(r<.78){act("sit",3200);if(mood==="calm")lfSay(p,"😌")}
+    else if(r<.86){if(k==="m"&&p._goEat)p._goEat();else{act("eat",1400);lfSay(p,"🍎")}}
     else if(r<.92)act("hop",1300);
-    else if(r<.96)say(["💖","✨","🎵","📚"][Math.floor(Math.random()*4)]);
+    else if(r<.94){if(lfChase(room,p))next=5400;else act("hop",1300)}
+    else if(r<.955){lfZoomies(room,p);next=7400}
+    else if(r<.975){act("dig",2100);lfSay(p,"🐾")}
+    else lfSay(p,["💖","✨","🎵","📚"][Math.floor(Math.random()*4)]);
     setTimeout(tick,next)
   };
   setTimeout(tick,700+i*900);
 }
+function lfGardenFx(room){
+  try{
+    if(document.documentElement.getAttribute("data-fx")==="lite")return;
+    const night=room.classList.contains("night");
+    if(night){
+      for(let i=0;i<7;i++){const s=document.createElement("i");s.className="star";
+        s.style.cssText="left:"+(6+Math.random()*86).toFixed(1)+"%;top:"+(4+Math.random()*30).toFixed(1)+"%;animation-delay:-"+(Math.random()*3).toFixed(1)+"s";
+        room.appendChild(s)}
+      for(let i=0;i<5;i++){const f=document.createElement("i");f.className="ffly";
+        f.style.cssText="left:"+(8+Math.random()*80).toFixed(1)+"%;top:"+(48+Math.random()*38).toFixed(1)+"%;animation-delay:-"+(Math.random()*5).toFixed(1)+"s";
+        room.appendChild(f)}
+    }else{
+      for(let i=0;i<2;i++){const b=document.createElement("i");b.className="bfly";
+        b.style.cssText="top:"+(26+Math.random()*18).toFixed(1)+"%;animation-duration:"+(16+Math.random()*10).toFixed(1)+"s;animation-delay:-"+(Math.random()*14).toFixed(1)+"s"+(i?";animation-direction:reverse":"");
+        room.appendChild(b)}
+      const leaf=()=>{if(!room.isConnected)return;
+        const l=document.createElement("i");l.className="leaf";l.textContent=Math.random()<.5?"🍃":"🍂";
+        l.style.cssText="left:"+(6+Math.random()*86).toFixed(1)+"%;animation-duration:"+(5.5+Math.random()*3.5).toFixed(1)+"s";
+        room.appendChild(l);setTimeout(()=>l.remove(),10000);
+        room._lt=setTimeout(leaf,7000+Math.random()*8000)};
+      room._lt=setTimeout(leaf,2200+Math.random()*4000);
+    }
+  }catch(_){}
+}
 function lfRoomInit(){
   document.querySelectorAll(".lf-room[data-live]:not([data-on])").forEach(room=>{
     room.dataset.on="1";try{c3dAttach(room)}catch(_){}
+    try{lfGardenFx(room)}catch(_){}
     room.addEventListener("pointermove",e=>{const r=room.getBoundingClientRect();room.style.setProperty("--px",(((e.clientX-r.left)/r.width-.5)*2).toFixed(2));room.style.setProperty("--py",(((e.clientY-r.top)/r.height-.5)*2).toFixed(2))},{passive:true});
     room.addEventListener("pointerleave",()=>{room.style.setProperty("--px",0);room.style.setProperty("--py",0)});
     room.addEventListener("click",e=>{if(e.target.closest(".lf-pet"))return;const r=room.getBoundingClientRect(),p=room.querySelector('.lf-pet[data-k="m"]');if(p&&!p.classList.contains("isegg"))lfPetGo(room,p,(e.clientX-r.left)/r.width*100)});
     room.querySelectorAll(".lf-pet").forEach((p,i)=>lfPetBrain(room,p,i));
+    const mp=room.querySelector('.lf-pet[data-k="m"]');
+    if(mp&&!mp.classList.contains("isegg"))setTimeout(()=>{if(mp.isConnected)lfSay(mp,"👋")},1400);
   });
+  if(!window.__lfVis){window.__lfVis=1;
+    document.addEventListener("visibilitychange",()=>{
+      if(document.visibilityState!=="visible")return;
+      document.querySelectorAll('.lf-room .lf-pet[data-k="m"]').forEach(p=>{
+        if(!p.isConnected||p.classList.contains("isegg"))return;
+        p.classList.remove("hop");void p.offsetWidth;p.classList.add("hop");
+        setTimeout(()=>p.classList.remove("hop"),1300);lfSay(p,"👋");
+      });
+    });
+  }
 }
 {const _lr=lfReact;lfReact=function(k){try{_lr(k)}catch(_){}try{document.querySelectorAll('.lf-room .lf-pet[data-k="m"]').forEach(p=>{["run","jump","dance","sad"].forEach(x=>p.classList.remove("r-"+x));void p.offsetWidth;p.classList.add("r-"+k);setTimeout(()=>p.classList.remove("r-"+k),1900)})}catch(_){}}}
 let __ck="",__seen=new Set();
@@ -8132,8 +8238,10 @@ function c3dBn(e,key,rx,ry,rz){
 function c3dPose(e,dt,t){
   const cl=e.p.classList,has=c=>cl.contains(c),c=e.cur,T=C3D.T;
   const walk=has("walk")||has("r-run"),sleep=has("sleep"),scr=has("scratch"),sit=has("sit")||scr,eat=has("eat"),yawn=has("yawn"),str=has("stretch"),sniff=has("sniff"),
-    happy=has("happy")||has("r-dance"),sad=has("r-sad"),look=has("look"),hop=has("hop")||has("r-jump"),spin=has("spin"),dance=has("r-dance");
-  const idle=!walk&&!sleep&&!sit&&!eat&&!yawn&&!str&&!sniff;
+    happy=has("happy")||has("r-dance"),sad=has("r-sad"),look=has("look"),hop=has("hop")||has("r-jump"),spin=has("spin"),dance=has("r-dance"),dig=has("dig");
+  const idle=!walk&&!sleep&&!sit&&!eat&&!yawn&&!str&&!sniff&&!dig;
+  let px=0,py=0,mood="";
+  try{const rm=e.p.closest&&e.p.closest(".lf-room");if(rm){px=parseFloat(rm.style.getPropertyValue("--px"))||0;py=parseFloat(rm.style.getPropertyValue("--py"))||0;mood=rm.dataset.mood||""}}catch(_){}
   if(cl.contains("m")){const F={happy,eat,sad,yawn,hop};for(const k in F){if(F[k]&&!e.pf[k])c3dSnd(e.sp,k);e.pf[k]=F[k]}}
   if(hop){e.hopT=e.hopT<0?0:e.hopT+dt}else e.hopT=-1;
   if(spin){e.spinT=e.spinT<0?0:e.spinT+dt}else e.spinT=-1;
@@ -8157,8 +8265,10 @@ function c3dPose(e,dt,t){
   /* body (procedural layer on top of the clip) */
   let dy=0,pitch=0,roll=0;
   if(hop&&e.hopT>=0){const u=(e.hopT%.65)/.65;dy=Math.sin(u*Math.PI)*.32}
+  if(walk){const f=has("r-run")?11:7;dy+=Math.abs(Math.sin(t*f))*.05;roll+=Math.sin(t*f)*.045}
   if(happy){dy+=Math.abs(Math.sin(t*10))*.04;roll+=Math.sin(t*10)*.07}
   if(dance)roll+=Math.sin(t*12)*.1;
+  if(dig){pitch=.24;dy-=.06;roll+=Math.sin(t*22)*.05}
   if(sit){pitch=-.32;dy-=.03}
   if(eat)pitch=.14+Math.sin(t*9)*.05;
   if(str)pitch=.26;
@@ -8166,7 +8276,10 @@ function c3dPose(e,dt,t){
   if(scr)roll+=Math.sin(t*26)*.04;
   c.dy=c3Sm(c.dy||0,dy,hop?30:10,dt);c.pitch=c3Sm(c.pitch||0,pitch,8,dt);c.roll=c3Sm(c.roll||0,roll,10,dt);
   const br=1+Math.sin(t*2.4+e.seed)*.012;
-  e.tilt.position.y=c.dy;e.tilt.rotation.x=c.pitch;e.tilt.rotation.z=c.roll;e.tilt.scale.set(1,br,1);
+  let sqx=1,sqy=br;
+  if(hop&&e.hopT>=0){const u2=(e.hopT%.65)/.65,j=Math.sin(u2*Math.PI);sqy=br*(1+j*.15);sqx=1-j*.06}
+  else if(dig){sqy=br*.94;sqx=1.05}
+  e.tilt.position.y=c.dy;e.tilt.rotation.x=c.pitch;e.tilt.rotation.z=c.roll;e.tilt.scale.set(sqx,sqy,sqx);
   e.yawG.rotation.y=e.yaw+yawAdd;
   /* bones (head, jaw, tail, ears) — after the mixer so they layer on the clip */
   let hp=0,hy=idle?e.glance*.55:0,jaw=0,tAmp=.22,tF=1.8,ear=0;
@@ -8176,9 +8289,12 @@ function c3dPose(e,dt,t){
   if(yawn){hp=-.5;jaw=.65;hy=0}
   if(str){hp=.2;hy=0}
   if(look)hy=.7*(Math.sin(e.seed)>0?1:-1);
+  if(dig){hp=.55+.08*Math.sin(t*18);hy=0;tAmp=1.1;tF=20}
   if(walk){tAmp=.35;tF=6}
   if(happy){tAmp=.9;tF=16;jaw=.3}
   if(sleep){tAmp=.03;hy=0}
+  if(idle){hy+=px*.45;hp+=py*.2;
+    if(mood==="hyper"){tAmp=.55;tF=8}else if(mood==="sleepy"){tAmp=.08}}
   c.hp=c3Sm(c.hp||0,hp,9,dt);c.hy=c3Sm(c.hy||0,hy,8,dt);c.jaw=c3Sm(c.jaw||0,jaw,14,dt);c.tAmp=c3Sm(c.tAmp==null?.22:c.tAmp,tAmp,6,dt);
   if(e.b.head&&e.headS)e.b.head.scale.setScalar(e.headS);
   if(!(sleep&&c.act==="dead")){
@@ -8310,7 +8426,9 @@ function c3dProps(room,t,dt){
     seen.add(el);
     let pr=C3D.props.get(el);if(!pr)pr=c3dPropNew(el);
     if(!pr||!pr.ready)return;
-    const L=pr.lay,ps=pr.ps,amp={Grass:.07,Reed:.05,TreeHigh:.014,TreeMed:.016,TreeLow:.018,Bush:.012}[pr.type]||0;
+    const L=pr.lay,ps=pr.ps,amp0={Grass:.07,Reed:.05,TreeHigh:.014,TreeMed:.016,TreeLow:.018,Bush:.012}[pr.type]||0;
+    const gust=1+.6*Math.max(0,Math.sin(t*.13+pr.seed*1.7));
+    const amp=amp0*((pr.type==="Grass"||pr.type==="Reed")?gust:1);
     pr.insts.forEach(n=>{
       const fx=Array.isArray(L.x)?L.x[n.i]:L.x,s=(ps.h?H*ps.h:W*ps.w)*(1+Math.sin(pr.seed+n.i*2.1)*.12);
       let x=fx*W,y=(ps.y!=null?ps.y:L.y)*H;
