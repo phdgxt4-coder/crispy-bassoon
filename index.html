@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v84">
+<meta name="sw-build" content="v85">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v84";</script>
+<script>window.APP_BUILD="v85";</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <script>(function(){try{var m=localStorage.getItem("theme_mode"),c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#0F1220",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
@@ -930,6 +930,9 @@ html[data-fx="lite"] .lf-room .star,html[data-fx="lite"] .lf-room .ffly,html[dat
 html[data-fx="lite"] .v76-gift .gi,html.lite .v76-gift .gi{animation:none}
 html[data-fx="lite"] .fc-bar i,html.lite .fc-bar i{transition:none}
 @media (prefers-reduced-motion:reduce){.v76-gift .gi{animation:none}.fc-bar i{transition:none}.v76-tile:active,.v76-gift:active{transform:none}}
+
+/* feed speed */
+.fadc{content-visibility:auto;contain-intrinsic-size:auto 460px}
 </style>
 </head>
 <body>
@@ -944,7 +947,7 @@ html[data-fx="lite"] .fc-bar i,html.lite .fc-bar i{transition:none}
 </div>
 <style>html.lite *,html.lite *::before,html.lite *::after{animation:none!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}html.lite canvas#bgfx,html.lite .bgfx{display:none!important}</style>
 <script>(function(){try{var c=navigator.connection||{},weak=(navigator.deviceMemory&&navigator.deviceMemory<=2)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2)||c.saveData;var m=localStorage.getItem("lite_mode");if(m==="1"||(m!=="0"&&weak))document.documentElement.classList.add("lite")}catch(e){}})()</script>
-<div id="app"></div><div id="verBadge">v66</div>
+<div id="app"></div><div id="verBadge">v85</div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
@@ -1004,7 +1007,7 @@ let __cmtUnsub=null;
 let __fadUnsub=null,__galUnsub=null;
 function ensureFadaye7Listen(){
   if(__fadUnsub||!db)return;
-  __fadUnsub=onSnapshot(query(collection(db,"fadaye7"),orderBy("createdAt","desc"),limit(S.fadLimit||60)),s=>{
+  __fadUnsub=onSnapshot(query(collection(db,"fadaye7"),orderBy("createdAt","desc"),limit(S.fadLimit||20)),s=>{
     S.fadOffline=s.metadata.fromCache&&!s.docs.length;
     /* ترتيب: الدفعة الأجدد فوق خالص · جوّه الدفعة الأقدم الأول (seq) */
     const arr=s.docs.map(d=>({id:d.id,...d.data()}));
@@ -1015,10 +1018,10 @@ function ensureFadaye7Listen(){
       if(ka===kb)return ((a.seq!=null?a.seq:0)-(b.seq!=null?b.seq:0));
       return (gt[kb]||0)-(gt[ka]||0);
     });
-    S.fadaye7All=arr;
+    S.fadaye7All=arr;S.fadBusy=0;
     /* المكرر مش بيظهر — نسخة واحدة بس (الأجدد) */
     const seenF=new Set();
-    S.fadaye7=arr.filter(f=>{const k=f.fp||f.url;if(!k)return true;if(seenF.has(k))return false;seenF.add(k);return true});
+    S.fadaye7=arr.filter(f=>{const u=f.url,k=f.fp||(u&&u.length>200?u.length+"|"+u.slice(0,40)+u.slice(-40):u);if(!k)return true;if(seenF.has(k))return false;seenF.add(k);return true});
     if(S.view==="fadaye7")scheduleRender();
   },err=>{console.warn("fad",err);S.fadOffline=true;if(S.view==="fadaye7")scheduleRender()});
 }
@@ -3280,10 +3283,10 @@ function fadaye7View(){
   const card=f=>{
     const by=f.fromAdmin?("من الأدمن"):(f.authorName?("من "+f.authorName):"");
     const imgs=(f.images&&f.images.length)?f.images:(f.url?[f.url]:[]);
-    const media=imgs.map(u=>mediaEmbed(u,f.kind||"image")).join("")||(f.url?mediaEmbed(f.url,f.kind):"");
+    const media=fadLazy(imgs.map(u=>mediaEmbed(u,f.kind||"image")).join("")||(f.url?mediaEmbed(f.url,f.kind):""));
     const dl=imgs[0]&&(String(imgs[0]).startsWith("data:image")||/\.(jpe?g|png|gif|webp)(\?|$)/i.test(imgs[0]))
       ?`<a class="btn ghost sm" href="${esc(imgs[0])}" download="fadiha.jpg">⬇ تحميل</a>`:"";
-    return `<div class="card">
+    return `<div class="card fadc">
   <div class="row"><b>${esc(f.title||"فضيحة")}</b>${by?pill(by,f.fromAdmin?"i":"g"):""}</div>
   <div class="mut" style="margin:4px 0 8px">${fmt(f.createdAt)}</div>
   ${media}
@@ -3310,7 +3313,7 @@ function fadaye7View(){
   <button class="btn sm" style="margin-top:10px" data-act="submitFadaye7">نشر</button>
   <p class="mut" id="stuFadProg"></p>
 </div>
-${list.length?list.map(card).join("")+fadMoreBtn():(tab==="mine"?emptyBox("📝","مفيش منشورات ليك","انشر أول فضيحة من فوق"):(S.fadOffline?emptyBox("📡","مفيش اتصال بالسيرفر","اتأكد من الإنترنت — الفضايح هتظهر أول ما يرجع"):emptyBox("😂","لسه مفيش فضايح","كن أول من ينشر")))}
+${list.length?list.slice(0,S.fadShow||10).map(card).join("")+fadMoreBtn(list.length):(tab==="mine"?emptyBox("📝","مفيش منشورات ليك","انشر أول فضيحة من فوق"):(S.fadOffline?emptyBox("📡","مفيش اتصال بالسيرفر","اتأكد من الإنترنت — الفضايح هتظهر أول ما يرجع"):emptyBox("😂","لسه مفيش فضايح","كن أول من ينشر")))}
 </div>${studentNav()}`;
 }
 
@@ -5559,7 +5562,7 @@ const A={
   },
 
   
-  fadTab(d){S.fadTab=d.tab||"all";render(true)},
+  fadTab(d){S.fadTab=d.tab||"all";S.fadShow=10;render(true)},
   cancelReply(){S.commentReply=null;render(true)},
   replyComment(d){
     S.commentReply={targetType:d.type,targetId:d.id,parentId:d.parent};
@@ -5603,7 +5606,7 @@ const A={
     try{await deleteDoc(doc(db,"comments",d.cid));toast("اتحذف")}catch(e){toast("فشل")}
   },
 
-  openFadaye7(){ensureFadaye7Listen();ensureCommentsListen();S.view="fadaye7";render(true)},
+  openFadaye7(){S.fadShow=10;ensureFadaye7Listen();ensureCommentsListen();S.view="fadaye7";render(true)},
   async addFadaye7(){
     if(!S.isAdmin)return;
     const title=($("#fadTitle")?.value||"").trim()||"فضيحة";
@@ -8965,9 +8968,31 @@ function c3dLoop(now){
   }catch(err){console.warn("c3d loop",err);c3dOff(false)}
 }
 
-/* ---------- feed: more than 40 items (paged, up to 1500) ---------- */
-function fadMoreBtn(){const lim=S.fadLimit||60;return ((S.fadaye7||[]).length>=lim&&lim<2000)?`<button class="btn block ghost" data-act="fadMore" style="margin:10px 0">⬇ عرض المزيد — في لقطات أقدم</button>`:""}
-Object.assign(A,{fadMore(){S.fadLimit=Math.min(2000,(S.fadLimit||60)+120);if(__fadUnsub){try{__fadUnsub()}catch(_){}__fadUnsub=null}ensureFadaye7Listen();toast("جاري تحميل المزيد…")}});
+/* ---------- feed: auto-loads while scrolling (no button), lazy media ---------- */
+function fadLazy(h){return String(h||"").replace(/<img /g,'<img loading="lazy" decoding="async" ').replace(/<video /g,'<video preload="none" ')}
+function fadMoreBtn(total){
+  S.fadTotal=total;
+  const show=S.fadShow||10,lim=S.fadLimit||20,more=show<total||((S.fadaye7All||[]).length>=lim&&lim<1500);
+  return more?`<div id="fadSentinel" class="mut" style="text-align:center;padding:16px;font-size:13px">⏳ بيحمّل…</div>`:"";
+}
+let __fadGrowT=0;
+function fadGrow(){
+  const now=Date.now();if(now-__fadGrowT<350||S.view!=="fadaye7")return;__fadGrowT=now;
+  const total=S.fadTotal||0,show=S.fadShow||10;
+  if(show<total){S.fadShow=Math.min(total,show+10);scheduleRender();return}
+  const lim=S.fadLimit||20;
+  if((S.fadaye7All||[]).length>=lim&&lim<1500&&!S.fadBusy){S.fadBusy=1;S.fadLimit=Math.min(1500,lim+30);if(__fadUnsub){try{__fadUnsub()}catch(_){}__fadUnsub=null}ensureFadaye7Listen()}
+}
+Object.assign(A,{fadMore(){fadGrow()}});
+{
+  let io=null,last=null;
+  const mo=new MutationObserver(()=>{
+    if(S.view!=="fadaye7")return;
+    const el=document.getElementById("fadSentinel");
+    if(el&&el!==last){last=el;if(!io)io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting))fadGrow()},{rootMargin:"900px"});io.disconnect();io.observe(el)}
+  });
+  try{mo.observe(document.getElementById("app")||document.body,{childList:true,subtree:true})}catch(_){}
+}
 
 /* ---------- garden props (Nature Kit) ---------- */
 const C3_PS={Hill:{w:.95,y:.35},HillSand:{w:.95,y:.35},MountainFar:{w:1.05,y:.33},Mountain:{w:.75,y:.33},Cliff:{w:.5,y:.33},Cloud:{w:.26},TreeHigh:{h:.68},TreeMed:{h:.54},TreeLow:{h:.4},Bush:{h:.16},Reed:{h:.25},Rock:{h:.12},Grass:{h:.085}};
