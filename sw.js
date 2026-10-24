@@ -1,6 +1,6 @@
-/* التفوق SW — v85 — fresh: aurora theme + cleanup + instant cache */
-const CACHE = "eltafawoq-v85";
-const BUILD = "20261019-v85";
+/* التفوق SW — v86 — fresh: aurora theme + cleanup + instant cache */
+const CACHE = "eltafawoq-v86";
+const BUILD = "20261025-v86";
 const PETS = [];
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
@@ -74,9 +74,8 @@ self.addEventListener("install", (e) => {
   self.skipWaiting();
   e.waitUntil(
     caches.open(CACHE).then((c) =>
-      c.addAll(["./index.html","./manifest.json","./memory-game.html","./draw-guess.html","./words-crush.html","./runner.html","./space.html","./doodle.html","./fishing.html","./push.html"]).catch(() => {}).then(() =>
-        Promise.all(PETS.map((u) => c.add(u).catch(() => {})))
-      )
+      /* كل ملف لوحده: لو ملف واحد مش موجود (404) بقية الملفات تتخزّن عادي — addAll كان بيفشل كله */
+      Promise.allSettled(["./index.html","./manifest.json","./memory-game.html","./draw-guess.html","./words-crush.html","./runner.html","./space.html","./doodle.html","./fishing.html","./push.html"].concat(PETS).map((u) => c.add(u)))
     )
   );
 });

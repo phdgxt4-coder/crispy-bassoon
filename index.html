@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v85">
+<meta name="sw-build" content="v86">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v85";</script>
+<script>window.APP_BUILD="v86";</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <script>(function(){try{var m=localStorage.getItem("theme_mode"),c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#0F1220",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
@@ -282,7 +282,7 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
   animation:spLine .6s ease .55s forwards}
 .splash-sub{color:rgba(255,255,255,.78);font-size:15px;opacity:0;animation:spIn .6s ease .7s forwards}
 .splash-bar{width:140px;height:4px;background:rgba(255,255,255,.22);border-radius:99px;margin:28px auto 0;overflow:hidden}
-.splash-bar i{display:block;height:100%;width:0;background:#E3A81C;border-radius:99px;animation:spBar 2.4s linear .2s forwards;box-shadow:0 0 12px rgba(227,168,28,.55)}
+.splash-bar i{display:block;height:100%;width:0;background:#E3A81C;border-radius:99px;animation:spBar .9s linear .2s forwards;box-shadow:0 0 12px rgba(227,168,28,.55)}
 .splash-line{background:#E3A81C!important}
 @keyframes spIn{to{opacity:1;transform:none}}
 @keyframes spLine{to{width:56px}}
@@ -933,6 +933,10 @@ html[data-fx="lite"] .fc-bar i,html.lite .fc-bar i{transition:none}
 
 /* feed speed */
 .fadc{content-visibility:auto;contain-intrinsic-size:auto 460px}
+.mode-full{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg);z-index:20}
+.mode-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--card)}
+.mode-frame{flex:1;width:100%;border:0;background:#000}
+body.mode-open #credit,body.mode-open #verBadge{display:none!important}
 </style>
 </head>
 <body>
@@ -947,7 +951,7 @@ html[data-fx="lite"] .fc-bar i,html.lite .fc-bar i{transition:none}
 </div>
 <style>html.lite *,html.lite *::before,html.lite *::after{animation:none!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}html.lite canvas#bgfx,html.lite .bgfx{display:none!important}</style>
 <script>(function(){try{var c=navigator.connection||{},weak=(navigator.deviceMemory&&navigator.deviceMemory<=2)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2)||c.saveData;var m=localStorage.getItem("lite_mode");if(m==="1"||(m!=="0"&&weak))document.documentElement.classList.add("lite")}catch(e){}})()</script>
-<div id="app"></div><div id="verBadge">v85</div>
+<div id="app"></div><div id="verBadge">v86</div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
@@ -1875,7 +1879,7 @@ if(configured){
   onSnapshot(doc(db,"config","site"),s=>{
     const d=s.exists()?s.data():{};
     const was=S.site.maintenance;
-    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",pushUrl:d.pushUrl||"",resetPassUrl:d.resetPassUrl||"",booksUrl:d.booksUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0};
+    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",pushUrl:d.pushUrl||"",resetPassUrl:d.resetPassUrl||"",booksUrl:d.booksUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0,appMode:d.appMode||"platform",modes:Array.isArray(d.modes)?d.modes:[]};
     S.siteRaw=d;applyAiCfg();
     // أدمن طلب تسريع للجميع → امسح كاش الجهاز ده مرة
     try{
@@ -2022,11 +2026,13 @@ function render(force){
   else if(S.site.maintenance&&!S.isAdmin&&!S.adminLogin)h=maintenance();
   else if(!S.user)h=authView();
   else if(S.isAdmin){
-    h=S.view==="editExam"?editor():S.view==="editAsm"?asmEditor():S.view==="studentDetail"?studentDetail():S.view==="review"?reviewView():adminView();
+    h=S.view==="modePreview"?modeView(modesAll().find(x=>x.id===S.modePrev)||modeCur()):S.view==="editExam"?editor():S.view==="editAsm"?asmEditor():S.view==="studentDetail"?studentDetail():S.view==="review"?reviewView():adminView();
   }else if(typeof isAsmManager==="function"&&isAsmManager()&&(S.view==="editAsm"||S.view==="asmAdmin")){
     h=S.view==="editAsm"?asmEditor():`<div class="wrap wide">${header(`<button class="btn ghost sm" data-act="home">الرئيسية</button><button class="btn ghost sm" data-act="logout">خروج</button>`)}${adminAsm()}</div>`;
   }else if(isBlockedP(S.profile)){h=blockedView()}
+  else if(modeOn()&&modeCur().kind!=="games"){h=modeView()}
   else{
+    if(modeOn()&&!MODE_GAMEVIEWS.has(S.view))S.view="games";
     const m={games:gamesView,mathg:mathView,xo:xoView,hang:hangView,spin:spinView,react:reactView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView,life:lifeView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View,tanagha:tanaghaView,gallery:galleryView,groups:groupsView,groupThread:groupThreadView,ai:aiView,books:booksView,bag:bagView,focus:focusView,notes:notesView};
     let fn=m[S.view];
     {const __ft=featOfView(S.view);if(__ft&&!featOn(__ft))fn=featOffView}
@@ -2049,6 +2055,7 @@ function render(force){
     <button class="btn" data-act="home">إعادة المحاولة</button>
     <button class="btn ghost" data-act="logout" style="margin-top:8px">تسجيل خروج</button></div></div>`;
   }
+  try{document.body.classList.toggle("mode-open",typeof h==="string"&&h.indexOf('class="mode-full"')>=0)}catch(_){}
   if(!app)return;
   try{
     const secure=S.view==="gallery"||S.view==="tanagha";
@@ -2104,7 +2111,7 @@ const findBtn=()=>(S.user&&!S.isAdmin)?`<button type="button" class="tg tg-icon 
 const searchBtn=()=>aiBtn()+boostBtn()+findBtn();
 const header=(extra)=>`<div class="top"><div class="hdr-r">${logo}${aiBtn()}${boostBtn()}${themeBtn()}${findBtn()}</div><div class="row hdr-l">${extra||""}</div></div>`;
 const NOHDR="<span></span>";
-const studentNav=()=>`<nav class="bot">
+const studentNav=()=>modeOn()?modeNav():`<nav class="bot">
 <button class="${S.view==="home"||S.view==="subject"||S.view==="exam"||S.view==="result"?"on":""}" data-act="home">المواد</button>
 ${featOn("progress")?`<button class="${S.view==="progress"?"on":""}" data-act="progress">تقدمي${(S.unreadNotif||0)?` <span class="badge">${S.unreadNotif}</span>`:""}</button>`:""}
 ${featOn("chat")?`<button class="${S.view==="chatList"||S.view==="chatThread"?"on":""}" data-act="openChats">تواصل${(S.unreadChat||0)?` <span class="badge">${S.unreadChat}</span>`:""}</button>`:""}
@@ -3515,10 +3522,76 @@ function adminPerfCard(){
   </div>`;
 }
 
+
+/* ===== أوضاع التشغيل (v86): منصة / ألعاب / أوضاع مخصصة — واحد بس شغّال للطلاب ===== */
+const MODE_BUILTIN=[
+  {id:"platform",n:"وضع المنصة",ic:"🎓",kind:"platform",d:"المواد والامتحانات والتواصل والألعاب — كل حاجة زي ما هي."},
+  {id:"games",n:"وضع الألعاب",ic:"🎮",kind:"games",d:"الطلاب يشوفوا الألعاب بس. الامتحانات والشات والتقدم مقفولين."}
+];
+const MODE_GAMEVIEWS=new Set(["games","mathg","xo","hang","spin","react","qbSetup","qbLobby","qbPlay","qbResult"]);
+function modesAll(){return MODE_BUILTIN.concat(((S.site&&S.site.modes)||[]).filter(m=>m&&m.id).map(m=>({...m,custom:true})))}
+function modeCur(){const id=(S.site&&S.site.appMode)||"platform";return modesAll().find(m=>m.id===id)||MODE_BUILTIN[0]}
+function modeOn(){
+  if(S.isAdmin||!S.user)return false;
+  if(modeCur().kind==="platform")return false;
+  if(S.view==="exam"&&S.cur&&!S.cur.done)return false; /* مفيش طرد من امتحان شغّال */
+  return true;
+}
+function modeSafeUrl(u){
+  u=String(u||"").trim();
+  if(!u)return"";
+  if(/^https:\/\/[^\s"'<>]+$/i.test(u))return u;
+  if(/^(\.\/)?[\w\-\/]+\.html?(\?[\w=&%\-]*)?(#[\w\-]*)?$/i.test(u))return "./"+u.replace(/^\.\//,"");
+  return"";
+}
+function modeNav(){
+  const m=modeCur();
+  return `<nav class="bot"><button class="on" data-act="home">${m.ic} ${esc(m.n)}</button><button data-act="logout">خروج</button></nav>`;
+}
+function modeView(m){
+  m=m||modeCur();
+  const exit=S.isAdmin?`<button class="btn ghost sm" data-act="modePreviewExit">رجوع للوحة</button>`:`<button class="btn ghost sm" data-act="logout">خروج</button>`;
+  if(m.kind==="url"){
+    const u=modeSafeUrl(m.url);
+    if(!u)return `<div class="wrap"><div class="card empty"><div class="ei">⚠️</div><b>رابط الوضع غير صالح</b><div class="mut">${S.isAdmin?"عدّل الرابط من تبويب الأوضاع.":"كلّم المدرس."}</div>${exit}</div></div>`;
+    return `<div class="mode-full"><div class="mode-bar"><b>${esc(m.ic||"🎛")} ${esc(m.n)}</b><span style="flex:1"></span>${exit}</div><iframe class="mode-frame" src="${esc(u)}" title="${esc(m.n)}" allow="fullscreen; autoplay; clipboard-write; gamepad; accelerometer" referrerpolicy="no-referrer-when-downgrade"></iframe></div>`;
+  }
+  /* رسالة / غير ذلك */
+  return `<div class="wrap"><div class="center"><div style="font-size:64px;line-height:1">${esc(m.ic||"🎛")}</div><h1 style="margin-top:18px">${esc(m.n)}</h1><p class="mut" style="max-width:380px;margin:8px auto 22px;white-space:pre-wrap">${esc(m.msg||"الوضع ده شغّال دلوقتي.")}</p>${exit}</div></div>`;
+}
+function adminModes(){
+  const cur=modeCur(),list=modesAll();
+  const card=m=>{
+    const on=m.id===cur.id;
+    return `<div class="card ${on?"":"lift"}" style="${on?"border-color:var(--pri);box-shadow:0 0 0 2px color-mix(in srgb,var(--pri) 30%,transparent)":""}">
+  <div class="row" style="flex-wrap:nowrap;gap:12px;align-items:flex-start">
+    <div class="av" style="border-radius:14px;font-size:26px;flex:none">${esc(m.ic||"🎛")}</div>
+    <div style="flex:1;min-width:0"><b style="font-size:16px">${esc(m.n)}</b> ${on?pill("شغّال للطلاب","g"):""}
+      <div class="mut" style="font-size:13px;margin-top:2px">${esc(m.d||(m.kind==="url"?"صفحة/لعبة/برنامج بيتفتح بملء الشاشة: "+(m.url||""):(m.msg||"رسالة للطلاب")))}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+        ${on?`<button class="btn sm ghost" disabled>✓ الوضع الحالي</button>`:`<button class="btn sm gold" data-act="setMode" data-id="${esc(m.id)}">تفعيل للطلاب</button>`}
+        ${(m.kind==="url"||m.kind==="message")?`<button class="btn sm ghost" data-act="previewMode" data-id="${esc(m.id)}">👁 معاينة</button>`:""}
+        ${m.custom?`<button class="btn sm danger" data-act="delMode" data-id="${esc(m.id)}">🗑</button>`:""}
+      </div></div></div></div>`;
+  };
+  return `<h2>🎛 أوضاع التشغيل</h2>
+<p class="mut">اختار الوضع اللي الطلاب يشوفوه. وضع واحد بس شغّال: لما تفعّل وضع جديد، وضع المنصة بيتقفل عليهم تماماً، ولما ترجّع وضع المنصة، الوضع الجديد بيتقفل. إنت (الأدمن) بتفضل داخل لوحتك دايماً. الطالب اللي في نص امتحان بيكمّله الأول.</p>
+${list.map(card).join("")}
+<div class="card"><h3 style="margin-top:0">➕ وضع جديد</h3>
+<label class="f" for="mdName">الاسم</label><input id="mdName" type="text" maxlength="30" placeholder="مثلاً: ليلة الاختبار / لعبة الأسبوع">
+<label class="f" for="mdIc">أيقونة (إيموجي)</label><input id="mdIc" type="text" maxlength="4" value="🎮" style="max-width:100px">
+<label class="f" for="mdKind">النوع</label>
+<select id="mdKind"><option value="url">صفحة / لعبة / برنامج (رابط أو ملف html)</option><option value="message">رسالة للطلاب بس</option></select>
+<label class="f" for="mdUrl">الرابط (https://… أو اسم ملف زي last-one-standing.html)</label><input id="mdUrl" class="ltr" type="text" placeholder="https://example.com/game أو game.html">
+<label class="f" for="mdMsg">الرسالة (للنوع "رسالة")</label><textarea id="mdMsg" rows="2" placeholder="مثلاً: المنصة مقفولة النهارده، شوفوا الإعلان في القروب"></textarea>
+<div style="margin-top:12px"><button class="btn gold" data-act="addMode">إضافة الوضع</button></div>
+<p class="mut" style="font-size:12px;margin:10px 0 0">ملحوظة: بعض المواقع بتمنع فتحها جوه المنصة (إطار). ملفات html اللي بترفعها جنب index.html بتشتغل دايماً — وجرّب بالمعاينة قبل ما تفعّل.</p></div>`;
+}
+
 function adminView(){
   const t=S.tab;
   const groups=[
-    {title:"تشغيل", items:[["dash","الرئيسية"],["live","مباشر"],["status","حالة المنصة"],["activity","نشاط"]]},
+    {title:"تشغيل", items:[["modes","🎛 الأوضاع"],["dash","الرئيسية"],["live","مباشر"],["status","حالة المنصة"],["activity","نشاط"]]},
     {title:"محتوى", items:[["exams","امتحانات"],["asm","تقييمات"],["books","كتب"]]},
     {title:"مجتمع", items:[["fadaye7","فضايح 😂"],["tanagha","التناغه 💗"],["tgreq","طلبات التناغه"],["students","طلاب"]]},
     {title:"رقابة", items:[["results","نتايج"],["alerts","تنبيهات"],["suspicious","احتيالي"]]},
@@ -3526,12 +3599,13 @@ function adminView(){
   ];
   const bd={tgreq:(Array.isArray(S.students)?S.students:[]).filter(x=>x.tanaghaAccess==="pending").length,results:S.unread,alerts:S.unreadAlerts,live:liveActive().length,suspicious:(S.suspicious||[]).filter(x=>!x.seen).length};
   return `<div class="wrap wide">${header(`${pill("أدمن","i")}<button class="btn ghost sm" data-act="logout">خروج</button>`)}
+${modeCur().kind!=="platform"?`<div class="card" style="margin:0 0 12px;border-color:var(--gold);background:var(--ybg)"><div class="row"><span><b>🎛 الوضع الشغّال للطلاب: ${modeCur().ic} ${esc(modeCur().n)}</b><div class="mut" style="font-size:12px">وضع المنصة مقفول عليهم دلوقتي</div></span><button class="btn sm gold" data-act="setMode" data-id="platform">رجّع وضع المنصة</button></div></div>`:""}
 ${S.site.maintenance?`<div class="err" style="margin:0 0 12px">وضع الصيانة شغّال. الطلاب شايفين "المنصة تحت التعديل".</div>`:""}
 ${groups.map(g=>`<div style="margin-bottom:10px">
   <div class="mut" style="font-size:11px;font-weight:700;margin-bottom:4px;opacity:.75">${g.title}</div>
   <div class="tabs" style="margin-bottom:0">${g.items.map(([k,v])=>`<button class="tab ${t===k?"on":""}" data-act="tab" data-id="${k}">${v}${bd[k]?`<span class="badge">${bd[k]}</span>`:""}</button>`).join("")}</div>
 </div>`).join("")}
-${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,tanagha:adminTanagha,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,suspicious:adminSuspicious,managers:adminManagers,security:adminSecurity,tgreq:adminTgReq,settings:adminSettings,shopadm:adminShop,agent:adminAgent}[t]||adminDash)()}
+${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,tanagha:adminTanagha,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,suspicious:adminSuspicious,managers:adminManagers,security:adminSecurity,tgreq:adminTgReq,settings:adminSettings,shopadm:adminShop,agent:adminAgent,modes:adminModes}[t]||adminDash)()}
 ${t==="exams"?`<button class="fab" data-act="newExam" aria-label="امتحان جديد">+</button>`:""}
 
 </div>`}
@@ -4224,7 +4298,7 @@ function applyAiCfg(){
     }
   }catch(_){}
 }
-const AUDIT_ACTS={block:"حظر طالب",unblock:"فك حظر طالب",delExam:"مسح امتحان",togglePub:"نشر/إخفاء امتحان",delResult:"مسح محاولة",delBook:"مسح كتاب",delAsm:"مسح تقييم",toggleAsm:"نشر/إخفاء تقييم",delFadaye7:"مسح فضيحة",approveFadaye7:"قبول فضيحة",rejectFadaye7:"رفض فضيحة",toggleMaint:"تغيير وضع الصيانة",adminSpeedAll:"تسريع لكل الأجهزة",adminResetPassGo:"تغيير كلمة سر طالب",broadcastNotif:"إشعار جماعي",saveAiUrl:"تعديل ربط الـ AI",grantAsmRole:"تغيير صلاحية مسؤول تقييمات",wipe:"ابدأ من الصفر",rebuildBoard:"بناء لوحة الشرف",setFeature:"فتح/قفل قسم",tgDecide:"قرار طلب التناغه",adminMigrateAvatars:"تحسين صور الطلاب"};
+const AUDIT_ACTS={setMode:"تغيير وضع التشغيل",addMode:"إضافة وضع تشغيل",delMode:"مسح وضع تشغيل",block:"حظر طالب",unblock:"فك حظر طالب",delExam:"مسح امتحان",togglePub:"نشر/إخفاء امتحان",delResult:"مسح محاولة",delBook:"مسح كتاب",delAsm:"مسح تقييم",toggleAsm:"نشر/إخفاء تقييم",delFadaye7:"مسح فضيحة",approveFadaye7:"قبول فضيحة",rejectFadaye7:"رفض فضيحة",toggleMaint:"تغيير وضع الصيانة",adminSpeedAll:"تسريع لكل الأجهزة",adminResetPassGo:"تغيير كلمة سر طالب",broadcastNotif:"إشعار جماعي",saveAiUrl:"تعديل ربط الـ AI",grantAsmRole:"تغيير صلاحية مسؤول تقييمات",wipe:"ابدأ من الصفر",rebuildBoard:"بناء لوحة الشرف",setFeature:"فتح/قفل قسم",tgDecide:"قرار طلب التناغه",adminMigrateAvatars:"تحسين صور الطلاب"};
 function auditName(id){
   if(!id)return "";
   try{
@@ -6299,6 +6373,36 @@ const A={
       ...rows.map(r=>[r.name,r.phone,subName(r.subject),r.examTitle,r.attempt||1,r.score,r.total,r.passMark>0?(r.passed?"ناجح":"راسب"):"",r.secs??"",r.tabs||0,fmt(r.createdAt)].map(q).join(","))].join("\n");
     const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="results.csv";a.click();
   },
+    async setMode(d){
+    const id=d.id,m=modesAll().find(x=>x.id===id);if(!m)return;
+    if(m.kind!=="platform"&&!await uiConfirm("تفعّل «"+m.n+"»؟ وضع المنصة هيتقفل على الطلاب تماماً لحد ما ترجّعه.",{title:"تغيير وضع التشغيل",icon:"🎛",ok:"فعّل",danger:false}))return;
+    const prev=S.site.appMode||"platform";
+    S.site.appMode=id;render(true);
+    try{await setDoc(doc(db,"config","site"),{appMode:id},{merge:true});toast(m.kind==="platform"?"✅ رجع وضع المنصة":"🎛 شغّال دلوقتي: "+m.n,true)}
+    catch(e){S.site.appMode=prev;render(true);window.__cancel=true;toast("مقدرتش أحفظ",true)}
+  },
+  async addMode(){
+    const n=($("#mdName")&&$("#mdName").value||"").trim().slice(0,30),ic=($("#mdIc")&&$("#mdIc").value||"🎛").trim().slice(0,4)||"🎛";
+    const kind=($("#mdKind")&&$("#mdKind").value)||"url",url=($("#mdUrl")&&$("#mdUrl").value||"").trim(),msg=($("#mdMsg")&&$("#mdMsg").value||"").trim().slice(0,300);
+    if(!n){toast("اكتب اسم الوضع");window.__cancel=true;return}
+    if(kind==="url"&&!modeSafeUrl(url)){toast("الرابط لازم يبدأ بـ https:// أو يكون ملف html زي game.html");window.__cancel=true;return}
+    if(kind==="message"&&!msg){toast("اكتب الرسالة");window.__cancel=true;return}
+    const nm={id:"m"+Date.now().toString(36),n,ic,kind,url:kind==="url"?modeSafeUrl(url):"",msg:kind==="message"?msg:""};
+    const list=(S.site.modes||[]).concat([nm]);
+    S.site.modes=list;render(true);
+    try{await setDoc(doc(db,"config","site"),{modes:list},{merge:true});toast("اتضاف الوضع ✓",true)}
+    catch(e){S.site.modes=list.slice(0,-1);render(true);window.__cancel=true;toast("مقدرتش أحفظ",true)}
+  },
+  async delMode(d){
+    const m=modesAll().find(x=>x.id===d.id);if(!m||!m.custom)return;
+    if(!await uiConfirm("تمسح الوضع «"+m.n+"»؟",{ok:"امسح"}))return;
+    const list=(S.site.modes||[]).filter(x=>x.id!==d.id),wasOn=S.site.appMode===d.id,prevList=S.site.modes;
+    S.site.modes=list;if(wasOn)S.site.appMode="platform";render(true);
+    try{await setDoc(doc(db,"config","site"),wasOn?{modes:list,appMode:"platform"}:{modes:list},{merge:true});toast("اتمسح ✓")}
+    catch(e){S.site.modes=prevList;if(wasOn)S.site.appMode=d.id;render(true);window.__cancel=true;toast("مقدرتش أحفظ",true)}
+  },
+  previewMode(d){S.modePrev=d.id;S.view="modePreview";render(true)},
+  modePreviewExit(){S.view="admin";S.tab="modes";render(true)},
   async toggleMaint(){
     const on=!S.site.maintenance;
     if(on&&!await uiConfirm("تشغّل وضع الصيانة؟ الطلاب مش هيقدروا يدخلوا."))return;
@@ -8211,7 +8315,7 @@ document.addEventListener("submit",e=>{e.preventDefault();const f=e.target.datas
 
 /* ---------- شاشة الافتتاح ---------- */
 (function(){
-  const SPLASH_MS = 2400; // brand duration
+  const SPLASH_MS = 900; // brand duration
   const el = document.getElementById("splash");
   if(!el) return;
   const start = performance.now();
@@ -8231,7 +8335,7 @@ document.addEventListener("submit",e=>{e.preventDefault();const f=e.target.datas
       const t = appEl.textContent || "";
       if(t && !t.includes("جاري التحميل")){
         mo.disconnect();
-        const minShow = 2400;
+        const minShow = 900;
         setTimeout(finish, Math.max(0, minShow - (performance.now() - start)));
       }
     });
