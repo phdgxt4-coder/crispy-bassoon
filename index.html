@@ -1871,17 +1871,14 @@ if(configured){
     S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",aiProxy:d.aiProxy||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",pushUrl:d.pushUrl||"",resetPassUrl:d.resetPassUrl||"",booksUrl:d.booksUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0,appMode:d.appMode||"platform",modes:Array.isArray(d.modes)?d.modes:[]};
     S.siteRaw=d;applyAiCfg();
     if(S.user&&!S.isAdmin)try{syncFeatureAvailability()}catch(_){}
-    // أدمن طلب تسريع للجميع → امسح كاش الجهاز ده مرة
+    // تحديث جماعي غير قسري: لا نمسح كاش المستخدم ولا نعيد تحميل الصفحة تلقائيًا.
     try{
       const bust=Number(S.site.cacheBust)||0;
       const done=Number(localStorage.getItem("cache_bust_done")||0);
       if(bust&&bust>done&&!(window.__busting)){
         window.__busting=true;
         localStorage.setItem("cache_bust_done",String(bust));
-        clearLocalSpeedCache("remote").then(function(){
-          toast("تم تسريع المنصة ✓",true);
-          setTimeout(function(){location.reload()},600);
-        });
+        toast("في تحديث جديد — حدّث الصفحة يدويًا عندما يناسبك.",true);
       }
     }catch(_){}
 
@@ -1981,7 +1978,7 @@ async function clearLocalSpeedCache(reason){
   try{
     if(window.caches&&caches.keys){
       const ks=await caches.keys();
-      await Promise.all(ks.map(k=>caches.delete(k)));
+      await Promise.all(ks.filter(k=>/^eltafawoq-v/i.test(k)).map(k=>caches.delete(k)));
     }
   }catch(_){}
   try{
@@ -4967,20 +4964,20 @@ const A={
   },
   async adminSpeedAll(){
     if(!S.isAdmin)return;
-    if(!await uiConfirm("تحديث إجباري لكل الأجهزة؟\nكل طالب هيمسح الكاش عنده أوتوماتيك أول ما يفتح المنصة."))return;
+    if(!await uiConfirm("إرسال تنبيه بوجود تحديث للأجهزة؟\nلن تُعاد تحميل الصفحات تلقائيًا؛ كل مستخدم يحدّثها في الوقت المناسب."))return;
     try{
       const bust=Date.now();
       await updateDoc(doc(db,"config","site"),{cacheBust:bust});
       S.site.cacheBust=bust;
       try{localStorage.setItem("cache_bust_done",String(bust))}catch(_){}
-      await clearLocalSpeedCache("admin");
-      toast("اتبعت تسريع لكل الأجهزة ✓",true);
-      setTimeout(function(){location.reload()},500);
+      toast("تم إرسال تنبيه التحديث للأجهزة ✓",true);
     }catch(e){
       try{
-        await setDoc(doc(db,"config","site"),{cacheBust:Date.now()},{merge:true});
-        toast("اتبعت تسريع ✓",true);
-        setTimeout(function(){location.reload()},500);
+        const bust=Date.now();
+        await setDoc(doc(db,"config","site"),{cacheBust:bust},{merge:true});
+        S.site.cacheBust=bust;
+        try{localStorage.setItem("cache_bust_done",String(bust))}catch(_){}
+        toast("تم إرسال تنبيه التحديث للأجهزة ✓",true);
       }catch(e2){toast("فشل: "+(e2.message||""))}
     }
   },
@@ -9382,8 +9379,8 @@ Object.assign(A,{
     document.getElementById("spRetry").onclick=function(){location.reload()};
     document.getElementById("spClear").onclick=function(){
       var jobs=[];
-      try{if(window.caches)jobs.push(caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}))}catch(e){}
-      try{if(navigator.serviceWorker)jobs.push(navigator.serviceWorker.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.unregister()}))}))}catch(e){}
+      try{if(window.caches)jobs.push(caches.keys().then(function(k){return Promise.all(k.filter(function(x){return /^eltafawoq-v/i.test(x)}).map(function(x){return caches.delete(x)}))}))}catch(e){}
+      try{if(navigator.serviceWorker)jobs.push(navigator.serviceWorker.getRegistrations().then(function(r){var scope=new URL("./",location.href).href;return Promise.all(r.filter(function(x){return x.scope===scope}).map(function(x){return x.unregister()}))}))}catch(e){}
       Promise.all(jobs).catch(function(){}).then(function(){location.reload()});
     };
   }
@@ -9391,31 +9388,10 @@ Object.assign(A,{
 
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    navigator.serviceWorker.register('./sw.js').then(function(reg){
-      try{reg.update()}catch(e){}
-      setInterval(function(){try{reg.update()}catch(e){}}, 5*60*1000);
-      if(reg.waiting){
-        try{reg.waiting.postMessage({type:"SKIP_WAITING"})}catch(e){}
-      }
-      // تنظيف كاش قديم كان ممكن يخزّن رد IP بالغلط
-      try{
-        if(!localStorage.getItem("sw_v35_cleared")){
-          localStorage.setItem("sw_v35_cleared","1");
-          if(reg.active)reg.active.postMessage({type:"CLEAR_CACHE"});
-          caches.keys().then(function(ks){ks.forEach(function(k){if(k.indexOf("eltafawoq-v")===0&&k.indexOf("eltafawoq-v41")<0)caches.delete(k)})});
-        }
-      }catch(e){}
-    }).catch(function(){});
+    // التحقق الطبيعي عند التسجيل/فتح الصفحة؛ لا polling متكرر ولا مسح قسري للكاش.
+    navigator.serviceWorker.register('./sw.js').catch(function(){});
   });
-  // تحديث هادي: لما SW جديد يمسك، نحدّث مرة واحدة فقط
-  var __swReloaded=false;
-  navigator.serviceWorker.addEventListener('controllerchange',function(){
-    if(__swReloaded)return;
-    try{if(sessionStorage.getItem('sw_ok')==='1'){return}}catch(e){}
-    __swReloaded=true;
-    try{sessionStorage.setItem('sw_ok','1')}catch(e){}
-    location.reload();
-  });
+  // لا نعيد تحميل الصفحة تلقائيًا عند تبديل Service Worker؛ يتبنى المستخدم التحديث عند إعادة فتح الصفحة.
 }
 
 window.addEventListener('beforeinstallprompt',e=>{

@@ -1,6 +1,6 @@
-/* التفوق SW — v88 — fresh: aurora theme + cleanup + instant cache */
-const CACHE = "eltafawoq-v88";
-const BUILD = "20261027-v88";
+/* التفوق SW — v89 — scoped cache cleanup; no forced page reload */
+const CACHE = "eltafawoq-v89";
+const BUILD = "20261027-v89";
 const PETS = [];
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
@@ -71,7 +71,6 @@ self.addEventListener("notificationclick", (e) => {
 });
 
 self.addEventListener("install", (e) => {
-  self.skipWaiting();
   e.waitUntil(
     caches.open(CACHE).then((c) =>
       /* كل ملف لوحده: لو ملف واحد مش موجود (404) بقية الملفات تتخزّن عادي — addAll كان بيفشل كله */
@@ -83,15 +82,14 @@ self.addEventListener("install", (e) => {
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.map((k) => (k !== CACHE ? caches.delete(k) : null)))
+      Promise.all(keys.filter((k) => k.startsWith("eltafawoq-v") && k !== CACHE).map((k) => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener("message", (e) => {
-  if (e.data && e.data.type === "SKIP_WAITING") self.skipWaiting();
   if (e.data && e.data.type === "CLEAR_CACHE") {
-    e.waitUntil(caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))));
+    e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k.startsWith("eltafawoq-v")).map((k) => caches.delete(k)))));
   }
 });
 
