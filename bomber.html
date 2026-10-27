@@ -38,12 +38,13 @@ canvas{width:min(360px,96vw);height:auto;border-radius:16px;background:#151b2e;b
 const cv=document.getElementById('c'),g=cv.getContext('2d');
 const scEl=document.getElementById('sc'),bsEl=document.getElementById('bs');
 const COLS=9,ROWS=11,SZ=36;
-let grid=[],px=1,py=1,bombs=[],run=false,score=0,enemies=[],best=+(localStorage.getItem('bmb_bs')||0);
+let grid=[],px=1,py=1,bombs=[],bombTimers=new Set(),run=false,score=0,enemies=[],best=+(localStorage.getItem('bmb_bs')||0);
 bsEl.textContent=best;
 function carve(){grid=Array.from({length:ROWS},()=>Array(COLS).fill(1));
   for(let y=1;y<ROWS-1;y++)for(let x=1;x<COLS-1;x++)if((x+y)%2)grid[y][x]=Math.random()>0.28?0:2;
   grid[1][1]=grid[1][2]=grid[2][1]=0;enemies=[{x:COLS-2,y:ROWS-2},{x:COLS-2,y:1},{x:1,y:ROWS-2}]}
-function end(msg){run=false;if(score>best){best=score;localStorage.setItem('bmb_bs',best);bsEl.textContent=best}
+function clearBombTimers(){bombTimers.forEach(clearTimeout);bombTimers.clear();bombs=[]}
+function end(msg){run=false;clearBombTimers();if(score>best){best=score;localStorage.setItem('bmb_bs',best);bsEl.textContent=best}
   document.getElementById('ot').textContent=msg;document.getElementById('om').textContent='نقاط: '+score;document.getElementById('ov').classList.add('on')}
 function explode(bx,by){
   [[0,0],[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{
@@ -55,8 +56,8 @@ function explode(bx,by){
   if(run&&!enemies.length)end('خلصت الأعداء! 🏆');
 }
 function tryMove(dx,dy){if(!run)return;const nx=px+dx,ny=py+dy;if(ny<0||nx<0||ny>=ROWS||nx>=COLS)return;if(grid[ny][nx]!==0)return;px=nx;py=ny;if(enemies.some(e=>e.x===px&&e.y===py))end('مسكك العدو!')}
-function placeBomb(){if(!run)return;if(bombs.some(b=>b.x===px&&b.y===py))return;const b={x:px,y:py};bombs.push(b);setTimeout(()=>{bombs=bombs.filter(x=>x!==b);if(run)explode(b.x,b.y)},1400)}
-function reset(){carve();px=1;py=1;bombs=[];score=0;run=true;scEl.textContent=0;document.getElementById('ov').classList.remove('on')}
+function placeBomb(){if(!run)return;if(bombs.some(b=>b.x===px&&b.y===py))return;const b={x:px,y:py};bombs.push(b);const timer=setTimeout(()=>{bombTimers.delete(timer);bombs=bombs.filter(x=>x!==b);if(run)explode(b.x,b.y)},1400);bombTimers.add(timer)}
+function reset(){clearBombTimers();carve();px=1;py=1;score=0;run=true;scEl.textContent=0;document.getElementById('ov').classList.remove('on')}
 document.getElementById('go').onclick=()=>{if(!run)reset()};
 document.getElementById('again').onclick=()=>{document.getElementById('ov').classList.remove('on');reset()};
 let ts=null;

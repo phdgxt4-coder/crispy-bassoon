@@ -167,7 +167,7 @@ footer a{color:var(--gold);text-decoration:none;font-weight:700}
 const $=s=>document.querySelector(s);
 const EMOJIS=["🐱","🦁","🐼","🦊","🐸","🐙","🦄","🐝","🦖","🍕","🚀","🎮","⚽","🎁","🌙","⭐","🔥","💎"];
 const CONFIG={easy:{cols:4,pairs:6,time:75},medium:{cols:4,pairs:8,time:90},hard:{cols:5,pairs:10,time:120}};
-let mode=null, first=null, lock=false, moves=0, found=0, combo=0, bestCombo=0, sec=0, tInt=null, left=0, tInt2=null, score=0;
+let mode=null, first=null, lock=false, moves=0, found=0, combo=0, bestCombo=0, sec=0, tInt=null, left=0, tInt2=null, score=0, mismatchTimer=null;
 
 /* نجوم الخلفية */
 (function(){const w=$("#stars");for(let i=0;i<45;i++){const s=document.createElement("i");
@@ -176,7 +176,8 @@ s.style.animationDelay=(Math.random()*3)+"s";s.style.transform="scale("+(0.4+Mat
 w.appendChild(s)}})();
 
 /* صوت خفيف بدون ملفات */
-function beep(f,d,type,vol){try{const c=new (window.AudioContext||window.webkitAudioContext)();const o=c.createOscillator(),g=c.createGain();
+let gameAudioContext=null;
+function beep(f,d,type,vol){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;const c=gameAudioContext||(gameAudioContext=new AC());if(c.state==="suspended")c.resume().catch(()=>{});const o=c.createOscillator(),g=c.createGain();
 o.type=type||"sine";o.frequency.value=f;g.gain.value=vol||0.07;o.connect(g);g.connect(c.destination);
 o.start();o.stop(c.currentTime+(d||0.12));}catch(e){}}
 const sFlip=()=>beep(520,.09,"triangle");
@@ -189,7 +190,9 @@ function bestKey(m){return "mem_best_"+m}
 function getBest(m){try{return JSON.parse(localStorage.getItem(bestKey(m))||"null")}catch(e){return null}}
 function showBests(){$("#bestLine").innerHTML=["easy","medium","hard"].map(m=>{
   const b=getBest(m);const n={easy:"سهل",medium:"متوسط",hard:"صعب"}[m];
-  return b?`${n}: <b>${b.score}</b> نقطة (${fmtT(b.sec)})`:`${n}: لسه ملعبتهوش`;}).join(" · ")}
+  if(!b)return `${n}: لسه ملعبتهوش`;
+  const points=Number(b.score),seconds=Number(b.sec);
+  return `${n}: <b>${Number.isFinite(points)?Math.max(0,points):0}</b> نقطة (${fmtT(Number.isFinite(seconds)?Math.max(0,seconds):0)})`;}).join(" · ")}
 function fmtT(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
 
 function confetti(n){const c=document.createElement("div");c.className="confetti";
@@ -213,6 +216,7 @@ $("#againBtn").onclick=()=>startGame(mode);
 function show(el){["#menu","#game","#over"].forEach(s=>$(s).classList.add("hidden"));el.classList.remove("hidden");showBests()}
 
 function startGame(m){
+  clearTimeout(mismatchTimer);mismatchTimer=null;
   mode=m;const cfg=CONFIG[m];moves=0;found=0;combo=0;bestCombo=0;score=0;
   first=null;lock=false;
 
@@ -220,7 +224,7 @@ function startGame(m){
   const pool=EMOJIS.slice(0,cfg.pairs);
   const cards=[...pool,...pool].sort(()=>Math.random()-.5);
   const board=$("#board");board.innerHTML="";
-  board.style.gridTemplateColumns=`repeat(${cfg.cols},minmax(52px,86px))`;
+  board.style.gridTemplateColumns=`repeat(${cfg.cols},minmax(0,min(86px, calc((100vw - 64px - ${(cfg.cols-1)*10}px) / ${cfg.cols}))))`;
   board.style.maxWidth=(cfg.cols*96)+"px";
 
   cards.forEach((e,i)=>{
@@ -272,7 +276,7 @@ function onCard(c){
     combo=0;updateHud();
     const a=first,b=c;first=null;lock=true;
     a.classList.add("shake");b.classList.add("shake");sWrong();
-    setTimeout(()=>{a.classList.remove("flip","shake");b.classList.remove("flip","shake");lock=false},620);
+    mismatchTimer=setTimeout(()=>{mismatchTimer=null;a.classList.remove("flip","shake");b.classList.remove("flip","shake");lock=false},620);
   }
 }
 function bump(sel){const el=$(sel);el.classList.remove("bump");void el.offsetWidth;el.classList.add("bump")}

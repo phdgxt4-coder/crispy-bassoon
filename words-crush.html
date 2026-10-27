@@ -68,9 +68,10 @@ function build(L){
  for(let i=0;i<g.length;i++)if(!g[i])g[i]="ABCDEFGHIJKLMNOPRSTUW"[Math.floor(R()*21)];
  return{L,n,g,words,theme:th[0],sel:[],s:null};
 }
-function menu(){$('#win').hidden=true;$('#game').hidden=true;$('#menu').hidden=false;$('#mc').textContent=S.c;$('#mu').textContent=S.u;
+let winTimer=null;
+function menu(){clearTimeout(winTimer);winTimer=null;$('#win').hidden=true;$('#game').hidden=true;$('#menu').hidden=false;$('#mc').textContent=S.c;$('#mu').textContent=S.u;
  let h='';for(let i=1;i<=100;i++)h+=`<button class="lv ${i>S.u?'lk':i<S.u?'dn':''}" ${i>S.u?'disabled':''} onclick="play(${i})">${i>S.u?'🔒':i}</button>`;$('#lvls').innerHTML=h}
-function play(L){if(L>100){menu();return}
+function play(L){clearTimeout(winTimer);winTimer=null;if(L>100){menu();return}
  G=build(L);$('#win').hidden=true;$('#menu').hidden=true;$('#game').hidden=false;
  $('#gl').textContent=L;$('#gc').textContent=S.c;$('#theme').textContent="الموضوع: "+G.theme;
  const gr=$('#grid');gr.style.gridTemplateColumns=`repeat(${G.n},1fr)`;
@@ -92,7 +93,7 @@ function end(){if(G.s==null)return;
  if(w){w.f=true;const i=G.words.indexOf(w),col=`hsl(${i*47+10} 70% 50%)`;
   w.cells.forEach(c=>{G.el[c].style.background=col;G.el[c].style.color='#fff'});
   $('#w'+i).classList.add('f');S.c+=5;
-  if(G.words.every(x=>x.f)){S.c+=20;if(G.L>=S.u)S.u=Math.min(100,G.L+1);$('#wl').textContent=G.L;$('#nx').hidden=G.L>=100;setTimeout(()=>$('#win').hidden=false,500)}
+  if(G.words.every(x=>x.f)){S.c+=20;if(G.L>=S.u)S.u=Math.min(100,G.L+1);$('#wl').textContent=G.L;$('#nx').hidden=G.L>=100;winTimer=setTimeout(()=>{winTimer=null;if(!$('#game').hidden)$('#win').hidden=false},500)}
   save();$('#gc').textContent=S.c}
  G.s=null;G.sel=[];paint()}
 function hint(){if(S.c<10)return;const w=G.words.find(x=>!x.f);if(!w)return;S.c-=10;save();$('#gc').textContent=S.c;

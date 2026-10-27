@@ -48,6 +48,7 @@ document.getElementById('again').onclick=()=>{document.getElementById('ov').clas
 cv.addEventListener('pointermove',e=>{if(!run||ball)return;const r=cv.getBoundingClientRect();aim=((e.clientX-r.left)/r.width*360-180)*0.35;aim=Math.max(-55,Math.min(55,aim))});
 cv.addEventListener('pointerdown',e=>{e.preventDefault();if(!run){reset();return}if(ball)return;charging=true;power=15});
 cv.addEventListener('pointerup',()=>{if(!charging)return;charging=false;ball={x:180+aim,y:485,vx:aim*0.035,vy:-(5.5+power/18)};power=0});
+cv.addEventListener('pointercancel',()=>{charging=false;power=0});
 setInterval(()=>{if(charging)power=Math.min(100,power+4)},40);
 (function loop(){
   requestAnimationFrame(loop);

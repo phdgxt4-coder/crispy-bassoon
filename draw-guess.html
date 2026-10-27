@@ -204,7 +204,8 @@ const DRAW_TIME=70;
 s.style.left=Math.random()*100+"%";s.style.top=Math.random()*100+"%";
 s.style.animationDelay=(Math.random()*3)+"s";w.appendChild(s)}})();
 
-function beep(f,d,t,v){try{const c=new (window.AudioContext||window.webkitAudioContext)();const o=c.createOscillator(),g=c.createGain();
+let gameAudioContext=null;
+function beep(f,d,t,v){try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;const c=gameAudioContext||(gameAudioContext=new AC());if(c.state==="suspended")c.resume().catch(()=>{});const o=c.createOscillator(),g=c.createGain();
 o.type=t||"sine";o.frequency.value=f;g.gain.value=v||.07;o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+(d||.12))}catch(e){}}
 const sOk=()=>{beep(660,.12);setTimeout(()=>beep(880,.18),90)};
 const sNo=()=>beep(170,.25,"sawtooth",.05);
@@ -246,9 +247,6 @@ function endStroke(){if(!drawing)return;drawing=false;if(curStroke){strokes.push
 cv.addEventListener("pointerdown",startStroke);
 cv.addEventListener("pointermove",moveStroke);
 addEventListener("pointerup",endStroke);
-cv.addEventListener("touchstart",startStroke,{passive:false});
-cv.addEventListener("touchmove",moveStroke,{passive:false});
-cv.addEventListener("touchend",endStroke);
 
 let drawingEnabled=true;
 document.querySelectorAll(".tool[data-color]").forEach(b=>b.onclick=()=>{
@@ -267,7 +265,7 @@ $("#namesGo").onclick=()=>{
   players[0].name=($("#p1name").value||"اللاعب ١").trim();
   players[1].name=($("#p2name").value||"اللاعب ٢").trim();
   players[0].score=0;players[1].score=0;round=0;startRound()};
-$("#menuBtn2").onclick=()=>show($("#menu"));
+$("#menuBtn2").onclick=()=>{stopTimer();drawingEnabled=false;show($("#menu"))};
 $("#againBtn").onclick=()=>show($("#names"));
 
 function soloSetup(){initDraw();strokes=[];drawingEnabled=true;
@@ -277,6 +275,7 @@ $("#doneDraw").onclick=()=>{
   finishDrawing()};
 
 function startRound(){
+  roundResolved=false;
   drawer=round%2;guesser=1-drawer;
   curWord=WORDS[Math.floor(Math.random()*WORDS.length)];
   $("#hoTitle").textContent="سلّم الموبايل لـ "+players[drawer].name+" ✏️";
@@ -296,7 +295,7 @@ $("#hoGo").onclick=()=>{
     if(timeLeft<=0)finishDrawing()},1000);
   show($("#draw"));
 };
-function stopTimer(){clearInterval(timerInt)}
+function stopTimer(){clearInterval(timerInt);timerInt=null}
 
 function finishDrawing(){stopTimer();drawingEnabled=false;
   if(!strokes.length){strokes.push({color:"#999",width:4,pts:[{x:20,y:20,t:0},{x:80,y:80,t:1}]});}
@@ -358,6 +357,7 @@ $("#hintBtn").onclick=()=>{
 $("#giveUp").onclick=()=>endRound(false);
 
 function winRound(){
+  if(roundResolved)return;roundResolved=true;
   const gPts=100+(timeLeft>0?timeLeft:0)+hintsLeft*10;
   const dPts=50;
   players[guesser].score+=gPts;players[drawer].score+=dPts;
