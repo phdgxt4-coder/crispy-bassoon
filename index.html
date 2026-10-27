@@ -2131,8 +2131,8 @@ ${rec?`<div class="mut" style="margin:0 0 8px">اطلب من الأدمن «كو
 <label class="f" for="rpw">كلمة السر الجديدة (6+)</label>
 <input id="rpw" class="ltr" type="password" autocomplete="new-password" minlength="6" required>
 `:`
-<label class="f" for="id">رقم التليفون</label>
-<input id="id" class="ltr" type="tel" inputmode="numeric" autocomplete="username" placeholder="01xxxxxxxxx" required value="${esc((()=>{try{return localStorage.getItem("last_phone")||""}catch(_){return""}})())}">
+<label class="f" for="id">${reg?"رقم التليفون":"رقم التليفون أو بريد الأدمن"}</label>
+<input id="id" class="ltr" type="${reg?"tel":"text"}" inputmode="${reg?"numeric":"email"}" autocomplete="username" placeholder="${reg?"01xxxxxxxxx":"01xxxxxxxxx أو admin@example.com"}" required value="${esc((()=>{try{return localStorage.getItem("last_admin_email")||localStorage.getItem("last_phone")||""}catch(_){return""}})())}">
 <label class="f" for="pw">كلمة السر</label>
 <input id="pw" class="ltr" type="password" autocomplete="${reg?"new-password":"current-password"}" required>`}
 ${S.error?`<div class="err">${esc(S.error)}</div>`:""}
@@ -6567,15 +6567,16 @@ const A={
   },
   async doLogin(){
     if(!configured){S.error="المنصة تحت التعديل.";render(true);return}
-    const idv=norm($("#id").value),pw=$("#pw").value;
-    const email=idv+DOMAIN;
+    const rawId=String($("#id").value||"").trim(),isEmail=rawId.includes("@"),idv=isEmail?rawId.toLowerCase():norm(rawId),pw=$("#pw").value;
+    const email=isEmail?idv:idv+DOMAIN;
+    // يمكن للأدمن استخدام البريد المخصص مباشرةً؛ الطلاب يستمرون برقم الهاتف.
     // صيانة: أدمن فقط
     if(S.site&&S.site.maintenance&&email!==ADMIN_EMAIL){
       S.error="المنصة تحت الصيانة — دخول الأدمن فقط";
       render(true);return;
     }
     $("#go").disabled=true;S.error="";
-    try{await signInWithEmailAndPassword(auth,email,pw);try{localStorage.setItem("last_phone",idv)}catch(_){}}catch(e){S.error=authErr(e);render(true)}
+    try{await signInWithEmailAndPassword(auth,email,pw);try{localStorage.setItem(isEmail?"last_admin_email":"last_phone",idv)}catch(_){}}catch(e){S.error=authErr(e);render(true)}
   },
   async doRegister(){
     if(!configured){S.error="المنصة تحت التعديل.";render(true);return}
