@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v86">
+<meta name="sw-build" content="v91">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v88";</script>
+<script>window.APP_BUILD="v91";</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <script>(function(){try{var m=localStorage.getItem("theme_mode"),c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#0F1220",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
@@ -951,27 +951,26 @@ body.mode-open #credit,body.mode-open #verBadge{display:none!important}
 </div>
 <style>html.lite *,html.lite *::before,html.lite *::after{animation:none!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}html.lite canvas#bgfx,html.lite .bgfx{display:none!important}</style>
 <script>(function(){try{var c=navigator.connection||{},weak=(navigator.deviceMemory&&navigator.deviceMemory<=2)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2)||c.saveData;var m=localStorage.getItem("lite_mode");if(m==="1"||(m!=="0"&&weak))document.documentElement.classList.add("lite")}catch(e){}})()</script>
-<div id="app"></div><div id="verBadge">v86</div>
+<div id="app"></div><div id="verBadge">v91</div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,updatePassword,setPersistence,browserLocalPersistence} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,deleteField,collection,onSnapshot,query,where,orderBy,limit,getDocs,writeBatch,serverTimestamp,arrayUnion,arrayRemove,FieldPath} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,deleteField,collection,onSnapshot,query,where,orderBy,limit,getDocs,writeBatch,serverTimestamp,arrayUnion,arrayRemove,FieldPath,startAfter,documentId} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ============ إعدادات Firebase ============ */
 const firebaseConfig = {
   apiKey: "AIzaSyCo99zGbGOJSw1p-rdy3bk9PSxzsINWkxQ",
   authDomain: "eltafawoq-8b700.firebaseapp.com",
   projectId: "eltafawoq-8b700",
-  storageBucket: "eltafawoq-8b700.firebasestorage.app",
   messagingSenderId: "892405720236",
   appId: "1:892405720236:web:734c19429b8ee8e292eb09"
 };
 /* ========================================== */
 
 function isAsmManager(){if(S.isAdmin)return true;const roles=(S.profile&&S.profile.roles)||[];if(roles.includes("asm"))return true;if(S.site&&Array.isArray(S.site.asmManagers)&&S.user&&S.site.asmManagers.includes(S.user.uid))return true;return false;}
-const ADMIN_EMAIL = "REPLACE_WITH_ADMIN_EMAIL";   // لازم يطابق الإيميل في Firebase وفي ملف الـ rules
+const ADMIN_UID = "REPLACE_WITH_ADMIN_UID";       // معرّف حساب الأدمن في Firebase Auth، ليس كلمة مرور
 const DOMAIN = "@eltafawoq.app";
 const MAX_ATTEMPTS = 2;
 const SUBJECTS = [
@@ -1049,7 +1048,9 @@ function ensureAsmsListen(){
 
 function ensureGalleriesListen(){
   if(__galUnsub||!db)return;
-  __galUnsub=onSnapshot(query(collection(db,"galleries"),limit(1500)),s=>{
+  const gRef=collection(db,"galleries");
+  const gQuery=S.isAdmin?query(gRef,limit(1500)):query(gRef,where("status","==","approved"),limit(1500));
+  __galUnsub=onSnapshot(gQuery,s=>{
     S.galleries=s.docs.map(d=>({id:d.id,...d.data()}));
     if((S.view==="admin"&&S.tab==="tanagha")||S.view==="gallery"||S.view==="tanagha")scheduleRender();
   },err=>console.warn("gal",err));
@@ -1451,7 +1452,7 @@ async function pingClientPresence(force){
       lastSeenAt:serverTimestamp(),
       online:true,
       away:!!document.hidden,
-      where:presenceWhere()
+      where:deleteField()
     },{merge:true});
   }catch(e){console.warn("presence",e)}
 }
@@ -1503,7 +1504,7 @@ async function addXP(amount, reason){
     await lfSetXp(ref,{xp,level,title,badges:[...badges],lastXpAt:serverTimestamp()},cur,amount);
     if(S.profile){S.profile.xp=xp;S.profile.level=level;S.profile.title=title;S.profile.badges=[...badges]}
     toast(`+${amount} XP · ${xpTitle(xp).emoji} ${title}`,true);
-  }catch(e){console.warn("xp",e)}
+  }catch(e){console.warn("xp",e);if(String(e&&e.code||"").includes("permission")&&!window.__xpRulesNotice){window.__xpRulesNotice=true;toast("حفظ XP والستريك متوقف لحمايتهما من التلاعب؛ يلزم تحقق خادمي موثوق لاستئنافهما.",true)}}
 }
 async function touchStreak(){
   if(!S.user||S.isAdmin)return;
@@ -1530,7 +1531,7 @@ async function touchStreak(){
       S.profile.title=xpTitle(xp).name;S.profile.badges=[...badges];
     }
     if(dailyXp)toast(`🔥 ستريك ${streak} يوم · +${dailyXp} XP`,true);
-  }catch(e){console.warn("streak",e)}
+  }catch(e){console.warn("streak",e);if(String(e&&e.code||"").includes("permission")&&!window.__xpRulesNotice){window.__xpRulesNotice=true;toast("حفظ XP والستريك متوقف لحمايتهما من التلاعب؛ يلزم تحقق خادمي موثوق لاستئنافهما.",true)}}
 }
 
 
@@ -1673,7 +1674,7 @@ async function startSession(u){
   }catch(_){}
 
 
-  S.isAdmin=u.email===ADMIN_EMAIL;S.adminLogin=false;S.error="";
+  S.isAdmin=u.uid===ADMIN_UID;S.adminLogin=false;S.error="";
   // بوابة الصيانة قبل أي كتابة أو listener
   if(S.site&&S.site.maintenance&&!S.isAdmin){
     try{await signOut(auth)}catch(_){}
@@ -1755,6 +1756,12 @@ async function startSession(u){
     }else{
       const p=await getDoc(doc(db,"students",u.uid));
       S.profile=p.exists()?{name:"طالب",phone:"",...p.data()}:{name:"طالب",phone:""};if(!S.profile.name)S.profile.name="طالب";
+      // دليل عام محدود بالأسماء فقط؛ لا نفتح قراءة جماعية لمجموعة students.
+      try{
+        const publicName=String(S.profile.name||"طالب").trim().slice(0,80)||"طالب";
+        const pr=doc(db,"publicProfiles",u.uid),ps=await getDoc(pr);
+        if(!ps.exists()||ps.data().name!==publicName)await setDoc(pr,{name:publicName,updatedAt:serverTimestamp()},{merge:true});
+      }catch(e){console.warn("publicProfile",e)}
       S.view="home";S.examsLoaded=false;render(true);
       // رابط مباشر للغرفة: #room=CODE
       try{
@@ -1883,7 +1890,7 @@ if(configured){
     }catch(_){}
 
     // ثغرة: طالب كان داخل قبل الصيانة → اطلعه فورًا
-    if(S.site.maintenance&&S.user&&!S.isAdmin&&S.user.email!==(typeof ADMIN_EMAIL!=="undefined"?ADMIN_EMAIL:"")){
+    if(S.site.maintenance&&S.user&&!S.isAdmin){
       try{signOut(auth)}catch(_){}
       S.user=null;S.profile=null;S.isAdmin=false;S.view="auth";S.adminLogin=false;
       stopSubs();
@@ -1901,7 +1908,7 @@ if(configured){
     const run=()=>{
       try{
         if(u){
-          if(S.site&&S.site.maintenance&&(u.email||"")!==ADMIN_EMAIL){
+          if(S.site&&S.site.maintenance&&u.uid!==ADMIN_UID){
             try{signOut(auth)}catch(_){}
             stopSubs();S.user=null;S.isAdmin=false;S.profile=null;S.view="auth";S.adminLogin=false;
             render(true);return;
@@ -2390,7 +2397,7 @@ ${isHost&&pending.length?`<div class="qb-card" style="border-color:var(--gold)">
 <button class="btn ghost sm" data-act="qbCopyLink">رابط مباشر</button>
 <button class="btn sm gold" data-act="qbInviteFromLobby">📨 ابعت لصديق</button></div>
 ${S.qb&&S.qb.inviteOpen?`<div style="margin-top:10px;padding:10px;border-radius:12px;background:var(--sel)">
-<input id="inviteFriendQ" type="search" placeholder="اسم أو رقم الصديق…" value="${esc(S.inviteQ||"")}">
+<input id="inviteFriendQ" type="search" placeholder="ابحث بالاسم…" value="${esc(S.inviteQ||"")}">
 <button class="btn sm" style="margin-top:6px" data-act="searchInviteFriend">بحث</button>
 ${(S.inviteHits||[]).map(h=>`<div class="row" style="margin-top:8px"><span>${esc(h.name||"")}</span><button class="btn sm gold" data-act="inviteRoomFriend" data-uid="${h.id}" data-name="${esc(h.name||"")}">إرسال الدعوة</button></div>`).join("")||(S.inviteQ?`<div class="mut">مفيش نتائج</div>`:"")}
 </div>`:""}
@@ -2601,7 +2608,7 @@ function profileView(){
 </div>
 ${(()=>{const l=lfPeer(u.id);return l&&(l.pet||(l.eq&&Object.keys(l.eq.room||{}).length))?`<div class="card" style="padding:12px"><h3 style="margin:0 0 8px">🏠 غرفة ${esc((u.name||"").split(" ")[0])}</h3>${lfRoomHtml(l,u.xp||0,"p"+u.id)}</div>`:""})()}
 ${u.recent&&u.recent.length?`<div class="card"><h3>آخر النتائج</h3>${u.recent.map(r=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><span style="flex:1"><b dir="auto">${esc(r.examTitle||"امتحان")}</b><div class="mut">${esc(subName(r.subject)||"")}</div></span><span><b>${r.score}/${r.total}</b> ${passPill(r)}</span></div>`).join("")}</div>`:`<div class="card mut">لسه مفيش نتائج ظاهرة.</div>`}
-<button class="btn block" data-act="studentCard" data-uid="${u.id}" style="margin-bottom:8px">🪪 بطاقة الطالب</button>${u.id===S.user.uid?`<button class="btn block ghost" data-act="openMe">تعديل حسابي</button>`:`<button class="btn block gold" data-act="startChat" data-uid="${u.id}" data-name="${esc(u.name||"طالب")}">💬 راسله دلوقتي</button><button class="btn block ghost" style="margin-top:8px" data-act="blockUser" data-uid="${u.id}">🚫 حظر</button>`}
+${u.id===S.user.uid||S.isAdmin?`<button class="btn block" data-act="studentCard" data-uid="${u.id}" style="margin-bottom:8px">🪪 بطاقة الطالب</button>`:""}${u.id===S.user.uid?`<button class="btn block ghost" data-act="openMe">تعديل حسابي</button>`:`<button class="btn block gold" data-act="startChat" data-uid="${u.id}" data-name="${esc(u.name||"طالب")}">💬 راسله دلوقتي</button><button class="btn block ghost" style="margin-top:8px" data-act="blockUser" data-uid="${u.id}">🚫 حظر</button>`}
 </div>${studentNav()}`;
 }
 
@@ -2637,7 +2644,7 @@ function searchView(){
 <h2>🔍 بحث شامل</h2>
 <p class="mut">زملاء · امتحانات · كتب · ألعاب · جروبات</p>
 <div class="card">
-<input id="friendQ" type="search" placeholder="اسم أو رقم…" value="${esc(q)}" autocomplete="off" autofocus>
+<input id="friendQ" type="search" placeholder="ابحث بالاسم…" value="${esc(q)}" autocomplete="off" autofocus>
 <button class="btn block" style="margin-top:10px" data-act="searchFriend">بحث</button>
 </div>
 ${(()=>{
@@ -3297,11 +3304,11 @@ function fadaye7View(){
 </div>
 <div class="card">
   <b>انشر فضيحة</b>
-  <p class="mut" style="margin:4px 0 8px">بتنزل على طول · صور أو فيديوهات من الجهاز · أكتر من ملف مرة واحدة</p>
+  <p class="mut" style="margin:4px 0 8px">بتنزل على طول · حتى 10 صور · للفيديو الصق رابطًا خارجيًا (بدون Firebase Storage)</p>
   <label class="f">وصف</label>
   <input id="stuFadTitle" type="text" maxlength="120" placeholder="وصف قصير…">
-  <label class="f">صور أو فيديوهات</label>
-  <input id="stuFadFile" type="file" accept="image/*,video/mp4,video/webm,video/quicktime,video/3gpp" multiple>
+  <label class="f">صور من الجهاز (حتى 10)</label>
+  <input id="stuFadFile" type="file" accept="image/*" multiple>
   <label class="f">أو رابط</label>
   <input id="stuFadLink" class="ltr" type="url" placeholder="https://…">
   <button class="btn sm" style="margin-top:10px" data-act="submitFadaye7">نشر</button>
@@ -3510,7 +3517,7 @@ function adminPerfCard(){
 }
 
 
-/* ===== أوضاع التشغيل (v88): منصة / ألعاب / أوضاع مخصصة — واحد بس شغّال للطلاب ===== */
+/* ===== أوضاع التشغيل (v91): منصة / ألعاب / أوضاع مخصصة — واحد بس شغّال للطلاب ===== */
 const MODE_BUILTIN=[
   {id:"platform",n:"وضع المنصة",ic:"🎓",kind:"platform",d:"المواد والامتحانات والتواصل والألعاب — كل حاجة زي ما هي."},
   {id:"games",n:"وضع الألعاب",ic:"🎮",kind:"games",d:"الطلاب يشوفوا الألعاب بس. الامتحانات والشات والتقدم مقفولين."}
@@ -3734,7 +3741,7 @@ function adminManagers(){
   <p class="mut">يرفعوا ويعدّلوا التقييمات والحلول (قسم التقييمات فقط).</p>
   <div class="mut" style="margin:8px 0">الحاليون (${asmMgrs.length}): ${asmMgrs.map(s=>esc(s.name||s.phone||s.id)).join(" · ")||"مفيش لسه"}</div>
   <label class="f">بحث</label>
-  <input id="mgrQ" type="search" value="${esc(S.mgrQ||"")}" placeholder="اسم أو رقم…" data-change="mgrSearch">
+  <input id="mgrQ" type="search" value="${esc(S.mgrQ||"")}" placeholder="ابحث بالاسم…" data-change="mgrSearch">
   <div style="max-height:380px;overflow:auto;margin-top:10px">
   ${filtered.slice(0,100).map(s=>{
     const on=Array.isArray(s.roles)&&s.roles.includes("asm");
@@ -3783,11 +3790,11 @@ ${pend.length?`<div class="card" style="border:2px solid var(--gold);margin-bott
 </div>
 <div class="card">
   <h3 style="margin-top:0">إضافة فضيحة جديدة</h3>
-  <p class="mut">صور وفيديوهات: ارفع من الجهاز · أو الصق رابط (يوتيوب / Drive)</p>
+  <p class="mut">حتى 10 صور مضغوطة في Firestore · للفيديو استخدم رابطًا خارجيًا لتجنب Firebase Storage</p>
   <label class="f">عنوان / تعليق</label>
   <input id="fadTitle" type="text" placeholder="مثال: لما أحمد نسي الكود…" maxlength="120">
-  <label class="f">صور / فيديوهات من الجهاز (أكتر من ملف مرة واحدة · الفيديو لحد 1 جيجا)</label>
-  <input id="fadFile" type="file" accept="image/*,video/mp4,video/webm,video/quicktime,video/3gpp" multiple>
+  <label class="f">صور من الجهاز (حتى 10)</label>
+  <input id="fadFile" type="file" accept="image/*" multiple>
   <label class="f">أو رابط فيديو / صورة</label>
   <input id="fadLink" class="ltr" type="url" placeholder="https://…">
   <button class="btn" style="margin-top:12px" data-act="addFadaye7">نشر</button>
@@ -4928,7 +4935,7 @@ const A={
     if(url&&S.site&&S.site.resetPassUrl){
       try{
         toast("جاري التعيين…");
-        const r=await fetch(S.site.resetPassUrl,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid,email,password:pw,adminEmail:ADMIN_EMAIL})});
+        const r=await fetch(S.site.resetPassUrl,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({uid,email,password:pw,adminEmail:(S.user&&S.user.email)||""})});
         if(r.ok){toast("اتعيّنت كلمة السر الجديدة ✓",true);const box=document.getElementById("resetPassBox");if(box)box.style.display="none";return}
         const t=await r.text();console.warn(t);
       }catch(e){console.error(e)}
@@ -5222,12 +5229,15 @@ const A={
     S.viewProfile={loading:true,id:uid};
     S.view="profile";render(true);
     try{
-      const [stSnap,lbSnap,resSnap]=await Promise.all([
-        getDoc(doc(db,"students",uid)),
+      const canReadPrivate=!!(S.isAdmin||uid===S.user.uid);
+      const [stSnap,pubSnap,lbSnap,resSnap]=await Promise.all([
+        canReadPrivate?getDoc(doc(db,"students",uid)):Promise.resolve(null),
+        getDoc(doc(db,"publicProfiles",uid)).catch(()=>null),
         getDoc(doc(db,"leaderboard",uid)).catch(()=>null),
-        getDocs(query(collection(db,"results"),where("uid","==",uid),limit(12))).catch(()=>null)
+        canReadPrivate?getDocs(query(collection(db,"results"),where("uid","==",uid),limit(12))).catch(()=>null):Promise.resolve(null)
       ]);
-      const st=stSnap.exists()?stSnap.data():{};
+      const st=stSnap&&stSnap.exists()?stSnap.data():{};
+      const pub=(pubSnap&&pubSnap.exists())?pubSnap.data():{};
       const lb=(lbSnap&&typeof lbSnap.exists==="function"&&lbSnap.exists())?lbSnap.data():{};
       let rank=null;
       try{
@@ -5244,8 +5254,8 @@ const A={
       recent.sort((a,b)=>tms(b)-tms(a));
       recent=recent.slice(0,8);
       S.viewProfile={
-        id:uid,name:st.name||lb.name||"طالب",phone:st.phone||lb.phone||"",
-        avatar:st.avatar||null,xp:st.xp||0,blocked:!!st.blocked,
+        id:uid,name:st.name||pub.name||lb.name||"طالب",phone:canReadPrivate?(st.phone||""):"",
+        avatar:canReadPrivate?(st.avatar||null):null,xp:canReadPrivate?(st.xp||0):0,blocked:canReadPrivate&&!!st.blocked,
         examsDone:lb.examsDone,totalScore:lb.totalScore,pct:lb.pct,rank,recent
       };
     }catch(e){
@@ -5261,48 +5271,30 @@ const A={
     if(q.length<2){toast("اكتب حرفين على الأقل");return}
     S.friendSearching=true;render();
     try{
-      // leaderboard (ترتيب) + students (اسم/رقم/صورة)
+      const sn=await getDocs(query(collection(db,"publicProfiles"),limit(200)));
+      const profiles=sn.docs.map(d=>({id:d.id,...d.data()}));
       let board=S.board||[];
-      if(!board.length){
-        try{
-          const sn=await getDocs(query(collection(db,"leaderboard"),orderBy("score","desc"),limit(80)));
-          board=sn.docs.map(d=>({id:d.id,...d.data()}));
-          S.board=board;
-        }catch(_){}
+      if((S.isAdmin||featState("progress"))&&!board.length){
+        try{const b=await getDocs(query(collection(db,"leaderboard"),orderBy("score","desc"),limit(80)));board=b.docs.map(d=>({id:d.id,...d.data()}));S.board=board}catch(_){}
       }
       const ql=q.toLowerCase();
-      // بحث في students — نجيب عيّنة ونفلتر (Firestore مفيش full-text)
-      let students=[];
-      try{
-        const sn=await getDocs(query(collection(db,"students"),limit(200)));
-        students=sn.docs.map(d=>({id:d.id,...d.data()}));
-      }catch(e){console.warn(e)}
-      const matched=students.filter(s=>{
-        if(s.id===S.user.uid)return false;
-        const name=(s.name||"").toLowerCase();
-        const phone=String(s.phone||"");
-        return name.includes(ql)||phone.includes(q);
-      }).slice(0,20);
-      // ترتيب leaderboard حسب النقاط
+      const matched=profiles.filter(p=>p.id!==S.user.uid&&(p.name||"").toLowerCase().includes(ql)).slice(0,20);
       const ranked=rankBoard(board).ranked;
-      try{S.globalHits=runGlobalSearch(S.friendQ||"")}catch(_){}
-      S.friendHits=matched.map(s=>{
-        const lb=board.find(b=>b.uid===s.id||b.id===s.id)||{};
-        const rankIdx=ranked.findIndex(b=>(b.uid||b.id)===s.id);
-        return {
-          id:s.id,name:s.name,phone:s.phone,avatar:s.avatar,
-          examsDone:lb.examsDone,totalScore:lb.totalScore,pct:lb.pct,
-          rank:rankIdx>=0?rankIdx+1:null
-        };
+      S.friendHits=matched.map(p=>{
+        const lb=board.find(b=>(b.uid||b.id)===p.id)||{};
+        const rankIdx=ranked.findIndex(b=>(b.uid||b.id)===p.id);
+        return {id:p.id,name:p.name,phone:"",avatar:null,examsDone:lb.examsDone,totalScore:lb.totalScore,pct:lb.pct,rank:rankIdx>=0?rankIdx+1:null};
       });
+      try{S.globalHits=runGlobalSearch(S.friendQ||"")}catch(_){}
     }catch(e){toast("فشل البحث");S.friendHits=[]}
     S.friendSearching=false;render();
   },
   async meSaveName(){
     const name=($("#meName")?.value||"").trim();
-    if(name.length<2){toast("الاسم قصير");return}
+    if(name.length<2||name.length>80){toast("الاسم لازم يكون بين حرفين و80 حرفًا");return}
     try{
       await updateDoc(doc(db,"students",S.user.uid),{name,chatName:name.split(" ")[0]});
+      try{await setDoc(doc(db,"publicProfiles",S.user.uid),{name,updatedAt:serverTimestamp()},{merge:true})}catch(_){}
       S.profile={...S.profile,name};
       toast("اتحفظ الاسم ✓");
       render();
@@ -5733,18 +5725,23 @@ const A={
     if(!S.isAdmin)return;
     const title=($("#fadTitle")?.value||"").trim()||"فضيحة";
     const link=($("#fadLink")?.value||"").trim();
-    const files=[...($("#fadFile")?.files||[])].slice(0,1500);
-    if(!files.length&&!link){toast("ارفع صورة أو الصق رابط فيديو/صورة");return}
+    const selectedFiles=[...($("#fadFile")?.files||[])].slice(0,10);
+    const files=selectedFiles.filter(f=>/^image\//.test(f.type));
+    const videosSkipped=selectedFiles.some(f=>/^video\//.test(f.type));
+    if(!files.length&&!link){toast(videosSkipped?"رفع الفيديو المباشر غير متاح بدون Firebase Storage — استخدم رابط فيديو خارجي.":"ارفع صورة أو الصق رابط فيديو/صورة");return}
+    if(videosSkipped)toast("تم تخطي الفيديوهات؛ استخدم رابطًا خارجيًا للفيديو لتجنب Firebase Storage.",true);
     try{
       if(!await dbServerOk()){toast("⚠️ مفيش اتصال بسيرفر التطبيق — اتأكد من الإنترنت (واي فاي/بيانات) وجرب تاني",false,4200);if($("#fadProg"))$("#fadProg").textContent="";return}
       const batchId="b"+Date.now();
       const base={title,status:"approved",published:true,fromAdmin:true,authorName:"الأدمن",authorUid:S.user.uid,batchId};
+      let linkAdded=false;
       if(link){
         if(!/^https?:\/\//i.test(link)){toast("الرابط لازم يبدأ بـ http");return}
         const ex=await getDocs(query(collection(db,"fadaye7"),where("fp","==","u:"+link),limit(1)));
         if(!ex.empty){toast("الرابط ده منشور قبل كده ⏭️");return}
         const kind=(ytId(link)||/\.(mp4|webm|mov)(\?|$)/i.test(link)||/youtube|youtu\.be|vimeo|drive\.google/i.test(link))?"video":"image";
         await addDoc(collection(db,"fadaye7"),{...base,fp:"u:"+link,url:link,kind,createdAt:serverTimestamp()});
+        linkAdded=true;
       }
       let n=0,fail=0,dup=0;
       const prog=$("#fadProg");
@@ -5757,14 +5754,6 @@ const A={
         if(fp){
           const ex=await getDocs(query(collection(db,"fadaye7"),where("fp","==",fp),limit(1)));
           if(!ex.empty){dupSrv.add(i);throw new Error("dup")}
-        }
-        if(/^video\//.test(f.type)){
-          if(f.size>1073741824)throw new Error("big");
-          const ext=((f.name||"").split(".").pop()||"mp4").replace(/[^a-z0-9]/gi,"").slice(0,4)||"mp4";
-          const tmo=Math.min(5400000,Math.max(300000,Math.round(f.size/512)*2));
-          const url=await withTimeout(uploadMedia(f,"chat/"+S.user.uid+"/fad_"+batchId+"_"+i+"."+ext),tmo,"net");
-          await withTimeout(addDoc(collection(db,"fadaye7"),{...base,seq:i,fp,url,kind:"video",createdAt:serverTimestamp()}),45000,"net");
-          return;
         }
         if(!/^image\//.test(f.type))throw new Error("skip");
         const url=await withTimeout(packImage(f,1200,0.8,600000),30000,"img");
@@ -5830,18 +5819,23 @@ const A={
     if(!S.user||S.isAdmin)return;
     const title=($("#stuFadTitle")?.value||"").trim()||"فضيحة";
     const link=($("#stuFadLink")?.value||"").trim();
-    const files=[...($("#stuFadFile")?.files||[])].slice(0,1500);
-    if(!files.length&&!link){toast("ارفع صورة أو الصق رابط");return}
+    const selectedFiles=[...($("#stuFadFile")?.files||[])].slice(0,10);
+    const files=selectedFiles.filter(f=>/^image\//.test(f.type));
+    const videosSkipped=selectedFiles.some(f=>/^video\//.test(f.type));
+    if(!files.length&&!link){toast(videosSkipped?"رفع الفيديو المباشر غير متاح بدون Firebase Storage — استخدم رابط فيديو خارجي.":"ارفع صورة أو الصق رابط");return}
+    if(videosSkipped)toast("تم تخطي الفيديوهات؛ استخدم رابطًا خارجيًا للفيديو لتجنب Firebase Storage.",true);
     try{
       if(!await dbServerOk()){toast("⚠️ مفيش اتصال بسيرفر التطبيق — اتأكد من الإنترنت (واي فاي/بيانات) وجرب تاني",false,4200);if($("#stuFadProg"))$("#stuFadProg").textContent="";return}
       const batchId="b"+Date.now();
       const base={title,status:"approved",published:true,fromAdmin:false,authorUid:S.user.uid,authorName:S.profile.name||"طالب",batchId};
+      let linkAdded=false;
       if(link){
         if(!/^https?:\/\//i.test(link)){toast("رابط غير صالح");return}
         const ex=await getDocs(query(collection(db,"fadaye7"),where("fp","==","u:"+link),limit(1)));
         if(!ex.empty){toast("الرابط ده منشور قبل كده ⏭️");return}
         const kind=(ytId(link)||/\.(mp4|webm|mov)(\?|$)/i.test(link)||/youtube|youtu\.be/i.test(link))?"video":"image";
         await addDoc(collection(db,"fadaye7"),{...base,fp:"u:"+link,url:link,kind,createdAt:serverTimestamp()});
+        linkAdded=true;
       }
       let n=0,fail=0,dup=0;
       const prog=$("#stuFadProg");
@@ -5855,14 +5849,6 @@ const A={
           const ex=await getDocs(query(collection(db,"fadaye7"),where("fp","==",fp),limit(1)));
           if(!ex.empty){dupSrv.add(i);throw new Error("dup")}
         }
-        if(/^video\//.test(f.type)){
-          if(f.size>1073741824)throw new Error("big");
-          const ext=((f.name||"").split(".").pop()||"mp4").replace(/[^a-z0-9]/gi,"").slice(0,4)||"mp4";
-          const tmo=Math.min(5400000,Math.max(300000,Math.round(f.size/512)*2));
-          const url=await withTimeout(uploadMedia(f,"chat/"+S.user.uid+"/fad_"+batchId+"_"+i+"."+ext),tmo,"net");
-          await withTimeout(addDoc(collection(db,"fadaye7"),{...base,seq:i,fp,url,kind:"video",createdAt:serverTimestamp()}),45000,"net");
-          return;
-        }
         if(!/^image\//.test(f.type))throw new Error("skip");
         const url=await withTimeout(packImage(f,1200,0.8,600000),30000,"img");
         await withTimeout(addDoc(collection(db,"fadaye7"),{...base,seq:i,fp,url,kind:"image",createdAt:serverTimestamp()}),45000,"net");
@@ -5871,7 +5857,8 @@ const A={
       if(prog)prog.textContent="";
       if(n>0)sendPush({type:"admin_event",event:"fadaye7"},"adm_fad",60000);
       if(n>0&&(S.fadLimit||60)<n+10){S.fadLimit=n+10;if(__fadUnsub){try{__fadUnsub()}catch(_){}__fadUnsub=null}try{ensureFadaye7Listen()}catch(_){}}
-      if(!n){toast(dup?"مكرر — منشور قبل كده، مفيش حاجة جديدة ⏭️":(fail?"فشل رفع الملفات — جرّب تاني":"فشل النشر"))}
+      if(!n&&linkAdded)toast("تم نشر الرابط ✓",true);
+      else if(!n){toast(dup?"مكرر — منشور قبل كده، مفيش حاجة جديدة ⏭️":(fail?"فشل رفع الملفات — جرّب تاني":"فشل النشر"))}
       else toast(fail?("اتنشرت "+n+(dup?("+ مكرر اتجاهل "+dup):"")+"، وفشلت "+fail+" ⚠️"):("اتنشرت "+n+(dup?("+ مكرر اتجاهل "+dup):"")+" ✓"),true);
       if($("#stuFadTitle"))$("#stuFadTitle").value="";
       if($("#stuFadFile"))$("#stuFadFile").value="";
@@ -5984,9 +5971,8 @@ const A={
     S.grpAddQ=q;
     if(q.length<2){S.grpAddHits=[];render();return}
     try{
-      const sn=await getDocs(query(collection(db,"students"),limit(120)));
+      const sn=await getDocs(query(collection(db,"publicProfiles"),limit(200)));
       const ql=q.toLowerCase();
-      const members=new Set((S.groupMembers||[]));
       // لو مش حافظين الأعضاء نجيب الجروب
       try{
         const g=await getDoc(doc(db,"groups",S.groupId));
@@ -5994,7 +5980,7 @@ const A={
       }catch(_){}
       const mem=new Set(S.groupMembers||[]);
       S.grpAddHits=sn.docs.map(d=>({id:d.id,...d.data()}))
-        .filter(s=>s.id!==S.user.uid && !mem.has(s.id) && (((s.name||"").toLowerCase().includes(ql))||(s.phone||"").includes(q)))
+        .filter(s=>s.id!==S.user.uid && !mem.has(s.id) && (s.name||"").toLowerCase().includes(ql))
         .slice(0,20);
       render();
     }catch(e){toast("فشل البحث")}
@@ -6004,6 +5990,7 @@ const A={
     try{
       const g=await getDoc(doc(db,"groups",S.groupId));
       if(!g.exists())return;
+      if(g.data().owner!==S.user.uid){toast("مالك الجروب فقط يقدر يضيف أعضاء");return}
       const members=[...(g.data().members||[])];
       if(members.includes(d.uid)){toast("موجود بالفعل");return}
       members.push(d.uid);
@@ -6075,9 +6062,9 @@ const A={
     S.inviteQ=q;
     if(q.length<2){toast("اكتب حرفين على الأقل");return}
     try{
-      const sn=await getDocs(query(collection(db,"students"),limit(80)));
+      const sn=await getDocs(query(collection(db,"publicProfiles"),limit(200)));
       const ql=q.toLowerCase();
-      S.inviteHits=sn.docs.map(d=>({id:d.id,...d.data()})).filter(s=>s.id!==S.user.uid&&((s.name||"").toLowerCase().includes(ql)||(s.phone||"").includes(q))).slice(0,12);
+      S.inviteHits=sn.docs.map(d=>({id:d.id,...d.data()})).filter(s=>s.id!==S.user.uid&&(s.name||"").toLowerCase().includes(ql)).slice(0,12);
       render();
     }catch(e){toast("فشل البحث")}
   },
@@ -6210,9 +6197,10 @@ const A={
   },
   async saveNote(d){try{await updateDoc(doc(db,"students",d.id),{note:$("#note").value.trim()});toast("اتحفظت الملاحظة")}catch(e){toast("مقدرتش أحفظ")}},
   async adminGenReset(d){
-    const code=String(Math.floor(100000+Math.random()*900000));
     const until=Date.now()+24*3600*1000;
     try{
+      const rand=new Uint32Array(1);crypto.getRandomValues(rand);
+      const code=String(100000+(rand[0]%900000));
       await updateDoc(doc(db,"students",d.id),{pwResetCode:code,pwResetUntil:until});
       toast("الكود: "+code+" (صالح 24 ساعة)");
       // refresh local
@@ -6566,12 +6554,7 @@ const A={
     if(!configured){S.error="المنصة تحت التعديل.";render(true);return}
     const rawId=String($("#id").value||"").trim(),isEmail=rawId.includes("@"),idv=isEmail?rawId.toLowerCase():norm(rawId),pw=$("#pw").value;
     const email=isEmail?idv:idv+DOMAIN;
-    // يمكن للأدمن استخدام البريد المخصص مباشرةً؛ الطلاب يستمرون برقم الهاتف.
-    // صيانة: أدمن فقط
-    if(S.site&&S.site.maintenance&&email!==ADMIN_EMAIL){
-      S.error="المنصة تحت الصيانة — دخول الأدمن فقط";
-      render(true);return;
-    }
+    // نترك Firebase يتحقق من بيانات الدخول، ثم يُحسم دور الأدمن عبر UID في القواعد والعميل.
     $("#go").disabled=true;S.error="";
     try{await signInWithEmailAndPassword(auth,email,pw);try{localStorage.setItem(isEmail?"last_admin_email":"last_phone",idv)}catch(_){}}catch(e){S.error=authErr(e);render(true)}
   },
@@ -6579,13 +6562,14 @@ const A={
     if(!configured){S.error="المنصة تحت التعديل.";render(true);return}
     if(S.site&&S.site.maintenance){S.error="التسجيل مقفول أثناء الصيانة";render(true);return}
     const name=$("#nm").value.trim().replace(/\s+/g," "),phone=norm($("#id").value),pw=$("#pw").value;
-    if(name.length<3)return fail("اكتب اسمك بالكامل.");
+    if(name.length<3||name.length>80)return fail("الاسم لازم يكون بين 3 و80 حرفًا.");
     if(!/^01[0-9]{9}$/.test(phone))return fail("رقم التليفون لازم يبقى 11 رقم ويبدأ بـ 01.");
     if(pw.length<6)return fail("كلمة السر لازم تبقى 6 حروف أو أرقام على الأقل.");
     $("#go").disabled=true;S.error="";S.registering=true;
     try{
       const c=await createUserWithEmailAndPassword(auth,phone+DOMAIN,pw);
       try{await setDoc(doc(db,"students",c.user.uid),{name,tanaghaAccess:"pending",createdAt:serverTimestamp()});try{await setDoc(doc(db,"studentsPrivate",c.user.uid),{phone,regIp:myIp||"",regDevice:device(),updatedAt:serverTimestamp()})}catch(_){}sendPush({type:"admin_event",event:"signup"},"adm_signup",30000)}catch(_){}
+      try{await setDoc(doc(db,"publicProfiles",c.user.uid),{name,updatedAt:serverTimestamp()})}catch(_){}
       S.registering=false;await startSession(c.user);
     }catch(e){S.registering=false;S.error=authErr(e);render(true)}
   }
@@ -6602,8 +6586,12 @@ async function openDmThread(uid,name){
   if(!S.user||!uid)return;
   let avatar=null;
   try{
-    const st=await getDoc(doc(db,"students",uid));
-    if(st.exists()){const d=st.data();name=d.name||name;avatar=d.avatar||null}
+    const [pub,av]=await Promise.all([
+      getDoc(doc(db,"publicProfiles",uid)).catch(()=>null),
+      getDoc(doc(db,"avatars",uid)).catch(()=>null)
+    ]);
+    if(pub&&pub.exists())name=pub.data().name||name;
+    if(av&&av.exists())avatar=av.data().data||null;
   }catch(_){}
   const cid=convIdFor(S.user.uid,uid);
   try{
@@ -7214,11 +7202,11 @@ function groupThreadView(){
   const msgs=S.groupMsgs||[];
   const addPanel=S.grpAddOpen?`<div class="grp-add-panel">
   <div class="row" style="margin-bottom:8px"><b style="flex:1">إضافة عضو</b><button class="btn ghost sm" data-act="closeGrpAdd">إغلاق</button></div>
-  <input id="grpAddQ" type="text" maxlength="40" placeholder="اكتب حرفين من الاسم أو الرقم…" value="${esc(S.grpAddQ||"")}" autocomplete="off">
+  <input id="grpAddQ" type="text" maxlength="40" placeholder="اكتب حرفين من الاسم…" value="${esc(S.grpAddQ||"")}" autocomplete="off">
   <button class="btn sm" style="margin-top:8px" data-act="searchGrpAdd">بحث</button>
   ${(S.grpAddHits||[]).length?(S.grpAddHits.map(s=>{
     const av=s.avatar?`<img class="tk-av" src="${s.avatar}" style="width:40px;height:40px">`:`<div class="tk-av letter" style="width:40px;height:40px;font-size:14px">${esc((s.name||"?")[0])}</div>`;
-    return `<button type="button" class="hit" data-act="pickGrpAdd" data-uid="${s.id}" data-name="${esc(s.name||"")}">${av}<div style="flex:1;text-align:start"><b>${esc(s.name||"?")}</b><div class="mut" dir="ltr">${esc(s.phone||"")}</div></div><span class="btn sm">إضافة</span></button>`;
+    return `<button type="button" class="hit" data-act="pickGrpAdd" data-uid="${s.id}" data-name="${esc(s.name||"")}">${av}<div style="flex:1;text-align:start"><b>${esc(s.name||"?")}</b><div class="mut">طالب في المنصة</div></div><span class="btn sm">إضافة</span></button>`;
   }).join("")):(S.grpAddQ&&S.grpAddQ.length>=2?`<div class="mut" style="margin-top:8px">مفيش نتائج</div>`:`<div class="mut" style="margin-top:8px">اكتب حرفين على الأقل</div>`)}
 </div>`:"";
   return `<div class="wrap chat-wrap">${header(NOHDR)}
@@ -7240,22 +7228,6 @@ ${addPanel}
 </div>${studentNav()}`;
 }
 
-async function packImageToStorage(file, path){
-  // Storage مش مجاني عندنا — نرجع null ونستخدم Base64 مضغوط
-  if(!window.__useStorage)return null;
-  try{
-    const dataUrl=await packImage(file,1500,0.85,1500000);
-    const blob=await (await fetch(dataUrl)).blob();
-    const url=await uploadMedia(new File([blob],"p.jpg",{type:"image/jpeg"}), path);
-    return url||null;
-  }catch(e){console.warn("storage img",e);return null}
-}
-async function uploadMedia(file, path){
-  const M=await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js");
-  const r=M.ref(M.getStorage(window.__fbApp), path);
-  await M.uploadBytes(r, file, {contentType:file.type||undefined});
-  return await M.getDownloadURL(r);
-}
 const EMPTY_DM=`<div class="mut" style="text-align:center;margin:auto">قول سلام 👋</div>`;
 const EMPTY_GRP=`<div class="mut" style="text-align:center;margin:auto">اول رسالة في الجروب… اكتب تحت 👇</div>`;
 /* تحديث سجل الرسائل بدون إعادة رسمه كله (من غير وميض ولا قفز) */
@@ -8331,14 +8303,13 @@ document.addEventListener("change",e=>{
     })();
   }
   if(e.target.id==="grpImg"&&e.target.files&&e.target.files[0]&&S.groupId){
-    const files=[...e.target.files].slice(0,1500);e.target.value="";
+    const files=[...e.target.files].slice(0,10);e.target.value="";
     (async()=>{
       try{
       let n=0;for(const f of files){
         if(!/^image\//.test(f.type)){toast("صورة فقط");continue}
         toast("جاري رفع الصورة "+(n+1)+" من "+files.length+"…");
-        let data=await packImageToStorage(f,"groups/"+S.groupId+"/"+Date.now()+"_"+n+".jpg");
-        if(!data) data=await packImage(f,640,0.72,320000);
+        const data=await packImage(f,640,0.72,320000);
         await addDoc(collection(db,"groups",S.groupId,"msgs"),{
           fromUid:S.user.uid,fromName:(S.profile.name||"طالب").split(" ")[0],
           text:"🖼 صورة",img:data,kind:"image",createdAt:serverTimestamp()
@@ -8350,14 +8321,13 @@ document.addEventListener("change",e=>{
     })();
   }
   if(e.target.id==="dmImg"&&e.target.files&&e.target.files[0]&&S.chatThread){
-    const files=[...e.target.files].slice(0,1500);e.target.value="";
+    const files=[...e.target.files].slice(0,10);e.target.value="";
     (async()=>{
       try{
       let n=0;for(const f of files){
         if(!/^image\//.test(f.type)){toast("صورة فقط — للفيديو استخدم زر 🔗 رابط");continue}
         toast("جاري رفع الصورة "+(n+1)+" من "+files.length+"…");
-        let data=await packImageToStorage(f,"chat/"+S.user.uid+"/"+Date.now()+"_"+n+".jpg");
-        if(!data) data=await packImage(f,640,0.72,320000);
+        const data=await packImage(f,640,0.72,320000);
         await sendDm(S.chatThread.uid,"🖼 صورة",data,{kind:"image"});
         n++;}
         toast(n>1?"اتبعتت "+n+" صور ✓":"اتبعتت ✓");
@@ -8519,7 +8489,7 @@ Object.assign(A,{
     if(pz.it===null||(pz.it===undefined&&!pz.c))pz={c:100};
     const o=lfOv(`<div class="lf-box">🎁</div>`);lfSfx("box");l.tot.box++;
     setTimeout(()=>{if(pz.it){l.inv.push(pz.it.id);l.paid=l.paid||{};l.paid[pz.it.id]=[-1,0]}else lfAdd(pz.c,"",true);const t=pz.it?`${pz.it.i}<br><b>${pz.it.n}</b><br><span class="mut">${LF_CATS[pz.it.c]}</span>`:`${pz.jp?"🎰 JACKPOT":"🪙"}<br><b style="font-size:28px">+${pz.c}</b>`;o.innerHTML=`<div class="lf-prize"><div style="font-size:64px;line-height:1.3">${t}</div><button class="btn block" style="margin-top:14px" data-x="1">تمام</button></div>`;lfSfx(pz.jp||pz.it?"lvl":"win");lfEvent("box");lfAch();lfSave();render(true)},1300)},
-  async studentCard(d){const uid=d.uid||S.user.uid;const o=lfOv(`<div class="lf-card"><div class="mut">جاري التحميل…</div></div>`);try{const [s,lf]=await Promise.all([getDoc(doc(db,"students",uid)),getDoc(doc(db,"life",uid))]);const u=s.exists()?s.data():{},l=Object.assign(lfDef(),lf.exists()?lf.data():{});l.eq=Object.assign({acc:[],room:{}},l.eq||{});lfClean(l);const xp=u.xp||0,stg=lfStage(xp,l);const rk=(typeof rankBoard==="function"?rankBoard(S.board).ranked:[]).findIndex(b=>(b.uid||b.id)===uid);const b=(S.board||[]).find(x=>(x.uid||x.id)===uid)||{};const av=u.avatarThumb||u.avatar;const ah=av?`<img src="${av}" alt="" style="width:84px;height:84px;border-radius:50%;object-fit:cover">`:`<div class="av" style="width:84px;height:84px;font-size:32px">${esc((u.name||"؟")[0])}</div>`;
+  async studentCard(d){const uid=d.uid||S.user.uid;if(!S.isAdmin&&uid!==S.user.uid){toast("بطاقة الطالب متاحة لصاحب الحساب فقط");return}const o=lfOv(`<div class="lf-card"><div class="mut">جاري التحميل…</div></div>`);try{const [s,lf]=await Promise.all([getDoc(doc(db,"students",uid)),getDoc(doc(db,"life",uid))]);const u=s.exists()?s.data():{},l=Object.assign(lfDef(),lf.exists()?lf.data():{});l.eq=Object.assign({acc:[],room:{}},l.eq||{});lfClean(l);const xp=u.xp||0,stg=lfStage(xp,l);const rk=(typeof rankBoard==="function"?rankBoard(S.board).ranked:[]).findIndex(b=>(b.uid||b.id)===uid);const b=(S.board||[]).find(x=>(x.uid||x.id)===uid)||{};const av=u.avatarThumb||u.avatar;const ah=av?`<img src="${av}" alt="" style="width:84px;height:84px;border-radius:50%;object-fit:cover">`:`<div class="av" style="width:84px;height:84px;font-size:32px">${esc((u.name||"؟")[0])}</div>`;
     o.innerHTML=`<div class="lf-card ${stg>=5?"rl":stg>=4?"re":""}" data-tilt><div>${lfFr(ah,l)}<h3 style="margin:8px 0 2px">${esc(u.name||"طالب")}</h3>${lfTitle(l)}<div class="xpb"><i style="width:${typeof xpProgress==="function"?xpProgress(xp):0}%"></i></div><div class="lf-mini" style="margin:10px 0">${l.pet?`${lfRoomHtml(l,xp,"c"+uid)}<div class="mut" style="font-size:12px;margin-top:4px">${esc(l.pet.n)} · ${LF_NAME[l.pet.t]||""} · ${LF_STN[stg]}</div>`:`<span class="mut" style="font-size:13px">لسه معندوش حيوان</span>`}</div>
 <div class="st"><div><b>⭐ ${xpLevel(xp)}</b>المستوى</div><div><b>🪙 ${l.coins}</b>عملات</div><div><b>🔥 ${u.streak||0}</b>أيام متتالية</div><div><b>${rk>=0?"#"+(rk+1):"—"}</b>الترتيب</div><div><b>${b.pct!=null?b.pct+"%":"—"}</b>نسبة النجاح</div><div><b>🏅 ${(l.ach||[]).length}</b>إنجازات</div></div><button class="btn block ghost" style="margin-top:12px" data-x="1">إغلاق</button></div></div>`;try{lfRoomInit()}catch(_){}}catch(e){o.innerHTML=`<div class="lf-prize">مقدرتش أحمّل البطاقة</div>`}}
 });
@@ -8567,7 +8537,48 @@ const XP_DAY_CAP=600;
 const lfDayKey=off=>{const d=new Date(Date.now()+(off||0));return d.getUTCFullYear()+"-"+(d.getUTCMonth()+1)+"-"+d.getUTCDate()};
 const lfXpDay=(cur,add,off)=>{const dk=lfDayKey(off),used=cur.xpDay===dk?(cur.xpToday||0):0;return{xpDay:dk,xpToday:used+add}};
 async function lfSetXp(ref,data,cur,add){for(const off of [0,-240000,240000]){try{await setDoc(ref,{...data,...lfXpDay(cur,add,off)},{merge:true});return}catch(e){if(!String(e.code||"").includes("permission"))throw e}}throw new Error("xp-denied")}
-async function lfMigrate(){try{if(localStorage.getItem("priv_mig_v2")==="1")return;const F=["ip","device","regIp","regDevice","phone"];let b=writeBatch(db),n=0,tot=0;const flush=async()=>{if(n){await b.commit();b=writeBatch(db);n=0}};const sn=await getDocs(collection(db,"students"));for(const d of sn.docs){const x=d.data(),has=F.filter(k=>k in x);if(!has.length)continue;const o={updatedAt:serverTimestamp()};has.forEach(k=>o[k]=x[k]);b.set(doc(db,"studentsPrivate",d.id),o,{merge:true});const u={};has.forEach(k=>u[k]=deleteField());b.update(d.ref,u);tot++;if(++n>=200)await flush()}await flush();for(const col of ["leaderboard","qb_battles"]){const q=await getDocs(query(collection(db,col),limit(450)));for(const d of q.docs){if("phone" in d.data()){b.update(d.ref,{phone:deleteField()});if(++n>=200)await flush()}}await flush()}localStorage.setItem("priv_mig_v2","1");if(tot)toast("🔒 اتخبّت بيانات "+tot+" طالب (تليفون/IP) عن باقي الطلاب",true)}catch(e){console.warn("mig",e)}}
+async function lfMigrate(){
+  try{
+    const marker="priv_mig_v3";
+    if(localStorage.getItem(marker)==="1")return;
+    const privateFields=["ip","device","regIp","regDevice","phone"];
+    const sensitiveBoardFields=["phone","email","ip","device","regIp","regDevice","fcmToken"];
+    let batch=writeBatch(db),ops=0,studentsMoved=0,publicDocsCleaned=0;
+    const flush=async()=>{if(ops){await batch.commit();batch=writeBatch(db);ops=0}};
+    const students=await getDocs(collection(db,"students"));
+    for(const d of students.docs){
+      const data=d.data(),fields=privateFields.filter(k=>Object.prototype.hasOwnProperty.call(data,k));
+      if(!fields.length)continue;
+      const priv={updatedAt:serverTimestamp()},remove={};
+      fields.forEach(k=>{priv[k]=data[k];remove[k]=deleteField()});
+      batch.set(doc(db,"studentsPrivate",d.id),priv,{merge:true});
+      batch.update(d.ref,remove);ops+=2;studentsMoved++;
+      if(ops>=200)await flush();
+    }
+    await flush();
+    for(const col of ["leaderboard","qb_battles"]){
+      const ref=collection(db,col);let cursor=null;
+      while(true){
+        const pageQuery=cursor
+          ?query(ref,orderBy(documentId()),startAfter(cursor),limit(200))
+          :query(ref,orderBy(documentId()),limit(200));
+        const page=await getDocs(pageQuery);
+        if(page.empty)break;
+        for(const d of page.docs){
+          const data=d.data(),remove={};
+          sensitiveBoardFields.forEach(k=>{if(Object.prototype.hasOwnProperty.call(data,k))remove[k]=deleteField()});
+          if(Object.keys(remove).length){batch.update(d.ref,remove);ops++;publicDocsCleaned++;if(ops>=200)await flush()}
+        }
+        cursor=page.docs[page.docs.length-1];
+        await flush();
+        if(page.size<200)break;
+      }
+    }
+    await flush();
+    localStorage.setItem(marker,"1");
+    if(studentsMoved||publicDocsCleaned)toast("🔒 اكتمل ترحيل الخصوصية: "+studentsMoved+" ملف طالب و"+publicDocsCleaned+" وثيقة قديمة",true);
+  }catch(e){console.warn("privacy migration",e);toast("تعذر ترحيل بيانات الخصوصية؛ قد تتوقف لوحة الشرف حتى إكمالها",true)}
+}
 const __rs=()=>document.querySelectorAll("[data-tilt].on3").forEach(x=>{x.style.removeProperty("--rx");x.style.removeProperty("--ry");x.classList.remove("on3")});
 document.addEventListener("pointermove",e=>{const t=e.target.closest&&e.target.closest("[data-tilt]");document.querySelectorAll("[data-tilt].on3").forEach(x=>{if(x!==t){x.style.removeProperty("--rx");x.style.removeProperty("--ry");x.classList.remove("on3")}});if(!t)return;const r=t.getBoundingClientRect();t.style.setProperty("--ry",((e.clientX-r.left)/r.width-.5)*24+"deg");t.style.setProperty("--rx",(.5-(e.clientY-r.top)/r.height)*18+"deg");t.classList.add("on3")},{passive:true});
 document.addEventListener("pointerup",__rs);document.addEventListener("pointercancel",__rs);

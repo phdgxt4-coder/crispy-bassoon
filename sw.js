@@ -1,6 +1,6 @@
-/* التفوق SW — v89 — scoped cache cleanup; no forced page reload */
-const CACHE = "eltafawoq-v89";
-const BUILD = "20261027-v89";
+/* التفوق SW — v91 — scoped cache cleanup; no forced page reload */
+const CACHE = "eltafawoq-v91";
+const BUILD = "20261028-v91";
 const PETS = [];
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
@@ -11,7 +11,6 @@ try {
     apiKey: "AIzaSyCo99zGbGOJSw1p-rdy3bk9PSxzsINWkxQ",
     authDomain: "eltafawoq-8b700.firebaseapp.com",
     projectId: "eltafawoq-8b700",
-    storageBucket: "eltafawoq-8b700.firebasestorage.app",
     messagingSenderId: "892405720236",
     appId: "1:892405720236:web:734c19429b8ee8e292eb09"
   });

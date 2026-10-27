@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>بولينج — التفوق</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -37,21 +37,19 @@ canvas{width:min(360px,96vw);height:auto;border-radius:16px;background:#151b2e;b
 
 const cv=document.getElementById('c'),g=cv.getContext('2d');
 const scEl=document.getElementById('sc'),bsEl=document.getElementById('bs');
-let score=0,best=+(localStorage.getItem('bwl_bs')||0),balls=8,pins=[],ball=null,run=false,aim=0,power=0,charging=false;
+let score=0,best=+(localStorage.getItem('bwl_bs')||0),balls=8,pins=[],ball=null,run=false,aim=0,power=0,charging=false,chargeAt=0;
 bsEl.textContent=best;
 function resetPins(){pins=[];for(let r=0;r<4;r++)for(let i=0;i<=r;i++)pins.push({x:180-r*18+i*36,y:70+r*34,up:true})}
 function end(){run=false;if(score>best){best=score;localStorage.setItem('bwl_bs',best);bsEl.textContent=best}
   document.getElementById('ot').textContent='انتهت الكرات';document.getElementById('om').textContent='نقاط: '+score;document.getElementById('ov').classList.add('on')}
-function reset(){score=0;balls=8;ball=null;aim=0;power=0;charging=false;resetPins();run=true;scEl.textContent=0;document.getElementById('ov').classList.remove('on');document.getElementById('hint').textContent='كرات: 8'}
+function reset(){score=0;balls=8;ball=null;aim=0;power=0;charging=false;chargeAt=0;resetPins();run=true;scEl.textContent=0;document.getElementById('ov').classList.remove('on');document.getElementById('hint').textContent='كرات: 8';requestAnimationFrame(loop)}
 document.getElementById('go').onclick=()=>{if(!run)reset()};
 document.getElementById('again').onclick=()=>{document.getElementById('ov').classList.remove('on');reset()};
 cv.addEventListener('pointermove',e=>{if(!run||ball)return;const r=cv.getBoundingClientRect();aim=((e.clientX-r.left)/r.width*360-180)*0.35;aim=Math.max(-55,Math.min(55,aim))});
-cv.addEventListener('pointerdown',e=>{e.preventDefault();if(!run){reset();return}if(ball)return;charging=true;power=15});
-cv.addEventListener('pointerup',()=>{if(!charging)return;charging=false;ball={x:180+aim,y:485,vx:aim*0.035,vy:-(5.5+power/18)};power=0});
+cv.addEventListener('pointerdown',e=>{e.preventDefault();if(!run){reset();return}if(ball)return;cv.setPointerCapture(e.pointerId);charging=true;power=15;chargeAt=performance.now()});
+cv.addEventListener('pointerup',()=>{if(!charging)return;power=Math.min(100,15+Math.floor((performance.now()-chargeAt)/40)*4);charging=false;ball={x:180+aim,y:485,vx:aim*0.035,vy:-(5.5+power/18)};power=0;chargeAt=0});
 cv.addEventListener('pointercancel',()=>{charging=false;power=0});
-setInterval(()=>{if(charging)power=Math.min(100,power+4)},40);
-(function loop(){
-  requestAnimationFrame(loop);
+function loop(){
   g.fillStyle='#1a1f35';g.fillRect(0,0,360,520);
   g.fillStyle='#3d2b1f';g.fillRect(50,0,260,520);
   g.strokeStyle='#5c4033';g.strokeRect(50,0,260,520);
@@ -66,9 +64,11 @@ setInterval(()=>{if(charging)power=Math.min(100,power+4)},40);
   } else if(run){
     g.fillStyle='#94a3b8';g.beginPath();g.arc(180+aim,485,15,0,Math.PI*2);g.fill();
     g.strokeStyle='#fbbf24';g.beginPath();g.moveTo(180+aim,470);g.lineTo(180+aim*1.15,200);g.stroke();
-    if(charging){g.fillStyle='#22c55e';g.fillRect(60,505,power*2.4,8)}
+    if(charging){power=Math.min(100,15+Math.floor((performance.now()-chargeAt)/40)*4);g.fillStyle='#22c55e';g.fillRect(60,505,power*2.4,8)}
   }
-})();
+  if(run)requestAnimationFrame(loop);
+}
+loop();
 
 </script>
 </body></html>

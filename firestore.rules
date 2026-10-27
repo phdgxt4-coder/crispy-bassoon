@@ -6,7 +6,7 @@ service cloud.firestore {
       return request.auth != null;
     }
     function isAdmin() {
-      return signedIn() && request.auth.token.get('email', '') == 'REPLACE_WITH_ADMIN_EMAIL';
+      return signedIn() && request.auth.uid == 'REPLACE_WITH_ADMIN_UID';
     }
     function notBlocked() {
       let p = /databases/$(database)/documents/students/$(request.auth.uid);
@@ -14,6 +14,15 @@ service cloud.firestore {
     }
     function isOwner(uid) {
       return signedIn() && request.auth.uid == uid;
+    }
+    function validStudentCreate() {
+      return request.resource.data.keys().hasAll(['name', 'tanaghaAccess', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['name', 'tanaghaAccess', 'createdAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 2
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.tanaghaAccess == 'pending'
+        && request.resource.data.createdAt is timestamp;
     }
     function featureFlagOn(feature) {
       let p = /databases/$(database)/documents/config/features;
@@ -39,11 +48,177 @@ service cloud.firestore {
       return signedIn() && featureFlagOn('games') && exists(p)
         && docId == 'gameMode_' + get(p).data.get('appMode', 'platform');
     }
+    function validInitialRoomPlayer(uid, player) {
+      return player is map
+        && player.keys().hasOnly(['uid', 'name', 'ready', 'score', 'correct', 'wrong', 'streak', 'bestStreak', 'away', 'seen', 'avatar', 'invited'])
+        && player.get('uid', '') == uid
+        && player.get('name', '') is string
+        && player.get('name', '').size() <= 80
+        && player.get('score', 0) == 0
+        && player.get('correct', 0) == 0
+        && player.get('wrong', 0) == 0
+        && player.get('streak', 0) == 0
+        && player.get('bestStreak', 0) == 0;
+    }
 
     match /config/{docId} {
       // Public settings are readable only while the document contains no credential-like fields.
       allow read: if isAdmin() || activeHtmlGame(docId) || publicConfigSafe();
       allow write: if isAdmin();
+    }
+
+    function publicCommentTarget(targetType, targetId) {
+      let galleryPath = /databases/$(database)/documents/galleries/$(targetId);
+      let postPath = /databases/$(database)/documents/fadaye7/$(targetId);
+      return (targetType == 'gallery' && exists(galleryPath)
+                && get(galleryPath).data.get('status', 'approved') == 'approved'
+                && get(galleryPath).data.get('published', true) == true)
+          || (targetType == 'fadaye7' && exists(postPath)
+                && get(postPath).data.get('status', 'approved') == 'approved'
+                && get(postPath).data.get('published', true) == true);
+    }
+    function validLifeDocument() {
+      return request.resource.data.keys().hasOnly(['coins', 'earned', 'inv', 'eq', 'pet', 'lucky', 'lastDaily', 'q', 'tot', 'ach', 'w', 'paid', 'refunded', 'hatched', 'all', 'updatedAt', 'eDay', 'eToday'])
+        && request.resource.data.coins is int
+        && request.resource.data.coins >= 0
+        && request.resource.data.coins <= 10000000
+        && request.resource.data.earned is int
+        && request.resource.data.earned >= 0
+        && request.resource.data.earned <= 100000000
+        && request.resource.data.inv is list
+        && request.resource.data.inv.size() <= 200
+        && request.resource.data.eq is map
+        && request.resource.data.updatedAt is timestamp
+        && (!request.resource.data.keys().hasAny(['eToday']) || (request.resource.data.eToday is int && request.resource.data.eToday >= 0 && request.resource.data.eToday <= 100000));
+    }
+
+    match /galleries/{galleryId} {
+      allow read: if isAdmin() || (signedIn()
+        && resource.data.get('status', 'approved') == 'approved'
+        && resource.data.get('published', true) == true);
+      allow create: if isAdmin() || (signedIn() && notBlocked()
+        && request.resource.data.keys().hasOnly(['kind', 'title', 'images', 'authorUid', 'authorName', 'status', 'fromAdmin', 'pinned', 'hideFrom', 'createdAt'])
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.fromAdmin == false
+        && request.resource.data.pinned == false
+        && request.resource.data.hideFrom is list
+        && request.resource.data.hideFrom.size() == 0
+        && request.resource.data.kind is string
+        && request.resource.data.kind.size() <= 32
+        && request.resource.data.title is string
+        && request.resource.data.title.size() <= 120
+        && request.resource.data.authorName is string
+        && request.resource.data.authorName.size() <= 80
+        && request.resource.data.images is list
+        && request.resource.data.images.size() == 1
+        && request.resource.data.images[0] is string
+        && request.resource.data.images[0].size() <= 850000
+        && request.resource.data.createdAt is timestamp);
+      allow update, delete: if isAdmin();
+    }
+
+    match /comments/{commentId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && notBlocked()
+        && request.resource.data.keys().hasOnly(['targetType', 'targetId', 'parentId', 'uid', 'name', 'text', 'createdAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.targetType in ['gallery', 'fadaye7']
+        && request.resource.data.targetId is string
+        && request.resource.data.targetId.size() <= 150
+        && publicCommentTarget(request.resource.data.targetType, request.resource.data.targetId)
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 50
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 400
+        && (request.resource.data.parentId == null || request.resource.data.parentId is string)
+        && request.resource.data.createdAt is timestamp;
+      allow update: if isAdmin();
+      allow delete: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+    }
+
+    match /presence/{uid} {
+      allow read: if isAdmin() || isOwner(uid)
+        || (signedIn() && featureAllowed('chat')
+            && resource.data.get('online', false) == true
+            && !resource.data.keys().hasAny(['where']));
+      allow create: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(['clientType', 'lastSeenAt', 'online', 'away'])
+        && request.resource.data.clientType is string
+        && request.resource.data.lastSeenAt is timestamp
+        && request.resource.data.online is bool
+        && request.resource.data.away is bool;
+      allow update: if isOwner(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clientType', 'lastSeenAt', 'online', 'away', 'where'])
+        && request.resource.data.keys().hasOnly(['clientType', 'lastSeenAt', 'online', 'away'])
+        && request.resource.data.clientType is string
+        && request.resource.data.lastSeenAt is timestamp
+        && request.resource.data.online is bool
+        && request.resource.data.away is bool;
+      allow delete: if isAdmin() || isOwner(uid);
+    }
+
+    match /avatars/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isAdmin() || (isOwner(uid)
+        && request.resource.data.keys().hasOnly(['data', 'updatedAt'])
+        && request.resource.data.data is string
+        && request.resource.data.data.size() <= 900000
+        && request.resource.data.updatedAt is timestamp);
+      allow delete: if isAdmin() || isOwner(uid);
+    }
+
+    match /life/{uid} {
+      allow read: if isAdmin() || (signedIn() && featureAllowed('games'));
+      // These are self-owned cosmetic game data, not authoritative school scores or transferable rewards.
+      allow create, update: if isAdmin() || (isOwner(uid) && validLifeDocument());
+      allow delete: if isAdmin();
+    }
+
+    match /aiChats/{uid} {
+      allow read: if isAdmin() || isOwner(uid);
+      allow create, update: if isAdmin() || (isOwner(uid)
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'phone', 'msgs', 'updatedAt'])
+        && request.resource.data.get('uid', request.auth.uid) == request.auth.uid
+        && request.resource.data.msgs is list
+        && request.resource.data.msgs.size() <= 80
+        && request.resource.data.updatedAt is timestamp);
+      allow delete: if isAdmin() || isOwner(uid);
+    }
+
+    match /audit/{entryId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['by', 'byName', 'action', 'detail', 'createdAt'])
+        && request.resource.data.by == request.auth.uid
+        && request.resource.data.byName is string
+        && request.resource.data.byName.size() <= 80
+        && request.resource.data.action is string
+        && request.resource.data.action.size() <= 80
+        && request.resource.data.detail is string
+        && request.resource.data.detail.size() <= 300
+        && request.resource.data.createdAt is timestamp;
+      allow update, delete: if isAdmin();
+    }
+
+    match /suspicious/{entryId} {
+      allow read: if isAdmin();
+      allow create: if signedIn() && notBlocked()
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'phone', 'text', 'source', 'createdAt', 'seen'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.source == 'ai'
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.phone is string
+        && request.resource.data.phone.size() <= 20
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 1000
+        && request.resource.data.get('seen', false) == false
+        && request.resource.data.createdAt is timestamp;
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seen']);
+      allow delete: if isAdmin();
     }
 
     match /exams/{examId} {
@@ -53,11 +228,46 @@ service cloud.firestore {
 
     match /students/{uid} {
       allow read: if isAdmin() || isOwner(uid);
-      allow create: if isOwner(uid);
+      // A new account may create only its pending public profile; never self-assign roles or progress.
+      allow create: if isOwner(uid) && validStudentCreate();
       allow update: if isAdmin()
                     || (isOwner(uid)
                         && request.resource.data.diff(resource.data).affectedKeys()
-                           .hasOnly(['lastLogin', 'ip', 'device', 'chatName', 'note', 'avatar', 'xp', 'streak', 'lastStreak', 'fcmToken', 'clientType']));
+                           .hasOnly(['lastLogin', 'chatName', 'name', 'avatar', 'avatarThumb', 'fcmToken', 'fcmUpdatedAt', 'clientType', 'theme', 'blockedUsers'])
+                        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['name'])
+                          || (request.resource.data.name is string
+                              && request.resource.data.name.size() >= 2
+                              && request.resource.data.name.size() <= 80)));
+      allow delete: if isAdmin();
+    }
+
+    match /studentsPrivate/{uid} {
+      allow read: if isAdmin() || isOwner(uid);
+      allow create: if isAdmin() || (isOwner(uid)
+        && request.resource.data.keys().hasOnly(['phone', 'ip', 'device', 'regIp', 'regDevice', 'updatedAt']));
+      allow update: if isAdmin() || (isOwner(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['phone', 'ip', 'device', 'regIp', 'regDevice', 'updatedAt']));
+      allow delete: if isAdmin();
+    }
+
+    // Public, name-only directory for search and chat; never expose private student fields here.
+    match /publicProfiles/{uid} {
+      allow read: if isAdmin() || (signedIn() && notBlocked()
+        && (featureAllowed('chat') || featureAllowed('progress') || featureAllowed('games')));
+      allow create: if isAdmin() || (isOwner(uid) && notBlocked()
+        && request.resource.data.keys().hasOnly(['name', 'updatedAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 2
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.updatedAt is timestamp);
+      allow update: if isAdmin() || (isOwner(uid) && notBlocked()
+        && request.resource.data.keys().hasOnly(['name', 'updatedAt'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'updatedAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 2
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.updatedAt is timestamp);
       allow delete: if isAdmin();
     }
 
@@ -70,7 +280,20 @@ service cloud.firestore {
       allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
       allow create: if signedIn() && notBlocked()
                     && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.keys().hasAll(['uid', 'examId', 'attempt', 'score', 'total', 'ans', 'createdAt'])
+                    && request.resource.data.keys().hasOnly(['uid', 'examId', 'examTitle', 'subject', 'name', 'phone', 'attempt', 'score', 'total', 'passMark', 'passed', 'ans', 'secs', 'tabs', 'createdAt'])
+                    && request.resource.data.examId is string
+                    && request.resource.data.examId.size() <= 120
                     && request.resource.data.attempt in [1, 2]
+                    && (request.resource.data.score is int || request.resource.data.score is float)
+                    && request.resource.data.total is int
+                    && request.resource.data.total > 0
+                    && request.resource.data.total <= 250
+                    && request.resource.data.score >= 0
+                    && request.resource.data.score <= request.resource.data.total
+                    && request.resource.data.ans is list
+                    && request.resource.data.ans.size() <= 300
+                    && request.resource.data.createdAt is timestamp
                     && resultId == request.auth.uid + '_' + request.resource.data.examId + '_' + string(request.resource.data.attempt)
                     && (request.resource.data.attempt == 1
                         || exists(/databases/$(database)/documents/results/$(request.auth.uid + '_' + request.resource.data.examId + '_1')));
@@ -144,10 +367,25 @@ service cloud.firestore {
       allow read: if isAdmin() || (signedIn() && featureAllowed('chat')
                   && resource.data.members.hasAny([request.auth.uid]));
       allow create: if signedIn() && notBlocked() && featureAllowed('chat')
+                    && request.resource.data.keys().hasOnly(['name', 'owner', 'ownerName', 'members', 'memberNames', 'createdAt', 'updatedAt'])
+                    && request.resource.data.owner == request.auth.uid
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0
+                    && request.resource.data.name.size() <= 80
                     && request.resource.data.members is list
+                    && request.resource.data.members.size() == 1
                     && request.resource.data.members.hasAny([request.auth.uid]);
-      allow update: if isAdmin() || (signedIn() && featureAllowed('chat')
-                    && resource.data.members.hasAny([request.auth.uid]));
+      allow update: if isAdmin()
+                    || (signedIn() && featureAllowed('chat')
+                        && resource.data.members.hasAny([request.auth.uid])
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastText', 'updatedAt']))
+                    || (signedIn() && notBlocked() && featureAllowed('chat')
+                        && resource.data.owner == request.auth.uid
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'ownerName', 'members', 'memberNames', 'lastText', 'updatedAt'])
+                        && request.resource.data.members is list
+                        && request.resource.data.members.hasAny([request.auth.uid])
+                        && request.resource.data.members.size() <= 100
+                        && request.resource.data.memberNames is map);
       allow delete: if isAdmin()
                     || (signedIn() && resource.data.owner == request.auth.uid);
 
@@ -179,9 +417,40 @@ service cloud.firestore {
     }
 
     match /qb_rooms/{code} {
-      allow read, write: if signedIn() && featureAllowed('games');
+      allow read: if signedIn() && featureAllowed('games');
+      allow create: if signedIn() && notBlocked() && featureAllowed('games')
+                    && request.resource.data.get('code', '') == code
+                    && request.resource.data.get('host', '') == request.auth.uid
+                    && request.resource.data.get('status', '') == 'lobby'
+                    && request.resource.data.get('players', {}) is map
+                    && request.resource.data.players.keys().hasOnly([request.auth.uid])
+                    && validInitialRoomPlayer(request.auth.uid, request.resource.data.players.get(request.auth.uid, {}));
+      // Hosts control room state; other users may only change their own player or join-request entry.
+      allow update: if isAdmin()
+                    || (signedIn() && notBlocked() && featureAllowed('games')
+                        && resource.data.get('host', '') == request.auth.uid)
+                    || (signedIn() && notBlocked() && featureAllowed('games')
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['players'])
+                        && resource.data.players.diff(request.resource.data.players).affectedKeys().hasOnly([request.auth.uid])
+                        && (( !resource.data.players.keys().hasAny([request.auth.uid])
+                              && request.resource.data.players.keys().hasAny([request.auth.uid])
+                              && validInitialRoomPlayer(request.auth.uid, request.resource.data.players.get(request.auth.uid, {})))
+                            || (resource.data.players.keys().hasAny([request.auth.uid])
+                                && (!request.resource.data.players.keys().hasAny([request.auth.uid])
+                                    || resource.data.players.get(request.auth.uid, {}).diff(request.resource.data.players.get(request.auth.uid, {})).affectedKeys()
+                                       .hasOnly(['ready', 'away', 'seen', 'ans', 'ansAt'])))))
+                    || (signedIn() && notBlocked() && featureAllowed('games')
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['joinRequests'])
+                        && resource.data.get('joinRequests', {}).diff(request.resource.data.get('joinRequests', {})).affectedKeys().hasOnly([request.auth.uid])
+                        && request.resource.data.get('joinRequests', {}).get(request.auth.uid, {}).get('uid', request.auth.uid) == request.auth.uid);
+      allow delete: if isAdmin() || (signedIn() && resource.data.get('host', '') == request.auth.uid);
       match /chat/{msgId} {
-        allow read, create: if signedIn() && featureAllowed('games');
+        allow read: if signedIn() && featureAllowed('games');
+        allow create: if signedIn() && notBlocked() && featureAllowed('games')
+                      && get(/databases/$(database)/documents/qb_rooms/$(code)).data.get('players', {}).keys().hasAny([request.auth.uid])
+                      && request.resource.data.fromUid == request.auth.uid
+                      && request.resource.data.text is string
+                      && request.resource.data.text.size() <= 1000;
         // التفاعلات على رسائل الغرفة
         allow update: if signedIn() && featureAllowed('games')
                       && request.resource.data.diff(resource.data).affectedKeys()
@@ -191,13 +460,38 @@ service cloud.firestore {
     }
 
     match /qb_battles/{id} {
-      allow read, create: if signedIn() && featureAllowed('games');
+      allow read: if isAdmin() || (signedIn() && featureAllowed('games') && resource.data.uid == request.auth.uid);
+      // The record is still client-reported; never use it as authoritative rewards/ranking without a trusted backend.
+      allow create: if signedIn() && notBlocked() && featureAllowed('games')
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.keys().hasOnly(['uid', 'name', 'mode', 'diff', 'subject', 'score', 'correct', 'wrong', 'total', 'bestStreak', 'rank', 'players', 'createdAt'])
+                    && request.resource.data.score is int
+                    && request.resource.data.score >= 0
+                    && request.resource.data.correct is int
+                    && request.resource.data.correct >= 0
+                    && request.resource.data.wrong is int
+                    && request.resource.data.wrong >= 0
+                    && request.resource.data.total is int
+                    && request.resource.data.total > 0
+                    && request.resource.data.total <= 250
+                    && request.resource.data.createdAt is timestamp;
     }
 
     match /leaderboard/{uid} {
-      allow read: if signedIn() && featureAllowed('progress');
-      allow create, update: if signedIn()
-        && (request.auth.uid == uid || isAdmin());
+      allow read: if isAdmin() || (signedIn() && featureAllowed('progress')
+        && !resource.data.keys().hasAny(['phone', 'email', 'ip', 'device', 'regIp', 'regDevice', 'fcmToken']));
+      allow create, update: if isAdmin() || (signedIn() && request.auth.uid == uid
+        && request.resource.data.uid == uid
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'score', 'examsDone', 'totalScore', 'totalQ', 'pct', 'ex', 'v', 'updatedAt'])
+        && request.resource.data.examsDone is int
+        && request.resource.data.examsDone >= 0
+        && (request.resource.data.totalScore is int || request.resource.data.totalScore is float)
+        && request.resource.data.totalScore >= 0
+        && request.resource.data.totalQ is int
+        && request.resource.data.totalQ >= 0
+        && (request.resource.data.pct is int || request.resource.data.pct is float)
+        && request.resource.data.pct >= 0
+        && request.resource.data.pct <= 100);
       allow delete: if isAdmin();
     }
 
@@ -215,7 +509,29 @@ service cloud.firestore {
 
     match /fadaye7/{id} {
       allow read: if isAdmin() || (signedIn() && featureAllowed('fadaye7'));
-      allow write: if isAdmin();
+      allow create: if isAdmin() || (signedIn() && notBlocked() && featureAllowed('fadaye7')
+        && request.resource.data.keys().hasOnly(['title', 'status', 'published', 'fromAdmin', 'authorUid', 'authorName', 'batchId', 'seq', 'fp', 'url', 'kind', 'createdAt'])
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.fromAdmin == false
+        && request.resource.data.status == 'approved'
+        && request.resource.data.published == true
+        && request.resource.data.title is string
+        && request.resource.data.title.size() <= 120
+        && request.resource.data.authorName is string
+        && request.resource.data.authorName.size() <= 80
+        && request.resource.data.batchId is string
+        && request.resource.data.batchId.size() <= 60
+        && request.resource.data.kind in ['image', 'video']
+        && request.resource.data.url is string
+        && request.resource.data.url.size() <= 850000
+        && (request.resource.data.kind == 'image'
+            ? (request.resource.data.url.matches('^data:image/.*') || request.resource.data.url.matches('^https?://.*'))
+            : request.resource.data.url.matches('^https?://.*'))
+        && request.resource.data.createdAt is timestamp
+        && (!request.resource.data.keys().hasAny(['seq']) || (request.resource.data.seq is int && request.resource.data.seq >= 0 && request.resource.data.seq < 10))
+        && (!request.resource.data.keys().hasAny(['fp']) || request.resource.data.fp == null || (request.resource.data.fp is string && request.resource.data.fp.size() <= 500)));
+      allow update: if isAdmin();
+      allow delete: if isAdmin() || (signedIn() && resource.data.authorUid == request.auth.uid);
     }
 
     match /books/{id} {
