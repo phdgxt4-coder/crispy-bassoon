@@ -8,7 +8,7 @@
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v86";</script>
+<script>window.APP_BUILD="v88";</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <script>(function(){try{var m=localStorage.getItem("theme_mode"),c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#0F1220",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
@@ -971,7 +971,7 @@ const firebaseConfig = {
 /* ========================================== */
 
 function isAsmManager(){if(S.isAdmin)return true;const roles=(S.profile&&S.profile.roles)||[];if(roles.includes("asm"))return true;if(S.site&&Array.isArray(S.site.asmManagers)&&S.user&&S.site.asmManagers.includes(S.user.uid))return true;return false;}
-const ADMIN_EMAIL = "01061572071@eltafawoq.app";   // لازم يطابق الإيميل في Firebase وفي ملف الـ rules
+const ADMIN_EMAIL = "REPLACE_WITH_ADMIN_EMAIL";   // لازم يطابق الإيميل في Firebase وفي ملف الـ rules
 const DOMAIN = "@eltafawoq.app";
 const MAX_ATTEMPTS = 2;
 const SUBJECTS = [
@@ -1685,10 +1685,11 @@ async function startSession(u){
   }
   pingClientPresence();
   try{touchStreak()}catch(_){}try{lfInit()}catch(_){}
-  try{listenIncomingCalls()}catch(_){}
+  try{syncCallAvailability()}catch(_){}
   try{registerFcmToken()}catch(_){}
   try{maybeAskPush()}catch(_){}
-  try{subs.push(onSnapshot(doc(db,"config","ai"),s=>{S.aiCfg=s.exists()?s.data():null;applyAiCfg()},e=>console.warn("aicfg",e)))}catch(_){}
+  S.aiCfg=null;
+  if(S.isAdmin)try{subs.push(onSnapshot(doc(db,"config","ai"),s=>{S.aiCfg=s.exists()?s.data():null;applyAiCfg()},e=>console.warn("aicfg",e)))}catch(_){}
   try{handlePendingCall()}catch(_){}
 
   try{
@@ -1862,36 +1863,22 @@ async function startSession(u){
 
 if(configured){
   onSnapshot(doc(db,"config","features"),s=>{S.features=s.exists()?s.data():{};
-    if(S.user&&!S.isAdmin){
-      // القسم اللي الأدمن قفله: وقّف تحميله خالص (يتحمّل تاني بس لما يتفتح)
-      try{
-        if(!featState("books")&&window.__bookUnsub){window.__bookUnsub();window.__bookUnsub=null}
-        if(!featState("chat")){
-          if(window.__chatsUnsub){window.__chatsUnsub();window.__chatsUnsub=null}
-          if(window.__dmUnsub){window.__dmUnsub();window.__dmUnsub=null}
-          if(window.__dmMetaUnsub){window.__dmMetaUnsub();window.__dmMetaUnsub=null}
-        }
-        if(!featState("fadaye7")&&typeof __fadUnsub==="function"){__fadUnsub();__fadUnsub=null}
-        if(!featState("tanagha")&&typeof __galUnsub==="function"){__galUnsub();__galUnsub=null}
-      }catch(_){}
-      scheduleRender();
-    }},e=>console.warn("features",e));
+    if(S.user&&!S.isAdmin){try{syncFeatureAvailability()}catch(_){};scheduleRender()}
+  },e=>console.warn("features",e));
   onSnapshot(doc(db,"config","site"),s=>{
     const d=s.exists()?s.data():{};
     const was=S.site.maintenance;
-    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",pushUrl:d.pushUrl||"",resetPassUrl:d.resetPassUrl||"",booksUrl:d.booksUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0,appMode:d.appMode||"platform",modes:Array.isArray(d.modes)?d.modes:[]};
+    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",aiProxy:d.aiProxy||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",pushUrl:d.pushUrl||"",resetPassUrl:d.resetPassUrl||"",booksUrl:d.booksUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0,appMode:d.appMode||"platform",modes:Array.isArray(d.modes)?d.modes:[]};
     S.siteRaw=d;applyAiCfg();
-    // أدمن طلب تسريع للجميع → امسح كاش الجهاز ده مرة
+    if(S.user&&!S.isAdmin)try{syncFeatureAvailability()}catch(_){}
+    // تحديث جماعي غير قسري: لا نمسح كاش المستخدم ولا نعيد تحميل الصفحة تلقائيًا.
     try{
       const bust=Number(S.site.cacheBust)||0;
       const done=Number(localStorage.getItem("cache_bust_done")||0);
       if(bust&&bust>done&&!(window.__busting)){
         window.__busting=true;
         localStorage.setItem("cache_bust_done",String(bust));
-        clearLocalSpeedCache("remote").then(function(){
-          toast("تم تسريع المنصة ✓",true);
-          setTimeout(function(){location.reload()},600);
-        });
+        toast("في تحديث جديد — حدّث الصفحة يدويًا عندما يناسبك.",true);
       }
     }catch(_){}
 
@@ -1991,7 +1978,7 @@ async function clearLocalSpeedCache(reason){
   try{
     if(window.caches&&caches.keys){
       const ks=await caches.keys();
-      await Promise.all(ks.map(k=>caches.delete(k)));
+      await Promise.all(ks.filter(k=>/^eltafawoq-v/i.test(k)).map(k=>caches.delete(k)));
     }
   }catch(_){}
   try{
@@ -2069,7 +2056,7 @@ function render(force){
   try{app.classList.toggle("noanim",!__newView)}catch(_){}
   try{
     let cr=document.getElementById("credit");
-    if(!cr){cr=document.createElement("div");cr.id="credit";cr.innerHTML=`<div><b>بواسطة المبرمج مورا 么</b></div><div class="cr-sub">للتواصل</div><div><a href="https://t.me/T_YAXC" target="_blank" rel="noopener">t.me/T_YAXC</a><a href="https://wa.me/201013905431" target="_blank" rel="noopener">01013905431</a></div>`;app.insertAdjacentElement("afterend",cr)}
+    if(!cr){cr=document.createElement("div");cr.id="credit";cr.innerHTML=`<div><b>بواسطة المبرمج مورا 么</b></div><div class="cr-sub">للتواصل، استخدم قناة الإدارة داخل المنصة.</div>`;app.insertAdjacentElement("afterend",cr)}
     const noCr=["loading","exam","chatThread","groupThread","ai","qbPlay"].includes(S.view);
     cr.style.display=noCr?"none":"";document.body.classList.toggle("has-credit",!noCr);
     cr.classList.toggle("nav",!!S.user&&!S.isAdmin&&!noCr&&!(typeof isAsmManager==="function"&&S.view==="asmAdmin"));
@@ -2137,12 +2124,12 @@ ${rec?`<div class="mut" style="margin:0 0 8px">اطلب من الأدمن «كو
 <label class="f" for="rid">رقم التليفون</label>
 <input id="rid" class="ltr" type="tel" inputmode="numeric" autocomplete="username" placeholder="01xxxxxxxxx" required>
 <label class="f" for="rcode">كود الاستعادة (6 أرقام من الأدمن)</label>
-<input id="rcode" class="ltr" type="text" inputmode="numeric" placeholder="123456" maxlength="6" autocomplete="one-time-code" required>
+<input id="rcode" class="ltr" type="text" inputmode="numeric" placeholder="رمز من 6 أرقام" maxlength="6" autocomplete="one-time-code" required>
 <label class="f" for="rpw">كلمة السر الجديدة (6+)</label>
 <input id="rpw" class="ltr" type="password" autocomplete="new-password" minlength="6" required>
 `:`
-<label class="f" for="id">رقم التليفون</label>
-<input id="id" class="ltr" type="tel" inputmode="numeric" autocomplete="username" placeholder="01xxxxxxxxx" required value="${esc((()=>{try{return localStorage.getItem("last_phone")||""}catch(_){return""}})())}">
+<label class="f" for="id">${reg?"رقم التليفون":"رقم التليفون أو بريد الأدمن"}</label>
+<input id="id" class="ltr" type="${reg?"tel":"text"}" inputmode="${reg?"numeric":"email"}" autocomplete="username" placeholder="${reg?"01xxxxxxxxx":"01xxxxxxxxx أو admin@example.com"}" required value="${esc((()=>{try{return localStorage.getItem("last_admin_email")||localStorage.getItem("last_phone")||""}catch(_){return""}})())}">
 <label class="f" for="pw">كلمة السر</label>
 <input id="pw" class="ltr" type="password" autocomplete="${reg?"new-password":"current-password"}" required>`}
 ${S.error?`<div class="err">${esc(S.error)}</div>`:""}
@@ -2918,7 +2905,7 @@ function bagView(){
 </div>${studentNav()}`;
 }
 function adminAgent(){
-  const msgs=(S.agentMsgs&&S.agentMsgs.length)?S.agentMsgs:[{role:"bot",text:"أنا وكيل الأدمن 🤖👑\nقولي بالعربي وأنا أنفّذ — أعرضلك الخطة الأول وتوافق:\n• «ابعت إشعار لكل الطلاب إن المراجعة بكرة»\n• «شغّل وضع الصيانة»\n• «ضيف 50 XP للطالب رقمه 01234567890»\n• «انشر امتحان الفلسفة» / «خبّي امتحان التاريخ»\n• «ولّد امتحان 10 أسئلة من كتاب التاريخ»\nواسألني برضه عن حالة المنصة وأجاوبك."}];
+  const msgs=(S.agentMsgs&&S.agentMsgs.length)?S.agentMsgs:[{role:"bot",text:"أنا وكيل الأدمن 🤖👑\nقولي بالعربي وأنا أنفّذ — أعرضلك الخطة الأول وتوافق:\n• «ابعت إشعار لكل الطلاب إن المراجعة بكرة»\n• «شغّل وضع الصيانة»\n• «ضيف 50 XP للطالب صاحب الرقم <رقم الطالب>»\n• «انشر امتحان الفلسفة» / «خبّي امتحان التاريخ»\n• «ولّد امتحان 10 أسئلة من كتاب التاريخ»\nواسألني برضه عن حالة المنصة وأجاوبك."}];
   const plan=S.agentPlan||[];
   const planCard=plan.length?`<div class="card" style="border-color:var(--gold)">
   <h3 style="margin-top:0">📋 خطة التنفيذ (${plan.length} خطوة)</h3>
@@ -3523,7 +3510,7 @@ function adminPerfCard(){
 }
 
 
-/* ===== أوضاع التشغيل (v86): منصة / ألعاب / أوضاع مخصصة — واحد بس شغّال للطلاب ===== */
+/* ===== أوضاع التشغيل (v88): منصة / ألعاب / أوضاع مخصصة — واحد بس شغّال للطلاب ===== */
 const MODE_BUILTIN=[
   {id:"platform",n:"وضع المنصة",ic:"🎓",kind:"platform",d:"المواد والامتحانات والتواصل والألعاب — كل حاجة زي ما هي."},
   {id:"games",n:"وضع الألعاب",ic:"🎮",kind:"games",d:"الطلاب يشوفوا الألعاب بس. الامتحانات والشات والتقدم مقفولين."}
@@ -3551,14 +3538,40 @@ function modeNav(){
 function modeView(m){
   m=m||modeCur();
   const exit=S.isAdmin?`<button class="btn ghost sm" data-act="modePreviewExit">رجوع للوحة</button>`:`<button class="btn ghost sm" data-act="logout">خروج</button>`;
+  if(m.kind==="htmlFile"&&!S.isAdmin&&!featState("games"))return `<div class="wrap"><div class="card empty"><b>الوضع متوقف مؤقتًا</b>${exit}</div></div>`;
+  if(m.kind==="htmlFile")return uploadedGameView(m,exit);
   if(m.kind==="url"){
     const u=modeSafeUrl(m.url);
     if(!u)return `<div class="wrap"><div class="card empty"><div class="ei">⚠️</div><b>رابط الوضع غير صالح</b><div class="mut">${S.isAdmin?"عدّل الرابط من تبويب الأوضاع.":"كلّم المدرس."}</div>${exit}</div></div>`;
-    return `<div class="mode-full"><div class="mode-bar"><b>${esc(m.ic||"🎛")} ${esc(m.n)}</b><span style="flex:1"></span>${exit}</div><iframe class="mode-frame" src="${esc(u)}" title="${esc(m.n)}" allow="fullscreen; autoplay; clipboard-write; gamepad; accelerometer" referrerpolicy="no-referrer-when-downgrade"></iframe></div>`;
+    return `<div class="mode-full"><div class="mode-bar"><b>${esc(m.ic||"🎛")} ${esc(m.n)}</b><span style="flex:1"></span>${exit}</div><iframe class="mode-frame" sandbox="allow-scripts allow-forms" src="${esc(u)}" title="${esc(m.n)}" allow="fullscreen; autoplay; gamepad; accelerometer" referrerpolicy="no-referrer"></iframe></div>`;
   }
   /* رسالة / غير ذلك */
   return `<div class="wrap"><div class="center"><div style="font-size:64px;line-height:1">${esc(m.ic||"🎛")}</div><h1 style="margin-top:18px">${esc(m.n)}</h1><p class="mut" style="max-width:380px;margin:8px auto 22px;white-space:pre-wrap">${esc(m.msg||"الوضع ده شغّال دلوقتي.")}</p>${exit}</div></div>`;
 }
+const MODE_FILE_MAX_BYTES=600000;
+function gameDocId(m){const id=String(m&&m.gameDoc||"");return /^gameMode_m[a-z0-9]+$/i.test(id)?id:""}
+function loadGameModeDoc(id){
+  if(!id||!S.user||S._gameDocLoading===id||S._gameDocs&&Object.prototype.hasOwnProperty.call(S._gameDocs,id))return;
+  S._gameDocLoading=id;
+  getDoc(doc(db,"config",id)).then(snap=>{
+    S._gameDocs=S._gameDocs||{};S._gameDocs[id]=snap.exists()?String(snap.data().html||""):"";S._gameDocLoading=null;
+    if((modeOn()&&gameDocId(modeCur())===id)||(S.view==="modePreview"&&gameDocId(modesAll().find(x=>x.id===S.modePrev))===id))render(true);
+  }).catch(()=>{S._gameDocs=S._gameDocs||{};S._gameDocs[id]="";S._gameDocLoading=null;toast("تعذر تحميل ملف اللعبة",true);render(true)});
+}
+function isolatedGameHtml(raw){
+  const policy=`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' data:; img-src data: blob:; media-src data: blob:; font-src data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; navigate-to 'none'">`;
+  const html=String(raw||"").replace(/^\uFEFF/,"");
+  return /<head\b[^>]*>/i.test(html)?html.replace(/<head\b[^>]*>/i,m=>m+policy):'<!doctype html><html><head>'+policy+'</head><body>'+html+'</body></html>';
+}
+function uploadedGameView(m,exit){
+  const id=gameDocId(m),docs=S._gameDocs||{};
+  if(!id)return `<div class="wrap"><div class="card">ملف اللعبة غير مضبوط. ${exit}</div></div>`;
+  if(!Object.prototype.hasOwnProperty.call(docs,id)){loadGameModeDoc(id);return `<div class="mode-full"><div class="mode-bar"><b>${esc(m.ic||"🎮")} ${esc(m.n)}</b><span style="flex:1"></span>${exit}</div><div class="card">جاري تحميل اللعبة…</div></div>`}
+  const html=docs[id];if(!html)return `<div class="wrap"><div class="card err">ملف اللعبة غير متاح أو لم يتم رفعه. ${exit}</div></div>`;
+  const srcdoc=isolatedGameHtml(html);
+  return `<div class="mode-full"><div class="mode-bar"><b>${esc(m.ic||"🎮")} ${esc(m.n)}</b><span style="flex:1"></span>${exit}</div><iframe class="mode-frame" sandbox="allow-scripts" referrerpolicy="no-referrer" title="${esc(m.n)}" srcdoc="${esc(srcdoc)}"></iframe></div>`;
+}
+
 function adminModes(){
   const cur=modeCur(),list=modesAll();
   const card=m=>{
@@ -3570,7 +3583,7 @@ function adminModes(){
       <div class="mut" style="font-size:13px;margin-top:2px">${esc(m.d||(m.kind==="url"?"صفحة/لعبة/برنامج بيتفتح بملء الشاشة: "+(m.url||""):(m.msg||"رسالة للطلاب")))}</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
         ${on?`<button class="btn sm ghost" disabled>✓ الوضع الحالي</button>`:`<button class="btn sm gold" data-act="setMode" data-id="${esc(m.id)}">تفعيل للطلاب</button>`}
-        ${(m.kind==="url"||m.kind==="message")?`<button class="btn sm ghost" data-act="previewMode" data-id="${esc(m.id)}">👁 معاينة</button>`:""}
+        ${(m.kind==="url"||m.kind==="htmlFile"||m.kind==="message")?`<button class="btn sm ghost" data-act="previewMode" data-id="${esc(m.id)}">👁 معاينة</button>`:""}
         ${m.custom?`<button class="btn sm danger" data-act="delMode" data-id="${esc(m.id)}">🗑</button>`:""}
       </div></div></div></div>`;
   };
@@ -3581,11 +3594,12 @@ ${list.map(card).join("")}
 <label class="f" for="mdName">الاسم</label><input id="mdName" type="text" maxlength="30" placeholder="مثلاً: ليلة الاختبار / لعبة الأسبوع">
 <label class="f" for="mdIc">أيقونة (إيموجي)</label><input id="mdIc" type="text" maxlength="4" value="🎮" style="max-width:100px">
 <label class="f" for="mdKind">النوع</label>
-<select id="mdKind"><option value="url">صفحة / لعبة / برنامج (رابط أو ملف html)</option><option value="message">رسالة للطلاب بس</option></select>
-<label class="f" for="mdUrl">الرابط (https://… أو اسم ملف زي last-one-standing.html)</label><input id="mdUrl" class="ltr" type="text" placeholder="https://example.com/game أو game.html">
+<select id="mdKind"><option value="url">رابط HTTPS / صفحة داخلية</option><option value="htmlFile">رفع ملف لعبة HTML ذاتيّ الاحتواء</option><option value="message">رسالة للطلاب بس</option></select>
+<label class="f" for="modeGameFile">ملف اللعبة (.html فقط، بحد أقصى 600KB، لا يعتمد على ملفات خارجية)</label><input id="modeGameFile" type="file" accept=".html,text/html">
+<label class="f" for="mdUrl">الرابط (HTTPS أو اسم ملف محلي عند اختيار نوع الرابط)</label><input id="mdUrl" class="ltr" type="text" placeholder="https://example.com/game أو game.html">
 <label class="f" for="mdMsg">الرسالة (للنوع "رسالة")</label><textarea id="mdMsg" rows="2" placeholder="مثلاً: المنصة مقفولة النهارده، شوفوا الإعلان في القروب"></textarea>
 <div style="margin-top:12px"><button class="btn gold" data-act="addMode">إضافة الوضع</button></div>
-<p class="mut" style="font-size:12px;margin:10px 0 0">ملحوظة: بعض المواقع بتمنع فتحها جوه المنصة (إطار). ملفات html اللي بترفعها جنب index.html بتشتغل دايماً — وجرّب بالمعاينة قبل ما تفعّل.</p></div>`;
+<p class="mut" style="font-size:12px;margin:10px 0 0">ملف HTML الذاتي يُحفظ في Firestore وليس Firebase Storage، ويعمل داخل إطار معزول لا يستطيع الوصول لحساب الطالب، مع تقييد موارد الشبكة عبر CSP. ارفع ملفًا موثوقًا واحدًا مستقلًا فقط؛ الموارد الخارجية والصور/الأصوات المنفصلة لن تعمل. يخضع الملف لحصة Firestore المجانية وحد الوثيقة.</p></div>`;
 }
 
 function adminView(){
@@ -4005,7 +4019,7 @@ ${roleBtns}
 <div class="card" id="resetPassBox" style="display:none"><h3>تعيين كلمة سر جديدة</h3>
 <p class="mut">للإيميل في Firebase: <b dir="ltr">${esc((s.phone||"")+"@eltafawoq.app")}</b></p>
 <label class="f">كلمة السر الجديدة (6+)</label>
-<input id="adminNewPw" class="ltr" type="text" minlength="6" placeholder="مثلاً 123456" autocomplete="off">
+<input id="adminNewPw" class="ltr" type="text" minlength="6" placeholder="استخدم كلمة مرور قوية" autocomplete="off">
 <div class="row" style="margin-top:10px;justify-content:flex-start;gap:8px">
 <button class="btn sm" data-act="adminResetPassGo" data-id="${s.id}" data-phone="${esc(s.phone||"")}">حفظ كلمة السر</button>
 <button class="btn ghost sm" type="button" onclick="document.getElementById('resetPassBox').style.display='none'">إلغاء</button>
@@ -4155,11 +4169,7 @@ function adminSettings(){
 <div class="mut" style="margin-top:6px">ده اللي بيشغّل «اسأل من الكتب» للطلاب + توليد الامتحانات بالـ AI من الكتاب. ارفع books-worker.js على Cloudflare مع KV binding اسمه <b>KV</b> وحط سر <b>ADMIN_KEY</b> — الخطوات كاملة جوّه الملف.</div>
 <p id="pushStatus" class="mut" style="font-size:12px;margin:8px 0 0">حالة الإشعارات: ${typeof pushStateText==="function"?pushStateText():""}</p></div>
 <div class="card"><h3 style="margin-top:0">📞 تحسين وصول المكالمات (TURN — اختياري)</h3>
-<p class="mut" style="font-size:12px">لو المكالمة بترن وبتتوصل بس الصوت مش بيسمع على بعض الشبكات (داتا الموبايل)، سجّل مجاناً في metered.ca أو أي مزود TURN والصق البيانات هنا. لو سيبتها فاضية المكالمات بتشتغل زي ما هي.</p>
-<input id="turnUrlIn" name="turn_url_x" class="ltr" type="text" placeholder="turn:xxx.metered.ca:443?transport=tcp" value="${esc(S.site.turnUrl||"")}" autocomplete="off" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')">
-<input id="turnUserIn" name="turn_user_x" class="ltr" type="text" style="margin-top:6px" placeholder="username" value="${esc(S.site.turnUser||"")}" autocomplete="off" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')">
-<input id="turnCredIn" name="turn_cred_x" class="ltr" type="text" style="margin-top:6px;-webkit-text-security:disc" placeholder="credential" value="${esc(S.site.turnCred||"")}" autocomplete="off" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')">
-<button class="btn sm" style="margin-top:8px" data-act="saveTurn">حفظ</button></div>`;
+<p class="mut" style="font-size:12px">لا تضع اسم مستخدم أو كلمة مرور TURN ثابتة في مستند يقرأه المتصفح. حُذفت بيانات TURN القديمة تلقائياً بعد تسجيل دخول الأدمن؛ المكالمات تستخدم STUN حالياً. TURN يحتاج وسيطاً يصدر اعتماداً مؤقتاً، وليس مفتاحاً ثابتاً في الواجهة.</p></div>`;
   // ---
   
   return extra+`<div class="card"><h3>وضع الصيانة</h3>
@@ -4269,6 +4279,32 @@ const FEATURES=[["chat","💬 التواصل (شات وجروبات)"],["calls",
 const FEAT_ACT={openChats:"chat",openChat:"chat",startChat:"chat",startCall:"calls",openGames:"games",qbCreateRoom:"games",qbStartBot:"games",qbBot:"games",qbJoinRoom:"games",qbFriends:"games",openGameFriends:"games",openMath:"games",openXo:"games",openHang:"games",openSpin:"games",openReact:"games",openMemory:"games",openDraw:"games",openTanagha:"tanagha",openGallery:"tanagha",openFadaye7:"fadaye7",openBooks:"books",openBag:"books",openAsms:"asms",openAI:"ai",openLife:"life",openProgress:"progress",openSubject:"subjects"};
 function featState(k){return !(S.features&&S.features[k]===false)}
 function featOn(k){return S.isAdmin||featState(k)}
+function clientFeatureAllowed(k){
+  if(S.isAdmin)return true;
+  if(!featState(k))return false;
+  const m=modeCur();
+  return m.kind==="platform"||(k==="games"&&m.kind==="games");
+}
+function callsAllowed(){return clientFeatureAllowed("calls")}
+function syncFeatureAvailability(){
+  if(!S.user||S.isAdmin)return;
+  const off=k=>!clientFeatureAllowed(k);
+  if(off("books")&&window.__bookUnsub){window.__bookUnsub();window.__bookUnsub=null}
+  if(off("chat")){
+    ["__chatsUnsub","__dmUnsub","__dmMetaUnsub","__grpUnsub","__grpListUnsub"].forEach(k=>{try{if(window[k]){window[k]();window[k]=null}}catch(_){}});
+    try{clearInterval(window.__peerPres)}catch(_){}
+  }
+  if(off("fadaye7")&&typeof __fadUnsub==="function"){__fadUnsub();__fadUnsub=null}
+  if(off("tanagha")&&typeof __galUnsub==="function"){__galUnsub();__galUnsub=null}
+  if(off("asms")&&window.__asmUnsub){window.__asmUnsub();window.__asmUnsub=null}
+  if(off("games")){
+    ["__openRoomsUnsub"].forEach(k=>{try{if(window[k]){window[k]();window[k]=null}}catch(_){}});
+    try{if(S.qbSub){S.qbSub();S.qbSub=null}}catch(_){}
+    try{if(S.qbChatSub){S.qbChatSub();S.qbChatSub=null}}catch(_){}
+  }
+  if(!featState("games")||modeCur().kind==="platform")S._gameDocs={};
+  syncCallAvailability();
+}
 function featOfView(v){
   v=String(v||"");
   if(v==="chatList"||v==="chatThread"||v==="groupThread")return "chat";
@@ -4289,12 +4325,27 @@ function applyAiCfg(){
   try{
     if(!S.site)return;
     const c=S.aiCfg||{},r=S.siteRaw||{};
-    S.site.aiUrl=c.aiUrl||r.aiUrl||"";S.site.aiKey=c.aiKey||r.aiKey||"";S.site.aiProxy=c.proxyUrl||"";
+    // Endpoints may be public; provider credentials are admin-only and never copied into student state.
+    S.site.aiUrl=S.isAdmin?(c.aiUrl||r.aiUrl||""):"";
+    S.site.aiKey=S.isAdmin?(c.aiKey||r.aiKey||""):"";
+    S.site.aiProxy=r.aiProxy||c.proxyUrl||"";
     if(S.isAdmin&&!window.__aiMig&&(r.aiKey||r.aiUrl)){
       window.__aiMig=1;
       setDoc(doc(db,"config","ai"),{aiUrl:r.aiUrl||"",aiKey:r.aiKey||""},{merge:true})
         .then(()=>updateDoc(doc(db,"config","site"),{aiUrl:deleteField(),aiKey:deleteField()}))
-        .catch(e=>console.warn("aiMig",e));
+        .catch(e=>{window.__aiMig=0;console.warn("aiMig",e)});
+    }
+    // Static TURN credentials cannot be kept secret in a browser client. Remove legacy copies;
+    // calls continue with the app's STUN fallback until short-lived TURN credentials are added server-side.
+    if(S.isAdmin&&c.proxyUrl&&!r.aiProxy&&!window.__proxyMig){
+      window.__proxyMig=1;
+      setDoc(doc(db,"config","site"),{aiProxy:c.proxyUrl},{merge:true}).catch(e=>{window.__proxyMig=0;console.warn("proxyMig",e)});
+    }
+    if(S.isAdmin&&!window.__turnScrub&&(r.turnUser||r.turnCred)){
+      window.__turnScrub=1;
+      S.site.turnUser="";S.site.turnCred="";
+      updateDoc(doc(db,"config","site"),{turnUser:deleteField(),turnCred:deleteField()})
+        .catch(e=>{window.__turnScrub=0;console.warn("turnScrub",e)});
     }
   }catch(_){}
 }
@@ -4396,10 +4447,7 @@ const A={
   },
   async saveTurn(){
     const g=id=>($(id)&&$(id).value||"").trim();
-    const turnUrl=g("#turnUrlIn"),turnUser=g("#turnUserIn"),turnCred=g("#turnCredIn");
-    if(turnUrl&&!/^turns?:/i.test(turnUrl)){toast("رابط TURN لازم يبدأ بـ turn:",true);return}
-    try{await setDoc(doc(db,"config","site"),{turnUrl,turnUser,turnCred},{merge:true});if(S.site){S.site.turnUrl=turnUrl;S.site.turnUser=turnUser;S.site.turnCred=turnCred}toast("اتحفظ ✓",true)}
-    catch(e){toast("فشل الحفظ",true)}
+    toast("لا تحفظ بيانات TURN ثابتة في إعدادات عامة؛ يلزم وسيط يصدر بيانات مؤقتة. المكالمات تستخدم STUN المجاني حالياً.",true);
   },
   async enablePush(){
     toast("جاري تفعيل الإشعارات…");
@@ -4421,9 +4469,9 @@ const A={
     if(proxy&&!/^https:\/\/[^\s]+\.[^\s]+/i.test(proxy)){toast("رابط الوسيط لازم يبدأ بـ https://",true);return}
     try{
       await setDoc(doc(db,"config","ai"),{aiUrl:url,aiKey:key,proxyUrl:proxy},{merge:true});
-      try{await updateDoc(doc(db,"config","site"),{aiUrl:deleteField(),aiKey:deleteField()})}catch(_){}
+      await setDoc(doc(db,"config","site"),{aiProxy:proxy,aiUrl:deleteField(),aiKey:deleteField()},{merge:true});
       S.aiCfg={aiUrl:url,aiKey:key,proxyUrl:proxy,booksKey:(S.aiCfg&&S.aiCfg.booksKey)||""};
-      if(S.site){S.site.aiUrl=url;S.site.aiKey=key;S.site.aiProxy=proxy}
+      if(S.site){S.site.aiUrl=S.isAdmin?url:"";S.site.aiKey=S.isAdmin?key:"";S.site.aiProxy=proxy}
       toast((url||proxy)?"اتربط المساعد ✓":"اتشال الرابط — المحلي شغال",true);
     }catch(e){toast("فشل الحفظ")}
   },
@@ -4460,7 +4508,7 @@ const A={
     try{
       await signOut(auth);
     }catch(e){toast("فشل الخروج");return}
-    stopSubs();S.user=null;S.isAdmin=false;S.profile=null;S.view="auth";render(true);
+    stopSubs();S.user=null;S.isAdmin=false;S.profile=null;S._gameDocs={};S.modePrev=null;window.__pendingModeHtml=null;S.view="auth";render(true);
   },
   home(){S.view="home";render(true)},
   async rebuildBoard(){
@@ -4916,20 +4964,20 @@ const A={
   },
   async adminSpeedAll(){
     if(!S.isAdmin)return;
-    if(!await uiConfirm("تحديث إجباري لكل الأجهزة؟\nكل طالب هيمسح الكاش عنده أوتوماتيك أول ما يفتح المنصة."))return;
+    if(!await uiConfirm("إرسال تنبيه بوجود تحديث للأجهزة؟\nلن تُعاد تحميل الصفحات تلقائيًا؛ كل مستخدم يحدّثها في الوقت المناسب."))return;
     try{
       const bust=Date.now();
       await updateDoc(doc(db,"config","site"),{cacheBust:bust});
       S.site.cacheBust=bust;
       try{localStorage.setItem("cache_bust_done",String(bust))}catch(_){}
-      await clearLocalSpeedCache("admin");
-      toast("اتبعت تسريع لكل الأجهزة ✓",true);
-      setTimeout(function(){location.reload()},500);
+      toast("تم إرسال تنبيه التحديث للأجهزة ✓",true);
     }catch(e){
       try{
-        await setDoc(doc(db,"config","site"),{cacheBust:Date.now()},{merge:true});
-        toast("اتبعت تسريع ✓",true);
-        setTimeout(function(){location.reload()},500);
+        const bust=Date.now();
+        await setDoc(doc(db,"config","site"),{cacheBust:bust},{merge:true});
+        S.site.cacheBust=bust;
+        try{localStorage.setItem("cache_bust_done",String(bust))}catch(_){}
+        toast("تم إرسال تنبيه التحديث للأجهزة ✓",true);
       }catch(e2){toast("فشل: "+(e2.message||""))}
     }
   },
@@ -6382,23 +6430,35 @@ const A={
     catch(e){S.site.appMode=prev;render(true);window.__cancel=true;toast("مقدرتش أحفظ",true)}
   },
   async addMode(){
-    const n=($("#mdName")&&$("#mdName").value||"").trim().slice(0,30),ic=($("#mdIc")&&$("#mdIc").value||"🎛").trim().slice(0,4)||"🎛";
-    const kind=($("#mdKind")&&$("#mdKind").value)||"url",url=($("#mdUrl")&&$("#mdUrl").value||"").trim(),msg=($("#mdMsg")&&$("#mdMsg").value||"").trim().slice(0,300);
+    if(!S.isAdmin){toast("إضافة الأوضاع للأدمن فقط",true);window.__cancel=true;return}
+    const n=(($("#mdName")&&$("#mdName").value)||"").trim().slice(0,30),ic=(($("#mdIc")&&$("#mdIc").value)||"🎛").trim().slice(0,4)||"🎛";
+    const kind=(($("#mdKind")&&$("#mdKind").value)||"url"),url=(($("#mdUrl")&&$("#mdUrl").value)||"").trim(),msg=(($("#mdMsg")&&$("#mdMsg").value)||"").trim().slice(0,300);
     if(!n){toast("اكتب اسم الوضع");window.__cancel=true;return}
-    if(kind==="url"&&!modeSafeUrl(url)){toast("الرابط لازم يبدأ بـ https:// أو يكون ملف html زي game.html");window.__cancel=true;return}
-    if(kind==="message"&&!msg){toast("اكتب الرسالة");window.__cancel=true;return}
-    const nm={id:"m"+Date.now().toString(36),n,ic,kind,url:kind==="url"?modeSafeUrl(url):"",msg:kind==="message"?msg:""};
-    const list=(S.site.modes||[]).concat([nm]);
-    S.site.modes=list;render(true);
+    if(!["url","htmlFile","message"].includes(kind)){toast("نوع الوضع غير صالح",true);window.__cancel=true;return}
+    if((S.site.modes||[]).length>=12){toast("وصلت للحد الأقصى للأوضاع المخصصة (12)",true);window.__cancel=true;return}
+    if(kind==="url"&&!modeSafeUrl(url)){toast("الرابط لازم يبدأ بـ https:// أو يكون ملف HTML محليًا",true);window.__cancel=true;return}
+    if(kind==="message"&&!msg){toast("اكتب الرسالة",true);window.__cancel=true;return}
+    const id="m"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nm={id,n,ic,kind,url:kind==="url"?modeSafeUrl(url):"",msg:kind==="message"?msg:""};
+    let gameId="";
+    if(kind==="htmlFile"){
+      const pending=window.__pendingModeHtml;
+      if(!pending||!pending.text){toast("اختر ملف HTML مستقل قبل الإضافة",true);window.__cancel=true;return}
+      if(pending.bytes>MODE_FILE_MAX_BYTES){toast("حجم الملف أكبر من 600KB",true);window.__cancel=true;return}
+      gameId="gameMode_"+id;
+      try{await setDoc(doc(db,"config",gameId),{html:pending.text,fileName:pending.name,updatedAt:serverTimestamp()})}
+      catch(e){toast("تعذر حفظ اللعبة في Firestore؛ راجع القواعد والحصة",true);window.__cancel=true;return}
+      nm.gameDoc=gameId;window.__pendingModeHtml=null;
+    }
+    const list=(S.site.modes||[]).concat([nm]);S.site.modes=list;render(true);
     try{await setDoc(doc(db,"config","site"),{modes:list},{merge:true});toast("اتضاف الوضع ✓",true)}
-    catch(e){S.site.modes=list.slice(0,-1);render(true);window.__cancel=true;toast("مقدرتش أحفظ",true)}
+    catch(e){S.site.modes=list.slice(0,-1);if(gameId)deleteDoc(doc(db,"config",gameId)).catch(()=>{});render(true);window.__cancel=true;toast("مقدرتش أحفظ الوضع",true)}
   },
   async delMode(d){
-    const m=modesAll().find(x=>x.id===d.id);if(!m||!m.custom)return;
+    const m=modesAll().find(x=>x.id===d.id);if(!m||!m.custom||!S.isAdmin)return;
     if(!await uiConfirm("تمسح الوضع «"+m.n+"»؟",{ok:"امسح"}))return;
     const list=(S.site.modes||[]).filter(x=>x.id!==d.id),wasOn=S.site.appMode===d.id,prevList=S.site.modes;
     S.site.modes=list;if(wasOn)S.site.appMode="platform";render(true);
-    try{await setDoc(doc(db,"config","site"),wasOn?{modes:list,appMode:"platform"}:{modes:list},{merge:true});toast("اتمسح ✓")}
+    try{await setDoc(doc(db,"config","site"),wasOn?{modes:list,appMode:"platform"}:{modes:list},{merge:true});if(gameDocId(m))await deleteDoc(doc(db,"config",gameDocId(m))).catch(()=>{});toast("اتمسح ✓")}
     catch(e){S.site.modes=prevList;if(wasOn)S.site.appMode=d.id;render(true);window.__cancel=true;toast("مقدرتش أحفظ",true)}
   },
   previewMode(d){S.modePrev=d.id;S.view="modePreview";render(true)},
@@ -6504,15 +6564,16 @@ const A={
   },
   async doLogin(){
     if(!configured){S.error="المنصة تحت التعديل.";render(true);return}
-    const idv=norm($("#id").value),pw=$("#pw").value;
-    const email=idv+DOMAIN;
+    const rawId=String($("#id").value||"").trim(),isEmail=rawId.includes("@"),idv=isEmail?rawId.toLowerCase():norm(rawId),pw=$("#pw").value;
+    const email=isEmail?idv:idv+DOMAIN;
+    // يمكن للأدمن استخدام البريد المخصص مباشرةً؛ الطلاب يستمرون برقم الهاتف.
     // صيانة: أدمن فقط
     if(S.site&&S.site.maintenance&&email!==ADMIN_EMAIL){
       S.error="المنصة تحت الصيانة — دخول الأدمن فقط";
       render(true);return;
     }
     $("#go").disabled=true;S.error="";
-    try{await signInWithEmailAndPassword(auth,email,pw);try{localStorage.setItem("last_phone",idv)}catch(_){}}catch(e){S.error=authErr(e);render(true)}
+    try{await signInWithEmailAndPassword(auth,email,pw);try{localStorage.setItem(isEmail?"last_admin_email":"last_phone",idv)}catch(_){}}catch(e){S.error=authErr(e);render(true)}
   },
   async doRegister(){
     if(!configured){S.error="المنصة تحت التعديل.";render(true);return}
@@ -6738,11 +6799,12 @@ function iceServers(){
   const l=[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}];
   try{
     const t=S.site&&S.site.turnUrl;
-    if(t)l.push({urls:t.split(",").map(x=>x.trim()).filter(Boolean),username:S.site.turnUser||"",credential:S.site.turnCred||""});
+    if(t&&S.site.turnUser&&S.site.turnCred)l.push({urls:t.split(",").map(x=>x.trim()).filter(Boolean),username:S.site.turnUser,credential:S.site.turnCred});
   }catch(_){}
   return {iceServers:l};
 }
 async function startVoiceCall(toUid,toName){
+  if(!callsAllowed()){toast("المكالمات متوقفة حالياً");return}
   if(!S.user||!toUid)return;
   if(toUid===S.user.uid){toast("مش هتتصل بنفسك");return}
   if(window.__call){toast("في مكالمة شغّالة");return}
@@ -6880,6 +6942,7 @@ async function endVoiceCall(reason){
   if(reason==="remote")toast("الطرف التاني أنهى المكالمة");else toast(reason==="reject"?"اترفضت المكالمة":"انتهت المكالمة");
 }
 async function answerVoiceCall(callId,d){
+  if(!callsAllowed()){toast("المكالمات متوقفة حالياً");updateDoc(doc(db,"calls",callId),{status:"rejected"}).catch(()=>{});return}
   if(window.__call)return;
   stopRingtone();
   let stream;
@@ -6932,14 +6995,20 @@ async function handlePendingCall(){
   }catch(e){console.warn(e)}
 }
 
+function syncCallAvailability(){
+  if(!S.user||S.isAdmin)return;
+  if(callsAllowed()){try{listenIncomingCalls()}catch(_){};return}
+  try{if(window.__callListen){window.__callListen();window.__callListen=null}}catch(_){}
+  try{clearTimeout(window.__incomingTimer)}catch(_){}
+  window.__incomingCallId=null;
+  stopRingtone();
+  try{if(navigator.vibrate)navigator.vibrate(0)}catch(_){}
+  const bar=document.getElementById("callBar");if(bar&&!window.__call)bar.remove();
+  if(window.__call)endVoiceCall("feature-disabled");
+}
 async function listenIncomingCalls(){
-  if(!S.user||S.isAdmin||window.__callListen)return;
-  // طلب إذن إشعارات (لما التطبيق مفتوح في الخلفية)
-  try{
-    if("Notification" in window&&Notification.permission==="default"){
-      Notification.requestPermission().catch(()=>{});
-    }
-  }catch(_){}
+  if(!S.user||S.isAdmin||!callsAllowed()||window.__callListen)return;
+  // إشعارات المكالمات لا تطلب الإذن تلقائياً عند تسجيل الدخول.
   window.__callListen=onSnapshot(
     query(collection(db,"calls"),where("to","==",S.user.uid),where("status","==","ringing"),limit(10)),
     snap=>{
@@ -8214,6 +8283,18 @@ document.addEventListener("click",e=>{
   }catch(err){console.error("act",act,err);try{toast("خطأ: "+act)}catch(_){}}
 });
 document.addEventListener("change",e=>{
+  if(e.target&&e.target.id==="modeGameFile"){
+    const f=e.target.files&&e.target.files[0];window.__pendingModeHtml=null;
+    if(!f)return;
+    if(!S.isAdmin){e.target.value="";toast("رفع الأوضاع للأدمن فقط",true);return}
+    if(!/\.html?$/i.test(f.name)||f.size>MODE_FILE_MAX_BYTES){e.target.value="";toast("اختر ملف HTML لا يتجاوز 600KB",true);return}
+    f.text().then(text=>{
+      text=text.replace(/^\uFEFF/,"");
+      if(!/^\s*(?:<!doctype\s+html|<html|<head|<body)/i.test(text)){e.target.value="";toast("الملف لا يبدو صفحة HTML صالحة",true);return}
+      window.__pendingModeHtml={text,name:String(f.name).slice(0,120),bytes:f.size};toast("تم تجهيز الملف؛ اضغط إضافة الوضع لحفظه",true);
+    }).catch(()=>toast("تعذر قراءة الملف",true));
+    return;
+  }
   const c=e.target.dataset&&e.target.dataset.change;if(c)A[c]?.(e.target.dataset,e.target);
   if(e.target.type==="file"&&(e.target.id==="qf"||e.target.id==="sf")&&S.editingAsm){
     const part=e.target.id==="qf"?"q":"s",files=[...e.target.files];e.target.value="";
@@ -9298,8 +9379,8 @@ Object.assign(A,{
     document.getElementById("spRetry").onclick=function(){location.reload()};
     document.getElementById("spClear").onclick=function(){
       var jobs=[];
-      try{if(window.caches)jobs.push(caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}))}catch(e){}
-      try{if(navigator.serviceWorker)jobs.push(navigator.serviceWorker.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.unregister()}))}))}catch(e){}
+      try{if(window.caches)jobs.push(caches.keys().then(function(k){return Promise.all(k.filter(function(x){return /^eltafawoq-v/i.test(x)}).map(function(x){return caches.delete(x)}))}))}catch(e){}
+      try{if(navigator.serviceWorker)jobs.push(navigator.serviceWorker.getRegistrations().then(function(r){var scope=new URL("./",location.href).href;return Promise.all(r.filter(function(x){return x.scope===scope}).map(function(x){return x.unregister()}))}))}catch(e){}
       Promise.all(jobs).catch(function(){}).then(function(){location.reload()});
     };
   }
@@ -9307,31 +9388,10 @@ Object.assign(A,{
 
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    navigator.serviceWorker.register('./sw.js').then(function(reg){
-      try{reg.update()}catch(e){}
-      setInterval(function(){try{reg.update()}catch(e){}}, 5*60*1000);
-      if(reg.waiting){
-        try{reg.waiting.postMessage({type:"SKIP_WAITING"})}catch(e){}
-      }
-      // تنظيف كاش قديم كان ممكن يخزّن رد IP بالغلط
-      try{
-        if(!localStorage.getItem("sw_v35_cleared")){
-          localStorage.setItem("sw_v35_cleared","1");
-          if(reg.active)reg.active.postMessage({type:"CLEAR_CACHE"});
-          caches.keys().then(function(ks){ks.forEach(function(k){if(k.indexOf("eltafawoq-v")===0&&k.indexOf("eltafawoq-v41")<0)caches.delete(k)})});
-        }
-      }catch(e){}
-    }).catch(function(){});
+    // التحقق الطبيعي عند التسجيل/فتح الصفحة؛ لا polling متكرر ولا مسح قسري للكاش.
+    navigator.serviceWorker.register('./sw.js').catch(function(){});
   });
-  // تحديث هادي: لما SW جديد يمسك، نحدّث مرة واحدة فقط
-  var __swReloaded=false;
-  navigator.serviceWorker.addEventListener('controllerchange',function(){
-    if(__swReloaded)return;
-    try{if(sessionStorage.getItem('sw_ok')==='1'){return}}catch(e){}
-    __swReloaded=true;
-    try{sessionStorage.setItem('sw_ok','1')}catch(e){}
-    location.reload();
-  });
+  // لا نعيد تحميل الصفحة تلقائيًا عند تبديل Service Worker؛ يتبنى المستخدم التحديث عند إعادة فتح الصفحة.
 }
 
 window.addEventListener('beforeinstallprompt',e=>{

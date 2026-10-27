@@ -6,7 +6,7 @@ service cloud.firestore {
       return request.auth != null;
     }
     function isAdmin() {
-      return signedIn() && request.auth.token.email == '01061572071@eltafawoq.app';
+      return signedIn() && request.auth.token.get('email', '') == 'REPLACE_WITH_ADMIN_EMAIL';
     }
     function notBlocked() {
       let p = /databases/$(database)/documents/students/$(request.auth.uid);
@@ -15,14 +15,39 @@ service cloud.firestore {
     function isOwner(uid) {
       return signedIn() && request.auth.uid == uid;
     }
+    function featureFlagOn(feature) {
+      let p = /databases/$(database)/documents/config/features;
+      return !exists(p) || get(p).data.get(feature, true) == true;
+    }
+    function platformMode() {
+      let p = /databases/$(database)/documents/config/site;
+      return !exists(p) || get(p).data.get('appMode', 'platform') == 'platform';
+    }
+    function featureAllowed(feature) {
+      return isAdmin() || (featureFlagOn(feature) &&
+        (platformMode() || (feature == 'games' && get(/databases/$(database)/documents/config/site).data.get('appMode', 'platform') == 'games')));
+    }
+    function publicConfigSafe() {
+      return !resource.data.keys().hasAny([
+        'aiKey', 'booksKey', 'apiKey', 'openaiKey', 'geminiKey', 'anthropicKey',
+        'turnUser', 'turnCred', 'turnCredential', 'privateKey', 'serviceAccountKey',
+        'clientSecret', 'accessToken', 'adminKey', 'secret', 'password', 'html'
+      ]);
+    }
+    function activeHtmlGame(docId) {
+      let p = /databases/$(database)/documents/config/site;
+      return signedIn() && featureFlagOn('games') && exists(p)
+        && docId == 'gameMode_' + get(p).data.get('appMode', 'platform');
+    }
 
     match /config/{docId} {
-      allow read: if true;
+      // Public settings are readable only while the document contains no credential-like fields.
+      allow read: if isAdmin() || activeHtmlGame(docId) || publicConfigSafe();
       allow write: if isAdmin();
     }
 
     match /exams/{examId} {
-      allow read: if signedIn();
+      allow read: if isAdmin() || (signedIn() && featureAllowed('subjects') && resource.data.get('published', false) == true);
       allow write: if isAdmin();
     }
 
@@ -69,17 +94,16 @@ service cloud.firestore {
 
     match /messages/{msgId} {
       allow read: if isAdmin()
-                  || (signedIn()
+                  || (signedIn() && featureAllowed('chat')
                       && (resource.data.fromUid == request.auth.uid
-                          || resource.data.toUid == request.auth.uid
-                          || resource.data.toUid == 'admin'));
-      allow create: if signedIn() && notBlocked()
+                          || resource.data.toUid == request.auth.uid));
+      allow create: if signedIn() && notBlocked() && featureAllowed('chat')
                     && request.resource.data.fromUid == request.auth.uid
                     && request.resource.data.keys().hasAll(['fromUid', 'fromName', 'realName', 'toUid', 'text', 'createdAt'])
                     && request.resource.data.text is string
                     && request.resource.data.text.size() <= 2000;
       allow update: if isAdmin()
-                    || (signedIn()
+                    || (signedIn() && featureAllowed('chat')
                         && resource.data.toUid == request.auth.uid
                         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']));
       allow delete: if isAdmin();
@@ -87,75 +111,91 @@ service cloud.firestore {
 
     match /conversations/{convId} {
       allow read: if isAdmin()
-                  || (signedIn()
-                      && resource.data.participants.hasAny([request.auth.uid, 'admin']));
-      allow create: if signedIn() && notBlocked()
-                    && request.resource.data.participants is list;
+                  || (signedIn() && featureAllowed('chat')
+                      && resource.data.participants.hasAny([request.auth.uid]));
+      allow create: if signedIn() && notBlocked() && featureAllowed('chat')
+                    && request.resource.data.participants is list
+                    && request.resource.data.participants.hasAny([request.auth.uid]);
       allow update: if isAdmin()
-                    || (signedIn() && resource.data.participants.hasAny([request.auth.uid]));
+                    || (signedIn() && featureAllowed('chat')
+                        && resource.data.participants.hasAny([request.auth.uid])
+                        && request.resource.data.participants.hasAll(resource.data.participants)
+                        && resource.data.participants.hasAll(request.resource.data.participants)
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['participants', 'names', 'updatedAt', 'readBy', 'typingUid', 'typingAt', 'lastText', 'lastAt', 'lastFrom']));
       allow delete: if isAdmin();
 
       match /msgs/{msgId} {
-        allow read: if signedIn();
-        allow create: if signedIn() && notBlocked();
+        allow read: if isAdmin() || (signedIn() && featureAllowed('chat')
+          && get(/databases/$(database)/documents/conversations/$(convId)).data.participants.hasAny([request.auth.uid]));
+        allow create: if signedIn() && notBlocked() && featureAllowed('chat')
+          && get(/databases/$(database)/documents/conversations/$(convId)).data.participants.hasAny([request.auth.uid])
+          && request.resource.data.fromUid == request.auth.uid;
         // التفاعلات (reacts) + قراءة
-        allow update: if signedIn()
+        allow update: if isAdmin() || (signedIn() && featureAllowed('chat')
+                      && get(/databases/$(database)/documents/conversations/$(convId)).data.participants.hasAny([request.auth.uid])
                       && request.resource.data.diff(resource.data).affectedKeys()
-                         .hasOnly(['reacts', 'read']);
+                         .hasOnly(['reacts', 'read']));
         allow delete: if isAdmin() || (signedIn() && resource.data.fromUid == request.auth.uid);
       }
     }
 
     match /groups/{groupId} {
-      allow read: if signedIn()
-                  && (isAdmin() || resource.data.members.hasAny([request.auth.uid]));
-      allow create: if signedIn() && notBlocked();
-      allow update: if signedIn()
-                    && (isAdmin() || resource.data.members.hasAny([request.auth.uid]));
+      allow read: if isAdmin() || (signedIn() && featureAllowed('chat')
+                  && resource.data.members.hasAny([request.auth.uid]));
+      allow create: if signedIn() && notBlocked() && featureAllowed('chat')
+                    && request.resource.data.members is list
+                    && request.resource.data.members.hasAny([request.auth.uid]);
+      allow update: if isAdmin() || (signedIn() && featureAllowed('chat')
+                    && resource.data.members.hasAny([request.auth.uid]));
       allow delete: if isAdmin()
                     || (signedIn() && resource.data.owner == request.auth.uid);
 
       match /msgs/{msgId} {
-        allow read: if signedIn();
-        allow create: if signedIn() && notBlocked();
-        allow update: if signedIn()
+        allow read: if isAdmin() || (signedIn() && featureAllowed('chat')
+          && get(/databases/$(database)/documents/groups/$(groupId)).data.members.hasAny([request.auth.uid]));
+        allow create: if signedIn() && notBlocked() && featureAllowed('chat')
+          && get(/databases/$(database)/documents/groups/$(groupId)).data.members.hasAny([request.auth.uid])
+          && request.resource.data.fromUid == request.auth.uid;
+        allow update: if isAdmin() || (signedIn() && featureAllowed('chat')
+                      && get(/databases/$(database)/documents/groups/$(groupId)).data.members.hasAny([request.auth.uid])
                       && request.resource.data.diff(resource.data).affectedKeys()
-                         .hasOnly(['reacts']);
+                         .hasOnly(['reacts']));
         allow delete: if isAdmin() || (signedIn() && resource.data.fromUid == request.auth.uid);
       }
     }
 
     match /assessments/{asmId} {
-      allow read: if signedIn();
+      allow read: if isAdmin() || (signedIn() && featureAllowed('asms'));
       allow write: if isAdmin();
       match /files/{fileId} {
-        allow read: if signedIn();
+        allow read: if isAdmin() || (signedIn() && featureAllowed('asms'));
         allow write: if isAdmin();
       }
       match /chunks/{chunkId} {
-        allow read: if signedIn();
+        allow read: if isAdmin() || (signedIn() && featureAllowed('asms'));
         allow write: if isAdmin();
       }
     }
 
     match /qb_rooms/{code} {
-      allow read, write: if request.auth != null;
+      allow read, write: if signedIn() && featureAllowed('games');
       match /chat/{msgId} {
-        allow read, create: if request.auth != null;
+        allow read, create: if signedIn() && featureAllowed('games');
         // التفاعلات على رسائل الغرفة
-        allow update: if request.auth != null
+        allow update: if signedIn() && featureAllowed('games')
                       && request.resource.data.diff(resource.data).affectedKeys()
                          .hasOnly(['reacts']);
-        allow delete: if request.auth != null;
+        allow delete: if signedIn() && featureAllowed('games');
       }
     }
 
     match /qb_battles/{id} {
-      allow read, create: if request.auth != null;
+      allow read, create: if signedIn() && featureAllowed('games');
     }
 
     match /leaderboard/{uid} {
-      allow read: if signedIn();
+      allow read: if signedIn() && featureAllowed('progress');
       allow create, update: if signedIn()
         && (request.auth.uid == uid || isAdmin());
       allow delete: if isAdmin();
@@ -174,26 +214,27 @@ service cloud.firestore {
     }
 
     match /fadaye7/{id} {
-      allow read: if signedIn();
+      allow read: if isAdmin() || (signedIn() && featureAllowed('fadaye7'));
       allow write: if isAdmin();
     }
 
     match /books/{id} {
-      allow read: if signedIn();
+      allow read: if isAdmin() || (signedIn() && featureAllowed('books'));
       allow write: if isAdmin();
     }
 
     // مكالمات صوتية
     match /calls/{callId} {
-      allow read: if signedIn()
-                  && (resource.data.from == request.auth.uid
-                      || resource.data.to == request.auth.uid
-                      || isAdmin());
-      allow create: if signedIn() && notBlocked()
+      allow read: if isAdmin() || (signedIn() && featureAllowed('calls')
+                  && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid));
+      allow create: if signedIn() && notBlocked() && featureAllowed('calls')
                     && request.resource.data.from == request.auth.uid;
       allow update: if signedIn()
-                    && (resource.data.from == request.auth.uid
-                        || resource.data.to == request.auth.uid);
+                    && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid)
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['callerIce', 'calleeIce', 'answer', 'status', 'endedAt'])
+                    && (featureAllowed('calls')
+                        || request.resource.data.get('status', '') in ['cancelled', 'rejected', 'ended', 'missed']);
       allow delete: if isAdmin()
                     || (signedIn() && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid));
     }
