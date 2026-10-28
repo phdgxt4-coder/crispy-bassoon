@@ -1,0 +1,8 @@
+/* main styles - placeholder, will be updated */
+:root{--bg:#0C1716;--card:#132422;--accent:#0B5D57;--text:#e8f0ef}
+body{margin:0;font-family:IBM Plex Sans Arabic,system-ui,sans-serif;background:var(--bg);color:var(--text)}
+#splash{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:9999;transition:opacity .5s}
+#splash.hide{opacity:0;pointer-events:none}
+.splash-logo{font-family:Reem Kufi,serif;font-size:2.4rem;font-weight:700}
+.splash-sub{opacity:.7;margin-top:8px}
+#verBadge{position:fixed;bottom:8px;left:8px;font-size:11px;opacity:.4}
