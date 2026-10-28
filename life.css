@@ -1,0 +1,416 @@
+/* ===== Student Life v1 ===== */
+nav.bot button{min-width:0;flex:1;padding-inline:6px;font-size:13px}
+html[data-skin]:not(.z){--pri:var(--sk1);--pri2:var(--sk2);--ind:var(--sk3)}
+html[data-skin=ocean]{--sk1:#0E7490;--sk2:#0A5C73;--sk3:#2563EB}
+html[data-skin=purple]{--sk1:#7C3AED;--sk2:#6D28D9;--sk3:#DB2777}
+html[data-skin=sunset]{--sk1:#EA580C;--sk2:#C2410C;--sk3:#DB2777}
+html[data-skin=forest]{--sk1:#15803D;--sk2:#166534;--sk3:#0E7490}
+html[data-skin=aurora]{--sk1:#10B981;--sk2:#059669;--sk3:#8B5CF6}
+html[data-skin=neon]{--sk1:#EC4899;--sk2:#BE185D;--sk3:#06B6D4}
+.lf-top{background:linear-gradient(135deg,var(--pri),var(--ind));color:#fff;border:0;border-radius:20px;padding:16px;margin-bottom:12px;position:relative;overflow:hidden}
+.lf-top b{font-size:22px}.lf-top .r{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.lf-coin{font-weight:800;font-size:20px;background:rgba(255,255,255,.18);border-radius:99px;padding:4px 14px}
+.lf-coin.pop{animation:lfpop .5s}
+@keyframes lfpop{40%{transform:scale(1.25)}}
+.lf-xp{height:8px;border-radius:99px;background:rgba(255,255,255,.25);margin-top:10px;overflow:hidden}
+.lf-xp i{display:block;height:100%;background:#fff;border-radius:99px;transition:width .8s}
+.lf-tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto}
+.lf-tabs button{flex:1;white-space:nowrap;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:9px 10px;font:inherit;font-weight:600;cursor:pointer}
+.lf-tabs button.on{background:var(--pri);color:var(--onpri);border-color:var(--pri)}
+.lf-room{position:relative;height:250px;border-radius:20px;overflow:hidden;border:1px solid var(--line);background:linear-gradient(#cfe8ff 0 62%,#c8a27a 62%);box-shadow:var(--sh)}
+.lf-room.night{background:linear-gradient(#1b1f4b 0 62%,#6b4a2f 62%)}
+.lf-room .slot{position:absolute;font-size:44px;line-height:1;filter:drop-shadow(0 4px 3px rgba(0,0,0,.25))}
+.lf-room .s-wall{top:16px;inset-inline-start:18px;font-size:50px}.lf-room .s-light{top:8px;inset-inline-end:26px;font-size:34px;animation:lfglow 2.4s infinite alternate}
+.lf-room .s-desk{bottom:40%;inset-inline-end:14px;font-size:54px}.lf-room .s-plant{bottom:36%;inset-inline-start:12px}.lf-room .s-floor{bottom:8px;inset-inline-end:34%;font-size:52px}
+@keyframes lfglow{to{filter:drop-shadow(0 0 14px gold)}}
+.lf-pet{position:absolute;bottom:14px;inset-inline-start:30%;cursor:pointer;text-align:center;animation:lfroam 9s ease-in-out infinite alternate;z-index:2}
+@keyframes lfroam{0%{transform:translateX(0)}50%{transform:translateX(-46px)}100%{transform:translateX(40px)}}
+.lf-pet .b{display:inline-block;position:relative;line-height:1;animation:lfbob 1.6s ease-in-out infinite}
+@keyframes lfbob{50%{transform:translateY(-6px)}}
+.lf-pet.jump .b{animation:lfjump .7s}
+@keyframes lfjump{30%{transform:translateY(-44px) rotate(-8deg)}60%{transform:translateY(0) rotate(6deg)}}
+.lf-pet .b.egg{animation:lfwob 1.4s infinite}
+@keyframes lfwob{25%{transform:rotate(-9deg)}75%{transform:rotate(9deg)}}
+.lf-pet.aura .b::before{content:"";position:absolute;inset:-14px;border-radius:50%;background:radial-gradient(circle,rgba(255,215,0,.55),transparent 70%);z-index:-1;animation:lfglow 1.6s infinite alternate}
+.lf-acc{position:absolute;left:50%;transform:translateX(-50%);font-size:.5em;line-height:1}
+.lf-acc.hat,.lf-acc.crown,.lf-acc.halo{top:-.3em}.lf-acc.glasses{top:.28em}.lf-acc.scarf{bottom:-.15em}.lf-acc.wings{top:.1em;font-size:.9em;opacity:.9;z-index:-1}
+.lf-heart{position:absolute;pointer-events:none;animation:lfup 1.1s forwards;font-size:20px}
+@keyframes lfup{to{transform:translateY(-70px);opacity:0}}
+.lf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px}
+.lf-it{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 6px;text-align:center;position:relative}
+.lf-it.on{border-color:var(--gold);box-shadow:0 0 0 2px color-mix(in srgb,var(--gold) 40%,transparent)}
+.lf-it .ic{font-size:34px;line-height:1.2}.lf-it small{display:block;color:var(--mut);font-size:11px;min-height:16px}
+.lf-it button{margin-top:6px;border:0;border-radius:10px;padding:6px 10px;font:inherit;font-size:12px;font-weight:700;background:var(--pri);color:var(--onpri);cursor:pointer;width:90%}
+.lf-it button.g{background:var(--gold);color:#2b2000}.lf-it button:disabled{opacity:.45}
+.lf-chips{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px}
+.lf-chips button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:5px 12px;font:inherit;font-size:13px;white-space:nowrap}
+.lf-chips button.on{background:var(--ink);color:var(--bg)}
+.lf-q{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.lf-q.done{opacity:.6}.lf-q .bar{height:6px;border-radius:99px;background:var(--line);margin-top:5px;overflow:hidden}.lf-q .bar i{display:block;height:100%;background:var(--pri)}
+.lf-ov{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:18px;animation:enter .2s}
+.lf-box{font-size:96px;animation:lfshake .5s infinite}
+@keyframes lfshake{25%{transform:rotate(-12deg) scale(1.1)}75%{transform:rotate(12deg) scale(1.1)}}
+.lf-prize{background:var(--card);color:var(--ink);border-radius:24px;padding:26px 22px;text-align:center;max-width:320px;width:100%;animation:lfpopin .5s cubic-bezier(.2,1.5,.4,1)}
+@keyframes lfpopin{from{transform:scale(.3);opacity:0}}
+.lf-card{width:100%;max-width:340px;border-radius:26px;padding:3px;background:conic-gradient(from var(--a,0deg),var(--gold),var(--pri),var(--ind),var(--gold));animation:lfspin 5s linear infinite}
+@property --a{syntax:"<angle>";inherits:false;initial-value:0deg}
+@keyframes lfspin{to{--a:360deg}}
+.lf-card>div{background:var(--card);color:var(--ink);border-radius:24px;padding:20px 16px;text-align:center}
+.lf-card .st{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.lf-card .st div{background:var(--sel);border-radius:12px;padding:8px;font-size:13px}.lf-card .st b{display:block;font-size:17px}
+.fr{display:inline-block;border-radius:50%;padding:4px;position:relative}
+.fr-bronze{background:linear-gradient(135deg,#b4762f,#e8b072)}.fr-silver{background:linear-gradient(135deg,#9ca3af,#f3f4f6)}.fr-gold{background:linear-gradient(135deg,#d99a06,#ffe27a)}
+.fr-diamond{background:conic-gradient(#7dd3fc,#fff,#a5f3fc,#e0f2fe,#7dd3fc);animation:lfglow 1.5s infinite alternate}.fr-fire{background:linear-gradient(0deg,#ef4444,#f59e0b,#fde047);animation:lfglow 1s infinite alternate}
+.fr-neon{background:#06b6d4;box-shadow:0 0 14px #06b6d4,0 0 28px #ec4899}.fr-galaxy{background:conic-gradient(from var(--a,0deg),#4c1d95,#ec4899,#1d4ed8,#4c1d95);animation:lfspin 4s linear infinite}
+.fr>img,.fr>.av{border-color:transparent!important}
+#fxl{position:fixed;inset:0;z-index:40;pointer-events:none;overflow:hidden}
+#fxl span{position:absolute;top:-30px;opacity:.75;animation:lffall linear infinite}
+@keyframes lffall{to{transform:translateY(110vh) rotate(360deg)}}
+.lf-ach{opacity:.45;filter:grayscale(1)}.lf-ach.ok{opacity:1;filter:none}
+.lf-tag{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px;background:color-mix(in srgb,var(--gold) 28%,transparent);color:var(--ink);margin-inline-start:4px;vertical-align:middle;animation:lfpopin .4s}
+.tk-bubble.me.lfb-gold,.tk-bubble.them.lfb-gold{background:linear-gradient(135deg,#d99a06,#ffe27a);color:#2b2000}
+.tk-bubble.me.lfb-neon,.tk-bubble.them.lfb-neon{background:#0b0b1a;color:#67e8f9;box-shadow:0 0 12px #06b6d4,inset 0 0 8px #ec489955}
+.tk-bubble.me.lfb-glass,.tk-bubble.them.lfb-glass{background:rgba(255,255,255,.22);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.5);color:var(--ink)}
+.tk-bubble.me.lfb-comic,.tk-bubble.them.lfb-comic{background:#fff7c2;color:#111;border:2.5px solid #111;box-shadow:3px 3px 0 #111}
+.tk-bubble.me.lfb-sunset,.tk-bubble.them.lfb-sunset{background:linear-gradient(135deg,#f97316,#db2777);color:#fff}
+#lfBuddy{position:fixed;bottom:78px;inset-inline-end:10px;z-index:44;line-height:1;cursor:pointer;animation:lfbob 2s ease-in-out infinite;filter:drop-shadow(0 6px 4px rgba(0,0,0,.3))}
+#lfBuddy .bd{position:relative;display:inline-block}
+#lfBuddy.r-run{animation:lfrun 1.1s ease-out}#lfBuddy.r-jump{animation:lfhop .7s}#lfBuddy.r-dance{animation:lfdance .45s 4}#lfBuddy.r-sad{animation:lfsad 1.8s;filter:grayscale(.8)}
+@keyframes lfrun{from{transform:translateX(-85vw) rotate(-20deg)}}
+@keyframes lfhop{40%{transform:translateY(-50px) rotate(-10deg)}}
+@keyframes lfdance{25%{transform:rotate(-18deg) scale(1.15)}75%{transform:rotate(18deg) scale(1.15)}}
+@keyframes lfsad{20%,80%{transform:translateY(10px) scale(.88) rotate(-6deg)}}
+@property --o{syntax:"<angle>";inherits:true;initial-value:0deg}
+.lf-3d{perspective:700px;height:170px;position:relative;margin:2px auto 6px;touch-action:pan-y;cursor:grab}
+.lf-3d .plate{position:absolute;left:50%;bottom:10px;width:150px;height:40px;margin-left:-75px;border-radius:50%;background:radial-gradient(var(--pri),transparent 70%);transform:rotateX(72deg);opacity:.55;animation:lfglow 2s infinite alternate}
+.lf-3d .obj{position:absolute;inset:0;margin:auto;width:max-content;height:max-content;transform-style:preserve-3d;animation:lf3d 6s ease-in-out infinite alternate;line-height:1}
+.lf-3d.tilt .obj{animation:none;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg))}
+@keyframes lf3d{from{transform:rotateY(-30deg) rotateX(6deg)}to{transform:rotateY(30deg) rotateX(-4deg)}}
+.lf-3d .front{position:relative;display:inline-block;transform-style:preserve-3d}
+.lf-3d .ly{display:block}.lf-3d .ly:not(:first-child){position:absolute;inset:0}
+.lf-3d .lf-acc{transform:translateX(-50%) translateZ(12px)}
+.lf-3d .orb{position:absolute;inset:0;transform-style:preserve-3d;animation:lforb 16s linear infinite;transform:rotateX(14deg)}
+@keyframes lforb{to{--o:360deg}}
+.lf-3d .orb i{position:absolute;left:50%;top:40%;font-style:normal;font-size:26px;margin:-13px;--a2:calc(var(--o) + var(--i)*360deg/var(--n));transform:rotateY(var(--a2)) translateZ(98px) rotateY(calc(var(--a2)*-1))}
+.lf-3d .aura::after{content:"";position:absolute;inset:-18px;border-radius:50%;background:radial-gradient(circle,rgba(255,215,0,.5),transparent 70%);transform:translateZ(-30px)}
+.lf-fly{position:fixed;bottom:90px;z-index:9997;font-size:26px;pointer-events:none;animation:lffly 1.2s ease-out forwards}
+@keyframes lffly{to{transform:translate(var(--dx),-280px) scale(.6) rotate(220deg);opacity:0}}
+.lf-room .s-clock{top:18px;inset-inline-start:46%;font-size:34px}
+.lf-mute{background:rgba(255,255,255,.2);border:0;border-radius:50%;width:34px;height:34px;color:#fff;font-size:16px;cursor:pointer;margin-inline-start:8px}
+.lf-it{transition:transform .2s,box-shadow .2s}.lf-it:active{transform:scale(.95)}
+.lf-it.on::after{content:"✓";position:absolute;top:6px;inset-inline-end:8px;color:var(--gold);font-weight:800}
+/* v3 polish */
+.lf-top{background:linear-gradient(135deg,var(--pri),var(--ind),var(--pri));background-size:220% 220%;animation:lfsheen 9s ease-in-out infinite alternate;box-shadow:0 12px 30px color-mix(in srgb,var(--pri) 35%,transparent)}
+.lf-top::before{content:"";position:absolute;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.12);top:-50px;inset-inline-end:-30px;animation:lfbob 5s ease-in-out infinite}
+@keyframes lfsheen{to{background-position:100% 50%}}
+.lf-tabs button{transition:background .25s,color .25s,transform .15s}.lf-tabs button:active{transform:scale(.94)}
+.lf-it:hover{transform:translateY(-3px);box-shadow:0 10px 20px rgba(0,0,0,.12)}
+.lf-it button:not(:disabled){animation:lfpulse 2.4s ease-in-out infinite}.lf-it button:disabled{animation:none}
+@keyframes lfpulse{50%{box-shadow:0 0 0 5px color-mix(in srgb,var(--pri) 22%,transparent)}}
+.lf-it .ic{transition:transform .3s}.lf-it:hover .ic{transform:scale(1.18) rotate(-6deg)}
+.lf-room{box-shadow:var(--sh),inset 0 -30px 40px rgba(0,0,0,.12)}
+.lf-room .sky{position:absolute;inset:0 0 38% 0;overflow:hidden}
+.lf-room .sun{position:absolute;top:18px;inset-inline-end:90px;width:34px;height:34px;border-radius:50%;background:#ffd84d;box-shadow:0 0 28px 8px rgba(255,216,77,.6);animation:lfglow 3s infinite alternate}
+.lf-room.night .sun{background:#eef2ff;box-shadow:0 0 22px 6px rgba(200,210,255,.5)}
+.lf-room .cl{position:absolute;height:16px;width:60px;border-radius:99px;background:rgba(255,255,255,.75);animation:lfcloud 26s linear infinite}
+.lf-room .cl::after{content:"";position:absolute;width:30px;height:22px;border-radius:50%;background:inherit;top:-10px;left:12px}
+.lf-room .c1{top:44px}.lf-room .c2{top:84px;animation-duration:38s;animation-delay:-14s;transform:scale(.7)}
+@keyframes lfcloud{from{left:-70px}to{left:105%}}
+.lf-room.night .cl{opacity:.25}.lf-room.night::after{content:"";position:absolute;inset:0;background:rgba(10,10,60,.3);pointer-events:none;z-index:3}
+.lf-room .boards{position:absolute;inset:62% 0 0 0;background:repeating-linear-gradient(90deg,transparent 0 46px,rgba(0,0,0,.09) 46px 48px)}
+.lf-room .slot{z-index:1}.lf-room .s-plant{transform-origin:bottom;animation:lfsway 3.2s ease-in-out infinite alternate}
+@keyframes lfsway{from{transform:rotate(-4deg)}to{transform:rotate(4deg)}}
+.lf-room .s-rug{bottom:6px;inset-inline-start:22%;width:52%;height:34px;border-radius:50%;opacity:.85;z-index:0;box-shadow:inset 0 0 0 5px rgba(255,255,255,.35)}
+.lf-room .s-shelf{top:14px;inset-inline-start:34%;font-size:34px}.lf-room .s-desk2{bottom:40%;inset-inline-end:78px;font-size:30px}.lf-room .s-side{bottom:10px;inset-inline-start:8px;font-size:46px}
+.lf-pet .sh{position:absolute;left:10%;right:10%;bottom:-6px;height:10px;border-radius:50%;background:rgba(0,0,0,.28);filter:blur(3px);z-index:-1}
+.lf-card{animation:lfspin 5s linear infinite,lfpopin .5s cubic-bezier(.2,1.5,.4,1)}
+.lf-prize{background:linear-gradient(160deg,var(--card),var(--sel))}
+.lf-box{filter:drop-shadow(0 0 24px gold)}
+.btn{transition:transform .15s,box-shadow .2s}.btn:active{transform:scale(.97)}
+.tk-bubble{animation:lfpopin .25s}
+/* v4 polish */
+.lf-top{background:linear-gradient(135deg,var(--pri),var(--pri2),var(--pri));background-size:220% 220%;color:var(--onpri)}
+.lf-top .lf-coin{background:color-mix(in srgb,var(--onpri) 16%,transparent)}.lf-xp{background:color-mix(in srgb,var(--onpri) 22%,transparent)}.lf-top .lf-xp i{background:var(--onpri)}
+.lf-mute{background:color-mix(in srgb,var(--onpri) 16%,transparent);color:var(--onpri)}
+.lf-it button{color:var(--onpri)}.lf-it button.g{color:#2b2000}
+[data-tilt]{transform:perspective(650px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .18s ease-out;will-change:transform}
+.podium{perspective:800px}.podium .pod{transform-style:preserve-3d;box-shadow:0 14px 22px -10px rgba(0,0,0,.35)}
+.lf-box{display:inline-block;animation:lfbox3d 1s ease-in-out infinite}
+@keyframes lfbox3d{0%,100%{transform:perspective(500px) rotateY(-28deg) rotate(-6deg)}50%{transform:perspective(500px) rotateY(28deg) rotate(6deg) scale(1.15)}}
+.lf-it .ic{transform:perspective(300px) translateZ(0)}.lf-it:hover .ic{transform:perspective(300px) translateZ(24px) rotateY(18deg)}
+.lf-prize{perspective:600px}.lf-prize>div:first-child{animation:lfbob 2s ease-in-out infinite}
+/* ===== Store v5 ===== */
+.lf-wallet{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,var(--pri),var(--pri2));color:var(--onpri);border-radius:18px;padding:12px 16px;margin-bottom:10px;box-shadow:0 8px 22px rgba(0,0,0,.18)}.lf-wallet b{font-size:24px;font-variant-numeric:tabular-nums}
+.lf-grid.shop{grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:12px}
+.lf-it.sh{padding:14px 8px 12px;overflow:hidden;border-width:1.5px;animation:lfcard .45s cubic-bezier(.2,.9,.3,1.2) backwards;animation-delay:var(--d,0ms)}
+@keyframes lfcard{from{opacity:0;transform:translateY(14px) scale(.94)}}
+.lf-it.sh .rb{position:absolute;top:6px;inset-inline-start:6px;font-style:normal;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--line);color:var(--mut)}
+.lf-it.sh .pv{height:64px;display:flex;align-items:center;justify-content:center;margin:12px 0 4px}
+.lf-it.sh .nm{display:block;font-size:13px;margin-top:2px}
+.lf-it.sh .pr{font-weight:800;color:var(--ink)}.lf-it.sh s{opacity:.5;font-size:10px;margin-inline-start:4px}
+.lf-it.sh button{min-height:36px}
+.lf-it.r-r{border-color:#3b82f6}.lf-it.r-r .rb{background:#3b82f6;color:#fff}
+.lf-it.r-e{border-color:#a855f7;box-shadow:0 0 14px rgba(168,85,247,.28)}.lf-it.r-e .rb{background:#a855f7;color:#fff}
+.lf-it.r-l{border-color:#f59e0b;box-shadow:0 0 18px rgba(245,158,11,.4)}.lf-it.r-l .rb{background:linear-gradient(90deg,#f59e0b,#ef4444);color:#fff}
+.lf-it.r-l::before,.lf-it.r-e::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.3) 50%,transparent 65%);transform:translateX(-120%);animation:lfshine 3.4s ease-in-out infinite;pointer-events:none}
+@keyframes lfshine{60%,100%{transform:translateX(120%)}}
+.lf-it.own{background:color-mix(in srgb,var(--pri) 8%,var(--card))}
+.pv-av{width:46px;height:46px;border-radius:50%;background:var(--sel);display:flex;align-items:center;justify-content:center;font-size:24px}
+.pv-sk{width:54px;height:54px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 6px 14px rgba(0,0,0,.25);animation:lfbob 2.4s ease-in-out infinite}
+.pv-pet{position:relative;display:inline-block;font-size:38px;line-height:1;animation:lfbob 1.8s ease-in-out infinite}
+.pv-ic{font-size:40px;animation:lfbob 2.2s ease-in-out infinite}
+.pv-t{margin:0!important;font-size:12px}
+.pv-fx{position:relative;width:60px;height:56px;display:block;overflow:hidden}.pv-fx i{position:absolute;top:0;font-style:normal;font-size:16px;animation:lffall 2.2s linear infinite}
+.pv-fx i:nth-child(1){left:6px}.pv-fx i:nth-child(2){left:20px;animation-delay:-.6s}.pv-fx i:nth-child(3){left:34px;animation-delay:-1.2s}.pv-fx i:nth-child(4){left:46px;animation-delay:-1.8s}
+@keyframes lffall{from{transform:translateY(-10px);opacity:0}20%{opacity:1}to{transform:translateY(54px);opacity:0}}
+.lf-it .pv-snd{background:var(--sel);color:var(--ink);width:auto;padding:8px 12px;border-radius:99px;font-size:14px;animation:none;margin:0}
+.pv-bub{display:inline-block;padding:8px 12px;border-radius:14px 14px 4px 14px;font-size:12px;background:var(--sel);color:var(--ink)}
+.lf-hatch{background:var(--card);color:var(--ink);border-radius:26px;padding:26px 22px;text-align:center;max-width:320px;width:100%;animation:lfpopin .5s cubic-bezier(.2,1.5,.4,1)}
+.lf-hatch .hx{position:relative;height:130px;display:flex;align-items:center;justify-content:center}
+.lf-hatch .egg{position:absolute;font-size:92px;animation:lfegg 1.5s ease-in forwards}
+.lf-hatch .pet{position:absolute;font-size:80px;opacity:0;animation:lfpetout .7s 1.4s cubic-bezier(.2,1.6,.4,1) forwards}
+.lf-hatch .sp{position:absolute;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,rgba(255,230,120,.9),transparent 65%);opacity:0;animation:lfflash .6s 1.35s ease-out forwards}
+@keyframes lfegg{0%,100%{transform:rotate(0)}10%{transform:rotate(-10deg)}20%{transform:rotate(10deg)}30%{transform:rotate(-14deg)}40%{transform:rotate(14deg)}55%{transform:rotate(-18deg) scale(1.05)}70%{transform:rotate(18deg) scale(1.08)}88%{transform:scale(1.15);opacity:1}100%{transform:scale(1.4);opacity:0}}
+@keyframes lfpetout{from{opacity:0;transform:scale(.2) translateY(20px)}to{opacity:1;transform:none}}
+@keyframes lfflash{0%{opacity:0;transform:scale(.4)}40%{opacity:1}100%{opacity:0;transform:scale(1.8)}}
+.lf-bought .bi{font-size:76px;animation:lfpetout .6s cubic-bezier(.2,1.6,.4,1)}
+@media (prefers-reduced-motion:reduce){.lf-it.sh,.lf-it.sh::before,.pv-sk,.pv-pet,.pv-ic,.pv-fx i{animation:none!important}}
+/* ===== Store v6 ===== */
+.fr-ruby{background:linear-gradient(135deg,#7f1d1d,#ef4444,#fecaca);box-shadow:0 0 12px rgba(239,68,68,.6)}
+.fr-emerald{background:linear-gradient(135deg,#064e3b,#10b981,#a7f3d0);box-shadow:0 0 12px rgba(16,185,129,.6)}
+.fr-sapphire{background:linear-gradient(135deg,#1e3a8a,#3b82f6,#bfdbfe);box-shadow:0 0 12px rgba(59,130,246,.6)}
+.fr-ice{background:conic-gradient(from var(--a,0deg),#e0f2fe,#7dd3fc,#fff,#bae6fd,#e0f2fe);animation:lfspin 5s linear infinite;box-shadow:0 0 14px rgba(125,211,252,.7)}
+.fr-cyber{background:conic-gradient(from var(--a,0deg),#22d3ee,#0f172a,#f0abfc,#0f172a,#22d3ee);animation:lfspin 3s linear infinite;box-shadow:0 0 12px #22d3ee}
+.fr-rgb{background:conic-gradient(from var(--a,0deg),#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);animation:lfspin 2.5s linear infinite}
+.fr-electric{background:linear-gradient(135deg,#facc15,#fff,#38bdf8);animation:lfelec .9s steps(2) infinite}
+@keyframes lfelec{0%{box-shadow:0 0 6px #facc15}50%{box-shadow:0 0 22px #38bdf8,0 0 36px #facc15}100%{box-shadow:0 0 8px #facc15}}
+.fr-shadow{background:linear-gradient(135deg,#0f0f1a,#312e81);box-shadow:0 0 18px rgba(99,102,241,.7),inset 0 0 8px #000}
+.fr-crystal{background:conic-gradient(from var(--a,0deg),#c4b5fd,#fff,#f0abfc,#a5f3fc,#c4b5fd);animation:lfspin 6s linear infinite;box-shadow:0 0 16px rgba(196,181,253,.8)}
+html[data-skin=glass]{--sk1:#64748B;--sk2:#475569;--sk3:#38BDF8}
+html[data-skin=midnight]{--sk1:#4338CA;--sk2:#312E81;--sk3:#7C3AED}
+html[data-skin=gold]{--sk1:#B45309;--sk2:#92400E;--sk3:#F59E0B}
+html[data-skin=pink]{--sk1:#DB2777;--sk2:#BE185D;--sk3:#F472B6}
+html[data-skin=sky]{--sk1:#0284C7;--sk2:#0369A1;--sk3:#38BDF8}
+html[data-skin=coffee]{--sk1:#78350F;--sk2:#451A03;--sk3:#A16207}
+html[data-skin=cyberpunk]{--sk1:#C026D3;--sk2:#86198F;--sk3:#06B6D4}
+html[data-skin=retro]{--sk1:#E11D48;--sk2:#9F1239;--sk3:#F59E0B}
+html[data-skin=minimal]{--sk1:#374151;--sk2:#1F2937;--sk3:#6B7280}
+.lf-it{-webkit-tap-highlight-color:transparent}
+.lf-it button{transition:transform .15s,filter .15s}.lf-it button:active:not(:disabled){transform:scale(.93);filter:brightness(1.1)}
+html{scroll-behavior:smooth}
+button,.btn,.tab,.lf-chips button{touch-action:manipulation}
+/* ===== Room v2 ===== */
+.lf-room[data-live]{--px:0;--py:0;transform:perspective(900px) rotateY(calc(var(--px)*5deg)) rotateX(calc(var(--py)*-4deg));transition:transform .18s ease-out;cursor:pointer;touch-action:pan-y}
+.lf-room[data-live]::before{content:"";position:absolute;inset:0;z-index:4;pointer-events:none;background:radial-gradient(120% 90% at 50% 40%,transparent 55%,rgba(0,0,0,.28)),linear-gradient(90deg,rgba(0,0,0,.18),transparent 14%,transparent 86%,rgba(0,0,0,.18))}
+.lf-room[data-live] .sky{translate:calc(var(--px)*-3px) calc(var(--py)*-2px)}
+.lf-room[data-live] .slot{translate:calc(var(--px)*-8px) calc(var(--py)*-3px)}
+.lf-room[data-live] .boards{translate:calc(var(--px)*-5px) 0}
+.lf-room .lf-pet{animation:none;inset-inline-start:auto;left:var(--x,40%);transition:left var(--wd,2s) linear;translate:calc(var(--px,0)*-14px) 0;user-select:none;-webkit-user-select:none}
+.lf-room .lf-pet.m{z-index:3}.lf-room .lf-pet.ex{z-index:2;filter:saturate(1.05)}
+.lf-pet.fl .b{scale:-1 1}
+.lf-pet.walk .b{animation:lfwalk .34s ease-in-out infinite}
+@keyframes lfwalk{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-8px) rotate(6deg)}}
+.lf-pet.hop .b{animation:lfhop2 .65s ease-out 2}
+@keyframes lfhop2{0%,100%{transform:translateY(0) scale(1)}15%{transform:translateY(0) scale(1.08,.9)}50%{transform:translateY(-28px) scale(.96,1.06)}}
+.lf-pet.spin .b{animation:lfspin2 .8s ease-in-out}
+@keyframes lfspin2{to{transform:rotate(360deg) scale(1.08)}}
+.lf-pet.sit .b{animation:none;transform:scale(1.04,.86);transform-origin:50% 100%}
+.lf-pet.sleep .b{animation:lfbreath 2.4s ease-in-out infinite;filter:brightness(.82);transform-origin:50% 100%}
+@keyframes lfbreath{50%{transform:scale(1.05,.95)}}
+.lf-pet.eat .b{animation:lfchew .28s ease-in-out 4}
+@keyframes lfchew{50%{transform:scale(1.07,.93) rotate(-4deg)}}
+.lf-pet.r-dance .b{animation:lfdance .45s 4}.lf-pet.r-jump .b{animation:lfhop2 .65s ease-out}.lf-pet.r-sad .b{animation:lfsad 1.8s;filter:grayscale(.7)}
+.lf-pet .say{position:absolute;top:-4px;left:50%;font-style:normal;font-size:18px;line-height:1;pointer-events:none;animation:lfsay 1.7s ease-out forwards}
+@keyframes lfsay{from{transform:translate(-50%,0) scale(.4);opacity:0}20%{opacity:1;transform:translate(-50%,-14px) scale(1)}to{transform:translate(-50%,-38px);opacity:0}}
+.lf-room.night .lf-pet .b{filter:brightness(.92)}
+/* ===== Pet v3: full-body SVG pets + house ===== */
+.b.pt{animation:none}
+.pt svg{display:block;width:1.7em;height:auto;overflow:visible}
+.pt .tl{transform-origin:108px 62px;animation:ptwag 1.8s ease-in-out infinite alternate}
+.lf-room[data-mood=hyper] .pt .tl{animation-duration:.4s}
+@keyframes ptwag{from{transform:rotate(-9deg)}to{transform:rotate(13deg)}}
+.pt .bd{transform-origin:76px 92px;animation:ptbreath 3.2s ease-in-out infinite}
+@keyframes ptbreath{50%{transform:scale(1,1.03)}}
+.pt .hd{transform-origin:46px 70px;animation:pthead 6s ease-in-out infinite}
+@keyframes pthead{0%,100%{transform:rotate(0)}30%{transform:rotate(-3deg)}65%{transform:rotate(2.5deg)}}
+.pt .eye{transform-box:fill-box;transform-origin:center;animation:ptblink 4.6s infinite}
+@keyframes ptblink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.08)}}
+.pt .ear{transform-origin:40px 40px;animation:ptear 7s ease-in-out infinite}
+@keyframes ptear{0%,90%,100%{transform:rotate(0)}94%{transform:rotate(-9deg)}97%{transform:rotate(3deg)}}
+.pt .wg{transform-origin:84px 50px;animation:ptwing 2.4s ease-in-out infinite alternate}
+@keyframes ptwing{from{transform:rotate(-4deg)}to{transform:rotate(9deg)}}
+.lf-pet.walk .pt .l1,.lf-pet.walk .pt .l4{animation:ptleg .34s ease-in-out infinite alternate}
+.lf-pet.walk .pt .l2,.lf-pet.walk .pt .l3{animation:ptleg .34s ease-in-out infinite alternate-reverse}
+@keyframes ptleg{from{transform:rotate(-28deg)}to{transform:rotate(28deg)}}
+.lf-pet.walk .b.pt{animation:ptbob .34s ease-in-out infinite}
+@keyframes ptbob{50%{transform:translateY(-3px)}}
+.lf-pet.walk .pt .tl{animation-duration:.5s}
+.lf-pet.sleep .pt .eye{animation:none;transform:scaleY(.1)}
+.lf-pet.sleep .pt svg{transform:translateY(5px) scale(1,.9);transform-origin:50% 100%}
+.lf-pet.sleep .pt .tl{animation-play-state:paused}
+.lf-pet.sit .pt .l3,.lf-pet.sit .pt .l4{transform:rotate(-70deg)}
+.lf-pet.eat .pt .hd{animation:pteat .28s ease-in-out 4}
+@keyframes pteat{50%{transform:rotate(12deg) translateY(5px)}}
+.lf-pet.r-sad .pt .hd{animation:none;transform:rotate(15deg) translateY(5px)}
+.lf-pet.r-sad .pt .tl{animation:none;transform:rotate(30deg)}
+.lf-pet.r-dance .pt .l1,.lf-pet.r-dance .pt .l3{animation:ptleg .22s ease-in-out infinite alternate}
+.lf-pet.r-dance .pt .l2,.lf-pet.r-dance .pt .l4{animation:ptleg .22s ease-in-out infinite alternate-reverse}
+.lf-pet.home{opacity:0;pointer-events:none;transition:opacity .35s}
+.lf-pet:not(.home){transition:left var(--wd,2s) linear,opacity .35s}
+.pet-home{position:absolute;bottom:10px;inset-inline-start:2%;width:84px;z-index:1;cursor:pointer}
+.pet-home svg{display:block;width:100%;height:auto;filter:drop-shadow(0 4px 3px rgba(0,0,0,.25))}
+.pet-home .dr{fill:#2b1d12;transition:fill .5s}
+.pet-home.on .dr{fill:#ffcf6b}
+.pet-home .zz{position:absolute;top:-6px;inset-inline-end:8px;font-style:normal;font-size:16px;opacity:0}
+.pet-home.on .zz{animation:ptzz 2s ease-out infinite}
+@keyframes ptzz{from{transform:translateY(8px);opacity:0}30%{opacity:1}to{transform:translateY(-22px) scale(1.3);opacity:0}}
+.lf-room.night .pet-home .dr{fill:#ffcf6b}
+.lf-it .ic .pt svg{width:64px;margin:0 auto}
+@media (prefers-reduced-motion:reduce){.pt *{animation:none!important}}
+
+/* ===== Polish v3: long names, corners, motion ===== */
+html,body{max-width:100%;overflow-x:hidden}
+body{overflow-wrap:anywhere;word-break:normal}
+.card,.row>*,.tk-bubble,.lf-it,.pill,.btn,h1,h2,h3,h4,b,small,td,th{min-width:0;overflow-wrap:anywhere}
+.card{border-radius:22px;box-shadow:var(--sh),0 1px 0 rgba(255,255,255,.05) inset}
+.btn{border-radius:999px;background:linear-gradient(135deg,var(--pri),var(--pri2));box-shadow:0 4px 14px rgba(0,0,0,.18);transition:transform .14s,box-shadow .2s,background-color .2s,border-color .2s,opacity .2s}
+.btn:active{transform:scale(.95)}
+.btn:not(:disabled):hover{box-shadow:0 6px 18px rgba(0,0,0,.18)}
+input,select,textarea{border-radius:12px;transition:box-shadow .2s,border-color .2s}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px color-mix(in srgb,var(--pri,#e5a823) 28%,transparent);outline:0}
+img,video,canvas,svg{max-width:100%}
+.wrap{animation:ptpage .35s ease-out}
+@keyframes ptpage{from{opacity:0;transform:translateY(8px)}}
+.pt .bw{transform-box:fill-box;transform-origin:center;animation:ptflap .5s ease-in-out infinite alternate}
+@keyframes ptflap{from{transform:scaleX(1)}to{transform:scaleX(.35)}}
+.pt .sw{transform-origin:75px 60px;animation:ptsway 2.6s ease-in-out infinite alternate}
+@keyframes ptsway{from{transform:rotate(-4deg)}to{transform:rotate(5deg)}}
+.lf-pet.fly{bottom:64px}
+.lf-pet.fly .b.pt{animation:ptfloat 2.6s ease-in-out infinite}
+@keyframes ptfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+.lf-pet.fly .sh{opacity:.5;transform:translateY(54px) scale(.7)}
+
+/* ===== Pet v4: knees, fur, eyes, idle life ===== */
+.pt .lo{animation:none}
+.pt .far{filter:brightness(.72)}
+.lf-pet.walk .pt .l1,.lf-pet.walk .pt .l4{animation:ptleg .34s ease-in-out infinite alternate}
+.lf-pet.walk .pt .l1 .lo,.lf-pet.walk .pt .l4 .lo{animation:ptknee .34s ease-in-out infinite alternate}
+.lf-pet.walk .pt .l2 .lo,.lf-pet.walk .pt .l3 .lo{animation:ptknee .34s ease-in-out infinite alternate-reverse}
+@keyframes ptknee{from{transform:rotate(2deg)}to{transform:rotate(-42deg)}}
+.pt .pu{transition:transform .2s;transform:translate(calc(var(--px,0)*1.5px),calc(var(--py,0)*1.3px))}
+.pt .hf{transform-origin:46px 70px;transform:rotate(calc(var(--px,0)*-4deg)) translateY(calc(var(--py,0)*1.5px));transition:transform .3s}
+.pt .mo{transform-box:fill-box;transform-origin:50% 0;transform:scaleY(0);transition:transform .25s}
+.lf-pet.yawn .pt .mo{transform:scaleY(1)}
+.lf-pet.yawn .pt .eye,.lf-pet.happy .pt .eye{animation:none;transform:scaleY(.2)}
+.lf-pet.yawn .pt .hd{animation:none;transform:rotate(-10deg) translateY(-2px);transition:transform .4s}
+.lf-pet.stretch .pt svg{transform:rotate(6deg);transform-origin:90% 100%;transition:transform .5s}
+.lf-pet.stretch .pt .l1,.lf-pet.stretch .pt .l2{transform:rotate(34deg);transition:transform .5s}
+.lf-pet.stretch .pt .hd{animation:none;transform:translateY(10px) rotate(16deg);transition:transform .5s}
+.lf-pet.stretch .pt .tl{animation:none;transform:rotate(-24deg)}
+.lf-pet.scratch .pt .l4{animation:ptscr .16s ease-in-out infinite alternate}
+@keyframes ptscr{from{transform:rotate(-50deg)}to{transform:rotate(-78deg)}}
+.lf-pet.scratch .pt .hd{animation:none;transform:rotate(9deg) translateY(2px)}
+.lf-pet.scratch .pt .eye{transform:scaleY(.35)}
+.lf-pet.sniff .pt .hd{animation:ptsniff .5s ease-in-out 3 alternate}
+@keyframes ptsniff{from{transform:translateY(3px) rotate(6deg)}to{transform:translateY(8px) rotate(14deg)}}
+.lf-pet.look .pt .hd{animation:none;transform:rotate(-8deg) translateX(-3px);transition:transform .4s}
+.lf-pet.happy .pt .tl{animation-duration:.18s}
+.lf-pet.happy .pt .mo{transform:scaleY(.55)}
+.lf-pet.eat .pt .mo{animation:ptchew .3s ease-in-out infinite alternate}
+@keyframes ptchew{from{transform:scaleY(.1)}to{transform:scaleY(.8)}}
+.pet-bowl{position:absolute;bottom:8px;right:3%;width:52px;z-index:1;cursor:pointer}
+.pet-bowl svg{display:block;width:100%;height:auto}
+.pet-bowl .fd{transition:transform .4s,opacity .4s;transform-origin:50% 100%}
+.pet-bowl.on .fd{transform:scale(.7,.2) translateY(14px);opacity:.3}
+.pet-home{left:2%;inset-inline-start:auto}
+.lf-room::after{content:"";position:absolute;left:0;right:0;bottom:0;height:38%;z-index:0;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.16),transparent 35%,rgba(255,255,255,.07)),radial-gradient(80% 120% at 30% 0%,rgba(255,240,200,.22),transparent 70%)}
+.lf-room.night::after{background:linear-gradient(180deg,rgba(0,0,30,.3),transparent 40%)}
+.lf-3d .ly svg{width:1.7em}
+#verBadge{position:fixed;bottom:2px;left:6px;font:10px/1 monospace;opacity:.35;pointer-events:none;z-index:5}
+
+/* ===== v54: 3D companion layer ===== */
+.c3d-cv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6}
+.lf-room[data-3d] .lf-pet .b .pe,.lf-room[data-3d] .lf-pet .b .lf-acc,.lf-room[data-3d] .lf-pet .sh{opacity:0!important}
+.lf-pet .pe{display:inline-block;line-height:1}
+
+/* ===== v66: GLB animals + 3D garden ===== */
+.c3d-cv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:6}
+.lf-pet[data-g3] .b .pe,.lf-pet[data-g3] .sh{opacity:0!important}
+.lf-room .slot[data-g3]{opacity:0!important}
+.lf-pet .pe{display:inline-block;line-height:1}
+.lf-room{background:linear-gradient(#cfe8ff 0 62%,#86c95f 62%)}
+.lf-room.night{background:linear-gradient(#1b1f4b 0 62%,#2f5a3a 62%)}
+.lf-room .boards{background:repeating-linear-gradient(90deg,rgba(255,255,255,.07) 0 52px,rgba(0,0,0,.07) 52px 104px),linear-gradient(180deg,rgba(255,255,255,.14),transparent 60%)}
+.lf-room .slot{inset:auto}
+.lf-room .s-hill{bottom:36%;left:50%;transform:translateX(-50%);font-size:76px;opacity:.9}
+.lf-room .s-cloud{top:8%;left:26%;font-size:46px;opacity:.95;animation:lfdrift 40s linear infinite alternate}
+@keyframes lfdrift{from{transform:translateX(-30px)}to{transform:translateX(70px)}}
+.lf-room .s-wall{top:16%;left:8%;font-size:30px}
+.lf-room .s-clock{top:10%;left:56%;font-size:34px}
+.lf-room .s-light{bottom:30%;left:46%;font-size:40px}
+.lf-room .s-tree{bottom:30%;left:3%;font-size:68px}
+.lf-room .s-tree2{bottom:30%;right:3%;font-size:68px}
+.lf-room .s-bush{bottom:20%;left:26%;font-size:32px}
+.lf-room .s-bush2{bottom:20%;right:24%;font-size:32px}
+.lf-room .s-rock{bottom:7%;right:6%;font-size:32px}
+.lf-room .s-grass{bottom:5%;left:44%;font-size:28px}
+.lf-room .s-plant{bottom:24%;left:15%;font-size:30px}
+.lf-room .s-floor{bottom:22%;right:38%;font-size:46px}
+.lf-room .s-side{bottom:6%;left:6%;font-size:28px}
+.lf-room .s-rug{inset:auto;bottom:6px;left:22%}
+.lf-mini .lf-room{height:190px}
+/* ===== student card ===== */
+.lf-card.re{box-shadow:0 0 28px color-mix(in srgb,var(--pri) 55%,transparent)}
+.lf-card.rl{box-shadow:0 0 40px rgba(255,200,60,.65),0 0 90px rgba(255,120,200,.35)}
+.lf-card>div{position:relative;overflow:hidden}
+.lf-card>div::after{content:"";position:absolute;inset:-40% -60%;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.22) 50%,transparent 60%);transform:translateX(-60%);animation:v55shine 4.5s ease-in-out infinite;pointer-events:none}
+@keyframes v55shine{0%,55%{transform:translateX(-60%)}100%{transform:translateX(60%)}}
+.lf-card .xpb{height:7px;border-radius:99px;background:var(--sel);margin:8px 10px 0;overflow:hidden}
+.lf-card .xpb i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--pri),var(--gold));animation:v55fill 1s ease-out}
+@keyframes v55fill{from{width:0}}
+html[data-fx="lite"] .lf-card>div::after{display:none}
+/* ===== v75: pet motion pack + garden life ===== */
+.lf-room .star{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;box-shadow:0 0 6px 1px rgba(255,255,255,.8);opacity:.9;animation:twk 2.8s ease-in-out infinite;pointer-events:none;z-index:5}
+@keyframes twk{0%,100%{opacity:.95;transform:scale(1)}50%{opacity:.2;transform:scale(.55)}}
+.lf-room .ffly{position:absolute;width:5px;height:5px;border-radius:50%;background:#ffe97a;box-shadow:0 0 9px 2px rgba(255,233,122,.8);pointer-events:none;z-index:5;animation:fflym 6s ease-in-out infinite alternate}
+@keyframes fflym{0%{transform:translate(0,0);opacity:.2}30%{opacity:1}100%{transform:translate(30px,-22px);opacity:.7}}
+.lf-room .bfly{position:absolute;left:-6%;font-size:15px;line-height:1;pointer-events:none;z-index:3;animation:bflypath linear infinite;filter:drop-shadow(0 2px 3px rgba(0,0,0,.2))}
+@keyframes bflypath{0%{left:-6%}100%{left:106%}}
+.lf-room .bfly::after{content:"🦋";display:block;animation:bflybob 2.1s ease-in-out infinite alternate,bflyflap .4s ease-in-out infinite}
+@keyframes bflybob{from{transform:translateY(0)}to{transform:translateY(-16px)}}
+@keyframes bflyflap{50%{transform:scaleX(.35)}}
+.lf-room .bfly.flee{filter:brightness(1.3) drop-shadow(0 0 6px rgba(255,255,160,.9));animation-duration:6s!important}
+.lf-room .leaf{position:absolute;top:-22px;font-size:15px;line-height:1;pointer-events:none;z-index:1;animation:leaffall linear forwards}
+@keyframes leaffall{0%{transform:translate(0,-20px) rotate(0)}30%{transform:translate(24px,80px) rotate(90deg)}60%{transform:translate(-16px,160px) rotate(200deg)}100%{transform:translate(20px,268px) rotate(330deg);opacity:.25}}
+.lf-room .s-plant{animation-duration:3.4s}
+.lf-room .s-bush,.lf-room .s-bush2{transform-origin:bottom;animation:lfsway 4.2s ease-in-out infinite alternate}
+.lf-pet .b{will-change:transform}
+.lf-pet.dig .b{animation:lfdig .4s ease-in-out infinite}
+@keyframes lfdig{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-5px) rotate(-7deg)}}
+.lf-pet.wig .b{animation:lftig .8s cubic-bezier(.3,1.5,.5,1)}
+@keyframes lftig{0%,100%{transform:rotate(0)}25%{transform:rotate(-9deg)}60%{transform:rotate(8deg)}}
+.lf-pet.r-run .b{animation-duration:.2s}
+html[data-fx="lite"] .lf-room .star,html[data-fx="lite"] .lf-room .ffly,html[data-fx="lite"] .lf-room .bfly,html[data-fx="lite"] .lf-room .leaf{display:none}
+@media (prefers-reduced-motion:reduce){.lf-room .star,.lf-room .ffly,.lf-room .bfly,.lf-room .leaf,.lf-pet.dig .b,.lf-pet.wig .b{animation:none!important}.lf-room .leaf{display:none}}
+/* ===== v76: حزمة الهمّة — الهدية + التركيز + الملاحظات ===== */
+.v76-gift{display:flex;gap:12px;align-items:center;cursor:pointer;border-color:#F59E0B;background:linear-gradient(135deg,rgba(245,158,11,.14),rgba(217,119,6,.10));margin:10px 0;padding:14px}
+.v76-gift:active{transform:scale(.98)}
+.v76-gift .gi{font-size:30px;animation:v76shake 2.4s ease-in-out infinite}
+.v76-gift .gt{flex:1}
+@keyframes v76shake{0%,86%,100%{transform:rotate(0)}89%{transform:rotate(-10deg)}92%{transform:rotate(10deg)}95%{transform:rotate(-5deg)}}
+.v76-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.v76-tile{display:flex;align-items:center;gap:12px;text-align:start;border:0;border-radius:14px;padding:12px 14px;color:#fff;font:inherit;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.25);min-height:64px}
+.v76-tile:active{transform:scale(.98)}
+.v76-tile .g{font-size:26px;line-height:1}
+.v76-tile small{opacity:.88}
+.fc-card{text-align:center;padding:24px 14px}
+.fc-presets{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:14px}
+.fc-clock{font-size:66px;font-weight:900;letter-spacing:2px;font-variant-numeric:tabular-nums;line-height:1.1;margin:8px 0 16px}
+.fc-clock.run{color:var(--gold);text-shadow:0 0 26px rgba(245,197,66,.28)}
+.fc-bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+.fc-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#F59E0B,#FCD34D);border-radius:99px;transition:width .6s}
+.nt-compose textarea{width:100%;padding:12px;border-radius:12px;border:1.5px solid var(--line);font:inherit;resize:vertical;background:var(--bg);color:var(--ink);margin-bottom:10px;box-sizing:border-box}
+.nt-item .nt-x{white-space:pre-wrap;line-height:1.8}
+html[data-fx="lite"] .v76-gift .gi,html.lite .v76-gift .gi{animation:none}
+html[data-fx="lite"] .fc-bar i,html.lite .fc-bar i{transition:none}
+@media (prefers-reduced-motion:reduce){.v76-gift .gi{animation:none}.fc-bar i{transition:none}.v76-tile:active,.v76-gift:active{transform:none}}
+

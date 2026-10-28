@@ -1,0 +1,7 @@
+{
+  "name": "eltafawoq",
+  "version": "v93-mod13",
+  "build": "20261028-v93-mod13",
+  "channel": "production",
+  "notes": "Production-ready modular build for GitHub Pages + Firebase Auth/Firestore"
+}

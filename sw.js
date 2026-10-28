@@ -1,6 +1,6 @@
-/* التفوق SW — v86 — fresh: aurora theme + cleanup + instant cache */
-const CACHE = "eltafawoq-v86";
-const BUILD = "20261025-v86";
+/* التفوق SW — v93 — scoped cache cleanup; no forced page reload */
+const CACHE = "eltafawoq-v93-mod13";
+const BUILD = "20261028-v93-mod13";
 const PETS = [];
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
@@ -11,7 +11,6 @@ try {
     apiKey: "AIzaSyCo99zGbGOJSw1p-rdy3bk9PSxzsINWkxQ",
     authDomain: "eltafawoq-8b700.firebaseapp.com",
     projectId: "eltafawoq-8b700",
-    storageBucket: "eltafawoq-8b700.firebasestorage.app",
     messagingSenderId: "892405720236",
     appId: "1:892405720236:web:734c19429b8ee8e292eb09"
   });
@@ -71,27 +70,25 @@ self.addEventListener("notificationclick", (e) => {
 });
 
 self.addEventListener("install", (e) => {
-  self.skipWaiting();
   e.waitUntil(
     caches.open(CACHE).then((c) =>
       /* كل ملف لوحده: لو ملف واحد مش موجود (404) بقية الملفات تتخزّن عادي — addAll كان بيفشل كله */
-      Promise.allSettled(["./index.html","./manifest.json","./memory-game.html","./draw-guess.html","./words-crush.html","./runner.html","./space.html","./doodle.html","./fishing.html","./push.html"].concat(PETS).map((u) => c.add(u)))
-    )
+      Promise.allSettled(["./index.html","./manifest.json","./css/main.css","./css/lite.css","./js/error-center-early.js","./js/theme-early.js","./js/lite-early.js","./js/firebase.js","./js/utils.js","./js/exams-helpers.js","./js/ui-helpers.js","./js/games-registry.js","./js/logger.js","./js/config.js","./js/app.js","./js/splash-fx.js","./js/fx-tier.js"].concat(PETS).map((u) => c.add(u)))
+    ).then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.map((k) => (k !== CACHE ? caches.delete(k) : null)))
+      Promise.all(keys.filter((k) => k.startsWith("eltafawoq-v") && k !== CACHE).map((k) => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener("message", (e) => {
-  if (e.data && e.data.type === "SKIP_WAITING") self.skipWaiting();
   if (e.data && e.data.type === "CLEAR_CACHE") {
-    e.waitUntil(caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))));
+    e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k.startsWith("eltafawoq-v")).map((k) => caches.delete(k)))));
   }
 });
 
@@ -165,38 +162,38 @@ self.addEventListener("fetch", (e) => {
     e.request.mode === "navigate" ||
     (e.request.destination === "document") ||
     (url.origin === self.location.origin &&
-      (url.pathname.endsWith(".html") ||
-        url.pathname.endsWith("/") ||
+      (url.pathname.endsWith(".html") || url.pathname.endsWith("/") ||
         /\/crispy-bassoon\/?$/.test(url.pathname)));
 
-  if (isNav) {
-    /* v77 rocket: فتح فوري من الكاش + تحديث في الخلفية — أسرع إحساس ممكن */
-    e.respondWith(
-      (async () => {
-        const cache = await caches.open(CACHE);
-        const cached = await cache.match("./index.html");
-        /* حدّث في الخلفية دايماً — النسخة الجديدة تظهر من المرة الجاية */
-        fetch(e.request, { cache: "no-store" })
-          .then((res) => {
-            if (isHtmlResponse(res)) cache.put("./index.html", res.clone()).catch(() => {});
-          })
-          .catch(() => {});
-        if (cached) return cached;
-        try {
-          const ctl = new AbortController();
-          const t = setTimeout(() => ctl.abort(), 6000);
-          const res = await fetch(e.request, { cache: "no-store", signal: ctl.signal });
-          clearTimeout(t);
-          if (isHtmlResponse(res)) cache.put("./index.html", res.clone()).catch(() => {});
-          return res;
-        } catch (_) {
-          const cached2 = await cache.match("./index.html");
-          return cached2 || new Response("<h1>التفوق</h1><p>مفيش نت — افتح تاني</p>", {
-            headers: { "Content-Type": "text/html; charset=utf-8" }
-          });
-        }
-      })()
-    );
+  if (isNav && url.origin === self.location.origin) {
+    const keyUrl = new URL(e.request.url);
+    keyUrl.search = "";
+    keyUrl.hash = "";
+    const cacheKey = new Request(keyUrl.href, { method: "GET" });
+    const indexKey = new URL("./index.html", self.registration.scope).href;
+    const isAppRoot = url.pathname.endsWith("/") || url.pathname.endsWith("/index.html") ||
+      /\/crispy-bassoon\/?$/.test(url.pathname);
+    const updatePromise = fetch(e.request, { cache: "no-store" }).then((res) => {
+      if (res.ok && isHtmlResponse(res)) {
+        caches.open(CACHE).then((cache) => cache.put(cacheKey, res.clone())).catch(() => {});
+      }
+      return res;
+    });
+    e.waitUntil(updatePromise.then(() => {}).catch(() => {}));
+    e.respondWith((async () => {
+      const cache = await caches.open(CACHE);
+      const cached = await cache.match(cacheKey);
+      if (cached) return cached;
+      try {
+        return await updatePromise;
+      } catch (_) {
+        const rootFallback = isAppRoot ? await cache.match(indexKey) : null;
+        return rootFallback || new Response("<!doctype html><meta charset=utf-8><title>غير متصل</title><h1>الصفحة غير متاحة دون اتصال</h1><p>اتصل بالإنترنت وحاول مرة أخرى.</p>", {
+          status: 503,
+          headers: { "Content-Type": "text/html; charset=utf-8" }
+        });
+      }
+    })());
     return;
   }
 

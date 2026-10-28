@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>دفاع القلعة — التفوق</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#0b1a12;color:#f1f5f9;font-family:system-ui,sans-serif;overscroll-behavior:none}
+body{display:flex;flex-direction:column;align-items:center;min-height:100dvh}
+.top{width:100%;max-width:420px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.top a{color:#94a3b8;text-decoration:none;font-size:14px}
+.top h1{font-size:17px;font-weight:800}
+.hud{display:flex;gap:12px;font-size:13px;color:#cbd5e1}
+canvas{width:min(360px,96vw);height:auto;border-radius:16px;background:#13261c;box-shadow:0 10px 40px #0008;touch-action:none;display:block}
+.bot{width:100%;max-width:420px;padding:12px 14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn{appearance:none;border:0;border-radius:14px;padding:12px 18px;font:inherit;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#166534,#4ade80);color:#052e16}
+.btn.gold{background:linear-gradient(135deg,#E3A81C,#B45309);color:#1a1408}
+.hint{font-size:12px;color:#94a3b8;text-align:center;width:100%}
+.ov{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:20;padding:16px}
+.ov.on{display:flex}
+.panel{background:#1e293b;border-radius:20px;padding:22px;text-align:center;max-width:300px;width:100%}
+.panel h2{margin-bottom:6px}.panel p{color:#94a3b8;margin-bottom:14px}
+</style>
+</head>
+<body>
+<div class="top"><a href="./index.html">← المنصة</a><h1>🏰 دفاع القلعة</h1><div class="hud"><span>❤️ <b id="hp">10</b></span><span>⭐ <b id="sc">0</b></span><span>🌊 <b id="wv">1</b></span></div></div>
+<canvas id="c" width="360" height="520"></canvas>
+<div class="bot">
+  <button class="btn gold" id="go">ابدأ</button>
+  <button class="btn" id="build">ابنِ برج (15⭐)</button>
+  <div class="hint">اضغط على المسار لوضع برج · صدّ الأعداء قبل القلعة</div>
+</div>
+<div class="ov" id="ov"><div class="panel"><h2 id="ot">انتهت</h2><p id="om"></p><button class="btn gold" id="again">العب تاني</button></div></div>
+<script>
+const cv=document.getElementById('c'),g=cv.getContext('2d');
+let score=0,hp=10,wave=1,run=false,t=0,coins=30,towers=[],enemies=[],pathY=[];
+function end(win){run=false;document.getElementById('ot').textContent=win?'انتصار!':'سقطت القلعة';document.getElementById('om').textContent='نقاط: '+score+' · موجة '+wave;document.getElementById('ov').classList.add('on')}
+function reset(){score=0;hp=10;wave=1;t=0;coins=30;towers=[];enemies=[];run=true;
+  document.getElementById('sc').textContent=0;document.getElementById('hp').textContent=10;document.getElementById('wv').textContent=1;
+  document.getElementById('ov').classList.remove('on');requestAnimationFrame(loop)}
+document.getElementById('go').onclick=()=>{if(!run)reset()};
+document.getElementById('again').onclick=reset;
+document.getElementById('build').onclick=()=>{window._place=true};
+cv.addEventListener('pointerdown',e=>{
+  if(!run){reset();return}
+  if(!window._place||coins<15)return;
+  const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*360,y=(e.clientY-r.top)/r.height*520;
+  if(y>60&&y<450){towers.push({x,y,r:70,cd:0});coins-=15;window._place=false;score+=5;document.getElementById('sc').textContent=score}
+});
+function spawn(){const n=3+wave*2;for(let i=0;i<n;i++)enemies.push({x:30+Math.random()*300,y:-20-i*28,hp:1+Math.floor(wave/2),s:1+wave*0.12})}
+function loop(){
+  g.fillStyle='#0a1810';g.fillRect(0,0,360,520);
+  g.fillStyle='#1a3d2a';g.fillRect(0,480,360,40);
+  g.fillStyle='#4ade80';g.fillRect(150,490,60,20);
+  g.strokeStyle='#334155';g.beginPath();g.moveTo(180,0);g.lineTo(180,480);g.stroke();
+  if(run){
+    t++;if(t%200===1){spawn();if(t>200){wave++;document.getElementById('wv').textContent=wave}}
+    enemies.forEach(e=>{e.y+=e.s;if(e.y>=480){e.y=999;hp--;document.getElementById('hp').textContent=hp;if(hp<=0)end(false)}});
+    towers.forEach(tw=>{tw.cd--;if(tw.cd<=0){const tgt=enemies.find(e=>e.y<480&&Math.hypot(e.x-tw.x,e.y-tw.y)<tw.r);if(tgt){tgt.hp--;tw.cd=18;if(tgt.hp<=0){tgt.y=999;score+=10;coins+=3;document.getElementById('sc').textContent=score}}}});
+    enemies=enemies.filter(e=>e.y<520);
+  }
+  towers.forEach(tw=>{g.fillStyle='#22c55e';g.beginPath();g.arc(tw.x,tw.y,12,0,Math.PI*2);g.fill();g.strokeStyle='#86efac55';g.beginPath();g.arc(tw.x,tw.y,tw.r,0,Math.PI*2);g.stroke()});
+  g.fillStyle='#ef4444';enemies.forEach(e=>{g.fillRect(e.x-10,e.y-10,20,20)});
+  g.fillStyle='#fbbf24';g.font='14px system-ui';g.fillText('💰 '+coins,12,24);
+  if(run)requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>

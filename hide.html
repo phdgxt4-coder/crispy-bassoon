@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>اختباء وبحث — التفوق</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -45,13 +45,12 @@ function end(title,msg){run=false;if(score>best){best=score;localStorage.setItem
 function reset(){mode=Math.random()>0.45?'hide':'seek';gen();t=0;found=0;score=0;run=true;seeker={x:40,y:40};px=180;py=280;
   hiders=Array.from({length:5},()=>({x:40+Math.random()*280,y:60+Math.random()*380,vx:(Math.random()-.5)*2.2,vy:(Math.random()-.5)*2.2,found:false}));
   scEl.textContent=0;document.getElementById('ov').classList.remove('on');
-  document.getElementById('hint').textContent=mode==='hide'?'اختبئ من الباحث الأحمر!':'دور على النقاط الزرقاء'}
+  document.getElementById('hint').textContent=mode==='hide'?'اختبئ من الباحث الأحمر!':'دور على النقاط الزرقاء';requestAnimationFrame(loop)}
 document.getElementById('go').onclick=()=>{if(!run)reset()};
 document.getElementById('again').onclick=()=>{document.getElementById('ov').classList.remove('on');reset()};
 cv.addEventListener('pointermove',e=>{if(!run)return;const r=cv.getBoundingClientRect();px=(e.clientX-r.left)/r.width*360;py=(e.clientY-r.top)/r.height*520});
 cv.addEventListener('pointerdown',e=>{if(!run)reset()});
-(function loop(){
-  requestAnimationFrame(loop);
+function loop(){
   g.fillStyle='#14532d';g.fillRect(0,0,360,520);
   map.forEach(m=>{g.fillStyle='#166534';g.fillRect(m.x,m.y,m.w,m.h)});
   if(run){t++;
@@ -64,7 +63,9 @@ cv.addEventListener('pointerdown',e=>{if(!run)reset()});
   }
   if(mode==='hide'){g.fillStyle='#fbbf24';g.beginPath();g.arc(px,py,12,0,Math.PI*2);g.fill();g.fillStyle='#ef4444';g.beginPath();g.arc(seeker.x,seeker.y,13,0,Math.PI*2);g.fill()}
   else{hiders.forEach(h=>{if(!h.found){g.fillStyle='#38bdf8';g.beginPath();g.arc(h.x,h.y,10,0,Math.PI*2);g.fill()}});g.fillStyle='#fbbf24';g.beginPath();g.arc(px,py,12,0,Math.PI*2);g.fill()}
-})();
+  if(run)requestAnimationFrame(loop);
+}
+loop();
 
 </script>
 </body></html>

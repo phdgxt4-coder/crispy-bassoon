@@ -1,0 +1,4 @@
+/* admin polish */
+.admin-shell .card{margin-bottom:10px}
+.admin-shell .btn.sm{letter-spacing:0}
+.tw tr:hover td{background:color-mix(in srgb,var(--pri) 6%,transparent)}

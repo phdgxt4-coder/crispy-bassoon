@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="screen-orientation" content="landscape">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -136,6 +136,8 @@ function gen(seed){
 }
 // ---- state ----
 let bot=1,mode='1v1',NP=2,TEAM=[0,1],role='',me=0,peer=null,gc=null,cs={},ph=0,win=-1,T=-3,pl=[],bl=[],GB=[],gin={},seed=0,link='',imp=[],ev=[];
+let loopRaf=0;
+function wakeLoop(){if(!loopRaf&&ph===1&&pl.length&&!window.__pauseGame)loopRaf=requestAnimationFrame(loop)}
 const IDLE={dx:0,dy:0,a:0,f:0,r:0,s:0};
 const mk=i=>({x:SP[i][0],y:SP[i][1],a:Math.atan2(1000-SP[i][1],1000-SP[i][0]),hp:100,ar:0,w:0,cd:0,sh:0,al:true,am:12,rl:0,bl:0,mv:0,fl:0,kk:0,hf:0,wk:0,vx:0,vy:0,tm:TEAM[i],lh:-1,lw:0});
 let prev={sh:[],h:[],al:[],w:0};
@@ -145,6 +147,7 @@ function round(){
   pl=TEAM.map((_,i)=>mk(i));pl.forEach((p,i)=>{p.hu=i===0||!!cs[i];if(!p.hu)p.ai={}});
   bl=[];T=-3;ph=1;win=-1;imp=[];ev=[];reset();
   for(const k in cs)try{cs[k].send({t:'h',s:seed,tm:TEAM,me:+k})}catch(e){}
+  wakeLoop();
 }
 // ---- input ----
 let MV=0;const K={};let mx=0,my=0,md=0,AIM=0;const TS={l:null,r:null};
@@ -227,7 +230,7 @@ function onData(d,slot){
   if(!d||typeof d!=='object')return;
   if(role==='host'&&d.t==='i'){const p=pl[slot],n=v=>clamp(+v||0,-1,1);if(p&&p.hu)p.gi={dx:n(d.dx),dy:n(d.dy),a:+d.a||0,f:d.f?1:0,r:d.r?1:0,s:d.s?1:0}}
   if(role==='guest'){
-    if(d.t==='h'){seed=d.s;me=d.me;TEAM=d.tm;NP=TEAM.length;SP=spawns(NP);gen(seed);pl=TEAM.map((_,i)=>mk(i));ph=1;T=-3;win=-1;GB=[];enterPlay();reset()}
+    if(d.t==='h'){seed=d.s;me=d.me;TEAM=d.tm;NP=TEAM.length;SP=spawns(NP);gen(seed);pl=TEAM.map((_,i)=>mk(i));ph=1;T=-3;win=-1;GB=[];enterPlay();reset();wakeLoop()}
     if(d.t==='w'&&!ph)$('ms').textContent='في جولة شغالة — هتدخل أول ما تخلص…';
     if(d.t==='s'&&Array.isArray(d.p)&&pl.length===d.p.length){
       d.p.forEach((q,i)=>{const v=pl[i];if(Math.hypot(q[0]-v.x,q[1]-v.y)>200){v.x=q[0];v.y=q[1]}v.tx=q[0];v.ty=q[1];v.ta=q[2];v.hp=q[3];v.w=q[4];v.sh=q[5];v.am=q[6];v.rl=q[7];v.bl=q[8];v.ar=q[9];v.al=q[3]>0});SNT=performance.now()/1000;
@@ -235,7 +238,7 @@ function onData(d,slot){
       if(Array.isArray(d.e))d.e.forEach(e=>kf(e[0],e[1],e[2]));
       [...d.c].forEach((c,j)=>{const w=CR[j];if(w&&c==='1'&&!w.dead){w.dead=1;wood(w)}});
       GB=d.b.map(b=>({x:b[0],y:b[1],a:b[2],g:b[3]}));taken=[...d.k].map(Number);T=d.T;
-      if(d.ph===2&&ph!==2){ph=2;win=d.win;end()}else if(d.ph===1)ph=1;
+      if(d.ph===2&&ph!==2){ph=2;win=d.win;end()}else if(d.ph===1){ph=1;wakeLoop()}
     }
   }
 }
@@ -298,8 +301,8 @@ function end(){
   setTimeout(()=>{if(ph===2){msg(w,role==='host');if(role==='guest')$('ms').textContent=w+' — استنى المضيف لو عايز يعيد.'}},1600);
 }
 function fail(t){msg(t,false)}
-function closeAll(){for(const k in cs)try{cs[k].close()}catch(e){}cs={};try{gc&&gc.close()}catch(e){}try{peer&&peer.destroy()}catch(e){}peer=gc=null;ph=0}
-function back(){closeAll();history.replaceState(null,'',location.href.split('?')[0]);$('bk').classList.remove('hid');show('m1')}
+function closeAll(){if(loopRaf){cancelAnimationFrame(loopRaf);loopRaf=0}for(const k in cs)try{cs[k].close()}catch(e){}cs={};try{gc&&gc.close()}catch(e){}try{peer&&peer.destroy()}catch(e){}peer=gc=null;ph=0}
+function back(){closeAll();try{if(AC){const old=AC;AC=null;old.close().catch(()=>{})}}catch(e){AC=null}history.replaceState(null,'',location.href.split('?')[0]);$('bk').classList.remove('hid');show('m1')}
 $('bk').onclick=back;$('b2').onclick=back;
 $('ag').onclick=()=>{if(role==='host'){enterPlay();round()}};
 $('go').onclick=()=>{audio();closeAll();role='host';me=0;enterPlay();round()};
@@ -456,7 +459,7 @@ function hud(){
 }
 let last=0,acc=0,tS=0,tI=0;
 function loop(t){
-  requestAnimationFrame(loop);
+  loopRaf=0;
   dtG=Math.min(.05,(t-last)/1000);last=t;TM=t/1000;const dt=dtG;
   if(ph&&pl.length){
     // لو الفون بالطول أثناء اللعب: نوقف المحاكاة والمؤقت لحد ما يدور
@@ -473,8 +476,9 @@ function loop(t){
     }
     draw();hud();
   }
+  if(ph===1)wakeLoop();
 }
-requestAnimationFrame(loop);
+if(ph===1)wakeLoop();
 const rid=new URLSearchParams(location.search).get('r');
 if(rid)join(rid);
 
@@ -520,10 +524,10 @@ function updateRotHint(){
   $('rot').classList.toggle('show',need);
   // لو بالطول أثناء اللعب: نوقف الوقت عشان المؤقت واللعبة متكملش ورا الرسالة
   if(need) window.__pauseGame=true; else window.__pauseGame=false;
+  if(!need)wakeLoop();
 }
 addEventListener('orientationchange',()=>{setTimeout(()=>{if(document.body.classList.contains('play')){lockLandscape();enterFS()}updateRotHint()},200)});
 addEventListener('resize',updateRotHint);
-setInterval(updateRotHint,300);
 </script>
 </body>
 </html>

@@ -1,0 +1,1 @@
+(function(){try{var c=navigator.connection||{},weak=(navigator.deviceMemory&&navigator.deviceMemory<=2)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2)||c.saveData;var m=localStorage.getItem("lite_mode");if(m==="1"||(m!=="0"&&weak))document.documentElement.classList.add("lite")}catch(e){}})()

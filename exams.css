@@ -1,0 +1,7 @@
+/* exams polish */
+.q{margin-bottom:12px}
+.opt{min-height:44px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);cursor:pointer;transition:border-color .15s,background .15s}
+.opt:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+.opt.right{border-color:var(--ok);background:var(--gbg)}
+.opt.wrong{border-color:var(--bad);background:var(--rbg)}
+.q .n{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:50%;background:var(--sel);font-weight:800;font-size:13px;margin-inline-end:8px}

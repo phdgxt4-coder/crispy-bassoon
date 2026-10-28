@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Space Shooter — التفوق</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -42,13 +42,12 @@ let ship=180,bullets=[],enemies=[],t=0,cool=0;
 bsEl.textContent=best;
 function end(){run=false;if(score>best){best=score;localStorage.setItem('spc_bs',best);bsEl.textContent=best}
   document.getElementById('ot').textContent='انفجرت!';document.getElementById('om').textContent='نقاط: '+score;document.getElementById('ov').classList.add('on')}
-function reset(){score=0;ship=180;bullets=[];enemies=[];t=0;cool=0;run=true;scEl.textContent=0;document.getElementById('ov').classList.remove('on')}
+function reset(){score=0;ship=180;bullets=[];enemies=[];t=0;cool=0;run=true;scEl.textContent=0;document.getElementById('ov').classList.remove('on');requestAnimationFrame(loop)}
 document.getElementById('go').onclick=()=>{if(!run)reset();else bullets.push({x:ship,y:470})};
 document.getElementById('again').onclick=()=>{document.getElementById('ov').classList.remove('on');reset()};
 cv.addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect();ship=Math.max(20,Math.min(340,(e.clientX-r.left)/r.width*360))});
 cv.addEventListener('pointerdown',e=>{e.preventDefault();if(!run){reset();return}if(cool<=0){bullets.push({x:ship,y:470});cool=8}});
-(function loop(){
-  requestAnimationFrame(loop);
+function loop(){
   g.fillStyle='#020617';g.fillRect(0,0,360,520);
   for(let i=0;i<30;i++){g.fillStyle='#fff';g.fillRect((i*97+t)%360,(i*53)%520,2,2)}
   if(run){
@@ -62,7 +61,9 @@ cv.addEventListener('pointerdown',e=>{e.preventDefault();if(!run){reset();return
   g.fillStyle='#38bdf8';g.beginPath();g.moveTo(ship,470);g.lineTo(ship-16,505);g.lineTo(ship+16,505);g.fill();
   g.fillStyle='#fbbf24';bullets.forEach(b=>g.fillRect(b.x-2,b.y,4,12));
   g.fillStyle='#ef4444';enemies.forEach(e=>{g.fillRect(e.x-14,e.y-10,28,20)});
-})();
+  if(run)requestAnimationFrame(loop);
+}
+loop();
 
 </script>
 </body></html>

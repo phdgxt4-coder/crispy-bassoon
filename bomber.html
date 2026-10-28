@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>بومبر — التفوق</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -38,12 +38,13 @@ canvas{width:min(360px,96vw);height:auto;border-radius:16px;background:#151b2e;b
 const cv=document.getElementById('c'),g=cv.getContext('2d');
 const scEl=document.getElementById('sc'),bsEl=document.getElementById('bs');
 const COLS=9,ROWS=11,SZ=36;
-let grid=[],px=1,py=1,bombs=[],run=false,score=0,enemies=[],best=+(localStorage.getItem('bmb_bs')||0);
+let grid=[],px=1,py=1,bombs=[],bombTimers=new Set(),run=false,score=0,enemies=[],best=+(localStorage.getItem('bmb_bs')||0);
 bsEl.textContent=best;
 function carve(){grid=Array.from({length:ROWS},()=>Array(COLS).fill(1));
   for(let y=1;y<ROWS-1;y++)for(let x=1;x<COLS-1;x++)if((x+y)%2)grid[y][x]=Math.random()>0.28?0:2;
   grid[1][1]=grid[1][2]=grid[2][1]=0;enemies=[{x:COLS-2,y:ROWS-2},{x:COLS-2,y:1},{x:1,y:ROWS-2}]}
-function end(msg){run=false;if(score>best){best=score;localStorage.setItem('bmb_bs',best);bsEl.textContent=best}
+function clearBombTimers(){bombTimers.forEach(clearTimeout);bombTimers.clear();bombs=[]}
+function end(msg){run=false;clearBombTimers();if(score>best){best=score;localStorage.setItem('bmb_bs',best);bsEl.textContent=best}
   document.getElementById('ot').textContent=msg;document.getElementById('om').textContent='نقاط: '+score;document.getElementById('ov').classList.add('on')}
 function explode(bx,by){
   [[0,0],[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{
@@ -55,8 +56,8 @@ function explode(bx,by){
   if(run&&!enemies.length)end('خلصت الأعداء! 🏆');
 }
 function tryMove(dx,dy){if(!run)return;const nx=px+dx,ny=py+dy;if(ny<0||nx<0||ny>=ROWS||nx>=COLS)return;if(grid[ny][nx]!==0)return;px=nx;py=ny;if(enemies.some(e=>e.x===px&&e.y===py))end('مسكك العدو!')}
-function placeBomb(){if(!run)return;if(bombs.some(b=>b.x===px&&b.y===py))return;const b={x:px,y:py};bombs.push(b);setTimeout(()=>{bombs=bombs.filter(x=>x!==b);if(run)explode(b.x,b.y)},1400)}
-function reset(){carve();px=1;py=1;bombs=[];score=0;run=true;scEl.textContent=0;document.getElementById('ov').classList.remove('on')}
+function placeBomb(){if(!run)return;if(bombs.some(b=>b.x===px&&b.y===py))return;const b={x:px,y:py};bombs.push(b);const timer=setTimeout(()=>{bombTimers.delete(timer);bombs=bombs.filter(x=>x!==b);if(run)explode(b.x,b.y)},1400);bombTimers.add(timer)}
+function reset(){clearBombTimers();carve();px=1;py=1;score=0;run=true;scEl.textContent=0;document.getElementById('ov').classList.remove('on');requestAnimationFrame(loop)}
 document.getElementById('go').onclick=()=>{if(!run)reset()};
 document.getElementById('again').onclick=()=>{document.getElementById('ov').classList.remove('on');reset()};
 let ts=null;
@@ -65,9 +66,8 @@ cv.addEventListener('pointerup',e=>{if(!ts)return;const dx=e.clientX-ts.x,dy=e.c
   if(Date.now()-ts.t<220&&Math.abs(dx)<12&&Math.abs(dy)<12)placeBomb();
   else if(Math.abs(dx)>Math.abs(dy))tryMove(dx>0?-1:1,0); else tryMove(0,dy>0?1:-1);
   ts=null});
-addEventListener('keydown',e=>{const k=e.key;if(k==='ArrowUp'||k==='w')tryMove(0,-1);if(k==='ArrowDown'||k==='s')tryMove(0,1);if(k==='ArrowLeft'||k==='a')tryMove(-1,0);if(k==='ArrowRight'||k==='d')tryMove(1,0);if(k===' '||k==='Enter')placeBomb()});
-(function loop(){
-  requestAnimationFrame(loop);
+addEventListener('keydown',e=>{const k=e.key;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ','Enter'].includes(k))e.preventDefault();if(k==='ArrowUp'||k==='w')tryMove(0,-1);if(k==='ArrowDown'||k==='s')tryMove(0,1);if(k==='ArrowLeft'||k==='a')tryMove(-1,0);if(k==='ArrowRight'||k==='d')tryMove(1,0);if(k===' '||k==='Enter')placeBomb()});
+function loop(){
   g.fillStyle='#0f172a';g.fillRect(0,0,360,520);
   for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){const v=grid[y][x];g.fillStyle=v===1?'#334155':v===2?'#78716c':'#1e293b';g.fillRect(x*SZ+8,y*SZ+24,SZ-3,SZ-3)}
   bombs.forEach(b=>{g.fillStyle='#f97316';g.beginPath();g.arc(b.x*SZ+26,b.y*SZ+42,10,0,Math.PI*2);g.fill()});
@@ -76,7 +76,9 @@ addEventListener('keydown',e=>{const k=e.key;if(k==='ArrowUp'||k==='w')tryMove(0
     if(e.x===px&&e.y===py)end('مسكك العدو!')})}
   g.font='20px serif';enemies.forEach(e=>g.fillText('😈',e.x*SZ+14,e.y*SZ+48));
   g.fillText('🧑',px*SZ+12,py*SZ+48);
-})();
+  if(run)requestAnimationFrame(loop);
+}
+loop();
 
 </script>
 </body></html>
