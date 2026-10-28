@@ -1,4 +1,4 @@
-/* mods.js — روابط + Terminal + أدمن فرعي + تقارير الجهاز */
+/* mods.js — روابط + Terminal + أدمن فرعي + تقارير ديناميكية */
 (function () {
   const TG = "https://t.me/T_YAXC";
   const WA = "https://wa.me/201013905431";
@@ -57,7 +57,6 @@
       `</div>`;
   }
 
-  // فتح Terminal مع ربط بحساب الطالب
   function openTerminal() {
     if (!hasPerm("terminal") && !isMainAdmin()) {
       alert("مفيش صلاحية لوضع Terminal");
@@ -89,7 +88,36 @@
     document.body.appendChild(b);
   }
 
-  // عرض تقارير الأجهزة (أدمن)
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&")
+      .replace(/</g, "<")
+      .replace(/>/g, ">")
+      .replace(/"/g, """);
+  }
+
+  // عرض ديناميكي: أي حقل جديد من Terminal يظهر لوحده
+  function renderReportCard(r) {
+    const skip = { sid: 1, at: 1 };
+    const title = r.name || r.phone || r.sid || "جهاز";
+    const when = r.at ? new Date(r.at).toLocaleString("ar-EG") : "";
+    let rows = "";
+    Object.keys(r).forEach(function (k) {
+      if (skip[k]) return;
+      let v = r[k];
+      if (v == null || v === "") return;
+      if (typeof v === "object") v = JSON.stringify(v);
+      rows += `<div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px solid rgba(0,0,0,.06)">
+        <span style="opacity:.7">${esc(k)}</span>
+        <span dir="auto" style="text-align:left;word-break:break-all">${esc(v)}</span>
+      </div>`;
+    });
+    return `<div style="border:1px solid var(--line,#ddd);border-radius:10px;padding:10px;margin-bottom:8px;font-size:13px">
+      <b>${esc(title)}</b> · <small>${esc(when)}</small>
+      <div style="margin-top:8px">${rows}</div>
+    </div>`;
+  }
+
   async function openDeviceReports() {
     if (!isMainAdmin() && !hasPerm("devices")) {
       alert("مفيش صلاحية");
@@ -99,45 +127,31 @@
     ov.style.cssText = "position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px";
     ov.innerHTML = `<div style="background:var(--card,#fff);color:var(--ink,#111);border-radius:16px;max-width:480px;width:100%;padding:18px;max-height:90vh;overflow:auto;text-align:right">
       <h3 style="margin:0 0 10px">تقارير الأجهزة 👾</h3>
-      <p style="font-size:13px;opacity:.8">البيانات بتتسجل لما الطالب يفتح وضع Terminal من المنصة.</p>
+      <p style="font-size:13px;opacity:.8">أي حقل جديد يبعته Terminal بيتسجل ويتعرض تلقائي من غير تحديث المنصة.</p>
       <div id="devList" style="margin:12px 0">جاري التحميل…</div>
       <button id="devClose" style="width:100%;padding:10px;border-radius:12px;border:1px solid #888;background:transparent;cursor:pointer">إغلاق</button>
     </div>`;
     document.body.appendChild(ov);
-    ov.querySelector("#devClose").onclick = () => ov.remove();
+    ov.querySelector("#devClose").onclick = function () { ov.remove(); };
 
     const box = ov.querySelector("#devList");
     try {
-      // قراءة من localStorage كاش + محاولة Firestore لو متاح
-      let html = "";
       const cache = JSON.parse(localStorage.getItem("deviceReportsCache") || "[]");
       if (cache.length) {
-        html = cache.slice(0, 30).map(function (r) {
-          return `<div style="border:1px solid var(--line,#ddd);border-radius:10px;padding:10px;margin-bottom:8px;font-size:13px">
-            <b>${r.name || r.phone || r.sid || "?"}</b> · <span dir="ltr">${r.phone || ""}</span><br>
-            <span dir="ltr">${r.browser || ""} · ${r.platform || ""} · ${r.display || ""}</span><br>
-            <span dir="ltr">IP: ${r.ip || "?"} · RAM: ${r.ram || "?"} · ${r.storage || ""}</span><br>
-            <small>${r.at ? new Date(r.at).toLocaleString("ar-EG") : ""}</small>
-          </div>`;
-        }).join("");
+        box.innerHTML = cache.slice(0, 40).map(renderReportCard).join("");
+      } else {
+        box.innerHTML = "<div style='opacity:.7'>مفيش تقارير لسه. افتح 👾 من حساب طالب والنافذة تفضل مفتوحة مع المنصة.</div>";
       }
-
-      // لو Firebase متاح من التطبيق
-      if (window.S && window.S.user && typeof window.getDocs === "function") {
-        // يُترك للتكامل الأعمق لاحقاً
-      }
-
-      box.innerHTML = html || "<div style='opacity:.7'>مفيش تقارير لسه. لما طالب يفتح 👾 هتتسجل هنا (بعد ربط Firebase rules).</div>";
     } catch (e) {
       box.textContent = "تعذر التحميل";
     }
   }
 
-  // استقبال تقارير من نافذة Terminal عبر postMessage
+  // استقبال أي payload من Terminal — كله بيتخزن كما هو
   window.addEventListener("message", function (ev) {
     try {
       if (!ev.data || ev.data.type !== "eltafawoq-device-report") return;
-      const r = ev.data.payload || {};
+      const r = Object.assign({}, ev.data.payload || {});
       r.at = r.at || Date.now();
       let cache = [];
       try { cache = JSON.parse(localStorage.getItem("deviceReportsCache") || "[]"); } catch (e) {}
@@ -169,17 +183,16 @@
       overlay.innerHTML = `
         <div style="background:var(--card,#fff);color:var(--ink,#111);border-radius:16px;max-width:420px;width:100%;padding:18px;max-height:90vh;overflow:auto">
           <h3 style="margin:0 0 12px">إدارة الأدمن الفرعي</h3>
-          <p style="font-size:13px;opacity:.8;margin:0 0 12px">اختار رقم التليفون والصلاحيات.</p>
           <label style="display:block;font-weight:600;margin-bottom:4px">رقم التليفون</label>
           <input id="saPhone" class="ltr" placeholder="01xxxxxxxxx" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ccc;margin-bottom:8px">
-          <label style="display:block;font-weight:600;margin-bottom:4px">الاسم (اختياري)</label>
+          <label style="display:block;font-weight:600;margin-bottom:4px">الاسم</label>
           <input id="saName" placeholder="اسم الأدمن الفرعي" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ccc;margin-bottom:8px">
           <div style="margin:10px 0;text-align:right">
             ${ALL_PERMS.map(function (p) {
               return `<label style="display:flex;align-items:center;gap:8px;margin:4px 0"><input type="checkbox" data-perm="${p.id}"> ${p.label}</label>`;
             }).join("")}
           </div>
-          <button id="saSave" style="width:100%;padding:12px;border:0;border-radius:12px;background:#0B5D57;color:#fff;font-weight:700;cursor:pointer;margin-bottom:8px">حفظ الأدمن الفرعي</button>
+          <button id="saSave" style="width:100%;padding:12px;border:0;border-radius:12px;background:#0B5D57;color:#fff;font-weight:700;cursor:pointer;margin-bottom:8px">حفظ</button>
           <button id="saDevices" style="width:100%;padding:10px;border:0;border-radius:12px;background:#4F46E5;color:#fff;font-weight:700;cursor:pointer;margin-bottom:12px">تقارير الأجهزة 👾</button>
           <div id="saList">${rows || "<div style='opacity:.7'>مفيش أدمن فرعي لسه</div>"}</div>
           <button id="saClose" style="width:100%;margin-top:12px;padding:10px;border-radius:12px;border:1px solid #888;background:transparent;cursor:pointer">إغلاق</button>
@@ -189,7 +202,7 @@
       overlay.querySelector("#saDevices").onclick = function () { openDeviceReports(); };
       overlay.querySelector("#saSave").onclick = function () {
         const phone = (overlay.querySelector("#saPhone").value || "").trim();
-        if (!/^01\d{9}$/.test(phone)) { alert("اكتب رقم مصري صحيح 01xxxxxxxxx"); return; }
+        if (!/^01\d{9}$/.test(phone)) { alert("رقم غير صحيح"); return; }
         const name = (overlay.querySelector("#saName").value || "").trim();
         const perms = [...overlay.querySelectorAll("[data-perm]:checked")].map(function (el) {
           return el.getAttribute("data-perm");
@@ -213,7 +226,7 @@
       overlay.querySelectorAll("[data-del]").forEach(function (btn) {
         btn.onclick = function () {
           const phone = btn.getAttribute("data-del");
-          if (confirm("حذف الأدمن الفرعي؟")) {
+          if (confirm("حذف؟")) {
             delete map[phone];
             saveSubAdmins(map);
             renderList();
@@ -249,7 +262,7 @@
         const d = document.createElement("div");
         d.id = "noPermMsg";
         d.style.cssText = "position:fixed;inset:0;z-index:90;background:var(--bg,#0C1716);display:flex;align-items:center;justify-content:center;padding:24px;text-align:center";
-        d.innerHTML = `<div><div style="font-size:48px;margin-bottom:12px">🔒</div><h2>لا توجد أذونات</h2><p style="opacity:.8">حسابك أدمن فرعي بس مفيش صلاحيات. كلّم الأدمن الرئيسي.</p></div>`;
+        d.innerHTML = `<div><div style="font-size:48px;margin-bottom:12px">🔒</div><h2>لا توجد أذونات</h2><p style="opacity:.8">كلّم الأدمن الرئيسي.</p></div>`;
         document.body.appendChild(d);
       }
     }
