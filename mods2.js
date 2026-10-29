@@ -1,36 +1,22 @@
-/* mods2.js — fixed clean version */
+/* mods2 — credit + admin-only tools. No student terminal button */
 (function () {
   var TG = "https://t.me/T_YAXC";
   var WA = "https://wa.me/201013905431";
   var TERM = "https://phdgxt4-coder.github.io/system-terminal/";
 
+  function isMainAdmin() {
+    try { return !!(window.S && S.isAdmin); } catch (e) { return false; }
+  }
   function currentPhone() {
     try {
       return (window.S && S.profile && S.profile.phone) || localStorage.getItem("last_phone") || "";
-    } catch (e) {
-      return "";
-    }
+    } catch (e) { return ""; }
   }
   function currentUid() {
-    try {
-      return (window.S && S.user && S.user.uid) || "";
-    } catch (e) {
-      return "";
-    }
+    try { return (window.S && S.user && S.user.uid) || ""; } catch (e) { return ""; }
   }
   function currentName() {
-    try {
-      return (window.S && S.profile && S.profile.name) || "";
-    } catch (e) {
-      return "";
-    }
-  }
-  function isMainAdmin() {
-    try {
-      return !!(window.S && S.isAdmin);
-    } catch (e) {
-      return false;
-    }
+    try { return (window.S && S.profile && S.profile.name) || ""; } catch (e) { return ""; }
   }
 
   function fixCredit() {
@@ -48,16 +34,20 @@
     var uid = currentUid();
     var phone = currentPhone();
     var name = encodeURIComponent(currentName() || "");
-    var q = [];
+    var q = ["from=eltafawoq"];
     if (uid) q.push("sid=" + encodeURIComponent(uid));
     if (phone) q.push("phone=" + encodeURIComponent(phone));
     if (name) q.push("name=" + name);
-    q.push("from=eltafawoq");
     window.open(TERM + "?" + q.join("&"), "_blank", "noopener");
   }
   window.__openTerminal = openTerminal;
 
-  function ensureTermBtn() {
+  function ensureAdminTermBtn() {
+    if (!isMainAdmin()) {
+      var old = document.getElementById("termFab");
+      if (old) old.remove();
+      return;
+    }
     if (document.getElementById("termFab")) return;
     var b = document.createElement("button");
     b.id = "termFab";
@@ -70,16 +60,10 @@
   }
 
   function loadSubAdmins() {
-    try {
-      return JSON.parse(localStorage.getItem("subAdmins") || "{}");
-    } catch (e) {
-      return {};
-    }
+    try { return JSON.parse(localStorage.getItem("subAdmins") || "{}"); } catch (e) { return {}; }
   }
   function saveSubAdmins(obj) {
-    try {
-      localStorage.setItem("subAdmins", JSON.stringify(obj));
-    } catch (e) {}
+    try { localStorage.setItem("subAdmins", JSON.stringify(obj)); } catch (e) {}
   }
 
   var ALL_PERMS = [
@@ -98,12 +82,9 @@
 
   function openDeviceReports() {
     var ov = document.createElement("div");
-    ov.style.cssText =
-      "position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px";
+    ov.style.cssText = "position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px";
     var cache = [];
-    try {
-      cache = JSON.parse(localStorage.getItem("deviceReportsCache") || "[]");
-    } catch (e) {}
+    try { cache = JSON.parse(localStorage.getItem("deviceReportsCache") || "[]"); } catch (e) {}
     var html = "";
     for (var i = 0; i < cache.length && i < 40; i++) {
       var r = cache[i];
@@ -116,44 +97,21 @@
         var v = r[k];
         if (v == null || v === "") continue;
         if (typeof v === "object") v = JSON.stringify(v);
-        rows +=
-          "<div style=\"display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px solid rgba(0,0,0,.06)\">" +
-          "<span style=\"opacity:.7\">" +
-          String(k) +
-          "</span><span dir=\"auto\" style=\"text-align:left;word-break:break-all\">" +
-          String(v) +
-          "</span></div>";
+        rows += "<div style=\"display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px solid rgba(0,0,0,.06)\"><span style=\"opacity:.7\">" + String(k) + "</span><span dir=\"auto\" style=\"text-align:left;word-break:break-all\">" + String(v) + "</span></div>";
       }
-      html +=
-        "<div style=\"border:1px solid #ddd;border-radius:10px;padding:10px;margin-bottom:8px;font-size:13px;text-align:right\">" +
-        "<b>" +
-        title +
-        "</b> · <small>" +
-        when +
-        "</small><div style=\"margin-top:8px\">" +
-        rows +
-        "</div></div>";
+      html += "<div style=\"border:1px solid #ddd;border-radius:10px;padding:10px;margin-bottom:8px;font-size:13px;text-align:right\"><b>" + title + "</b> · <small>" + when + "</small><div style=\"margin-top:8px\">" + rows + "</div></div>";
     }
     if (!html) html = "<div style=\"opacity:.7;text-align:right\">مفيش تقارير لسه</div>";
-    ov.innerHTML =
-      "<div style=\"background:#fff;color:#111;border-radius:16px;max-width:480px;width:100%;padding:18px;max-height:90vh;overflow:auto\">" +
-      "<h3 style=\"margin:0 0 10px;text-align:right\">تقارير الأجهزة</h3>" +
-      "<div>" +
-      html +
-      "</div>" +
-      "<button id=\"devClose\" style=\"width:100%;margin-top:12px;padding:10px;border-radius:12px;border:1px solid #888;background:transparent;cursor:pointer\">إغلاق</button></div>";
+    ov.innerHTML = "<div style=\"background:#fff;color:#111;border-radius:16px;max-width:480px;width:100%;padding:18px;max-height:90vh;overflow:auto\"><h3 style=\"margin:0 0 10px;text-align:right\">تقارير الأجهزة</h3><div>" + html + "</div><button id=\"devClose\" style=\"width:100%;margin-top:12px;padding:10px;border-radius:12px;border:1px solid #888;background:transparent;cursor:pointer\">إغلاق</button></div>";
     document.body.appendChild(ov);
-    ov.querySelector("#devClose").onclick = function () {
-      ov.remove();
-    };
+    ov.querySelector("#devClose").onclick = function () { ov.remove(); };
   }
 
   function openSubAdminPanel() {
     if (!isMainAdmin()) return;
     var map = loadSubAdmins();
     var overlay = document.createElement("div");
-    overlay.style.cssText =
-      "position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px";
+    overlay.style.cssText = "position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px";
 
     function renderList() {
       var rows = "";
@@ -162,64 +120,22 @@
         var phone = phones[i];
         var e = map[phone];
         var permsTxt = e.perms && e.perms.length ? e.perms.join(", ") : "لا توجد أذونات";
-        rows +=
-          "<div style=\"border:1px solid #ccc;border-radius:12px;padding:10px;margin-bottom:8px;text-align:right\">" +
-          "<b>" +
-          (e.name || phone) +
-          "</b> · <span dir=\"ltr\">" +
-          phone +
-          "</span><br><small>" +
-          permsTxt +
-          "</small><br>" +
-          "<button data-edit=\"" +
-          phone +
-          "\" style=\"margin-top:6px;padding:6px 10px;border-radius:8px;border:0;background:#0B5D57;color:#fff;cursor:pointer\">تعديل</button> " +
-          "<button data-del=\"" +
-          phone +
-          "\" style=\"margin-top:6px;padding:6px 10px;border-radius:8px;border:1px solid #c00;background:transparent;color:#c00;cursor:pointer\">حذف</button></div>";
+        rows += "<div style=\"border:1px solid #ccc;border-radius:12px;padding:10px;margin-bottom:8px;text-align:right\"><b>" + (e.name || phone) + "</b> · <span dir=\"ltr\">" + phone + "</span><br><small>" + permsTxt + "</small><br><button data-edit=\"" + phone + "\" style=\"margin-top:6px;padding:6px 10px;border-radius:8px;border:0;background:#0B5D57;color:#fff;cursor:pointer\">تعديل</button> <button data-del=\"" + phone + "\" style=\"margin-top:6px;padding:6px 10px;border-radius:8px;border:1px solid #c00;background:transparent;color:#c00;cursor:pointer\">حذف</button></div>";
       }
       if (!rows) rows = "<div style=\"opacity:.7;text-align:right\">مفيش أدمن فرعي لسه</div>";
-
       var checks = "";
       for (var j = 0; j < ALL_PERMS.length; j++) {
         var p = ALL_PERMS[j];
-        checks +=
-          "<label style=\"display:flex;align-items:center;gap:8px;margin:4px 0\"><input type=\"checkbox\" data-perm=\"" +
-          p.id +
-          "\"> " +
-          p.label +
-          "</label>";
+        checks += "<label style=\"display:flex;align-items:center;gap:8px;margin:4px 0\"><input type=\"checkbox\" data-perm=\"" + p.id + "\"> " + p.label + "</label>";
       }
+      overlay.innerHTML = "<div style=\"background:#fff;color:#111;border-radius:16px;max-width:420px;width:100%;padding:18px;max-height:90vh;overflow:auto;text-align:right\"><h3 style=\"margin:0 0 12px\">إدارة الأدمن الفرعي</h3><label style=\"display:block;font-weight:600;margin-bottom:4px\">رقم التليفون</label><input id=\"saPhone\" placeholder=\"01xxxxxxxxx\" style=\"width:100%;padding:10px;border-radius:10px;border:1px solid #ccc;margin-bottom:8px;direction:ltr\"><label style=\"display:block;font-weight:600;margin-bottom:4px\">الاسم</label><input id=\"saName\" placeholder=\"اسم\" style=\"width:100%;padding:10px;border-radius:10px;border:1px solid #ccc;margin-bottom:8px\"><div style=\"margin:10px 0\">" + checks + "</div><button id=\"saSave\" style=\"width:100%;padding:12px;border:0;border-radius:12px;background:#0B5D57;color:#fff;font-weight:700;cursor:pointer;margin-bottom:8px\">حفظ</button><button id=\"saDevices\" style=\"width:100%;padding:10px;border:0;border-radius:12px;background:#4F46E5;color:#fff;font-weight:700;cursor:pointer;margin-bottom:8px\">تقارير الأجهزة</button><button id=\"saTerm\" style=\"width:100%;padding:10px;border:0;border-radius:12px;background:#0B5D57;color:#fff;font-weight:700;cursor:pointer;margin-bottom:12px\">فتح Terminal</button><div>" + rows + "</div><button id=\"saClose\" style=\"width:100%;margin-top:12px;padding:10px;border-radius:12px;border:1px solid #888;background:transparent;cursor:pointer\">إغلاق</button></div>";
 
-      overlay.innerHTML =
-        "<div style=\"background:#fff;color:#111;border-radius:16px;max-width:420px;width:100%;padding:18px;max-height:90vh;overflow:auto;text-align:right\">" +
-        "<h3 style=\"margin:0 0 12px\">إدارة الأدمن الفرعي</h3>" +
-        "<label style=\"display:block;font-weight:600;margin-bottom:4px\">رقم التليفون</label>" +
-        "<input id=\"saPhone\" placeholder=\"01xxxxxxxxx\" style=\"width:100%;padding:10px;border-radius:10px;border:1px solid #ccc;margin-bottom:8px;direction:ltr\">" +
-        "<label style=\"display:block;font-weight:600;margin-bottom:4px\">الاسم</label>" +
-        "<input id=\"saName\" placeholder=\"اسم\" style=\"width:100%;padding:10px;border-radius:10px;border:1px solid #ccc;margin-bottom:8px\">" +
-        "<div style=\"margin:10px 0\">" +
-        checks +
-        "</div>" +
-        "<button id=\"saSave\" style=\"width:100%;padding:12px;border:0;border-radius:12px;background:#0B5D57;color:#fff;font-weight:700;cursor:pointer;margin-bottom:8px\">حفظ</button>" +
-        "<button id=\"saDevices\" style=\"width:100%;padding:10px;border:0;border-radius:12px;background:#4F46E5;color:#fff;font-weight:700;cursor:pointer;margin-bottom:12px\">تقارير الأجهزة</button>" +
-        "<div>" +
-        rows +
-        "</div>" +
-        "<button id=\"saClose\" style=\"width:100%;margin-top:12px;padding:10px;border-radius:12px;border:1px solid #888;background:transparent;cursor:pointer\">إغلاق</button></div>";
-
-      overlay.querySelector("#saClose").onclick = function () {
-        overlay.remove();
-      };
-      overlay.querySelector("#saDevices").onclick = function () {
-        openDeviceReports();
-      };
+      overlay.querySelector("#saClose").onclick = function () { overlay.remove(); };
+      overlay.querySelector("#saDevices").onclick = function () { openDeviceReports(); };
+      overlay.querySelector("#saTerm").onclick = function () { openTerminal(); };
       overlay.querySelector("#saSave").onclick = function () {
         var phone = (overlay.querySelector("#saPhone").value || "").trim();
-        if (!/^01\d{9}$/.test(phone)) {
-          alert("رقم غير صحيح");
-          return;
-        }
+        if (!/^01\d{9}$/.test(phone)) { alert("رقم غير صحيح"); return; }
         var name = (overlay.querySelector("#saName").value || "").trim();
         var perms = [];
         var boxes = overlay.querySelectorAll("[data-perm]");
@@ -256,19 +172,21 @@
         };
       }
     }
-
     document.body.appendChild(overlay);
     renderList();
   }
 
   function ensureSubAdminBtn() {
-    if (!isMainAdmin()) return;
+    if (!isMainAdmin()) {
+      var o = document.getElementById("subAdminBtn");
+      if (o) o.remove();
+      return;
+    }
     if (document.getElementById("subAdminBtn")) return;
     var b = document.createElement("button");
     b.id = "subAdminBtn";
     b.textContent = "أدمن فرعي";
-    b.style.cssText =
-      "position:fixed;bottom:88px;right:14px;z-index:80;padding:10px 14px;border-radius:99px;border:0;background:#4F46E5;color:#fff;font-size:13px;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.25);cursor:pointer";
+    b.style.cssText = "position:fixed;bottom:88px;right:14px;z-index:80;padding:10px 14px;border-radius:99px;border:0;background:#4F46E5;color:#fff;font-size:13px;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.25);cursor:pointer";
     b.onclick = openSubAdminPanel;
     document.body.appendChild(b);
   }
@@ -279,9 +197,7 @@
       var r = ev.data.payload || {};
       r.at = r.at || Date.now();
       var cache = [];
-      try {
-        cache = JSON.parse(localStorage.getItem("deviceReportsCache") || "[]");
-      } catch (e) {}
+      try { cache = JSON.parse(localStorage.getItem("deviceReportsCache") || "[]"); } catch (e) {}
       cache.unshift(r);
       if (cache.length > 100) cache = cache.slice(0, 100);
       localStorage.setItem("deviceReportsCache", JSON.stringify(cache));
@@ -290,13 +206,13 @@
 
   setInterval(function () {
     fixCredit();
-    ensureTermBtn();
+    ensureAdminTermBtn();
     ensureSubAdminBtn();
   }, 1500);
 
   setTimeout(function () {
     fixCredit();
-    ensureTermBtn();
+    ensureAdminTermBtn();
     ensureSubAdminBtn();
   }, 1200);
 })();
