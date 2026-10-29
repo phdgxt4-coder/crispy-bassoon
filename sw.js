@@ -1,7 +1,6 @@
-/* التفوق SW — v93-mod14 — force cache refresh */
-const CACHE = "eltafawoq-v93-mod14";
-const BUILD = "20261029-v93-mod14";
-const PETS = [];
+/* التفوق SW — v93-mod15 */
+const CACHE = "eltafawoq-v93-mod15";
+const BUILD = "20261029-v93-mod15";
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
@@ -17,26 +16,19 @@ try {
   firebase.messaging().onBackgroundMessage((payload) => {
     const data = payload.data || {};
     const isCall = data.type === "call" || data.callId;
-    const title = (payload.notification && payload.notification.title)
-      || data.title
-      || (isCall ? "📞 مكالمة واردة" : "التفوق");
-    const body = (payload.notification && payload.notification.body)
-      || data.body
-      || (isCall ? ((data.fromName || "شخص") + " بيرن عليك") : "إشعار");
-    const opts = {
+    const title = (payload.notification && payload.notification.title) || data.title || (isCall ? "📞 مكالمة واردة" : "التفوق");
+    const body = (payload.notification && payload.notification.body) || data.body || (isCall ? ((data.fromName || "شخص") + " بيرن عليك") : "إشعار");
+    self.registration.showNotification(title, {
       body,
       icon: "./icons/icon-192.png",
       badge: "./icons/icon-192.png",
-      tag: isCall ? ("call-" + (data.callId || "incoming")) : ((data.tag) || "eltafawoq"),
-      data: data,
+      tag: isCall ? ("call-" + (data.callId || "incoming")) : (data.tag || "eltafawoq"),
+      data,
       requireInteraction: !!isCall,
       renotify: !!isCall,
       vibrate: isCall ? [400, 120, 400, 120, 400] : [200, 80, 200],
-      actions: isCall
-        ? [{ action: "answer", title: "رد" }, { action: "reject", title: "رفض" }]
-        : []
-    };
-    self.registration.showNotification(title, opts);
+      actions: isCall ? [{ action: "answer", title: "رد" }, { action: "reject", title: "رفض" }] : []
+    });
   });
 } catch (e) {}
 
@@ -58,10 +50,12 @@ self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
   if (u.origin !== self.location.origin) return;
   e.respondWith(
-    fetch(e.request).then((r) => {
-      const copy = r.clone();
-      caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
-      return r;
-    }).catch(() => caches.match(e.request).then((m) => m || caches.match("./index.html")))
+    fetch(e.request)
+      .then((r) => {
+        const copy = r.clone();
+        caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+        return r;
+      })
+      .catch(() => caches.match(e.request).then((m) => m || caches.match("./index.html")))
   );
 });
