@@ -1,14 +1,23 @@
-/* Admin Workspace — Error / Performance / Activity / DevTools / Health */
+/* Admin Workspace — Errors / Perf / Activity / Health / DevTools */
 (function () {
   var ACT_KEY = "elta_activity_log";
 
   function isMainAdmin() {
-    try { return !!(window.S && S.isAdmin); } catch (e) { return false; }
+    try {
+      return !!(window.S && S.isAdmin);
+    } catch (e) {
+      return false;
+    }
   }
 
   function loadActivity() {
-    try { return JSON.parse(localStorage.getItem(ACT_KEY) || "[]"); } catch (e) { return []; }
+    try {
+      return JSON.parse(localStorage.getItem(ACT_KEY) || "[]");
+    } catch (e) {
+      return [];
+    }
   }
+
   function pushActivity(text, meta) {
     try {
       var list = loadActivity();
@@ -25,7 +34,6 @@
   }
   window.__logActivity = pushActivity;
 
-  // التقاط نقرات أدمن بسيطة كـ activity
   document.addEventListener(
     "click",
     function (ev) {
@@ -43,20 +51,20 @@
   );
 
   function fmtTime(ts) {
-    try { return new Date(ts).toLocaleString("ar-EG"); } catch (e) { return ""; }
+    try {
+      return new Date(ts).toLocaleString("ar-EG");
+    } catch (e) {
+      return "";
+    }
   }
 
-  function css() {
-    return "position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:10px";
-  }
-
-  function panel() {
-    return "background:#0f172a;color:#e2e8f0;border-radius:16px;width:100%;max-width:560px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;font-family:system-ui,sans-serif";
+  function getEC() {
+    return window.__EC || { log: [], ops: [], net: [] };
   }
 
   function tabBtn(id, label, active) {
     return (
-      "<button data-tab=\"" +
+      "<button type=\"button\" data-tab=\"" +
       id +
       "\" style=\"flex:1;padding:10px 6px;border:0;border-bottom:2px solid " +
       (active ? "#38bdf8" : "transparent") +
@@ -73,21 +81,18 @@
       "<div style=\"background:#1e293b;border-radius:12px;padding:12px;margin-bottom:10px\">" +
       "<div style=\"font-size:12px;color:#94a3b8;margin-bottom:6px\">" +
       title +
-      "</div>" +
-      "<div>" +
+      "</div><div>" +
       body +
       "</div></div>"
     );
   }
 
-  function getEC() {
-    return window.__EC || { log: [], ops: [], net: [] };
-  }
-
   function renderErrors() {
     var EC = getEC();
     var log = (EC.log || []).slice().reverse().slice(0, 40);
-    if (!log.length) return "<div style=\"opacity:.6;padding:20px;text-align:center\">مفيش أخطاء مسجّلة</div>";
+    if (!log.length) {
+      return "<div style=\"opacity:.6;padding:20px;text-align:center\">مفيش أخطاء مسجّلة</div>";
+    }
     var h = "";
     for (var i = 0; i < log.length; i++) {
       var e = log[i];
@@ -102,8 +107,7 @@
         color +
         "\">" +
         (e.type || "?") +
-        "</b>" +
-        "<span style=\"opacity:.6\">" +
+        "</b><span style=\"opacity:.6\">" +
         fmtTime(e.t) +
         "</span></div>" +
         "<div style=\"margin-top:4px;word-break:break-word\">" +
@@ -123,23 +127,24 @@
     var mem = performance.memory;
     var online = navigator.onLine ? "✅ Online" : "❌ Offline";
     var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    var ping = "—";
     var ops = EC.ops || [];
-    var reads = 0,
-      writes = 0;
+    var reads = 0;
+    var writes = 0;
     for (var i = 0; i < ops.length; i++) {
       var op = (ops[i].op || "").toLowerCase();
-      if (/get|listen|query|onSnapshot/.test(op)) reads++;
+      if (/get|listen|query|onsnapshot/.test(op)) reads++;
       if (/set|add|update|delete|write/.test(op)) writes++;
     }
     var loadMs = nav ? Math.round(nav.loadEventEnd - nav.startTime) : "?";
-    var ram = mem ? (mem.usedJSHeapSize / 1048576).toFixed(1) + " / " + (mem.jsHeapSizeLimit / 1048576).toFixed(0) + " MB" : "N/A";
+    var ram = mem
+      ? (mem.usedJSHeapSize / 1048576).toFixed(1) + " / " + (mem.jsHeapSizeLimit / 1048576).toFixed(0) + " MB"
+      : "N/A";
     var netInfo = conn ? (conn.effectiveType || "?") + " · " + (conn.downlink || "?") + " Mbps" : "N/A";
     var students = 0;
+    var presence = 0;
     try {
       if (window.S && Array.isArray(S.students)) students = S.students.length;
     } catch (e) {}
-    var presence = 0;
     try {
       if (window.S && S.presence) presence = Object.keys(S.presence).length;
     } catch (e) {}
@@ -149,7 +154,7 @@
       card("Load Time", loadMs + " ms") +
       card("JS Heap (RAM)", ram) +
       card("Network", netInfo) +
-      card("Firebase ops (جلسة)", "Reads≈ " + reads + " · Writes≈ " + writes + " · Total " + ops.length) +
+      card("Firebase ops", "Reads≈ " + reads + " · Writes≈ " + writes + " · Total " + ops.length) +
       card("Network requests", String((EC.net || []).length)) +
       card("طلاب محملين", String(students)) +
       card("Presence keys", String(presence)) +
@@ -159,7 +164,9 @@
 
   function renderActivity() {
     var list = loadActivity().slice(0, 50);
-    if (!list.length) return "<div style=\"opacity:.6;padding:20px;text-align:center\">مفيش نشاط مسجّل بعد</div>";
+    if (!list.length) {
+      return "<div style=\"opacity:.6;padding:20px;text-align:center\">مفيش نشاط مسجّل بعد</div>";
+    }
     var h = "";
     for (var i = 0; i < list.length; i++) {
       var a = list[i];
@@ -167,8 +174,7 @@
         "<div style=\"padding:8px 0;border-bottom:1px solid #334155;font-size:13px\">" +
         "<div>" +
         a.text +
-        "</div>" +
-        "<div style=\"opacity:.5;font-size:11px\">" +
+        "</div><div style=\"opacity:.5;font-size:11px\">" +
         fmtTime(a.t) +
         (a.name ? " · " + a.name : "") +
         "</div></div>";
@@ -199,7 +205,7 @@
       add("Latency probe", false, "fail");
     }
     try {
-      var r = await fetch("https://firestore.googleapis.com/", { method: "HEAD", mode: "no-cors" });
+      await fetch("https://firestore.googleapis.com/", { method: "HEAD", mode: "no-cors" });
       add("Firestore reach", true, "reachable");
     } catch (e) {
       add("Firestore reach", false, "blocked?");
@@ -218,22 +224,22 @@
         (c.ok ? "✅" : "❌") +
         " " +
         c.name +
-        "</span>" +
-        "<span style=\"opacity:.65;font-size:12px\">" +
+        "</span><span style=\"opacity:.65;font-size:12px\">" +
         c.detail +
         "</span></div>";
     }
     return h;
   }
 
-  async function renderDevTools(box) {
+  function renderDevTools(box) {
     box.innerHTML =
       "<div style=\"display:grid;gap:8px\">" +
-      "<button data-test=\"sw\" style=\"padding:12px;border:0;border-radius:10px;background:#1e293b;color:#e2e8f0;cursor:pointer;text-align:right\">اختبار Service Worker</button>" +
-      "<button data-test=\"net\" style=\"padding:12px;border:0;border-radius:10px;background:#1e293b;color:#e2e8f0;cursor:pointer;text-align:right\">اختبار الإنترنت</button>" +
-      "<button data-test=\"err\" style=\"padding:12px;border:0;border-radius:10px;background:#1e293b;color:#e2e8f0;cursor:pointer;text-align:right\">حقن خطأ تجريبي</button>" +
-      "<button data-test=\"clear-err\" style=\"padding:12px;border:0;border-radius:10px;background:#1e293b;color:#e2e8f0;cursor:pointer;text-align:right\">مسح سجل الأخطاء</button>" +
-      "<button data-test=\"clear-act\" style=\"padding:12px;border:0;border-radius:10px;background:#1e293b;color:#e2e8f0;cursor:pointer;text-align:right\">مسح Activity Log</button>" +
+      "<button type=\"button\" data-test=\"sw\" style=\"padding:12px;border:0;border-radius:10px;background:#1e293b;color:#e2e8f0;cursor:pointer;text-align:right\">اختبار Service Worker</button>" +
+      "<button type=\"button\" data-test=\"net\" style=\"padding:12px;border:0;border-radius:10px;background:#1e293b;color:#e2e8f0;cursor:pointer;text-align:right\">اختبار الإنترنت</button>" +
+      "<button type=\"button\" data-test=\"err\" style=\"padding:12px;border:0;border-radius:10px;background:#1e293b;color:#e2e8f0;cursor:pointer;text-align:right\">حقن خطأ تجريبي</button>" +
+      "<button type=\"button\" data-test=\"clear-err\" style=\"padding:12px;border:0;border-radius:10px;background:#1e293b;color:#e2e8f0;cursor:pointer;text-align:right\">مسح سجل الأخطاء</button>" +
+      "<button type=\"button\" data-test=\"clear-act\" style=\"padding:12px;border:0;border-radius:10px;background:#1e293b;color:#e2e8f0;cursor:pointer;text-align:right\">مسح Activity Log</button>" +
+      "<button type=\"button\" data-test=\"enable\" style=\"padding:12px;border:0;border-radius:10px;background:#059669;color:#fff;cursor:pointer;text-align:right\">لوحة AI / مكالمات</button>" +
       "<div id=\"devOut\" style=\"margin-top:8px;font-size:12px;opacity:.85;min-height:40px\"></div></div>";
 
     var out = box.querySelector("#devOut");
@@ -256,8 +262,10 @@
     };
     box.querySelector('[data-test="err"]').onclick = function () {
       try {
-        if (window.__EC && __EC.report) __EC.report("js", { message: "تجربة Error Center من Workspace" }, { fn: "devTools" });
-        out.textContent = "تم تسجيل خطأ تجريبي في Error Center";
+        if (window.__EC && __EC.report) {
+          __EC.report("js", { message: "تجربة Error Center من Workspace" }, { fn: "devTools" });
+        }
+        out.textContent = "تم تسجيل خطأ تجريبي";
       } catch (e) {
         out.textContent = String(e);
       }
@@ -277,6 +285,10 @@
       localStorage.setItem(ACT_KEY, "[]");
       out.textContent = "تم مسح Activity";
     };
+    box.querySelector('[data-test="enable"]').onclick = function () {
+      if (typeof window.__openEnablePanel === "function") window.__openEnablePanel();
+      else out.textContent = "enable.js غير محمّل";
+    };
   }
 
   function openWorkspace() {
@@ -286,25 +298,21 @@
     var tab = "errors";
     var ov = document.createElement("div");
     ov.id = "wsOv";
-    ov.style.cssText = css();
+    ov.style.cssText =
+      "position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:10px";
 
     function draw() {
-      ov.innerHTML =
-        "<div style=\"" +
-        panel().replace(/"/g, "") +
-        ";\">".replace(";\">", "") +
-        "";
-      // rebuild cleanly
       ov.innerHTML = "";
       var shell = document.createElement("div");
-      shell.style.cssText = panel();
+      shell.style.cssText =
+        "background:#0f172a;color:#e2e8f0;border-radius:16px;width:100%;max-width:560px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;font-family:system-ui,sans-serif";
       shell.innerHTML =
         "<div style=\"padding:14px 16px 0;display:flex;justify-content:space-between;align-items:center\">" +
         "<div><div style=\"font-weight:800;font-size:16px\">Admin Workspace</div>" +
         "<div style=\"font-size:11px;color:#94a3b8\">" +
         (window.APP_BUILD || "") +
         "</div></div>" +
-        "<button id=\"wsClose\" style=\"border:0;background:#334155;color:#fff;border-radius:8px;padding:6px 10px;cursor:pointer\">إغلاق</button></div>" +
+        "<button type=\"button\" id=\"wsClose\" style=\"border:0;background:#334155;color:#fff;border-radius:8px;padding:6px 10px;cursor:pointer\">إغلاق</button></div>" +
         "<div style=\"display:flex;border-bottom:1px solid #334155;margin-top:10px\">" +
         tabBtn("errors", "🐞 Errors", tab === "errors") +
         tabBtn("perf", "📈 Perf", tab === "perf") +
@@ -333,7 +341,7 @@
       else if (tab === "health") {
         body.innerHTML = "<div style=\"opacity:.6\">جاري الفحص…</div>";
         runHealth().then(function (c) {
-          body.innerHTML = renderHealth(c);
+          if (body.parentNode) body.innerHTML = renderHealth(c);
         });
       } else if (tab === "dev") renderDevTools(body);
     }
@@ -352,6 +360,7 @@
     if (document.getElementById("wsBtn")) return;
     var b = document.createElement("button");
     b.id = "wsBtn";
+    b.type = "button";
     b.textContent = "Workspace";
     b.title = "Admin Workspace";
     b.style.cssText =
