@@ -1,52 +1,29 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="utf-8">
-<meta name="sw-build" content="v93-fix1">
-<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
-<link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
-<link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v93-fix1";</script>
-<script src="error-center-early.js"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0B5D57">
-<script src="theme-early.js"></script>
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="التفوق">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
+<html lang="ar" dir="rtl"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>التفوق</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Reem+Kufi:wght@600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'"><noscript><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Reem+Kufi:wght@600;700&display=swap" rel="stylesheet"></noscript>
-<link rel="stylesheet" href="main.css">
-<link rel="stylesheet" href="exams.css">
-<link rel="stylesheet" href="games.css">
-<link rel="stylesheet" href="chat.css">
-<link rel="stylesheet" href="life.css">
-<link rel="stylesheet" href="admin.css">
-<link rel="stylesheet" href="responsive.css">
-<link rel="stylesheet" href="lite.css">
-</head>
-<body>
-<div class="bgfx"><i></i><i></i></div>
-<div id="splash" aria-hidden="true">
-  <div class="splash-inner">
-    <div class="splash-logo">التفوق</div>
-    <div class="splash-line"></div>
-    <div class="splash-sub">منصة التعلم والامتحانات</div>
-    <div class="splash-bar"><i></i></div>
-  </div>
-</div>
-<script src="lite-early.js"></script>
-<div id="app"></div><div id="verBadge">v93-fix1</div>
-<div id="toast" role="status" aria-live="polite"></div>
-
-<script type="module" src="app.js"></script>
-<script defer src="splash-fx.js"></script>
-<script defer src="fx-tier.js"></script>
-</body>
-</html>
+<script>window.APP_BUILD="v95";</script>
+</head><body style="margin:0;background:#0C1716;color:#fff;font-family:sans-serif">
+<div id="boot" style="padding:40px;text-align:center">جاري تحميل منصة التفوق v95…</div>
+<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+<script>
+(async function(){
+  const PARTS = ['ix0.b64', 'ix1.b64', 'ix2.b64', 'ix3.b64', 'ix4.b64', 'ix5.b64', 'ix6.b64', 'ix7.b64'];
+  try {
+    let b64 = "";
+    for (const p of PARTS) {
+      const r = await fetch(p + "?v=95boot");
+      if (!r.ok) throw new Error(p + " " + r.status);
+      b64 += (await r.text()).trim();
+    }
+    const compressed = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    const html = pako.inflate(compressed, { to: "string" });
+    document.open();
+    document.write(html);
+    document.close();
+  } catch (e) {
+    document.getElementById("boot").innerHTML = "<h2>فشل التحميل</h2><pre dir=ltr>"+e+"</pre><button onclick=location.reload()>إعادة</button>";
+  }
+})();
+</script>
+</body></html>
