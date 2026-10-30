@@ -1,6 +1,6 @@
-/* التفوق SW — v93-clean — cache fresh, no forced reload spam */
-const CACHE = "eltafawoq-v93-clean";
-const BUILD = "20261029-v93-clean";
+/* التفوق SW — v93-fix1 */
+const CACHE = "eltafawoq-v93-fix1";
+const BUILD = "20261030-v93-fix1";
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
@@ -73,52 +73,23 @@ self.addEventListener("activate", function (e) {
   );
 });
 
-/* network-first for HTML/JS so updates appear faster; cache fallback offline */
 self.addEventListener("fetch", function (e) {
   var u = new URL(e.request.url);
   if (e.request.method !== "GET") return;
   if (u.origin !== self.location.origin) return;
-
-  var path = u.pathname;
-  var isShell =
-    path.endsWith("/") ||
-    path.endsWith(".html") ||
-    path.endsWith(".js") ||
-    path.endsWith("sw.js");
-
-  if (isShell) {
-    e.respondWith(
-      fetch(e.request)
-        .then(function (r) {
-          var copy = r.clone();
-          caches.open(CACHE).then(function (c) {
-            c.put(e.request, copy).catch(function () {});
-          });
-          return r;
-        })
-        .catch(function () {
-          return caches.match(e.request).then(function (m) {
-            return m || caches.match("./index.html");
-          });
-        })
-    );
-    return;
-  }
-
   e.respondWith(
-    caches.match(e.request).then(function (cached) {
-      var net = fetch(e.request)
-        .then(function (r) {
-          var copy = r.clone();
-          caches.open(CACHE).then(function (c) {
-            c.put(e.request, copy).catch(function () {});
-          });
-          return r;
-        })
-        .catch(function () {
-          return cached;
+    fetch(e.request)
+      .then(function (r) {
+        var copy = r.clone();
+        caches.open(CACHE).then(function (c) {
+          c.put(e.request, copy).catch(function () {});
         });
-      return cached || net;
-    })
+        return r;
+      })
+      .catch(function () {
+        return caches.match(e.request).then(function (m) {
+          return m || caches.match("./index.html");
+        });
+      })
   );
 });
