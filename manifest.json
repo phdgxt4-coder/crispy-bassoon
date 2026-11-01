@@ -9,8 +9,8 @@
   "scope": "/crispy-bassoon/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#0C1716",
-  "theme_color": "#0B5D57",
+  "background_color": "#07051A",
+  "theme_color": "#07051A",
   "categories": ["education", "productivity"],
   "prefer_related_applications": false,
   "icons": [

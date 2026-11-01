@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v97">
+<meta name="sw-build" content="v98">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v97";</script>
+<script>window.APP_BUILD="v98";</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -57,8 +57,8 @@
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0B5D57">
-<script>(function(){try{var m=localStorage.getItem("theme_mode"),c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#0F1220",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
+<meta name="theme-color" content="#07051A">
+<script>(function(){try{var m=localStorage.getItem("theme_mode"),c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#07051A",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="التفوق">
@@ -73,7 +73,7 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0C1716;--card:#142624;--ink:#E6F1EF;--mut:#8FA9A5;--pri:#2FB5A8;--pri2:#4cc7ba;--onpri:#04201D;--gold:#F0B93A;--ind:#8B93FF;--line:#244240;--sel:#1b3836;--ok:#4cd081;--bad:#ff8a80;--gbg:#183d2a;--rbg:#4a1f1b;--ybg:#3f3210;--yfg:#f0d27a;--sh:0 10px 28px rgba(0,0,0,.4)}}
 
 :root[data-theme="morning"]{--bg:#F7FBFF;--card:#fff;--ink:#0F2744;--mut:#5A6F86;--pri:#2563EB;--pri2:#1D4ED8;--onpri:#fff;--gold:#E3A81C;--line:#D6E4F0;--sel:#E8F0FE;--sh:0 1px 2px rgba(15,39,68,.06),0 10px 28px rgba(15,39,68,.08)}
-:root[data-theme="golden"]{--bg:#0F1220;--card:#181D31;--ink:#E9ECFF;--mut:#9BA3C7;--pri:#7C6CFF;--pri2:#5B4FE0;--onpri:#fff;--gold:#FFC94D;--ind:#38BDF8;--line:#28304E;--sel:#232B4A;--ok:#4cd081;--bad:#ff8a80;--gbg:#183d2a;--rbg:#4a1f1b;--ybg:#332816;--yfg:#f5d27a;--sh:0 1px 2px rgba(8,10,20,.35),0 12px 32px rgba(8,10,20,.45)}
+:root[data-theme="golden"]{--bg:#07051A;--card:#130B2B;--ink:#F3EBFA;--mut:#A99DC9;--pri:#8B5CF6;--pri2:#7C3AED;--onpri:#fff;--gold:#F5B94A;--ind:#9B8CFF;--line:#2B1B55;--sel:#211249;--ok:#4cd081;--bad:#ff8a80;--gbg:#183d2a;--rbg:#4a1f1b;--ybg:#332816;--yfg:#f5d27a;--sh:0 1px 2px rgba(8,10,20,.35),0 12px 32px rgba(8,10,20,.45)}
 :root[data-theme="comfort"]{--bg:#F3EDE3;--card:#FFF9F0;--ink:#3D3428;--mut:#7A6E5E;--pri:#6B8F71;--pri2:#557A5B;--onpri:#fff;--gold:#C4A35A;--line:#E0D5C4;--sel:#E8E0D2;--sh:0 1px 2px rgba(61,52,40,.06),0 10px 24px rgba(61,52,40,.08)}
 :root[data-theme="nightread"]{--bg:#12151A;--card:#1A1F27;--ink:#E8ECF2;--mut:#9AA3B2;--pri:#7C9CBF;--pri2:#6A89AB;--onpri:#0E1218;--gold:#D4B56A;--line:#2A313C;--sel:#222831;--sh:0 10px 28px rgba(0,0,0,.45)}
 :root[data-theme="nightread"] body{letter-spacing:.01em;line-height:1.85}
@@ -115,6 +115,12 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 'IBM Plex Sans
 .wrap{max-width:720px;margin:0 auto;padding:16px 16px 100px}
 .wrap.wide{max-width:1000px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0 16px}
+.logo-mark{display:none;height:34px;width:34px;border-radius:10px;vertical-align:middle;margin-inline-end:8px;box-shadow:0 0 14px rgba(139,92,246,.45)}
+:root[data-theme="golden"] .logo-mark{display:inline-block}
+:root[data-theme="golden"] .logo{background:linear-gradient(180deg,#FFE29A,#F5B94A 60%,#D98E1B);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;display:flex;align-items:center}
+:root[data-theme="golden"] .logo .logo-mark{-webkit-text-fill-color:initial}
+.auth-hero{display:none}
+:root[data-theme="golden"] .auth-hero{display:block;width:min(62vw,250px);height:auto;margin:6px auto 4px;-webkit-mask-image:radial-gradient(closest-side,#000 82%,transparent 100%);mask-image:radial-gradient(closest-side,#000 82%,transparent 100%)}
 .logo{font-family:'Reem Kufi',sans-serif;font-size:30px;font-weight:700;color:var(--pri);text-decoration:underline;text-decoration-color:var(--gold);text-decoration-thickness:3px;text-underline-offset:9px;user-select:none;-webkit-user-select:none;transition:color .35s}
 .tg{width:42px;height:42px;border-radius:50%;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font-size:19px;cursor:pointer;box-shadow:var(--sh);transition:transform .5s cubic-bezier(.3,1.4,.5,1),background-color .35s,border-color .35s}
 .tg.spin{transform:rotate(360deg)}.tg-icon{transition:background-color .35s,border-color .35s}.tg-icon.spin{transform:none!important}
@@ -323,6 +329,8 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 #splash{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;
   background:linear-gradient(160deg,#0B5D57 0%,#084a45 45%,#12302D 100%);
   transition:opacity .55s ease,visibility .55s ease}
+#splash{background:radial-gradient(110% 80% at 50% 38%,#1B0C3E 0%,#0C0622 55%,#05030F 100%)!important}
+.splash-img{display:block;width:min(78vw,360px);height:auto;margin:0 auto 18px;animation:enter .7s ease-out both;-webkit-mask-image:radial-gradient(closest-side,#000 80%,transparent 100%);mask-image:radial-gradient(closest-side,#000 80%,transparent 100%)}
 #splash.hide{opacity:0;visibility:hidden;pointer-events:none}
 .splash-inner{text-align:center;padding:24px}
 .splash-logo{font-family:'Reem Kufi',sans-serif;font-size:52px;font-weight:700;color:#fff;
@@ -992,15 +1000,13 @@ body.mode-open #credit,body.mode-open #verBadge{display:none!important}
 <div class="bgfx"><i></i><i></i></div>
 <div id="splash" aria-hidden="true">
   <div class="splash-inner">
-    <div class="splash-logo">التفوق</div>
-    <div class="splash-line"></div>
-    <div class="splash-sub">منصة التعلم والامتحانات</div>
+    <img class="splash-img" src="logo.webp" alt="منصة التفوق" width="720" height="691" decoding="async">
     <div class="splash-bar"><i></i></div>
   </div>
 </div>
 <style>html.lite *,html.lite *::before,html.lite *::after{animation:none!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}html.lite canvas#bgfx,html.lite .bgfx{display:none!important}</style>
 <script>(function(){try{var c=navigator.connection||{},weak=(navigator.deviceMemory&&navigator.deviceMemory<=2)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2)||c.saveData;var m=localStorage.getItem("lite_mode");if(m==="1"||(m!=="0"&&weak))document.documentElement.classList.add("lite")}catch(e){}})()</script>
-<div id="app"></div><div id="verBadge">v97</div>
+<div id="app"></div><div id="verBadge">v98</div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
@@ -1185,7 +1191,7 @@ function setThemeMode(mode,chosen){
   }else{
     root.setAttribute("data-theme",mode==="light"?"light":mode);
   }
-  try{document.querySelector('meta[name="theme-color"]').content={golden:"#0B0A07",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71"}[mode]||"#0B5D57"}catch(_){}
+  try{document.querySelector('meta[name="theme-color"]').content={golden:"#07051A",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71"}[mode]||"#0B5D57"}catch(_){}
 }
 function cycleTheme(){
   const cur=getThemeMode();
@@ -2156,7 +2162,7 @@ function render(force){
 }
 const splash=()=>``; // مفيش شاشة تحميل داخل #app — الـ HTML splash يكفي لجزء من الثانية
 const blockedView=()=>`<div class="wrap"><div class="center"><div class="logo" style="display:inline-block">التفوق</div><h1 style="margin-top:28px">حسابك موقوف</h1><p class="mut" style="max-width:360px;margin:8px auto 14px">تواصل مع المدرس لإعادة تفعيل الحساب.</p>${S.profile&&S.profile.blockReason?`<p style="max-width:360px;margin:0 auto 14px"><b>السبب:</b> ${esc(S.profile.blockReason)}</p>`:""}${S.profile&&S.profile.blockedUntil>0?`<p class="mut" style="margin:0 auto 14px">ينتهي الحظر: <b>${new Date(S.profile.blockedUntil).toLocaleString("ar-EG")}</b></p><button class="btn" data-act="home" style="margin-bottom:10px">تحديث</button><br>`:""}<button class="btn ghost" data-act="logout">تسجيل خروج</button></div></div>`;
-const logo=`<div class="logo">التفوق</div>`;
+const logo=`<div class="logo"><img class="logo-mark" src="mark.png" alt="" width="34" height="34" decoding="async">التفوق</div>`;
 const aiBtn=()=>S.user?`<button type="button" class="tg tg-icon" data-act="openAI" aria-label="么" title="مساعد 么">🤖</button>`:"";
 const boostBtn=()=>S.user?`<button type="button" class="tg tg-icon tg-lbl" data-act="speedBoost" aria-label="تسريع المنصة للهواتف الضعيفة" title="تسريع المنصة للهواتف الضعيفة"><span>⚡</span><small>للهواتف<br>الضعيفة</small></button>`:"";
 const findBtn=()=>(S.user&&!S.isAdmin)?`<button type="button" class="tg tg-icon hdr-s" data-act="openSearch" aria-label="بحث" title="بحث عن زميل">🔍</button>`:"";
@@ -2182,6 +2188,7 @@ function authView(){
   const reg=S.mode==="register"&&!S.adminLogin;
   const rec=!!S.recoverMode&&!reg&&!S.adminLogin;
   return `<div class="wrap">${header()}
+<img class="auth-hero" src="logo.webp" alt="منصة التفوق" decoding="async">
 <form class="card" data-submit="${reg?"doRegister":rec?"doRecover":"doLogin"}" autocomplete="on">
 <h2>${S.adminLogin?"دخول الأدمن":reg?"إنشاء حساب جديد":rec?"استعادة كلمة السر 🔑":"تسجيل الدخول"}</h2>
 ${reg?`<label class="f" for="nm">الاسم بالكامل</label><input id="nm" type="text" autocomplete="name" required>`:""}
