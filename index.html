@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v103">
+<meta name="sw-build" content="v105">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v103";</script>
+<script>window.APP_BUILD="v105";</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -1024,13 +1024,46 @@ nav.bot button{font-size:14px;padding-inline:10px;min-width:0}
 .subj::after{content:"";position:absolute;inset:0 0 58% 0;background:linear-gradient(180deg,rgba(255,255,255,.22),transparent);pointer-events:none}
 .subj .g{background:rgba(255,255,255,.16);border-radius:14px;padding:2px 12px}
 .auth-hero{display:block!important;width:min(62vw,250px);height:auto;margin:6px auto 4px;-webkit-mask-image:radial-gradient(closest-side,#000 82%,transparent 100%);mask-image:radial-gradient(closest-side,#000 82%,transparent 100%)}
-/* v103: الصورة دايرة واضحة بإطار ذهبي في كل الأوضاع غير الذهبي — القناع الناعم كان بيطلع هالة رمادية على الخلفيات الفاتحة */
+/* v105: الصورة دايرة واضحة بإطار ذهبي في كل الأوضاع غير الذهبي — القناع الناعم كان بيطلع هالة رمادية على الخلفيات الفاتحة */
 :root:not([data-theme="golden"]) .auth-hero{-webkit-mask-image:none;mask-image:none;border-radius:50%;aspect-ratio:1/1;object-fit:cover;box-shadow:0 10px 28px rgba(0,0,0,.28),0 0 0 3px var(--gold)}
 .logo-mark{display:inline-block!important;vertical-align:middle;margin-inline-end:6px}
 :root:not([data-theme="golden"]) .logo{display:flex;align-items:center}
 #credit .cr-links a{display:inline-flex;align-items:center;gap:6px}
 #credit .cr-links svg,.mt-b svg{width:18px;height:18px;flex:0 0 auto}
 html.lite .card,html.lite nav.bot{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+/* v105 student-comfort: no tap delay, no iOS zoom-on-focus, readable focus ring, respect reduced motion */
+button,a,[data-act],select,summary,label{touch-action:manipulation}
+@media(max-width:820px){input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px}}
+:focus-visible{outline:3px solid #f5a524;outline-offset:2px}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.tabs{scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tab{min-height:42px}.btn:not(.sm){min-height:44px}
+.card{transition:box-shadow .2s ease,transform .15s ease}.card:active{transform:scale(.995)}
+.book-card{align-items:center;gap:10px}
+@media(prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+/* v105 — إحساس آيفون */
+:root{-webkit-tap-highlight-color:transparent}
+.card{border-radius:20px}
+.btn{border-radius:14px;font-weight:700;transition:transform .12s ease,filter .15s ease,box-shadow .2s ease}
+.btn:active{transform:scale(.96);filter:brightness(.95)}
+.tab{border-radius:999px;transition:transform .12s ease,background .2s ease}.tab:active{transform:scale(.95)}
+.subj{transition:transform .15s cubic-bezier(.2,.8,.2,1)}.subj:active{transform:scale(.97)}
+#toast{-webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.28)}
+.dlg{border-radius:26px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+input,select,textarea{border-radius:14px}
+.v5-bell{position:fixed;left:12px;bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:60;width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:color-mix(in srgb,var(--card) 78%,transparent);-webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5);box-shadow:0 8px 24px rgba(0,0,0,.25);font-size:21px;line-height:1;color:var(--ink);cursor:pointer;transition:transform .15s ease}
+.v5-bell:active{transform:scale(.9)}
+.v5-badge{position:absolute;top:-3px;right:-3px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:#FF3B30;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.v5-ov{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center;animation:v5f .2s ease}
+.v5-sheet{width:100%;max-width:520px;max-height:86vh;overflow:auto;background:var(--card);color:var(--ink);border-radius:28px 28px 0 0;padding:10px 16px calc(18px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 40px rgba(0,0,0,.35);animation:v5u .32s cubic-bezier(.2,.9,.25,1)}
+.v5-grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 8px}
+.v5-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.v5-n{padding:10px 12px;border-radius:14px;margin-bottom:8px;border:1px solid var(--line)}.v5-n.new{border-color:var(--gold)}
+.v5-sw{position:relative;width:51px;height:31px;border-radius:16px;border:0;background:var(--line);cursor:pointer;transition:background .2s;flex:none}
+.v5-sw i{position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3);transition:transform .22s cubic-bezier(.3,1.4,.5,1)}
+.v5-sw.on{background:#34C759}.v5-sw.on i{transform:translateX(20px)}
+@keyframes v5u{from{transform:translateY(100%)}to{transform:none}}@keyframes v5f{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.v5-sheet,.v5-ov{animation:none}}
 </style>
 </head>
 <body>
@@ -1043,7 +1076,7 @@ html.lite .card,html.lite nav.bot{-webkit-backdrop-filter:none!important;backdro
 </div>
 <style>html.lite *,html.lite *::before,html.lite *::after{animation:none!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}html.lite canvas#bgfx,html.lite .bgfx{display:none!important}</style>
 <script>(function(){try{var c=navigator.connection||{},weak=(navigator.deviceMemory&&navigator.deviceMemory<=2)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2)||c.saveData;var m=localStorage.getItem("lite_mode");if(m==="1"||(m!=="0"&&weak))document.documentElement.classList.add("lite")}catch(e){}})()</script>
-<div id="app"></div><div id="verBadge">v103</div>
+<div id="app"></div><div id="verBadge">v105</div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
@@ -1283,7 +1316,7 @@ if(configured){
         const d=(payload&&payload.data)||{};
         const tt=payload?.notification?.title||d.title||"التفوق";
         const b=payload?.notification?.body||d.body||"";
-        if(!(d.type==="dm"&&S.view==="chatThread")&&d.type!=="call")toast(tt+": "+b,true);
+        if(!(d.type==="dm"&&S.view==="chatThread")&&d.type!=="call"){window.__quiet=1;toast(tt+": "+b,true);window.__quiet=0;try{appNotify(tt,b)}catch(_){}}
         if(payload?.data?.type==="call"){try{startRingtone()}catch(_){}}
       });
     }catch(e){console.warn("messaging optional",e)}
@@ -3209,7 +3242,7 @@ function booksView(){
   const list=S.books||[];
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
 <h2>📚 الكتب</h2>
-<p class="mut">ملفات وكتب للتحميل أو الفتح</p>
+<p class="mut">ملفات وكتب للتحميل أو الفتح</p>${list.length>3?`<input id="bkSearch" type="search" autocomplete="off" placeholder="🔎 دوّر على كتاب أو مادة…" style="margin-bottom:10px">`:""}
 ${(S.site&&S.site.booksUrl)?`<button class="subj wide" style="background:linear-gradient(135deg,#6D28D9,#A78BFA);margin-bottom:12px" data-act="openBag"><span class="g">🤖</span><div><b>اسأل الذكاء من الكتب</b><br><small>اسأل أي سؤال من المنهج — يجاوبك ويقولك الكتاب ورقم الصفحة</small></div></button>`:""}
 ${list.length?list.map(b=>{
   const href=b.b64?("data:application/pdf;base64,"+b.b64):(b.url&&String(b.url).indexOf("data:")!==0?b.url:"");
@@ -3222,7 +3255,7 @@ ${list.length?list.map(b=>{
     <a class="btn ghost sm" href="${esc(href)}" download="${esc(b.title||"book")}.pdf">⬇ تنزيل</a>`:`<span class="mut">مفيش ملف</span>`}
   </div>
 </div>`;
-}).join(""):`<div class="card mut">لسه مفيش كتب — الأدمن هيضيف قريب.</div>`}
+}).join(""):`<div class="card mut" style="text-align:center">📚 لسه مفيش كتب — الأدمن هيضيف قريب.</div>`}
 </div>${studentNav()}`;
 }
 function adminBooks(){
@@ -3249,7 +3282,7 @@ function adminBooks(){
 <p class="mut">حد أقصى ~700–900 كيلو · الأكبر ارفعه Drive وحط رابط</p>
 <label class="f">أو رابط الملف (Drive / PDF)</label>
 <input id="bookUrl" class="ltr" type="url" placeholder="https://…">
-<label class="f">نص / ملخص الكتاب (مهم لـ 么)</label>
+<label class="f">نص / ملخص الكتاب (بيخلّي المساعد يجاوب منه)</label>
 <textarea id="bookContent" rows="6" placeholder="الصق الملخص أو أهم النقاط…"></textarea>
 <p class="mut" style="margin-top:6px">عنوان + (ملف أو رابط) · النص يخلّي المساعد يرد من الكتاب</p>
 <button class="btn" style="margin-top:10px" data-act="addBook">إضافة</button>
@@ -3740,7 +3773,7 @@ function adminView(){
     {title:"محتوى", items:[["exams","امتحانات"],["asm","تقييمات"],["books","كتب"]]},
     {title:"مجتمع", items:[["fadaye7","فضايح 😂"],["tanagha","التناغه 💗"],["tgreq","طلبات التناغه"],["students","طلاب"]]},
     {title:"رقابة", items:[["results","نتايج"],["alerts","تنبيهات"],["suspicious","احتيالي"]]},
-    {title:"تشخيص", items:[["errors","🔴 الأخطاء"],["health","📊 صحة المنصة"],["perf","⚡ الأداء"],["devtools","🧰 أدوات المطور"]]},
+    {title:"تشخيص", items:[["review","🔍 مراجعة شاملة"],["errors","🔴 الأخطاء"],["health","📊 صحة المنصة"],["perf","⚡ الأداء"],["devtools","🧰 أدوات المطور"]]},
     {title:"إدارة", items:[["managers","المسؤولين"],["backup","💾 النسخ الاحتياطي"],["security","🛡 الأمان"],["shopadm","🛒 المتجر"],["agent","🤖 الوكيل"],["settings","إعدادات"]]}
   ];
   const bd={tgreq:(Array.isArray(S.students)?S.students:[]).filter(x=>x.tanaghaAccess==="pending").length,results:S.unread,alerts:S.unreadAlerts,live:liveActive().length,suspicious:(S.suspicious||[]).filter(x=>!x.seen).length};
@@ -3751,7 +3784,7 @@ ${groups.map(g=>`<div style="margin-bottom:10px">
   <div class="mut" style="font-size:11px;font-weight:700;margin-bottom:4px;opacity:.75">${g.title}</div>
   <div class="tabs" style="margin-bottom:0">${g.items.map(([k,v])=>`<button class="tab ${t===k?"on":""}" data-act="tab" data-id="${k}">${v}${bd[k]?`<span class="badge">${bd[k]}</span>`:""}</button>`).join("")}</div>
 </div>`).join("")}
-${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,tanagha:adminTanagha,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,suspicious:adminSuspicious,managers:adminManagers,security:adminSecurity,tgreq:adminTgReq,settings:adminSettings,shopadm:adminShop,agent:adminAgent,modes:adminModes,errors:adminErrors,health:adminHealth,perf:adminPerf,backup:adminBackup,devtools:adminDev}[t]||adminDash)()}
+${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,tanagha:adminTanagha,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,suspicious:adminSuspicious,managers:adminManagers,security:adminSecurity,tgreq:adminTgReq,settings:adminSettings,shopadm:adminShop,agent:adminAgent,modes:adminModes,errors:adminErrors,health:adminHealth,perf:adminPerf,backup:adminBackup,devtools:adminDev,review:adminReview}[t]||adminDash)()}
 ${t==="exams"?`<button class="fab" data-act="newExam" aria-label="امتحان جديد">+</button>`:""}
 
 </div>`}
@@ -5933,7 +5966,7 @@ const A={
     if(!dups.length){toast("مفيش مكرر في اللي محمّل 🎉",true);return}
     if(!await uiConfirm("تمام — حذف "+dups.length+" منشور مكرر؟"))return;
     let ok=0,bad=0;
-    for(const d of dups){try{await deleteDoc(doc(db,"fadaye7",d.id));ok++}catch(e){bad++}}
+    for(let i=0;i<dups.length;i+=400){const part=dups.slice(i,i+400);try{const b=writeBatch(db);part.forEach(d=>b.delete(doc(db,"fadaye7",d.id)));await b.commit();ok+=part.length}catch(e){for(const d of part){try{await deleteDoc(doc(db,"fadaye7",d.id));ok++}catch(_){bad++}}}}
     toast(bad?("اتحذف "+ok+"، وفشل "+bad+" ⚠️"):("اتحذف "+ok+" منشور مكرر ✓"),!bad);
   },
   async submitFadaye7(){
@@ -7332,7 +7365,7 @@ function groupThreadView(){
   <input id="grpAddQ" type="text" maxlength="40" placeholder="اكتب حرفين من الاسم…" value="${esc(S.grpAddQ||"")}" autocomplete="off">
   <button class="btn sm" style="margin-top:8px" data-act="searchGrpAdd">بحث</button>
   ${(S.grpAddHits||[]).length?(S.grpAddHits.map(s=>{
-    const av=s.avatar?`<img class="tk-av" src="${esc(s.avatar)}" style="width:40px;height:40px">`:`<div class="tk-av letter" style="width:40px;height:40px;font-size:14px">${esc((s.name||"?")[0])}</div>`;
+    const av=s.avatar?`<img class="tk-av" src="${esc(s.avatar)}" alt="" style="width:40px;height:40px">`:`<div class="tk-av letter" style="width:40px;height:40px;font-size:14px">${esc((s.name||"?")[0])}</div>`;
     return `<button type="button" class="hit" data-act="pickGrpAdd" data-uid="${s.id}" data-name="${esc(s.name||"")}">${av}<div style="flex:1;text-align:start"><b>${esc(s.name||"?")}</b><div class="mut">طالب في المنصة</div></div><span class="btn sm">إضافة</span></button>`;
   }).join("")):(S.grpAddQ&&S.grpAddQ.length>=2?`<div class="mut" style="margin-top:8px">مفيش نتائج</div>`:`<div class="mut" style="margin-top:8px">اكتب حرفين على الأقل</div>`)}
 </div>`:"";
@@ -9013,6 +9046,187 @@ Object.assign(A,{
     render(true);toast(role?"اتعيّن: "+ROLE_LABEL[role]:"اتشال من الفريق",true);
   }
 });
+/* ===== v105 — 🔍 مراجعة شاملة: بتجمع الأخطاء + الصحة + Firestore + الكتب في ملف واحد تنزّله ===== */
+const RV_SEV={critical:["🔴 حرج","r",0],high:["🟠 مهم","r",1],medium:["🟡 متوسط","y",2],low:["⚪ ملاحظة","i",3]};
+async function rvRun(){
+  const items=[],add=(sev,area,msg,where,fix)=>items.push({sev,area,msg,where:where||"",fix:fix||""});
+  S._rv={running:true,items:[],at:0};render();
+  try{await ecLoad()}catch(_){}
+  try{await hlProbe()}catch(_){}
+  const h=S._hl||{};
+  /* 1) صحة المنصة */
+  if(h.fbOk===false)add("critical","Firebase","الاتصال بـ Firebase فشل ("+(h.fbErr||"?")+")","config/site","اتأكد من الإنترنت ومن قواعد Firestore");
+  else if(h.fbMs>1500)add("medium","Firebase","أول قراءة بطيئة: "+h.fbMs+"ms","config/site","");
+  if(h.authOk===false)add("high","تسجيل الدخول","توكن الدخول غير صالح","auth","سجّل خروج ودخول تاني");
+  if(!navigator.onLine)add("high","الشبكة","الجهاز أوفلاين دلوقتي","","");
+  const sm=/(\d+)\s*\/\s*(\d+)/.exec(h.store||"");if(sm&&+sm[2]&&(+sm[1]/+sm[2])>0.8)add("medium","التخزين","تخزين الجهاز قرّب يمتلي ("+h.store+")","","امسح الكاش من أدوات المطور");
+  if(h.caches&&h.caches.split(",").length>1)add("low","الكاش","فيه أكتر من كاش قديم: "+h.caches,"sw.js","هيتنضّف مع أول تحديث");
+  /* 2) الأخطاء المسجّلة (مجمّعة) */
+  const g={};(S.errLogs||[]).forEach(e=>{if(e.status==="fixed"||e.status==="ignored")return;const k=e.sig||e.msg||"?";(g[k]=g[k]||{n:0,e}).n++});
+  Object.values(g).sort((a,b)=>b.n-a.n).slice(0,25).forEach(({n,e})=>{
+    const perm=/permission|insufficient/i.test(e.msg||"");
+    const sev=(e.type==="js"||e.type==="promise")?(n>=5?"critical":"high"):(e.type==="firebase"?(perm?"high":"medium"):"medium");
+    add(sev,"خطأ مسجّل ("+(e.type||"?")+")",(e.msg||"-").slice(0,200)+" — اتكرر "+n+" مرة"+(e.ver?" · إصدار "+e.ver:""),(e.page||"")+(e.fn?" · "+e.fn:""),perm?"راجع firestore.rules للمسار ده":"افتح تبويب الأخطاء للتفاصيل والـ stack");
+  });
+  /* 2b) أخطاء من أجهزة الطلاب + حالة الإشعارات */
+  {const lg=(S.errLogs||[]),stu=lg.filter(e=>e.uid&&e.uid!==(S.user&&S.user.uid)),us=new Set(stu.map(e=>e.uid)),dv={};
+   stu.forEach(e=>{const d=String(e.dev||"؟").slice(0,40);dv[d]=(dv[d]||0)+1});
+   if(stu.length)add("medium","أخطاء من أجهزة الطلاب",stu.length+" خطأ من "+us.size+" طالب. الأجهزة: "+Object.entries(dv).sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>x[0]+" ×"+x[1]).join(" | "),"errorLogs","افتح الأخطاء الأكتر تكرارًا فوق");
+   else add("low","أخطاء الطلاب","مفيش أخطاء واصلة من أجهزة الطلاب (ممكن يكون كله سليم، أو القواعد مش بتسمح بـ create على errorLogs)","firestore.rules","اتأكد إن القواعد بتسمح للطالب بإنشاء مستند في errorLogs بحجم محدود");
+   try{add("low","الإشعارات",pushStateText(),"FCM","");
+     const st=Array.isArray(S.students)?S.students:[];if(st.length){const w=st.filter(x=>x.fcmToken).length;add(w/st.length<0.3?"medium":"low","الإشعارات",w+" من "+st.length+" طالب مسجّلين للإشعارات","students.fcmToken","الطلاب هيتطلب منهم الإذن تلقائي كل 3 أيام لحد ما يفعّلوه")}}catch(_){}}
+  /* 3) عمليات Firestore في الجلسة */
+  const ops=(__EC.ops||[]).slice(),by=(f)=>{const m={};ops.forEach(o=>{const k=f(o);if(k!=null)(m[k]=m[k]||[]).push(o)});return m};
+  Object.entries(by(o=>o.ok?null:(o.path||"?")+" ← "+(o.err||"فشل"))).forEach(([k,a])=>add(/permission/.test(k)?"high":"medium","Firestore","عملية فاشلة ×"+a.length+": "+k,"","راجع القواعد/الاسم"));
+  Object.entries(by(o=>o.ms>1500?(o.op+" "+(o.path||"")):null)).forEach(([k,a])=>add("medium","أداء Firestore","عملية بطيئة ×"+a.length+" (أبطأها "+Math.max(...a.map(x=>x.ms))+"ms): "+k,"","حط limit أو index أو كاش"));
+  Object.entries(by(o=>/^get/.test(o.op)?String(o.path||"").split("/")[0]:null)).forEach(([k,a])=>{if(a.length>40)add("medium","قراءات كتير","«"+k+"» اتقرا "+a.length+" مرة في الجلسة دي","","استخدم limit أو كاش محلي")});
+  /* 4) فحص كود الصفحة نفسها (زي code_review_agent) */
+  try{
+    const src=await (await fetch(location.pathname.endsWith("/")||!/\.html?$/.test(location.pathname)?location.pathname:location.pathname,{cache:"no-store"})).text(),SL=src.split("\n");
+    const hit=(re,fn)=>{const ls=[];SL.forEach((l,i)=>{if(l.length<6000&&re.test(l)&&(!fn||fn(l)))ls.push(i+1)});return ls};
+    const pr=(ls)=>"سطور "+ls.slice(0,8).join("، ")+(ls.length>8?" …":"");
+    let ls=hit(/getDocs\s*\(\s*collection\s*\(\s*db\s*,\s*["'`](\w+)["'`]\s*\)\s*\)/);
+    if(ls.length)add("medium","Firestore (كود)","قراءة كل مستندات collection من غير limit في "+ls.length+" مكان","index.html "+pr(ls),"استخدم query(collection(...),orderBy(...),limit(100)) — توفير قراءات وسرعة");
+    ls=hit(/onSnapshot\s*\(\s*collection\s*\(\s*db\s*,\s*["'`]\w+["'`]\s*\)\s*[,)]/);
+    if(ls.length)add("high","Firestore (كود)","onSnapshot على collection كاملة من غير where/limit","index.html "+pr(ls),"قيّدها بـ where أو limit");
+    ls=hit(/for\s*\(.*\)\s*\{?.*await\s+(deleteDoc|updateDoc|setDoc)\b/,l=>!/writeBatch/.test(l));
+    if(ls.length)add("medium","Firestore (كود)","كتابة/حذف في لوب واحدة واحدة","index.html "+pr(ls),"استخدم writeBatch (500 عملية في المرة)");
+    ls=hit(/(?:updateDoc|setDoc)\s*\(\s*doc\s*\(\s*db\s*,\s*["'`](students|life)["'`]/);
+    if(ls.length)add("high","أمان (قواعد)","كتابة مباشرة من العميل على students/life في "+ls.length+" مكان","index.html "+pr(ls),"تأكد إن firestore.rules بتقيّد الحقول بـ hasOnly وإن coins/xp مش بيتعدلوا من الطالب");
+    const mb=(/name="sw-build"\s+content="([^"]+)"/.exec(src)||[])[1],ab=(/APP_BUILD\s*=\s*"([^"]+)"/.exec(src)||[])[1];
+    if(mb&&ab&&mb!==ab)add("medium","الإصدار","رقم الإصدار مش متطابق: meta="+mb+" و APP_BUILD="+ab,"index.html","وحّدهم");
+  }catch(e){add("low","فحص الكود","مقدرتش أقرا ملف الصفحة للفحص ("+((e&&e.message)||"?")+")","","شغّل code_review_agent.py من الكمبيوتر")}
+  /* 5) الكتب */
+  (S.books||[]).forEach(b=>{
+    const nm=(b.title||b.id||"كتاب");
+    if(!b.b64&&!b.url)add("medium","الكتب","«"+nm+"» مفيش ليه ملف ولا رابط","books/"+(b.id||""),"أضف رابط أو PDF");
+    else if(b.url&&/^http:\/\//i.test(b.url))add("low","الكتب","«"+nm+"» رابطه http مش https","books/"+(b.id||""),"استخدم https");
+    if(b.b64&&b.b64.length>1200000)add("medium","الكتب","«"+nm+"» PDF مضمّن كبير ("+Math.round(b.b64.length/1048576*0.75*10)/10+"MB) وبيبطّأ تحميل الكتب","books/"+(b.id||""),"ارفعه Drive وحط الرابط");
+    if(!b.title)add("low","الكتب","كتاب من غير عنوان","books/"+(b.id||""),"");
+  });
+  items.sort((a,b)=>RV_SEV[a.sev][2]-RV_SEV[b.sev][2]);
+  S._rv={running:false,items,at:Date.now()};render();
+}
+function rvReportMd(){
+  const r=S._rv||{items:[],at:Date.now()},c={critical:0,high:0,medium:0,low:0};r.items.forEach(i=>c[i.sev]++);
+  const o=["# تقرير مراجعة شاملة — منصة التفوق","","- الإصدار: "+(window.APP_BUILD||"?"),"- التاريخ: "+new Date(r.at||Date.now()).toLocaleString("ar-EG"),"- حرج: "+c.critical+" · مهم: "+c.high+" · متوسط: "+c.medium+" · ملاحظات: "+c.low,"","> الاستخدام: ابعت الملف لـ Claude واكتب «صحّح الملاحظات دي» ويرجّعلك الملفات المعدّلة.",""];
+  if(!r.items.length)o.push("✅ مفيش ملاحظات.");
+  let cur="";r.items.forEach((i,n)=>{if(i.sev!==cur){cur=i.sev;o.push("","## "+RV_SEV[cur][0],"")}
+    o.push((n+1)+". **["+i.area+"]** "+i.msg,i.where?"   - المكان: "+i.where:"",i.fix?"   - الحل المقترح: "+i.fix:"")});
+  return o.filter((x,k,a)=>!(x===""&&a[k-1]==="")).join("\n");
+}
+function rvDownload(){
+  const b=new Blob(["\ufeff"+rvReportMd()],{type:"text/markdown;charset=utf-8"}),a=document.createElement("a");
+  a.href=URL.createObjectURL(b);a.download="مراجعة-التفوق-"+ecDay()+".md";document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);try{toast("اتنزّل ملف المراجعة ✓")}catch(_){}
+}
+function adminReview(){
+  const r=S._rv,c={critical:0,high:0,medium:0,low:0};if(r)r.items.forEach(i=>c[i.sev]++);
+  return `<div class="card"><h3 style="margin-top:0">🔍 مراجعة شاملة</h3>
+  <p class="mut" style="margin:0 0 10px">بتفحص الأخطاء + صحة المنصة + عمليات Firestore + كود الصفحة + الكتب، وتطلّعلك <b>ملف واحد</b> تنزّله وتبعته لـ Claude يصحّحه.</p>
+  <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn" data-act="rvRun" ${r&&r.running?"disabled":""}>${r&&r.running?"⏳ بيفحص…":"▶ شغّل المراجعة"}</button>
+  ${r&&r.at?`<button class="btn gold" data-act="rvDownload">⬇ نزّل ملف المراجعة</button>`:""}</div></div>
+  ${r&&r.at?`<div class="row" style="gap:6px;flex-wrap:wrap;margin:0 0 10px">${["critical","high","medium","low"].map(k=>pill(RV_SEV[k][0]+" "+c[k],RV_SEV[k][1])).join("")}</div>
+  ${r.items.length?r.items.map(i=>`<div class="card" style="padding:12px"><div class="row" style="gap:6px;flex-wrap:wrap">${pill(RV_SEV[i.sev][0],RV_SEV[i.sev][1])}<b style="font-size:13px">${esc(i.area)}</b></div>
+  <div style="margin-top:6px">${esc(i.msg)}</div>${i.where?`<div class="mut" style="font-size:12px;margin-top:4px" dir="auto">📍 ${esc(i.where)}</div>`:""}${i.fix?`<div style="font-size:12px;margin-top:4px;color:var(--gold)">💡 ${esc(i.fix)}</div>`:""}</div>`).join(""):`<div class="card">✅ مفيش ملاحظات — كله سليم.</div>`}`:""}`;
+}
+A.rvRun=rvRun;A.rvDownload=rvDownload;
+
+document.addEventListener("input",e=>{const x=e.target;if(!x||x.id!=="bkSearch")return;const q=x.value.trim().toLowerCase();document.querySelectorAll(".book-card").forEach(c=>{c.style.display=(!q||c.textContent.toLowerCase().includes(q))?"":"none"})});
+/* ===== v105 — أصوات + مركز إشعارات + طلب إذن زي الواتس + تحسينات إحساس الآيفون ===== */
+const SFX={on:(()=>{try{return localStorage.getItem("sfx_on")!=="0"}catch(_){return true}})(),hap:(()=>{try{return localStorage.getItem("hap_on")!=="0"}catch(_){return true}})(),ctx:null};
+function sfxUnlock(){try{if(!SFX.ctx){const C=window.AudioContext||window.webkitAudioContext;if(C)SFX.ctx=new C()}if(SFX.ctx&&SFX.ctx.state==="suspended")SFX.ctx.resume()}catch(_){}}
+document.addEventListener("pointerdown",sfxUnlock,{passive:true});document.addEventListener("keydown",sfxUnlock,{passive:true});
+const SFX_DEF={tap:[[1250,0,.035,"sine",.03]],pop:[[520,0,.07,"sine",.05]],send:[[700,0,.07,"sine",.05],[1050,.06,.1,"sine",.05]],success:[[660,0,.1,"sine",.055],[880,.09,.18,"sine",.055]],error:[[240,0,.13,"triangle",.07],[170,.12,.2,"triangle",.07]],notify:[[880,0,.11,"sine",.06],[1175,.11,.11,"sine",.06],[1480,.22,.24,"sine",.06]]};
+function sfx(n){
+  try{
+    if(!SFX.on||window.__call)return;sfxUnlock();const c=SFX.ctx,d=SFX_DEF[n];if(!c||!d)return;
+    d.forEach(([f,at,du,ty,v])=>{const o=c.createOscillator(),g=c.createGain(),t0=c.currentTime+at;o.type=ty;o.frequency.value=f;
+      g.gain.setValueAtTime(0.0001,t0);g.gain.exponentialRampToValueAtTime(v,t0+0.012);g.gain.exponentialRampToValueAtTime(0.0001,t0+du);
+      o.connect(g);g.connect(c.destination);o.start(t0);o.stop(t0+du+0.03)});
+  }catch(_){}
+}
+function haptic(ms){try{if(SFX.hap&&navigator.vibrate)navigator.vibrate(ms||8)}catch(_){}}
+function sfxSet(k,v){try{localStorage.setItem(k,v?"1":"0")}catch(_){}if(k==="sfx_on")SFX.on=v;else SFX.hap=v}
+document.addEventListener("click",e=>{
+  const b=e.target&&e.target.closest&&e.target.closest("button,.btn,.tab,.subj,[data-act]");if(!b||b.disabled||b.closest(".v5-sheet"))return;
+  const a=(b.dataset&&b.dataset.act)||"";sfx(/send|post|submit/i.test(a)?"send":"tap");haptic(6);
+},{passive:true});
+/* صوت لكل toast: نجاح / خطأ */
+{const _toast=toast;toast=function(m,gold,ms){
+  try{if(window.__quiet){}else if(gold)sfx("success");else if(/فشل|مقدر|خطأ|غلط|ممنوع|رفض|مش (متاح|مسموح|شغال|صح)|لازم/.test(String(m||"")))sfx("error")}catch(_){}
+  return _toast.apply(this,arguments)}}
+/* ---- مركز الإشعارات (محلي على الجهاز) ---- */
+const NTF_KEY="ntf_log";
+const ntfGet=()=>{try{return JSON.parse(localStorage.getItem(NTF_KEY)||"[]")}catch(_){return[]}};
+const ntfSave=a=>{try{localStorage.setItem(NTF_KEY,JSON.stringify(a.slice(0,40)))}catch(_){}};
+function appNotify(title,body,opt){
+  opt=opt||{};const a=ntfGet();a.unshift({t:Date.now(),title:String(title||"").slice(0,80),body:String(body||"").slice(0,200),read:false});ntfSave(a);
+  if(!opt.silent)sfx("notify");try{v5Bell()}catch(_){}
+  try{if(opt.system&&document.hidden&&"Notification"in window&&Notification.permission==="granted"&&navigator.serviceWorker){navigator.serviceWorker.ready.then(r=>r.showNotification(title,{body,icon:"./icons/icon-192.png",tag:"ntf-"+Date.now()}))}}catch(_){}
+}
+function ntfSeed(){
+  try{if(!S.user||S.isAdmin)return;const k="ntf_seed_v105_"+S.user.uid;if(localStorage.getItem(k))return;localStorage.setItem(k,"1");
+    const a=ntfGet();const now=Date.now();
+    [["🎉 أهلاً بيك في التفوق","كل حاجة في مكان واحد: امتحانات، كتب، تناغه، ومساعد ذكي."],["🔔 فعّل الإشعارات","عشان توصلك المكالمات والرسائل والامتحانات الجديدة حتى لو التطبيق مقفول."],["✨ تحديث جديد","أصوات للأزرار والإشعارات وتصميم أنعم. تقدر تقفل الصوت من 🔔 فوق."]].forEach((x,i)=>a.push({t:now-i*60000,title:x[0],body:x[1],read:false}));
+    ntfSave(a.sort((p,q)=>q.t-p.t))}catch(_){}
+}
+const ntfUnread=()=>ntfGet().filter(x=>!x.read).length;
+function v5Bell(){
+  let b=document.getElementById("v5Bell");
+  const show=!!(S.user&&!S.isAdmin&&S.view==="home");
+  if(!show){if(b)b.remove();return}
+  const n=ntfUnread();
+  if(!b){b=document.createElement("button");b.id="v5Bell";b.type="button";b.className="v5-bell";b.setAttribute("aria-label","الإشعارات");b.addEventListener("click",v5OpenSheet);document.body.appendChild(b)}
+  b.innerHTML="🔔"+(n?`<span class="v5-badge">${n>9?"9+":n}</span>`:"");
+}
+function v5OpenSheet(){
+  if(document.querySelector(".v5-ov"))return;
+  const perm=("Notification"in window)?Notification.permission:"unsupported";
+  const ov=document.createElement("div");ov.className="v5-ov";
+  const list=ntfGet();
+  const ago=t=>{const m=Math.round((Date.now()-t)/60000);return m<1?"دلوقتي":m<60?"من "+m+" د":m<1440?"من "+Math.round(m/60)+" س":"من "+Math.round(m/1440)+" يوم"};
+  const sw=(id,on)=>`<button type="button" class="v5-sw${on?" on":""}" id="${id}" role="switch" aria-checked="${on}"><i></i></button>`;
+  ov.innerHTML=`<div class="v5-sheet" role="dialog" aria-label="الإشعارات"><div class="v5-grab"></div>
+  <h3 style="margin:4px 0 10px">🔔 الإشعارات</h3>
+  <div class="v5-row"><div><b>إشعارات الجهاز</b><div class="mut" style="font-size:12px">${perm==="granted"?"شغّالة ✓":perm==="denied"?"مقفولة — فعّلها من إعدادات المتصفح":perm==="unsupported"?"المتصفح مش بيدعمها (على الآيفون ضيف المنصة للشاشة الرئيسية)":"لسه ما اتفعلتش"}</div></div>${perm==="default"?`<button type="button" class="btn sm" id="v5Perm">تفعيل</button>`:""}</div>
+  <div class="v5-row"><div><b>🔊 الأصوات</b><div class="mut" style="font-size:12px">أصوات الأزرار والإشعارات</div></div>${sw("v5Sfx",SFX.on)}</div>
+  <div class="v5-row"><div><b>📳 الاهتزاز</b><div class="mut" style="font-size:12px">اهتزاز خفيف عند اللمس</div></div>${sw("v5Hap",SFX.hap)}</div>
+  <div style="margin-top:10px;max-height:38vh;overflow:auto">${list.length?list.map(x=>`<div class="v5-n${x.read?"":" new"}"><b>${esc(x.title)}</b><div style="font-size:13px">${esc(x.body)}</div><div class="mut" style="font-size:11px;margin-top:2px">${ago(x.t)}</div></div>`).join(""):`<div class="mut" style="text-align:center;padding:14px">مفيش إشعارات</div>`}</div>
+  <div class="row" style="gap:8px;margin-top:12px"><button type="button" class="btn ghost sm" id="v5Clear">مسح الكل</button><button type="button" class="btn sm" id="v5Close" style="margin-inline-start:auto">تمام</button></div></div>`;
+  document.body.appendChild(ov);sfx("pop");
+  const close=()=>{const a=ntfGet();a.forEach(x=>x.read=true);ntfSave(a);ov.remove();try{v5Bell()}catch(_){}};
+  ov.addEventListener("click",e=>{if(e.target===ov)close()});
+  ov.querySelector("#v5Close").addEventListener("click",close);
+  ov.querySelector("#v5Clear").addEventListener("click",()=>{ntfSave([]);ov.remove();try{v5Bell()}catch(_){}});
+  const tg=(id,k)=>ov.querySelector(id).addEventListener("click",e=>{const el=e.currentTarget,on=!el.classList.contains("on");el.classList.toggle("on",on);el.setAttribute("aria-checked",on);sfxSet(k,on);if(on&&k==="sfx_on")sfx("success")});
+  tg("#v5Sfx","sfx_on");tg("#v5Hap","hap_on");
+  const pb=ov.querySelector("#v5Perm");if(pb)pb.addEventListener("click",async()=>{await v5EnablePush();ov.remove();v5OpenSheet()});
+}
+async function v5EnablePush(){
+  try{
+    if(!("Notification"in window)){toast("المتصفح مش بيدعم الإشعارات");return false}
+    if(S.site&&S.site.vapidKey){const r=await registerFcmToken(true);toast(r.ok?"الإشعارات اشتغلت ✓":r.msg,!!r.ok);return !!r.ok}
+    const p=await Notification.requestPermission();toast(p==="granted"?"الإشعارات اشتغلت ✓":"الإذن اترفض",p==="granted");return p==="granted";
+  }catch(e){toast("مقدرتش أفعّل الإشعارات");return false}
+}
+/* طلب الإذن بشكل ودود زي الواتس: بعد الدخول، ويتكرر كل 3 أيام لو لسه مش مفعّل */
+maybeAskPush=function(){
+  if(!S.user||S.isAdmin)return;
+  setTimeout(async()=>{
+    try{
+      if(!S.user||!("Notification"in window)||Notification.permission!=="default")return;
+      const k="ntf_ask_at",last=+(localStorage.getItem(k)||0);if(Date.now()-last<3*86400000)return;localStorage.setItem(k,String(Date.now()));
+      const ios=/iphone|ipad|ipod/i.test(navigator.userAgent),sa=(navigator.standalone===true)||matchMedia("(display-mode: standalone)").matches;
+      if(ios&&!sa){await uiDialog({title:"ضيف التفوق للشاشة الرئيسية",icon:"📲",msg:"عشان الإشعارات تشتغل على الآيفون: اضغط زر المشاركة ثم «إضافة إلى الشاشة الرئيسية».",ok:"تمام"});return}
+      const ok=await uiDialog({title:"خلّينا نوصلك",icon:"🔔",msg:"التفوق عايز يبعتلك إشعارات للمكالمات والرسائل والامتحانات الجديدة حتى لو التطبيق مقفول. تقدر تقفلها في أي وقت.",ok:"تفعيل الإشعارات"});
+      if(ok)await v5EnablePush();
+    }catch(_){}
+  },6000);
+};
+/* الجرس يظهر/يختفي مع كل render + استقبال الإشعارات وقت فتح التطبيق بصوت */
+{const _r=render;render=function(){const r=_r.apply(this,arguments);try{ntfSeed();v5Bell()}catch(_){}return r}}
+
 /* ===== v94: أدوات الكاش وإعادة بناء البيانات المحلية (أدوات المطور) ===== */
 const CACHE_LS=/^(exams_cache|books_cache|dmcache_|ec_log|ec_sent|pf_agg|lg_|__dm|eltaf|sw_v|cache_bust)/i;
 function cacheCard(){
