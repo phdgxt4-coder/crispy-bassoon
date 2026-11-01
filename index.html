@@ -3,22 +3,22 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0B5D57">
 <title>التفوق</title>
-<script>window.APP_BUILD="v95";</script>
+<script>window.APP_BUILD="v95s";</script>
 </head><body style="margin:0;background:#0C1716;color:#fff;font-family:sans-serif">
 <div id="boot" style="padding:48px 24px;text-align:center">
   <div style="font-size:28px;font-weight:700;margin-bottom:12px">التفوق</div>
-  <div id="st">جاري تحميل v95…</div>
+  <div id="st">جاري تحميل…</div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
 <script>
 (async function(){
-  const PARTS = ["q0.txt", "q1.txt", "q2.txt", "q3.txt", "q4.txt", "q5.txt", "q6.txt", "q7.txt", "q8.txt", "q9.txt", "q10.txt", "q11.txt", "q12.txt", "q13.txt", "q14.txt", "q15.txt", "q16.txt", "q17.txt", "q18.txt", "q19.txt", "q20.txt", "q21.txt", "q22.txt", "q23.txt", "q24.txt", "q25.txt", "q26.txt", "q27.txt", "q28.txt", "q29.txt", "q30.txt", "q31.txt", "q32.txt", "q33.txt", "q34.txt", "q35.txt", "q36.txt", "q37.txt", "q38.txt", "q39.txt", "q40.txt", "q41.txt", "q42.txt", "q43.txt", "q44.txt", "q45.txt", "q46.txt", "q47.txt", "q48.txt", "q49.txt", "q50.txt", "q51.txt", "q52.txt", "q53.txt", "q54.txt", "q55.txt", "q56.txt", "q57.txt", "q58.txt", "q59.txt", "q60.txt", "q61.txt", "q62.txt", "q63.txt", "q64.txt", "q65.txt", "q66.txt", "q67.txt", "q68.txt", "q69.txt", "q70.txt", "q71.txt", "q72.txt", "q73.txt", "q74.txt"];
+  const PARTS = ['s0.txt', 's1.txt', 's2.txt', 's3.txt', 's4.txt', 's5.txt', 's6.txt', 's7.txt', 's8.txt', 's9.txt', 's10.txt', 's11.txt', 's12.txt', 's13.txt', 's14.txt', 's15.txt', 's16.txt', 's17.txt', 's18.txt', 's19.txt', 's20.txt', 's21.txt', 's22.txt', 's23.txt', 's24.txt', 's25.txt', 's26.txt', 's27.txt', 's28.txt', 's29.txt', 's30.txt', 's31.txt', 's32.txt', 's33.txt', 's34.txt', 's35.txt', 's36.txt', 's37.txt', 's38.txt', 's39.txt', 's40.txt', 's41.txt', 's42.txt', 's43.txt', 's44.txt', 's45.txt', 's46.txt', 's47.txt', 's48.txt', 's49.txt', 's50.txt', 's51.txt', 's52.txt', 's53.txt', 's54.txt', 's55.txt', 's56.txt', 's57.txt', 's58.txt', 's59.txt', 's60.txt', 's61.txt', 's62.txt', 's63.txt', 's64.txt', 's65.txt', 's66.txt', 's67.txt', 's68.txt', 's69.txt', 's70.txt', 's71.txt', 's72.txt', 's73.txt', 's74.txt', 's75.txt', 's76.txt', 's77.txt', 's78.txt', 's79.txt', 's80.txt', 's81.txt', 's82.txt', 's83.txt', 's84.txt', 's85.txt', 's86.txt', 's87.txt', 's88.txt', 's89.txt', 's90.txt', 's91.txt', 's92.txt', 's93.txt', 's94.txt', 's95.txt', 's96.txt', 's97.txt', 's98.txt', 's99.txt', 's100.txt', 's101.txt', 's102.txt', 's103.txt', 's104.txt', 's105.txt', 's106.txt', 's107.txt', 's108.txt', 's109.txt', 's110.txt', 's111.txt', 's112.txt', 's113.txt', 's114.txt', 's115.txt', 's116.txt', 's117.txt', 's118.txt', 's119.txt', 's120.txt', 's121.txt', 's122.txt', 's123.txt', 's124.txt', 's125.txt', 's126.txt', 's127.txt', 's128.txt', 's129.txt', 's130.txt', 's131.txt', 's132.txt', 's133.txt', 's134.txt', 's135.txt', 's136.txt', 's137.txt', 's138.txt', 's139.txt', 's140.txt', 's141.txt', 's142.txt', 's143.txt', 's144.txt', 's145.txt', 's146.txt', 's147.txt', 's148.txt'];
   const st = document.getElementById("st");
   try {
     let b64 = "";
     for (let i = 0; i < PARTS.length; i++) {
       st.textContent = "تحميل " + (i+1) + "/" + PARTS.length;
-      const r = await fetch(PARTS[i] + "?v=95q3&t=" + Date.now());
+      const r = await fetch(PARTS[i] + "?v=95s2&t=" + Date.now());
       if (!r.ok) throw new Error(PARTS[i] + " HTTP " + r.status);
       b64 += (await r.text()).replace(/\s+/g, "");
     }
