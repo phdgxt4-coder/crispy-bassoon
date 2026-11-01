@@ -60,7 +60,7 @@ function loop(){
     if(ball.y<30||ball.x<55||ball.x>305){ball=null;balls--;document.getElementById('hint').textContent='كرات: '+balls+' · واقف: '+pins.filter(p=>p.up).length;
       if(pins.every(p=>!p.up)){resetPins();score+=20;scEl.textContent=score}
       if(balls<=0)end()}
-    g.fillStyle='#e2e8f0';g.beginPath();g.arc(ball.x,ball.y,15,0,Math.PI*2);g.fill();
+    if(ball){g.fillStyle='#e2e8f0';g.beginPath();g.arc(ball.x,ball.y,15,0,Math.PI*2);g.fill()}
   } else if(run){
     g.fillStyle='#94a3b8';g.beginPath();g.arc(180+aim,485,15,0,Math.PI*2);g.fill();
     g.strokeStyle='#fbbf24';g.beginPath();g.moveTo(180+aim,470);g.lineTo(180+aim*1.15,200);g.stroke();

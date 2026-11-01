@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v96">
+<meta name="sw-build" content="v97">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v96";</script>
+<script>window.APP_BUILD="v97";</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -22,12 +22,12 @@
     return (o+" · "+b+(m?" "+m[1]:"")+" · "+screen.width+"x"+screen.height+(pwa?" · PWA":"")).slice(0,120)}
   EC.dev=dev;
   function fnOf(st){if(!st)return"";var l=String(st).split("\n");for(var i=0;i<l.length;i++){var m=l[i].match(/at\s+(?:async\s+)?([^\s(]+)\s+\(/)||l[i].match(/^\s*([^\s@(]+)@/);if(m&&m[1]&&!/^(Object\.)?(anonymous|<anonymous>)$/.test(m[1]))return m[1].slice(0,60)}return""}
-  function clean(s,n){return String(s==null?"":s).replace(/https?:\/\/[^\s)'"]+/g,function(u){return u.split("?")[0].split("#")[0]}).slice(0,n)}
+  function clean(s,n){return String(s==null?"":s).replace(/https?:\/\/[^\s)'"]+/g,function(u){return u.split("?")[0].split("#")[0]}).replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g,"[email]").replace(/(?:\+?20|0)?1[0125]\d{8}\b/g,"[phone]").replace(/\b(Bearer|Basic)\s+[\w.~+\/=-]{8,}/gi,"$1 [hidden]").replace(/\b(key|token|secret|password|pass|pwd|apikey|api_key)(["']?\s*[:=]\s*["']?)[^\s"'&,;)]{3,}/gi,"$1$2[hidden]").replace(/\bAIza[\w-]{20,}|\bsk-[\w-]{16,}|\beyJ[\w-]{10,}\.[\w-]{10,}\.[\w-]{5,}/g,"[hidden]").replace(/\b(?=[A-Za-z0-9]*\d)(?=[A-Za-z0-9]*[A-Za-z])[A-Za-z0-9]{24,}\b/g,"[id]").slice(0,n)}
   EC.page=function(){return""};
   EC.report=function(type,err,extra){try{
     if(EC._in)return;EC._in=1;extra=extra||{};
     var msg=clean(err&&typeof err==="object"?((err.code?err.code+": ":"")+(err.message||"")):err,300),st=clean(err&&err.stack,800);
-    if(!msg){EC._in=0;return}
+    if(!msg||/ResizeObserver loop|^Script error|AbortError|chrome-extension:|moz-extension:|Non-Error promise rejection/i.test(msg+" "+st)){EC._in=0;return}
     var fn=extra.fn||fnOf(st),e={t:Date.now(),type:type,msg:msg,stack:st,fn:String(fn).slice(0,80),page:clean(EC.page(),60),dev:dev(),ver:window.APP_BUILD||"",sig:h(type+"|"+msg.slice(0,120)+"|"+fn)};
     EC.log.push(e);if(EC.log.length>EC.MAX)EC.log.shift();save();
     if(EC.buf.length<50)EC.buf.push(e);
@@ -1000,7 +1000,7 @@ body.mode-open #credit,body.mode-open #verBadge{display:none!important}
 </div>
 <style>html.lite *,html.lite *::before,html.lite *::after{animation:none!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}html.lite canvas#bgfx,html.lite .bgfx{display:none!important}</style>
 <script>(function(){try{var c=navigator.connection||{},weak=(navigator.deviceMemory&&navigator.deviceMemory<=2)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2)||c.saveData;var m=localStorage.getItem("lite_mode");if(m==="1"||(m!=="0"&&weak))document.documentElement.classList.add("lite")}catch(e){}})()</script>
-<div id="app"></div><div id="verBadge">v96</div>
+<div id="app"></div><div id="verBadge">v97</div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
@@ -2393,7 +2393,7 @@ function qbSetupView(){
 </div>
 <div class="qb-card">
 <label class="f">اللعبة</label>
-<select id="qbCreateGame" data-change="qbCreateGameChange">${Object.entries(QB_GAMES).map(([k,v])=>`<option value="${k}" ${k===gamePick?"selected":""}>${v}</option>`).join("")}</select>
+<select id="qbCreateGame" data-change="qbCreateGameChange">${Object.entries(QB_GAMES).filter(([k])=>k!=="los").map(([k,v])=>`<option value="${k}" ${k===gamePick?"selected":""}>${v}</option>`).join("")}</select>
 <label class="f">نوع الغرفة</label>
 <select id="qbPublicCreate"><option value="0" selected>خاص (كود / رابط فقط)</option><option value="1">عام (تظهر في الغرف المفتوحة)</option></select>
 <label class="f">عدد اللاعبين (حد أقصى)</label>
@@ -2442,7 +2442,7 @@ function qbLobbyView(){
 ${showList?`<div class="qb-viewers-panel"><b>في الغرفة دلوقتي</b>${players.map(p=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><span>${esc(p.name)}${p.uid===r.host?" 👑":""}${p.away?' <span class="qb-away-badge">(برا الغرفة)</span>':""}${p.ready?" ✓":""}</span>${isHost&&p.uid!==S.user.uid?`<button class="btn danger sm" data-act="qbKick" data-uid="${p.uid}">طرد</button>`:""}</div>`).join("")||`<div class="mut">فاضي</div>`}</div>`:""}
 ${isHost?`<div class="qb-card"><b>إعدادات المضيف 👑</b>
 <label class="f">اللعبة</label>
-<select id="qbGameSel">${Object.entries(QB_GAMES).map(([k,v])=>`<option value="${k}" ${k===gameId?"selected":""}>${v}</option>`).join("")}</select>
+<select id="qbGameSel">${Object.entries(QB_GAMES).filter(([k])=>k!=="los").map(([k,v])=>`<option value="${k}" ${k===gameId?"selected":""}>${v}</option>`).join("")}</select>
 <label class="f">لون الغرفة</label>
 <select id="qbColorSel">${Object.entries(QB_COLORS).map(([k,v])=>`<option value="${k}" ${k===color?"selected":""}>${v}</option>`).join("")}</select>
 <button class="btn sm" style="margin-top:8px" data-act="qbRoomSettings">حفظ الإعدادات</button>
@@ -2584,7 +2584,6 @@ ${gcard("⚡","linear-gradient(135deg,#059669,#34D399)","سرعة اللمس","�
       <div class="mut">مواجهة · المنطقة بتضيق</div>
       <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
         <a class="btn sm" href="push.html">🤖 العب</a>
-        <button class="btn sm ghost" data-act="openGameFriends" data-game="los">👥 صاحبك</button>
       </div>
     </div>
   </div>
@@ -3609,7 +3608,7 @@ function modeNav(){
 function modeView(m){
   m=m||modeCur();
   const exit=S.isAdmin?`<button class="btn ghost sm" data-act="modePreviewExit">رجوع للوحة</button>`:`<button class="btn ghost sm" data-act="logout">خروج</button>`;
-  if(m.kind==="htmlFile"&&!S.isAdmin&&!featState("games"))return `<div class="wrap"><div class="card empty"><b>الوضع متوقف مؤقتًا</b>${exit}</div></div>`;
+  if(m.kind==="site")return siteModeView(m,exit);
   if(m.kind==="htmlFile")return uploadedGameView(m,exit);
   if(m.kind==="url"){
     const u=modeSafeUrl(m.url);
@@ -3654,10 +3653,10 @@ function adminModes(){
   <div class="row" style="flex-wrap:nowrap;gap:12px;align-items:flex-start">
     <div class="av" style="border-radius:14px;font-size:26px;flex:none">${esc(m.ic||"🎛")}</div>
     <div style="flex:1;min-width:0"><b style="font-size:16px">${esc(m.n)}</b> ${on?pill("شغّال للطلاب","g"):""}${off?pill("معطّل","y"):""}
-      <div class="mut" style="font-size:13px;margin-top:2px">${esc(m.d||(m.kind==="url"?"صفحة/لعبة/برنامج بيتفتح بملء الشاشة: "+(m.url||""):(m.msg||"رسالة للطلاب")))}</div>
+      <div class="mut" style="font-size:13px;margin-top:2px">${esc(m.d||(m.kind==="url"?"صفحة/لعبة/برنامج بيتفتح بملء الشاشة: "+(m.url||""):m.kind==="site"?"الموقع كله بيتحول للملف: "+(m.fileName||""):(m.msg||"رسالة للطلاب")))}</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
         ${on?`<button class="btn sm ghost" disabled>✓ الوضع الحالي</button>`:off?`<button class="btn sm ghost" disabled>معطّل</button>`:`<button class="btn sm gold" data-act="setMode" data-id="${esc(m.id)}">تفعيل للطلاب</button>`}
-        ${(m.kind==="url"||m.kind==="htmlFile"||m.kind==="message")?`<button class="btn sm ghost" data-act="previewMode" data-id="${esc(m.id)}">👁 معاينة</button>`:""}
+        ${(m.kind==="url"||m.kind==="htmlFile"||m.kind==="message"||m.kind==="site")?`<button class="btn sm ghost" data-act="previewMode" data-id="${esc(m.id)}">👁 معاينة</button>`:""}
         ${m.custom?`<button class="btn sm ghost" data-act="editMode" data-id="${esc(m.id)}">✏️ تعديل</button>`:""}
         ${m.kind!=="platform"?`<button class="btn sm ghost" data-act="toggleModeOff" data-id="${esc(m.id)}">${off?"تفعيل الوضع":"تعطيل"}</button>`:""}
         ${m.custom?`<button class="btn sm danger" data-act="delMode" data-id="${esc(m.id)}">🗑</button>`:""}
@@ -3671,7 +3670,8 @@ ${list.map(card).join("")}
 <label class="f" for="mdName">الاسم</label><input id="mdName" type="text" maxlength="30" placeholder="مثلاً: ليلة الاختبار / لعبة الأسبوع">
 <label class="f" for="mdIc">أيقونة (إيموجي)</label><input id="mdIc" type="text" maxlength="4" value="🎮" style="max-width:100px">
 <label class="f" for="mdKind">النوع</label>
-<select id="mdKind"><option value="url">رابط HTTPS / صفحة داخلية</option><option value="htmlFile">رفع ملف لعبة HTML ذاتيّ الاحتواء</option><option value="message">رسالة للطلاب بس</option></select>
+<select id="mdKind"><option value="url">رابط HTTPS / صفحة داخلية</option><option value="site">🌐 موقع كامل — ارفع ملف والموقع كله يتحول له</option><option value="htmlFile">رفع ملف لعبة HTML ذاتيّ الاحتواء</option><option value="message">رسالة للطلاب بس</option></select>
+<label class="f" for="siteModeFile">ملف «موقع كامل» (index.html أو ZIP فيه index.html أو PDF أو صورة أو txt — حوالي 2MB)</label><input id="siteModeFile" type="file" accept=".html,.htm,.zip,.pdf,.png,.jpg,.jpeg,.gif,.webp,.svg,.txt,.md">
 <label class="f" for="modeGameFile">ملف اللعبة (.html فقط، بحد أقصى 600KB، لا يعتمد على ملفات خارجية)</label><input id="modeGameFile" type="file" accept=".html,text/html">
 <label class="f" for="mdUrl">الرابط (HTTPS أو اسم ملف محلي عند اختيار نوع الرابط)</label><input id="mdUrl" class="ltr" type="text" placeholder="https://example.com/game أو game.html">
 <label class="f" for="mdMsg">الرسالة (للنوع "رسالة")</label><textarea id="mdMsg" rows="2" placeholder="مثلاً: المنصة مقفولة النهارده، شوفوا الإعلان في القروب"></textarea>
@@ -6481,7 +6481,7 @@ const A={
     if(m.kind!=="platform"&&!await uiConfirm("تفعّل «"+m.n+"»؟ وضع المنصة هيتقفل على الطلاب تماماً لحد ما ترجّعه.",{title:"تغيير وضع التشغيل",icon:"🎛",ok:"فعّل",danger:false}))return;
     const prev=S.site.appMode||"platform";
     S.site.appMode=id;render(true);
-    try{await setDoc(doc(db,"config","site"),{appMode:id},{merge:true});toast(m.kind==="platform"?"✅ رجع وضع المنصة":"🎛 شغّال دلوقتي: "+m.n,true)}
+    try{await setDoc(doc(db,"config","site"),{appMode:id},{merge:true});toast(m.kind==="platform"?"✅ رجع وضع المنصة":"🎛 شغّال للطلاب: "+m.n+" — إنت كأدمن هتفضل شايف المنصة، اضغط «معاينة» عشان تشوف اللي بيشوفوه",true)}
     catch(e){S.site.appMode=prev;render(true);window.__cancel=true;toast("مقدرتش أحفظ",true)}
   },
   async addMode(){
@@ -6489,12 +6489,19 @@ const A={
     const n=(($("#mdName")&&$("#mdName").value)||"").trim().slice(0,30),ic=(($("#mdIc")&&$("#mdIc").value)||"🎛").trim().slice(0,4)||"🎛";
     const kind=(($("#mdKind")&&$("#mdKind").value)||"url"),url=(($("#mdUrl")&&$("#mdUrl").value)||"").trim(),msg=(($("#mdMsg")&&$("#mdMsg").value)||"").trim().slice(0,300);
     if(!n){toast("اكتب اسم الوضع");window.__cancel=true;return}
-    if(!["url","htmlFile","message"].includes(kind)){toast("نوع الوضع غير صالح",true);window.__cancel=true;return}
+    if(!["url","htmlFile","message","site"].includes(kind)){toast("نوع الوضع غير صالح",true);window.__cancel=true;return}
     if((S.site.modes||[]).length>=12){toast("وصلت للحد الأقصى للأوضاع المخصصة (12)",true);window.__cancel=true;return}
     if(kind==="url"&&!modeSafeUrl(url)){toast("الرابط لازم يبدأ بـ https:// أو يكون ملف HTML محليًا",true);window.__cancel=true;return}
     if(kind==="message"&&!msg){toast("اكتب الرسالة",true);window.__cancel=true;return}
     const id="m"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nm={id,n,ic,kind,url:kind==="url"?modeSafeUrl(url):"",msg:kind==="message"?msg:""};
     let gameId="";
+    if(kind==="site"){
+      const pend=window.__pendingSite;
+      if(!pend||!pend.chunks||!pend.chunks.length){toast("اختر الملف الأول وانتظر رسالة «الملف جاهز»",true);window.__cancel=true;return}
+      try{for(let i=0;i<pend.chunks.length;i++)await setDoc(doc(db,"config","siteMode_"+id+"_"+i),{d:pend.chunks[i],i,of:pend.chunks.length,updatedAt:serverTimestamp()})}
+      catch(e){await siteDelChunks({id,chunks:pend.chunks.length});toast("تعذر حفظ الملف؛ تأكد إنك نشرت قواعد Firestore الجديدة",true);window.__cancel=true;return}
+      Object.assign(nm,{sk:pend.sk,mime:pend.mime,chunks:pend.chunks.length,fileName:pend.name,bytes:pend.bytes});window.__pendingSite=null;
+    }
     if(kind==="htmlFile"){
       const pending=window.__pendingModeHtml;
       if(!pending||!pending.text){toast("اختر ملف HTML مستقل قبل الإضافة",true);window.__cancel=true;return}
@@ -6506,14 +6513,14 @@ const A={
     }
     const list=(S.site.modes||[]).concat([nm]);S.site.modes=list;render(true);
     try{await setDoc(doc(db,"config","site"),{modes:list},{merge:true});toast("اتضاف الوضع ✓",true)}
-    catch(e){S.site.modes=list.slice(0,-1);if(gameId)deleteDoc(doc(db,"config",gameId)).catch(()=>{});render(true);window.__cancel=true;toast("مقدرتش أحفظ الوضع",true)}
+    catch(e){S.site.modes=list.slice(0,-1);if(gameId)deleteDoc(doc(db,"config",gameId)).catch(()=>{});if(nm.chunks)siteDelChunks(nm);render(true);window.__cancel=true;toast("مقدرتش أحفظ الوضع",true)}
   },
   async delMode(d){
     const m=modesAll().find(x=>x.id===d.id);if(!m||!m.custom||!S.isAdmin)return;
     if(!await uiConfirm("تمسح الوضع «"+m.n+"»؟",{ok:"امسح"}))return;
     const list=(S.site.modes||[]).filter(x=>x.id!==d.id),wasOn=S.site.appMode===d.id,prevList=S.site.modes;
     S.site.modes=list;if(wasOn)S.site.appMode="platform";render(true);
-    try{await setDoc(doc(db,"config","site"),wasOn?{modes:list,appMode:"platform"}:{modes:list},{merge:true});if(gameDocId(m))await deleteDoc(doc(db,"config",gameDocId(m))).catch(()=>{});toast("اتمسح ✓")}
+    try{await setDoc(doc(db,"config","site"),wasOn?{modes:list,appMode:"platform"}:{modes:list},{merge:true});if(gameDocId(m))await deleteDoc(doc(db,"config",gameDocId(m))).catch(()=>{});if(m.kind==="site")await siteDelChunks(m);toast("اتمسح ✓")}
     catch(e){S.site.modes=prevList;if(wasOn)S.site.appMode=d.id;render(true);window.__cancel=true;toast("مقدرتش أحفظ",true)}
   },
   previewMode(d){S.modePrev=d.id;S.view="modePreview";render(true)},
@@ -9093,6 +9100,79 @@ function a11yFix(root){
 }
 /* v95: كود زرار الرجوع القديم (v42) كان بيقع بـ "S is not defined" لأنه في سكريبت منفصل — بنعرّض له اللي محتاجه */
 window.__elt={S,pauseExamNow,uiDialog};
+
+/* ===== v97 — وضع «موقع كامل»: ارفع ملف والموقع كله يتحوّل له ===== */
+const SITE_CSS=".site-full{background:#fff;z-index:20}.site-frame{flex:1;width:100%;border:0;background:#fff}.site-x{position:fixed;bottom:10px;left:10px;z-index:40;opacity:.5;border:0;border-radius:99px;padding:8px 14px;background:#111;color:#fff;font:600 13px system-ui,sans-serif;cursor:pointer}.site-x:hover,.site-x:focus{opacity:1}.site-img{flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;background:#111}.site-img img{max-width:100%;max-height:100%;object-fit:contain}.site-txt{flex:1;margin:0;padding:16px;overflow:auto;white-space:pre-wrap;background:#fff;color:#111;font:15px/1.7 system-ui,sans-serif}";
+{const st=document.createElement("style");st.textContent=SITE_CSS;document.head.appendChild(st)}
+const SITE_MAX_CHARS=2400000,SITE_MAX_CHUNKS=4;
+const SITE_MIME={png:"image/png",jpg:"image/jpeg",jpeg:"image/jpeg",gif:"image/gif",webp:"image/webp",svg:"image/svg+xml",pdf:"application/pdf",ico:"image/x-icon",mp3:"audio/mpeg",wav:"audio/wav",ogg:"audio/ogg",mp4:"video/mp4",webm:"video/webm",woff:"font/woff",woff2:"font/woff2",ttf:"font/ttf",otf:"font/otf",css:"text/css",js:"text/javascript",json:"application/json"};
+const siteExt=n=>(String(n||"").match(/\.([a-z0-9]+)$/i)||[,""])[1].toLowerCase();
+function siteChunks(str){const out=[];let cur="",b=0;for(const ch of str){const c=ch.codePointAt(0),n=c<128?1:c<2048?2:c<65536?3:4;if(b+n>800000){out.push(cur);cur="";b=0}cur+=ch;b+=n}if(cur)out.push(cur);return out}
+function siteB64(buf){let s="";const u=new Uint8Array(buf);for(let i=0;i<u.length;i+=32768)s+=String.fromCharCode.apply(null,u.subarray(i,i+32768));return btoa(s)}
+async function siteAsyncReplace(str,re,fn){const m=[...str.matchAll(re)];const r=await Promise.all(m.map(x=>fn(...x)));let i=0;return str.replace(re,()=>r[i++])}
+function siteLoadZipLib(){return new Promise((ok,no)=>{if(window.JSZip)return ok(window.JSZip);const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";s.onload=()=>window.JSZip?ok(window.JSZip):no(new Error("zip"));s.onerror=()=>no(new Error("zip"));document.head.appendChild(s)})}
+async function siteFromZip(f){
+  const Z=await siteLoadZipLib(),z=await Z.loadAsync(f);
+  const names=Object.keys(z.files).filter(n=>!z.files[n].dir&&!/^__MACOSX\//.test(n));
+  const idx=names.filter(n=>/(^|\/)index\.html?$/i.test(n)).sort((a,b)=>a.split("/").length-b.split("/").length)[0];
+  if(!idx)throw new Error("noindex");
+  const base=idx.replace(/[^\/]*$/,"");
+  const find=p=>{let q=String(p||"").trim().split("#")[0].split("?")[0];if(!q||/^(https?:|data:|blob:|\/\/|mailto:|tel:)/i.test(q))return null;try{q=decodeURIComponent(q)}catch(_){}q=q.replace(/^\.\//,"");const st=[];(q.startsWith("/")?q.slice(1):base+q).split("/").forEach(x=>{if(x==="..")st.pop();else if(x&&x!==".")st.push(x)});return z.files[st.join("/")]||null};
+  const uri=async fl=>{const e=siteExt(fl.name);return "data:"+(SITE_MIME[e]||"application/octet-stream")+";base64,"+await fl.async("base64")};
+  const cssFix=async t=>siteAsyncReplace(t,/url\(\s*(['"]?)([^)'"]+)\1\s*\)/g,async(all,q,p)=>{const fl=find(p);return fl?"url("+await uri(fl)+")":all});
+  let html=await z.files[idx].async("string");
+  html=await siteAsyncReplace(html,/<link\b[^>]*>/gi,async tag=>{if(!/rel\s*=\s*["']?stylesheet/i.test(tag))return tag;const h=(tag.match(/href\s*=\s*["']([^"']+)["']/i)||[])[1],fl=find(h);if(!fl)return tag;return "<style>"+(await cssFix(await fl.async("string"))).replace(/<\/style/gi,"<\\/style")+"</style>"});
+  html=await siteAsyncReplace(html,/<script\b([^>]*)\bsrc\s*=\s*["']([^"']+)["']([^>]*)>\s*<\/script>/gi,async(all,a,p,b)=>{const fl=find(p);if(!fl)return all;return "<script"+a+b+">"+(await fl.async("string")).replace(/<\/script/gi,"<\\/script")+"<\/script>"});
+  html=await siteAsyncReplace(html,/\b(src|poster)\s*=\s*(["'])([^"']+)\2/gi,async(all,k,q,p)=>{const fl=find(p);return fl&&SITE_MIME[siteExt(fl.name)]?k+"="+q+await uri(fl)+q:all});
+  html=await siteAsyncReplace(html,/<style\b[^>]*>[\s\S]*?<\/style>/gi,async tag=>cssFix(tag));
+  return html;
+}
+async function sitePrepare(f){
+  const e=siteExt(f.name),name=String(f.name).slice(0,120);let sk,mime="",str,bytes=f.size;
+  if(e==="html"||e==="htm"){str=(await f.text()).replace(/^﻿/,"");sk="html"}
+  else if(e==="zip"){str=await siteFromZip(f);sk="html"}
+  else if(e==="pdf"){if(f.size>1800000)throw new Error("big");str=siteB64(await f.arrayBuffer());sk="pdf";mime="application/pdf"}
+  else if(["png","jpg","jpeg","gif","webp","svg"].includes(e)){if(f.size>1800000)throw new Error("big");str=siteB64(await f.arrayBuffer());sk="img";mime=SITE_MIME[e]}
+  else if(e==="txt"||e==="md"){str=await f.text();sk="text"}
+  else throw new Error("type");
+  if(str.length>SITE_MAX_CHARS)throw new Error("big");
+  const chunks=siteChunks(str);if(chunks.length>SITE_MAX_CHUNKS||!chunks.length)throw new Error("big");
+  return {sk,mime,name,bytes,chunks};
+}
+async function siteDelChunks(m){const n=Math.min(+m.chunks||0,12);for(let i=0;i<n;i++){try{await deleteDoc(doc(db,"config","siteMode_"+m.id+"_"+i))}catch(_){}}if(S._siteDocs)delete S._siteDocs[m.id]}
+function siteLoad(m){
+  S._siteDocs=S._siteDocs||{};if(m.id in S._siteDocs||S._siteLoading===m.id)return;S._siteLoading=m.id;
+  Promise.all(Array.from({length:Math.min(+m.chunks||0,SITE_MAX_CHUNKS),},(_,i)=>getDoc(doc(db,"config","siteMode_"+m.id+"_"+i)))).then(ss=>{if(!ss.length||ss.some(s=>!s.exists()))throw new Error("missing");S._siteDocs[m.id]=ss.map(s=>String(s.data().d||"")).join("")})
+  .catch(()=>{S._siteDocs[m.id]=""}).then(()=>{S._siteLoading=null;if((modeOn()&&modeCur().id===m.id)||S.view==="modePreview")render(true)});
+}
+function siteHtmlDoc(raw){
+  const shim='<script>(function(){function M(){var d={};return{getItem:function(k){return k in d?d[k]:null},setItem:function(k,v){d[k]=String(v)},removeItem:function(k){delete d[k]},clear:function(){d={}},key:function(i){return Object.keys(d)[i]||null},get length(){return Object.keys(d).length}}}try{window.localStorage.getItem("x")}catch(e){try{Object.defineProperty(window,"localStorage",{value:M()});Object.defineProperty(window,"sessionStorage",{value:M()})}catch(_){}}})()<\/script>';
+  const csp='<meta http-equiv="Content-Security-Policy" content="default-src https: data: blob:; script-src https: \'unsafe-inline\' \'unsafe-eval\' blob:; style-src https: \'unsafe-inline\'; img-src https: data: blob:; media-src https: data: blob:; font-src https: data:; connect-src https: wss:; frame-src https: data: blob:; object-src \'none\'; base-uri \'none\'">';
+  const html=String(raw||"").replace(/^﻿/,"");
+  return /<head\b[^>]*>/i.test(html)?html.replace(/<head\b[^>]*>/i,x=>x+csp+shim):'<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+csp+shim+'</head><body>'+html+'</body></html>';
+}
+function siteModeView(m,exit){
+  const adm=S.isAdmin,xbtn=adm?`<button class="site-x" data-act="modePreviewExit">↩ رجوع للوحة</button>`:`<button class="site-x" data-act="logout">خروج</button>`;
+  S._siteDocs=S._siteDocs||{};
+  if(!(m.id in S._siteDocs)){siteLoad(m);return `<div class="mode-full site-full"><div class="center" style="margin:auto;color:#333">جاري التحميل…</div>${xbtn}</div>`}
+  const data=S._siteDocs[m.id];
+  if(!data)return `<div class="mode-full site-full"><div class="center" style="margin:auto;color:#333;padding:20px"><b>الملف غير متاح حالياً</b><div style="margin-top:8px">جرّب تاني بعد شوية.</div></div>${xbtn}</div>`;
+  let inner;
+  if(m.sk==="html")inner=`<iframe class="site-frame" sandbox="allow-scripts allow-forms allow-popups allow-modals allow-downloads allow-pointer-lock allow-fullscreen" referrerpolicy="no-referrer" title="${esc(m.n)}" allow="fullscreen; autoplay; gamepad; accelerometer" srcdoc="${esc(siteHtmlDoc(data))}"></iframe>`;
+  else if(m.sk==="img")inner=`<div class="site-img"><img alt="${esc(m.n)}" src="data:${esc(m.mime||"image/png")};base64,${esc(data)}"></div>`;
+  else if(m.sk==="pdf"){S._siteBlob=S._siteBlob||{};if(!S._siteBlob[m.id]){try{const bin=atob(data),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);S._siteBlob[m.id]=URL.createObjectURL(new Blob([u],{type:"application/pdf"}))}catch(_){S._siteBlob[m.id]=""}}
+    inner=S._siteBlob[m.id]?`<iframe class="site-frame" title="${esc(m.n)}" src="${esc(S._siteBlob[m.id])}"></iframe>`:`<div class="center" style="margin:auto">تعذر عرض الملف</div>`}
+  else inner=`<pre class="site-txt" dir="auto">${esc(data)}</pre>`;
+  return `<div class="mode-full site-full">${inner}${xbtn}</div>`;
+}
+document.addEventListener("change",e=>{
+  if(!e.target||e.target.id!=="siteModeFile")return;
+  const f=e.target.files&&e.target.files[0];window.__pendingSite=null;if(!f)return;
+  if(!S.isAdmin){e.target.value="";toast("رفع الأوضاع للأدمن فقط",true);return}
+  toast("بجهّز الملف…",true);
+  sitePrepare(f).then(p=>{window.__pendingSite=p;toast("الملف جاهز ("+p.chunks.length+" جزء)؛ اضغط إضافة الوضع",true)})
+  .catch(er=>{e.target.value="";const c=String(er&&er.message||"");toast(c==="noindex"?"الـ ZIP لازم يكون فيه index.html":c==="zip"?"مقدرتش أحمّل مكتبة ZIP؛ ارفع index.html مباشرة":c==="type"?"النوع ده مش مدعوم: html / zip / pdf / صورة / txt":c==="big"?"الملف كبير. الحد حوالي 2MB":"تعذر تجهيز الملف",true)})
+});
 
 // gal-secure-context
 document.addEventListener("click",e=>{
