@@ -8,7 +8,7 @@
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v101";</script>
+<script>window.APP_BUILD="v102";</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -1046,7 +1046,7 @@ html.lite .card,html.lite nav.bot{-webkit-backdrop-filter:none!important;backdro
 
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,updatePassword,setPersistence,browserLocalPersistence} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,updatePassword,setPersistence,browserLocalPersistence,indexedDBLocalPersistence} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager,doc,getDoc as _fbGetDoc,setDoc as _fbSetDoc,addDoc as _fbAddDoc,updateDoc as _fbUpdateDoc,deleteDoc as _fbDeleteDoc,deleteField,collection,onSnapshot,query,where,orderBy,limit,getDocs as _fbGetDocs,Timestamp,terminate,clearIndexedDbPersistence,writeBatch,serverTimestamp,arrayUnion,arrayRemove,FieldPath,startAfter,documentId} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* v92: مراقبة عمليات Firebase (آخر 100) — تمرّر النتيجة كما هي دون تغيير */
@@ -1054,7 +1054,7 @@ const __EC=window.__EC||{ops:[],log:[],buf:[],net:[],report(){},page(){return""}
 function __opPath(a){try{const r=a&&a[0];if(!r)return"";if(typeof r.path==="string")return r.path;if(r._query&&r._query.path&&r._query.path.canonicalString)return r._query.path.canonicalString();if(r._path&&r._path.canonicalString)return r._path.canonicalString()}catch(_){}return""}
 function __wrapOp(name,fn){return function(...a){
   const t0=performance.now(),rec={t:Date.now(),op:name,path:__opPath(a),ms:0,ok:true};
-  const done=(ok,e)=>{rec.ms=Math.round(performance.now()-t0);rec.ok=ok;if(!ok){rec.err=String(e&&(e.code||e.message)||e).slice(0,80);try{__EC.report("firebase",e,{fn:name+" "+rec.path})}catch(_){}}__EC.ops.push(rec);if(__EC.ops.length>100)__EC.ops.shift()};
+  const done=(ok,e)=>{rec.ms=Math.round(performance.now()-t0);rec.ok=ok;if(!ok&&!(e&&e.code==="permission-denied"&&(!window.__authUid||(/^students\/([^\/]+)$/.test(rec.path)&&RegExp.$1!==window.__authUid)))){rec.err=String(e&&(e.code||e.message)||e).slice(0,80);try{__EC.report("firebase",e,{fn:name+" "+rec.path})}catch(_){}}__EC.ops.push(rec);if(__EC.ops.length>100)__EC.ops.shift()};
   let p;try{p=fn.apply(this,a)}catch(e){done(false,e);throw e}
   if(p&&typeof p.then==="function")return p.then(r=>{done(true);return r},e=>{done(false,e);throw e});
   done(true);return p}}
@@ -1270,7 +1270,7 @@ let messaging=null, __msgMod=null;
 if(configured){
   const app=initializeApp(firebaseConfig);
   auth=getAuth(app);window.__fbApp=app;try{db=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})})}catch(e){db=initializeFirestore(app,{})}
-  try{setPersistence(auth,browserLocalPersistence).catch(function(){})}catch(_){}getIp();
+  try{setPersistence(auth,indexedDBLocalPersistence).catch(function(){try{setPersistence(auth,browserLocalPersistence).catch(function(){})}catch(_){}});try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(_){}}catch(_){}getIp();
   // FCM اختياري — لو فشل ميمنعش تشغيل المنصة
   (async()=>{
     try{
@@ -1710,7 +1710,7 @@ async function registerFcmToken(userGesture){
     const reg=await navigator.serviceWorker.ready;
     const token=await __msgMod.getToken(messaging,{vapidKey:vapid,serviceWorkerRegistration:reg});
     if(!token)return R(false,"فايربيز ما رجّعش توكن");
-    await setDoc(doc(db,"students",S.user.uid),{fcmToken:token,fcmUpdatedAt:serverTimestamp()},{merge:true});
+    await updateDoc(doc(db,"students",S.user.uid),{fcmToken:token,fcmUpdatedAt:serverTimestamp()});
     if(S.profile)S.profile.fcmToken=token;
     pushSubscribe(token);
     return R(true,"تم تسجيل الجهاز للإشعارات ✓");
@@ -1776,8 +1776,7 @@ async function startSession(u){
   S.isAdmin=u.uid===ADMIN_UID;S.adminLogin=false;S.error="";
   // بوابة الصيانة قبل أي كتابة أو listener
   if(S.site&&S.site.maintenance&&!S.isAdmin){
-    try{await signOut(auth)}catch(_){}
-    S.user=null;S.profile=null;S.view="auth";S.adminLogin=false;
+    S.user=u;S.profile=S.profile||{name:"طالب",phone:""};S.view="home";S.adminLogin=false;
     stopSubs();
     toast("المنصة تحت الصيانة — للأدمن فقط");
     render(true);
@@ -1853,7 +1852,7 @@ async function startSession(u){
       },err=>console.warn("adminConvs",err)));
       const iv=setInterval(()=>{if(S.view==="admin"&&S.tab==="live")scheduleRender()},30000);subs.push(()=>clearInterval(iv));
     }else{
-      const p=await getDoc(doc(db,"students",u.uid));
+      let p;try{p=await getDoc(doc(db,"students",u.uid))}catch(e){p={exists:()=>false,data:()=>({})}}
       S.profile=p.exists()?{name:"طالب",phone:"",...p.data()}:{name:"طالب",phone:""};if(!S.profile.name)S.profile.name="طالب";
       // دليل عام محدود بالأسماء فقط؛ لا نفتح قراءة جماعية لمجموعة students.
       try{
@@ -1990,12 +1989,11 @@ if(configured){
 
     // ثغرة: طالب كان داخل قبل الصيانة → اطلعه فورًا
     if(S.site.maintenance&&S.user&&!S.isAdmin){
-      try{signOut(auth)}catch(_){}
-      S.user=null;S.profile=null;S.isAdmin=false;S.view="auth";S.adminLogin=false;
-      stopSubs();
+      stopSubs();S.view="home";
       render(true);
       return;
     }
+    try{if(was&&!S.site.maintenance&&S.user&&!S.isAdmin&&auth.currentUser)startSession(auth.currentUser)}catch(_){}
     if(S.view==="loading")return;
     if(S.view==="auth"&&was===S.site.maintenance)return;
     render();
@@ -2003,13 +2001,13 @@ if(configured){
   // جلسة ثابتة: مفيش خروج غير لما الطالب يدوس «تسجيل خروج»
   let __authBoot=true;
   onAuthStateChanged(auth,u=>{
+    window.__authUid=u?u.uid:"";
     if(S.registering)return;
     const run=()=>{
       try{
         if(u){
           if(S.site&&S.site.maintenance&&u.uid!==ADMIN_UID){
-            try{signOut(auth)}catch(_){}
-            stopSubs();S.user=null;S.isAdmin=false;S.profile=null;S.view="auth";S.adminLogin=false;
+            stopSubs();S.user=u;S.isAdmin=false;S.profile=S.profile||{name:"طالب",phone:""};S.view="home";
             render(true);return;
           }
           __authBoot=false;
@@ -2044,11 +2042,11 @@ if(configured){
   });
   // لو التحميل طول: متودّيش لشاشة الدخول لو في مستخدم
   setTimeout(function(){
-    if(S.view==="loading"&&!S.user){
+    if(S.view==="loading"&&!S.user&&!(auth&&auth.currentUser)){
       S.view="auth";
       render(true);
     }
-  },4000);
+  },10000);
 }else{S.site={maintenance:true,message:"المنصة تحت التعديل."};S.view="auth"}
 
 
@@ -3640,7 +3638,7 @@ const MODE_BUILTIN=[
   {id:"games",n:"وضع الألعاب",ic:"🎮",kind:"games",d:"الطلاب يشوفوا الألعاب بس. الامتحانات والشات والتقدم مقفولين."}
 ];
 const MODE_GAMEVIEWS=new Set(["games","mathg","xo","hang","spin","react","qbSetup","qbLobby","qbPlay","qbResult"]);
-function modesAll(){return MODE_BUILTIN.concat(((S.site&&S.site.modes)||[]).filter(m=>m&&m.id).map(m=>({...m,custom:true})))}
+function modesAll(){const seen=new Set(["kind:platform","kind:games"]),ids=new Set(MODE_BUILTIN.map(x=>x.id));const cu=((S.site&&S.site.modes)||[]).filter(m=>{if(!m||!m.id||ids.has(m.id))return false;ids.add(m.id);const g=(m.kind==="platform"||m.kind==="games")?"kind:"+m.kind:[m.kind,m.url,m.gameDoc,m.sk,m.chunks,m.msg].join("|");if(seen.has(g))return false;seen.add(g);return true}).map(m=>({...m,custom:true}));return MODE_BUILTIN.concat(cu)}
 const modeIsOff=id=>Array.isArray(S.site&&S.site.modesOff)&&S.site.modesOff.includes(id);
 function modeCur(){const id=(S.site&&S.site.appMode)||"platform";const m=modesAll().find(x=>x.id===id);return(m&&!modeIsOff(m.id))?m:MODE_BUILTIN[0]}
 function modeOn(){
@@ -4991,7 +4989,7 @@ const A={
     try{
       const blocked=[...((S.profile&&S.profile.blockedUsers)||[])];
       if(!blocked.includes(d.uid))blocked.push(d.uid);
-      await setDoc(doc(db,"students",S.user.uid),{blockedUsers:blocked},{merge:true});
+      await updateDoc(doc(db,"students",S.user.uid),{blockedUsers:blocked});
       if(S.profile)S.profile.blockedUsers=blocked;
       toast("اتحظر ✓",true);
     }catch(e){toast("فشل الحظر")}
@@ -8396,14 +8394,14 @@ function ecDownload(rows,fmt,name){
 
 function errReportTxt(){
   const rows=(S.errLogs||[]).slice(),TY={js:"خطأ في الكود (JavaScript)",promise:"وعد فشل (Promise)",firebase:"خطأ من Firebase (صلاحيات/اتصال)",network:"فشل تحميل ملف/صورة",console:"خطأ مسجّل من الكود"};
-  const dt=t=>{try{return new Date(t).toLocaleString("ar-EG",{hour12:true})}catch(_){return String(t)}};
+  const tm=r=>r.t||(r.createdAt&&r.createdAt.seconds?r.createdAt.seconds*1000:0);const dt=t=>{try{return t?new Date(t).toLocaleString("ar-EG",{hour12:true}):"غير مسجّل"}catch(_){return String(t)}};
   const who=r=>r.role==="admin"||r.admin?"أدمن":(r.role||r.uid||r.u)?"طالب":"غير معروف";
   const out=["تقرير أخطاء منصة التفوق","الإصدار: "+(window.APP_BUILD||"?"),"تاريخ التقرير: "+dt(Date.now()),"عدد الأخطاء: "+rows.length,"","طريقة الاستخدام: ابعت الملف ده لـ Claude واكتب «صحّح الأخطاء دي»، وهو يعدّل الكود ويرجّعلك ملفات جديدة ترفعها على GitHub.","=".repeat(40),""];
-  rows.sort((a,b)=>(b.t||0)-(a.t||0)).forEach((r,i)=>{
-    const known=["t","type","msg","stack","fn","page","dev","ver","sig"];
+  rows.sort((a,b)=>tm(b)-tm(a)).forEach((r,i)=>{
+    const known=["createdAt","id","day","status","uid","t","type","msg","stack","fn","page","dev","ver","sig"];
     const extra={};Object.keys(r).forEach(k=>{if(!known.includes(k))extra[k]=r[k]});
     out.push("#"+(i+1)+" — "+(TY[r.type]||r.type||"غير مصنّف"),
-      "الوقت: "+dt(r.t),"حصل عند: "+who(r),"الصفحة/الشاشة: "+(r.page||"غير معروف"),
+      "الوقت: "+dt(tm(r)),"حصل عند: "+who(r),"الصفحة/الشاشة: "+(r.page||"غير معروف"),
       "الدالة: "+(r.fn||"-"),"الإصدار: "+(r.ver||"-"),"الجهاز: "+JSON.stringify(r.dev||"-"),
       "الرسالة: "+(r.msg||"-"),"التفاصيل التقنية:",String(r.stack||"-").slice(0,700),
       Object.keys(extra).length?"بيانات إضافية: "+JSON.stringify(extra).slice(0,400):"","-".repeat(40),"");
@@ -8436,7 +8434,7 @@ function adminErrors(){
   ${S.errMsg?`<div class="err" style="margin-bottom:10px">تعذّر قراءة السجل (${esc(S.errMsg)}). غالباً قواعد Firestore الجديدة لسه ماتنشرتش.</div>`:""}
   <div class="stats"><div class="stat card"><b>${today.length}</b><span class="mut">أخطاء النهارده</span></div><div class="stat card"><b>${users}</b><span class="mut">مستخدمين متأثرين</span></div><div class="stat card"><b>${cnt("open")}</b><span class="mut">مفتوح</span></div><div class="stat card"><b>${__EC.log.length}</b><span class="mut">على جهازك</span></div></div>
   <div class="tabs" style="margin-bottom:10px">${fb.map(([k,v])=>`<button class="tab ${f===k?"on":""}" data-act="errFilter" data-id="${k}">${v}${k!=="all"?` (${cnt(k)})`:""}</button>`).join("")}</div>
-  <div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn ghost sm" data-act="errRefresh">🔄 تحديث</button><button class="btn ghost sm" data-act="errExport" data-id="txt">📄 تقرير للمبرمج ⬇</button><button class="btn ghost sm" data-act="errExport" data-id="json">JSON ⬇</button><button class="btn ghost sm" data-act="errExport" data-id="csv">CSV ⬇</button><button class="btn ghost sm" data-act="errPurge">مسح المحلول والمتجاهل</button></div></div>
+  <div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn ghost sm" data-act="errRefresh">🔄 تحديث</button><button class="btn ghost sm" data-act="errExport" data-id="txt">📄 تقرير للمبرمج ⬇</button><button class="btn ghost sm" data-act="errExport" data-id="json">JSON ⬇</button><button class="btn ghost sm" data-act="errExport" data-id="csv">CSV ⬇</button><button class="btn ghost sm" data-act="errPurge">مسح المحلول والمتجاهل</button><button class="btn sm gold" data-act="errClearAll">✅ تم تصحيح الكل (حذف)</button></div></div>
   ${list.length?list.map(row).join(""):`<div class="card"><div class="mut">مفيش أخطاء في الفلتر ده ✅</div></div>`}`;
 }
 
@@ -8515,6 +8513,14 @@ Object.assign(A,{
   errFix(d){return A.errMark(d.id,"fixed")},
   errIgnore(d){return A.errMark(d.id,"ignored")},
   async errDel(d){await deleteDoc(doc(db,"errorLogs",d.id));S.errLogs=(S.errLogs||[]).filter(r=>r.id!==d.id);render()},
+  async errClearAll(){
+    if(!confirm("حذف كل الأخطاء الحالية (في السيرفر وعلى جهازك)؟ الأخطاء الجديدة هتتسجل من الأول."))return;
+    try{
+      for(let i=0;i<6;i++){const q=await getDocs(query(collection(db,"errorLogs"),limit(400)));if(!q.size)break;const b=writeBatch(db);q.docs.forEach(d=>b.delete(d.ref));await b.commit();if(q.size<400)break}
+    }catch(e){toast("مقدرتش أمسح كلها: "+((e&&e.code)||""),true)}
+    try{__EC.log.length=0;__EC.buf.length=0;localStorage.removeItem("ec_log")}catch(_){}
+    S.errLogs=[];toast("اتمسحت كل الأخطاء ✓");render()
+  },
   async errPurge(){
     const ids=(S.errLogs||[]).filter(x=>x.status==="fixed"||x.status==="ignored").map(x=>x.id);
     if(!ids.length){toast("مفيش حاجة تتمسح");return}
@@ -8958,6 +8964,7 @@ function staffView(){
 /* واجهة المالك: تعيين الفريق */
 async function stfLoad(){
   S.stf=S.stf||{};S.stf.req=1;
+  if(!S.isAdmin){S.stf.list=[];return}
   try{const s=await getDocs(collection(db,"staff"));S.stf.list=s.docs.map(d=>({id:d.id,...d.data()}))}catch(e){S.stf.list=[];S.stf.err=(e&&e.code)||"error"}
   if(S.isAdmin&&S.view==="admin"&&S.tab==="managers")render();
 }
