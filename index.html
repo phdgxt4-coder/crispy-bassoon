@@ -8,7 +8,7 @@
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v100";</script>
+<script>window.APP_BUILD="v101";</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -106,7 +106,6 @@
 .mt-b{padding:11px 18px;border-radius:99px;font-weight:700;text-decoration:none;color:#fff;border:1px solid rgba(255,255,255,.25);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .mt-b.wa{background:linear-gradient(135deg,#25D366,#128C7E)}.mt-b.tg{background:linear-gradient(135deg,#2AABEE,#229ED9)}
 .card{-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-.subj .g,.v76-tile .g{display:inline-flex;align-items:center;justify-content:center;border-radius:14px;background:linear-gradient(145deg,rgba(255,255,255,.3),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 4px 10px rgba(0,0,0,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 #credit a{display:inline-block;margin:3px 6px;padding:4px 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--pri);text-decoration:none;font-weight:600;direction:ltr}
 body.has-credit .wrap{padding-bottom:12px}
 .tg-lbl{width:auto!important;min-width:44px;height:auto!important;min-height:44px;padding:3px 7px!important;border-radius:14px!important;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;font-size:17px}
@@ -1008,35 +1007,28 @@ html[data-fx="lite"] .fc-bar i,html.lite .fc-bar i{transition:none}
 .mode-frame{flex:1;width:100%;border:0;background:#000}
 body.mode-open #credit,body.mode-open #verBadge{display:none!important}
 
-/* ===== v100 — Liquid Glass (iOS style) ===== */
-:root{--gl:color-mix(in srgb,var(--card) 52%,transparent);--gl2:color-mix(in srgb,var(--card) 70%,transparent);--glb:rgba(255,255,255,.16);--glhi:rgba(255,255,255,.28);--glsh:0 8px 32px rgba(0,0,0,.28);--blur:blur(22px) saturate(180%)}
-:root[data-theme="light"],:root[data-theme="morning"],:root[data-theme="comfort"]{--gl:rgba(255,255,255,.58);--gl2:rgba(255,255,255,.75);--glb:rgba(255,255,255,.85);--glhi:rgba(255,255,255,.95);--glsh:0 8px 30px rgba(30,50,90,.14)}
-html{background:var(--bg)}
-body{background:radial-gradient(60% 40% at 15% 8%,color-mix(in srgb,var(--pri) 34%,transparent),transparent 70%),radial-gradient(55% 40% at 90% 30%,color-mix(in srgb,var(--gold,#F5B94A) 26%,transparent),transparent 70%),radial-gradient(70% 45% at 30% 95%,color-mix(in srgb,var(--ind,var(--pri2)) 28%,transparent),transparent 70%),var(--bg)!important;background-attachment:fixed!important}
-.card,.dlg,.timer,.opt,.subj,.v76-tile,.lf-card{background:var(--gl)!important;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--glb)!important;box-shadow:var(--glsh),inset 0 1px 0 var(--glhi),inset 0 -1px 0 rgba(255,255,255,.04)!important;border-radius:24px}
-.subj,.v76-tile{background:linear-gradient(145deg,rgba(255,255,255,.22),rgba(255,255,255,.04)),var(--gl)!important;position:relative;overflow:hidden}
-.subj::before,.v76-tile::before{content:"";position:absolute;inset:0 0 55% 0;background:linear-gradient(180deg,rgba(255,255,255,.28),transparent);pointer-events:none;border-radius:inherit}
-.btn{background:linear-gradient(180deg,color-mix(in srgb,var(--pri) 92%,#fff 8%),var(--pri2))!important;border:1px solid rgba(255,255,255,.35)!important;box-shadow:0 6px 18px color-mix(in srgb,var(--pri) 40%,transparent),inset 0 1px 0 rgba(255,255,255,.5)!important;border-radius:999px!important;text-shadow:0 1px 0 rgba(0,0,0,.08)}
-.btn.ghost,.btn.sm.ghost{background:var(--gl)!important;color:var(--ink)!important;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:1px solid var(--glb)!important;box-shadow:inset 0 1px 0 var(--glhi),0 4px 14px rgba(0,0,0,.12)!important}
-.btn.gold{background:linear-gradient(180deg,#FFD97A,#E0A030)!important;color:#2A1A00!important}
-.btn.danger{background:linear-gradient(180deg,#ff7a70,#e0392e)!important;color:#fff!important}
-.btn:active{transform:scale(.96)}
-nav.bot{inset-inline:12px!important;bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;padding:8px!important;border-radius:30px;background:var(--gl)!important;-webkit-backdrop-filter:blur(26px) saturate(190%);backdrop-filter:blur(26px) saturate(190%);border:1px solid var(--glb)!important;box-shadow:0 12px 40px rgba(0,0,0,.35),inset 0 1px 0 var(--glhi)}
-nav.bot button{border-radius:22px!important;background:transparent!important;border:0!important;transition:background .25s,transform .15s}
-nav.bot button.on{background:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,.08))!important;box-shadow:inset 0 1px 0 var(--glhi),0 4px 12px rgba(0,0,0,.15)!important;color:var(--pri)!important}
-#credit.nav{padding-bottom:104px!important}
-input,select,textarea{background:color-mix(in srgb,var(--bg) 45%,transparent)!important;border:1px solid var(--glb)!important;border-radius:16px!important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:inset 0 2px 6px rgba(0,0,0,.18)}
-input:focus,select:focus,textarea:focus{border-color:var(--pri)!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--pri) 28%,transparent),inset 0 2px 6px rgba(0,0,0,.12)!important}
-.pill{background:var(--gl)!important;border:1px solid var(--glb);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-.tg{background:var(--gl)!important;border:1px solid var(--glb)!important;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:inset 0 1px 0 var(--glhi)!important;border-radius:50%}
-.dlg-ov,.lf-ov{-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);background:rgba(0,0,0,.35)!important}
-.toast-in{background:var(--gl2)!important;color:var(--ink)!important;border:1px solid var(--glb)!important;-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border-radius:20px!important;box-shadow:var(--glsh)!important}
-.opt input:checked+span{box-shadow:inset 0 0 0 2px var(--pri)}
-.logo{filter:drop-shadow(0 4px 14px color-mix(in srgb,var(--pri) 45%,transparent))}
-.auth-hero{filter:drop-shadow(0 10px 30px color-mix(in srgb,var(--pri) 40%,transparent))}
-html.lite .card,html.lite .dlg,html.lite .btn.ghost,html.lite nav.bot,html.lite input,html.lite select,html.lite textarea,html.lite .pill,html.lite .tg,html.lite .toast-in,html.lite .opt,html.lite .subj,html.lite .v76-tile{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
-@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.card,nav.bot,.dlg{background:var(--card)!important}}
-@media (prefers-reduced-motion:reduce){.btn,.card{transition:none!important}}
+/* ===== v101 — زجاج خفيف + ألوان حيّة ===== */
+:root{--glb:rgba(255,255,255,.12);--glhi:rgba(255,255,255,.14)}
+:root[data-theme="light"],:root[data-theme="morning"],:root[data-theme="comfort"]{--glb:rgba(255,255,255,.8);--glhi:rgba(255,255,255,.9)}
+.card{background:color-mix(in srgb,var(--card) 82%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid var(--glb);box-shadow:var(--sh),inset 0 1px 0 var(--glhi)}
+nav.bot{background:color-mix(in srgb,var(--card) 86%,transparent)!important;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+nav.bot button,.btn,.tg,.logo,.pill,.tab,.tg-lbl{white-space:nowrap}
+nav.bot button{font-size:14px;padding-inline:10px;min-width:0}
+.top{flex-wrap:wrap;row-gap:8px}
+.logo{flex:0 0 auto;word-break:keep-all;overflow-wrap:normal}
+.hdr-r{display:flex!important;flex-wrap:wrap;gap:8px;align-items:center;min-width:0}
+.hdr-l{flex-wrap:wrap!important}
+.hdr-r .hdr-s{grid-column:auto;grid-row:auto}
+.btn.sm,.tg{flex:0 0 auto}
+.subj{box-shadow:0 8px 22px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.35);position:relative;overflow:hidden}
+.subj::after{content:"";position:absolute;inset:0 0 58% 0;background:linear-gradient(180deg,rgba(255,255,255,.22),transparent);pointer-events:none}
+.subj .g{background:rgba(255,255,255,.16);border-radius:14px;padding:2px 12px}
+.auth-hero{display:block!important;width:min(62vw,250px);height:auto;margin:6px auto 4px;-webkit-mask-image:radial-gradient(closest-side,#000 82%,transparent 100%);mask-image:radial-gradient(closest-side,#000 82%,transparent 100%)}
+.logo-mark{display:inline-block!important;vertical-align:middle;margin-inline-end:6px}
+:root:not([data-theme="golden"]) .logo{display:flex;align-items:center}
+#credit .cr-links a{display:inline-flex;align-items:center;gap:6px}
+#credit .cr-links svg,.mt-b svg{width:18px;height:18px;flex:0 0 auto}
+html.lite .card,html.lite nav.bot{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 </style>
 </head>
 <body>
@@ -1083,12 +1075,12 @@ const ADMIN_UID = "JQs0vS5OomSJy3qlYf8HRXAwS1w1";       // معرّف حساب �
 const DOMAIN = "@eltafawoq.app";
 const MAX_ATTEMPTS = 2;
 const SUBJECTS = [
-  {id:"arabic",name:"عربي",g:"أ ب",c:"#B91C1C",c2:"#C2410C"},
-  {id:"science",name:"علوم",g:"H₂O",c:"#155E75",c2:"#0E7490"},
-  {id:"history",name:"تاريخ",g:"م",c:"#92400E",c2:"#B45309"},
-  {id:"english",name:"إنجليزي",g:"Aa",c:"#1D4ED8",c2:"#4338CA"},
-  {id:"philosophy",name:"فلسفة",g:"؟",c:"#6D28D9",c2:"#86198F"},
-  {id:"math",name:"رياضيات",g:"π",c:"#166534",c2:"#15803D"}
+  {id:"arabic",name:"عربي",g:"أ ب",c:"#EF4444",c2:"#F97316"},
+  {id:"science",name:"علوم",g:"H₂O",c:"#06B6D4",c2:"#3B82F6"},
+  {id:"history",name:"تاريخ",g:"م",c:"#F59E0B",c2:"#EA580C"},
+  {id:"english",name:"إنجليزي",g:"Aa",c:"#3B82F6",c2:"#8B5CF6"},
+  {id:"philosophy",name:"فلسفة",g:"؟",c:"#A855F7",c2:"#EC4899"},
+  {id:"math",name:"رياضيات",g:"π",c:"#22C55E",c2:"#14B8A6"}
 ];
 const subName = id => id==="general"?"عام":(SUBJECTS.find(s=>s.id===id)||{name:id}).name;
 
@@ -1262,7 +1254,7 @@ const S = {asms:[],asm:null,editingAsm:null,logins:{},sq:"",starts:[],examsLoade
   qb:null,qbSub:null,qbChatSub:null,qbChat:[],board:[],notifs:[],unreadNotif:0,activity:[],activityLoaded:false,
   fadaye7:[],suspicious:[],adminRooms:[],adminConvs:[]};
 // زيارة تانية: مفيش انتظار. أول زيارة: 200ms بس
-const splashUntil=Date.now()+500;
+const splashUntil=Date.now()+2100;
 
 const vis=e=>!e.publishAt||Date.now()>=e.publishAt;
 const todayKey=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
@@ -2182,7 +2174,7 @@ function render(force){
   try{app.classList.toggle("noanim",!__newView)}catch(_){}
   try{
     let cr=document.getElementById("credit");
-    if(!cr){cr=document.createElement("div");cr.id="credit";cr.innerHTML=`<div><b>بواسطة المبرمج مورا 么</b></div><div class="cr-sub">للتواصل:</div><div class="cr-links"><a href="https://wa.me/201013905431" target="_blank" rel="noopener">💬 واتساب 01013905431</a><a href="https://t.me/T_YAXC" target="_blank" rel="noopener">✈️ تلجرام T_YAXC</a></div>`;app.insertAdjacentElement("afterend",cr)}
+    if(!cr){cr=document.createElement("div");cr.id="credit";cr.innerHTML=`<div><b>بواسطة المبرمج مورا 么</b></div><div class="cr-sub">للتواصل:</div><div class="cr-links"><a href="https://wa.me/201013905431" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="#25D366"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.2 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.2-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.8-.1 1.4z"/></svg> واتساب 01013905431</a><a href="https://t.me/T_YAXC" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="#2AABEE"><path d="M21.9 4.3 2.6 11.7c-1 .4-1 1.1-.2 1.3l4.9 1.5 1.9 5.8c.2.6.4.8.8.8s.6-.2.9-.5l2.4-2.3 4.9 3.6c.9.5 1.5.2 1.8-.8l3.2-15.1c.3-1.3-.5-1.900-1.300-1.700zM9.200 13.800l9.100-5.700c.4-.3.800-.1.500.2l-7.500 6.800-.3 3.200-1.800-4.500z"/></svg> تلجرام T_YAXC</a></div>`;app.insertAdjacentElement("afterend",cr)}
     const noCr=["loading","exam","chatThread","groupThread","ai","qbPlay"].includes(S.view);
     cr.style.display=noCr?"none":"";document.body.classList.toggle("has-credit",!noCr);
     cr.classList.toggle("nav",!!S.user&&!S.isAdmin&&!noCr&&!(typeof isAsmManager==="function"&&S.view==="asmAdmin"));
@@ -2237,7 +2229,7 @@ ${featOn("life")?`<button class="${S.view==="life"?"on":""}" data-act="openLife"
 function maintenance(){return `<div class="wrap"><div class="center mt-wrap"><div class="mt-glass"><div class="mt-ic">🛠️</div><div class="logo" data-act="logoTap" style="display:inline-block;font-size:34px">التفوق</div>
 <h1 class="mt-h">المنصة في صيانة قصيرة</h1>
 <p class="mut mt-p">${esc(S.site.message||"بنحسّن المنصة دلوقتي، وهنرجع قريب جدًا.")}</p>
-<div class="mt-btns"><a class="mt-b wa" href="https://wa.me/201013905431" target="_blank" rel="noopener">💬 واتساب</a><a class="mt-b tg" href="https://t.me/T_YAXC" target="_blank" rel="noopener">✈️ تلجرام</a></div>
+<div class="mt-btns"><a class="mt-b wa" href="https://wa.me/201013905431" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.2 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.2-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.8-.1 1.4z"/></svg> واتساب</a><a class="mt-b tg" href="https://t.me/T_YAXC" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="#fff"><path d="M21.9 4.3 2.6 11.7c-1 .4-1 1.1-.2 1.3l4.9 1.5 1.9 5.8c.2.6.4.8.8.8s.6-.2.9-.5l2.4-2.3 4.9 3.6c.9.5 1.5.2 1.8-.8l3.2-15.1c.3-1.3-.5-1.900-1.300-1.700zM9.200 13.800l9.100-5.700c.4-.3.800-.1.500.2l-7.500 6.800-.3 3.200-1.800-4.500z"/></svg> تلجرام</a></div>
 ${S.user?`<button class="btn ghost" data-act="logout" style="margin-top:14px">تسجيل خروج</button>`:""}</div></div></div>`}
 
 function authView(){
@@ -8401,6 +8393,25 @@ function ecDownload(rows,fmt,name){
   const url=URL.createObjectURL(new Blob([body],{type:fmt==="csv"?"text/csv;charset=utf-8":"application/json"}));
   const a=document.createElement("a");a.href=url;a.download=name+"-"+ecDay()+"."+fmt;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);
 }
+
+function errReportTxt(){
+  const rows=(S.errLogs||[]).slice(),TY={js:"خطأ في الكود (JavaScript)",promise:"وعد فشل (Promise)",firebase:"خطأ من Firebase (صلاحيات/اتصال)",network:"فشل تحميل ملف/صورة",console:"خطأ مسجّل من الكود"};
+  const dt=t=>{try{return new Date(t).toLocaleString("ar-EG",{hour12:true})}catch(_){return String(t)}};
+  const who=r=>r.role==="admin"||r.admin?"أدمن":(r.role||r.uid||r.u)?"طالب":"غير معروف";
+  const out=["تقرير أخطاء منصة التفوق","الإصدار: "+(window.APP_BUILD||"?"),"تاريخ التقرير: "+dt(Date.now()),"عدد الأخطاء: "+rows.length,"","طريقة الاستخدام: ابعت الملف ده لـ Claude واكتب «صحّح الأخطاء دي»، وهو يعدّل الكود ويرجّعلك ملفات جديدة ترفعها على GitHub.","=".repeat(40),""];
+  rows.sort((a,b)=>(b.t||0)-(a.t||0)).forEach((r,i)=>{
+    const known=["t","type","msg","stack","fn","page","dev","ver","sig"];
+    const extra={};Object.keys(r).forEach(k=>{if(!known.includes(k))extra[k]=r[k]});
+    out.push("#"+(i+1)+" — "+(TY[r.type]||r.type||"غير مصنّف"),
+      "الوقت: "+dt(r.t),"حصل عند: "+who(r),"الصفحة/الشاشة: "+(r.page||"غير معروف"),
+      "الدالة: "+(r.fn||"-"),"الإصدار: "+(r.ver||"-"),"الجهاز: "+JSON.stringify(r.dev||"-"),
+      "الرسالة: "+(r.msg||"-"),"التفاصيل التقنية:",String(r.stack||"-").slice(0,700),
+      Object.keys(extra).length?"بيانات إضافية: "+JSON.stringify(extra).slice(0,400):"","-".repeat(40),"");
+  });
+  const b=new Blob(["\ufeff"+out.join("\n")],{type:"text/plain;charset=utf-8"}),a=document.createElement("a");
+  a.href=URL.createObjectURL(b);a.download="تقرير-أخطاء-التفوق-"+new Date().toISOString().slice(0,10)+".txt";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);
+  try{toast("اتنزّل ملف التقرير ✓")}catch(_){}
+}
 function adminErrors(){
   if(!S._errReq){S._errReq=1;ecLoad()}
   const all=Array.isArray(S.errLogs)?S.errLogs:null;
@@ -8425,7 +8436,7 @@ function adminErrors(){
   ${S.errMsg?`<div class="err" style="margin-bottom:10px">تعذّر قراءة السجل (${esc(S.errMsg)}). غالباً قواعد Firestore الجديدة لسه ماتنشرتش.</div>`:""}
   <div class="stats"><div class="stat card"><b>${today.length}</b><span class="mut">أخطاء النهارده</span></div><div class="stat card"><b>${users}</b><span class="mut">مستخدمين متأثرين</span></div><div class="stat card"><b>${cnt("open")}</b><span class="mut">مفتوح</span></div><div class="stat card"><b>${__EC.log.length}</b><span class="mut">على جهازك</span></div></div>
   <div class="tabs" style="margin-bottom:10px">${fb.map(([k,v])=>`<button class="tab ${f===k?"on":""}" data-act="errFilter" data-id="${k}">${v}${k!=="all"?` (${cnt(k)})`:""}</button>`).join("")}</div>
-  <div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn ghost sm" data-act="errRefresh">🔄 تحديث</button><button class="btn ghost sm" data-act="errExport" data-id="json">JSON ⬇</button><button class="btn ghost sm" data-act="errExport" data-id="csv">CSV ⬇</button><button class="btn ghost sm" data-act="errPurge">مسح المحلول والمتجاهل</button></div></div>
+  <div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn ghost sm" data-act="errRefresh">🔄 تحديث</button><button class="btn ghost sm" data-act="errExport" data-id="txt">📄 تقرير للمبرمج ⬇</button><button class="btn ghost sm" data-act="errExport" data-id="json">JSON ⬇</button><button class="btn ghost sm" data-act="errExport" data-id="csv">CSV ⬇</button><button class="btn ghost sm" data-act="errPurge">مسح المحلول والمتجاهل</button></div></div>
   ${list.length?list.map(row).join(""):`<div class="card"><div class="mut">مفيش أخطاء في الفلتر ده ✅</div></div>`}`;
 }
 
@@ -8510,7 +8521,7 @@ Object.assign(A,{
     const b=writeBatch(db);ids.forEach(i=>b.delete(doc(db,"errorLogs",i)));await b.commit();
     const g=new Set(ids);S.errLogs=S.errLogs.filter(x=>!g.has(x.id));toast("اتمسح "+ids.length);render()
   },
-  errExport(d){ecDownload(S.errLogs||[],d.id==="csv"?"csv":"json","errors")},
+  errExport(d){if(d.id==="txt")return errReportTxt();ecDownload(S.errLogs||[],d.id==="csv"?"csv":"json","errors")},
   devExport(d){ecDownload(__EC.log,d.id==="csv"?"csv":"json","device-errors")},
   devClear(){__EC.log.length=0;try{localStorage.removeItem("ec_log")}catch(_){}render()},
   hlRefresh(){S._hl={};S._hlReq=0;S._errReq=0;render()},
