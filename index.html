@@ -18,7 +18,7 @@
     let b64 = "";
     for (let i = 0; i < PARTS.length; i++) {
       st.textContent = "تحميل " + (i+1) + "/" + PARTS.length;
-      const r = await fetch(PARTS[i] + "?v=95q2");
+      const r = await fetch(PARTS[i] + "?v=95q3&t=" + Date.now());
       if (!r.ok) throw new Error(PARTS[i] + " HTTP " + r.status);
       b64 += (await r.text()).replace(/\s+/g, "");
     }
