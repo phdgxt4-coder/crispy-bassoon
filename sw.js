@@ -1,7 +1,6 @@
-/* التفوق SW — v102 — scoped cache cleanup; no forced page reload */
-const CACHE = "eltafawoq-v102";
-const BUILD = "20261101-v102";
-const PETS = [];
+/* التفوق SW — v103 — scoped cache cleanup; no forced page reload */
+const CACHE = "eltafawoq-v103";
+const BUILD = "20261101-v103"; /* review:keep — علامة بناء بيقراها فحص اتساق الإصدار */
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");

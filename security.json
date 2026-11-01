@@ -1,0 +1,118 @@
+{
+ "files": 2,
+ "lines": 10760,
+ "issues": [
+  {
+   "rule": "innerhtml-template",
+   "severity": "medium",
+   "file": "index.html",
+   "line": 4391,
+   "message": "قيمة ديناميكية داخل innerHTML — اتأكد إن esc() ملفوفة حوالين مدخلات المستخدم",
+   "match": ".innerHTML=`<div class=\"dlg\"><div class=\"dlg-ic\">${o.icon||(danger?\"⚠️\":hasIn?\"✏️\":\"❔\")}</div>${o.title?`<h3 class=\"dlg-"
+  },
+  {
+   "rule": "innerhtml-template",
+   "severity": "medium",
+   "file": "index.html",
+   "line": 4713,
+   "message": "قيمة ديناميكية داخل innerHTML — اتأكد إن esc() ملفوفة حوالين مدخلات المستخدم",
+   "match": ".innerHTML=REACT_EMOJI.map(e=>`<button type=\"button\" data-e=\"${e}\">${"
+  },
+  {
+   "rule": "innerhtml-template",
+   "severity": "medium",
+   "file": "index.html",
+   "line": 6228,
+   "message": "قيمة ديناميكية داخل innerHTML — اتأكد إن esc() ملفوفة حوالين مدخلات المستخدم",
+   "match": ".innerHTML=`<button class=\"btn sm\" type=\"button\">إغلاق ✕</button><img src=\"${"
+  },
+  {
+   "rule": "innerhtml-template",
+   "severity": "medium",
+   "file": "index.html",
+   "line": 6404,
+   "message": "قيمة ديناميكية داخل innerHTML — اتأكد إن esc() ملفوفة حوالين مدخلات المستخدم",
+   "match": ".innerHTML=`<div class=\"err\">مفيش أسئلة للمعاينة${"
+  },
+  {
+   "rule": "innerhtml-template",
+   "severity": "medium",
+   "file": "index.html",
+   "line": 6406,
+   "message": "قيمة ديناميكية داخل innerHTML — اتأكد إن esc() ملفوفة حوالين مدخلات المستخدم",
+   "match": ".innerHTML=`<div class=\"card\" style=\"background:var(--sel)\"><b>معاينة (${qs.length} سؤال)</b>${errors.length?`<div class"
+  },
+  {
+   "rule": "innerhtml-template",
+   "severity": "medium",
+   "file": "index.html",
+   "line": 7017,
+   "message": "قيمة ديناميكية داخل innerHTML — اتأكد إن esc() ملفوفة حوالين مدخلات المستخدم",
+   "match": ".innerHTML=`<div class=\"call-box\"><div class=\"pulse\"></div><b dir=\"auto\">${"
+  },
+  {
+   "rule": "innerhtml-template",
+   "severity": "medium",
+   "file": "index.html",
+   "line": 7029,
+   "message": "قيمة ديناميكية داخل innerHTML — اتأكد إن esc() ملفوفة حوالين مدخلات المستخدم",
+   "match": ".innerHTML=`<div class=\"call-box\"><div class=\"pulse\"></div><b dir=\"auto\">${"
+  },
+  {
+   "rule": "innerhtml-template",
+   "severity": "medium",
+   "file": "index.html",
+   "line": 7479,
+   "message": "قيمة ديناميكية داخل innerHTML — اتأكد إن esc() ملفوفة حوالين مدخلات المستخدم",
+   "match": ".innerHTML=`↓ رسائل جديدة${n?` <span class=\"n\">${"
+  },
+  {
+   "rule": "innerhtml-template",
+   "severity": "medium",
+   "file": "index.html",
+   "line": 7605,
+   "message": "قيمة ديناميكية داخل innerHTML — اتأكد إن esc() ملفوفة حوالين مدخلات المستخدم",
+   "match": ".innerHTML=S.qbChat.map(m=>`<div class=\"qb-chat-msg\"><div class=\"qb-chat-head\">${qbChatAvatar(m)}<button type=\"button\" c"
+  },
+  {
+   "rule": "innerhtml-template",
+   "severity": "medium",
+   "file": "index.html",
+   "line": 8322,
+   "message": "قيمة ديناميكية داخل innerHTML — اتأكد إن esc() ملفوفة حوالين مدخلات المستخدم",
+   "match": ".innerHTML=`${mc} اختياري${es?` + ${es} مقالي`:\"\"}${f?` + ${f} للتسلية`:\"\"}`+(errors.length?` <span style=\"color:var(--b"
+  },
+  {
+   "rule": "innerhtml-template",
+   "severity": "medium",
+   "file": "index.html",
+   "line": 9517,
+   "message": "قيمة ديناميكية داخل innerHTML — اتأكد إن esc() ملفوفة حوالين مدخلات المستخدم",
+   "match": ".innerHTML=`<div class=\"lf-prize\"><div style=\"font-size:64px;line-height:1.3\">${"
+  },
+  {
+   "rule": "innerhtml-template",
+   "severity": "medium",
+   "file": "index.html",
+   "line": 9519,
+   "message": "قيمة ديناميكية داخل innerHTML — اتأكد إن esc() ملفوفة حوالين مدخلات المستخدم",
+   "match": ".innerHTML=`<div class=\"lf-card ${stg>=5?\"rl\":stg>=4?\"re\":\"\"}\" data-tilt><div>${lfFr(ah,l)}<h3 style=\"margin:8px 0 2px\">"
+  },
+  {
+   "rule": "innerhtml-template",
+   "severity": "medium",
+   "file": "index.html",
+   "line": 9568,
+   "message": "قيمة ديناميكية داخل innerHTML — اتأكد إن esc() ملفوفة حوالين مدخلات المستخدم",
+   "match": ".innerHTML=`<span class=\"bd\">${st===0?\"🥚\":S.life.pet.t}${"
+  },
+  {
+   "rule": "missing-csp",
+   "severity": "medium",
+   "file": "index.html",
+   "line": 1,
+   "message": "صفحة HTML بدون Content-Security-Policy — مفيش خط دفاع إضافي ضد XSS",
+   "match": ""
+  }
+ ]
+}
