@@ -1,8 +1,7 @@
-/* التفوق SW — v112 — scoped cache cleanup; no forced page reload */
-const CACHE = "eltafawoq-v112";
-const BUILD = "20261102-v112"; /* review:keep — علامة بناء بيقراها فحص اتساق الإصدار */
+/* التفوق SW — v110 — scoped cache cleanup; no forced page reload */
+const CACHE = "eltafawoq-v110.3";
+const BUILD = "20261101-v110"; /* review:keep — علامة بناء بيقراها فحص اتساق الإصدار */
 
-const PETS = ["boar","corgi","fox","hare","hippo","lion","sheep","spino","trex","zebra"].map((n) => "./pets/" + n + ".glb"); /* كان PETS مش معرّف → التثبيت كان بيفشل */
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
 
@@ -73,7 +72,7 @@ self.addEventListener("install", (e) => {
   e.waitUntil(
     caches.open(CACHE).then((c) =>
       /* كل ملف لوحده: لو ملف واحد مش موجود (404) بقية الملفات تتخزّن عادي — addAll كان بيفشل كله */
-      Promise.allSettled(["./index.html","./manifest.json","./memory-game.html","./draw-guess.html","./words-crush.html","./runner.html","./space.html","./doodle.html","./fishing.html","./push.html","./logo.webp","./mark.png","./icons/icon-192.png","./icons/icon-512.png"].concat(PETS).map((u) => c.add(u)))
+      Promise.allSettled(["./index.html","./manifest.json","./memory-game.html","./draw-guess.html","./words-crush.html","./runner.html","./space.html","./doodle.html","./fishing.html","./push.html"].concat(PETS).map((u) => c.add(u)))
     )
   );
 });
