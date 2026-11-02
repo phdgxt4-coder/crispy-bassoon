@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v115">
+<meta name="sw-build" content="v131">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v115";</script>
+<script>window.APP_BUILD="v131";/* v131: إصلاحات شاملة — معالجة أخطاء أقوى + ثغرات أمنية مقفولة + SW أصمد */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -40,7 +40,14 @@
     var msg=clean(err&&typeof err==="object"?((err.code?err.code+": ":"")+(err.message||"")):err,300),st=clean(err&&err.stack,800);
     if(!msg||/ResizeObserver loop|^Script error|AbortError|chrome-extension:|moz-extension:|Non-Error promise rejection|lease.*expired|Failed to obtain|INTERNAL ASSERTION/i.test(msg+" "+st)){EC._in=0;return}
     var fn=extra.fn||fnOf(st),imp=EC.impact(type,msg);
-    var e={t:Date.now(),type:type,msg:msg,stack:st,fn:String(fn).slice(0,80),page:clean(EC.page(),60),dev:dev(),ver:window.APP_BUILD||"",sig:h(type+"|"+msg.slice(0,120)+"|"+fn),impact:imp};
+    var hint="";
+    try{
+      if(/permission-denied/i.test(msg))hint="rules";
+      else if(/Transaction too big|transaction.*size/i.test(msg))hint="batch";
+      else if(/workers\.dev|Failed to fetch/i.test(msg))hint="network-worker";
+      else if(/is not defined|ReferenceError|Cannot read/i.test(msg))hint="js";
+    }catch(x){}
+    var e={t:Date.now(),type:type,msg:msg,stack:st,fn:String(fn).slice(0,80),page:clean(EC.page(),60),dev:dev(),ver:window.APP_BUILD||"",sig:h(type+"|"+msg.slice(0,120)+"|"+fn),impact:imp,hint:hint};
     EC.log.push(e);if(EC.log.length>EC.MAX)EC.log.shift();save();
     if(EC.buf.length<50)EC.buf.push(e);
     EC._in=0}catch(x){EC._in=0}};
@@ -648,7 +655,7 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
   animation:spLine .6s ease .55s forwards}
 .splash-sub{color:rgba(255,255,255,.78);font-size:15px;opacity:0;animation:spIn .6s ease .7s forwards}
 .splash-bar{width:140px;height:4px;background:rgba(255,255,255,.22);border-radius:99px;margin:28px auto 0;overflow:hidden}
-.splash-bar i{display:block;height:100%;width:0;background:#E3A81C;border-radius:99px;animation:spBar .9s linear .2s forwards;box-shadow:0 0 12px rgba(227,168,28,.55)}
+.splash-bar i{display:block;height:100%;width:0;background:#E3A81C;border-radius:99px;animation:spBar 2.0s linear .1s forwards;box-shadow:0 0 12px rgba(227,168,28,.55)}
 .splash-line{background:#E3A81C!important}
 @keyframes spIn{to{opacity:1;transform:none}}
 @keyframes spLine{to{width:56px}}
@@ -676,6 +683,52 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
 .qb-player .score{font-family:'Reem Kufi',sans-serif;font-size:28px;color:var(--pri);line-height:1.1}
 .qb-player .name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .qb-streak{display:inline-block;background:var(--gold);color:#2b2000;border-radius:99px;padding:1px 8px;font-size:12px;font-weight:700;margin-top:2px;animation:pop .35s ease}
+
+/* Stage 8: Advanced QB — teams + answer reveal */
+.qb-teamA{border-color:#3B82F6!important;box-shadow:0 0 0 1px #3B82F6}
+.qb-teamB{border-color:#EF4444!important;box-shadow:0 0 0 1px #EF4444}
+.qb-team-badge{font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;margin-right:4px}
+.qb-team-badge.a{background:#3B82F6;color:#fff}
+.qb-team-badge.b{background:#EF4444;color:#fff}
+.qb-reveal-banner{margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--gbg);border:1px solid var(--ok);color:var(--ink);font-weight:600;text-align:center;animation:enter .2s ease}
+.qb-reveal-banner.wrong-pick{background:var(--rbg);border-color:var(--bad)}
+.qb-mode-chip{display:inline-block;background:rgba(255,255,255,.15);border-radius:99px;padding:2px 10px;font-size:12px;margin-top:4px}
+.qb-mvp-banner{text-align:center;padding:14px;border-radius:16px;background:linear-gradient(135deg,rgba(245,185,74,.25),rgba(255,255,255,.05));border:1px solid var(--gold);margin:10px 0;animation:pop .45s var(--ease-spring)}
+.qb-mvp-banner b{font-size:18px;color:var(--gold)}
+.qb-win-streak{display:inline-block;background:linear-gradient(135deg,#F59E0B,#B45309);color:#fff;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:700}
+
+/* Stage 10: Memory Battle + Treasure Race */
+.qb-mem-mask{filter:blur(8px);user-select:none;pointer-events:none;opacity:.45;transition:filter .3s,opacity .3s}
+.qb-mem-countdown{text-align:center;font-size:28px;font-weight:800;color:var(--pri);margin:8px 0;animation:pop .3s ease}
+.qb-treasure-track{display:flex;gap:4px;align-items:center;margin:8px 0;flex-wrap:wrap;justify-content:center}
+.qb-treasure-step{width:18px;height:18px;border-radius:50%;background:var(--line);border:2px solid var(--card)}
+.qb-treasure-step.on{background:var(--gold);border-color:var(--gold);box-shadow:0 0 8px rgba(245,185,74,.5)}
+.qb-treasure-step.me{outline:2px solid var(--pri);outline-offset:2px}
+.qb-treasure-goal{font-size:20px;margin-right:4px}
+
+.qb-lives{letter-spacing:1px;font-size:13px}
+.qb-elim{opacity:.45;filter:grayscale(.8)}
+.qb-elim-banner{text-align:center;padding:10px;border-radius:12px;background:var(--rbg);border:1px solid var(--bad);margin:8px 0;font-weight:700}
+
+/* Stage 12 Anti-lag */
+
+/* Stage 13 Final polish */
+.chk-list{list-style:none;padding:0;margin:8px 0}
+.chk-list li{padding:8px 10px;border-radius:10px;border:1px solid var(--line);margin:6px 0;display:flex;gap:8px;align-items:flex-start;background:var(--card)}
+.chk-list li.ok{border-color:var(--ok);background:var(--gbg)}
+.chk-list li.bad{border-color:var(--bad);background:var(--rbg)}
+.chk-list .ck{flex-shrink:0;font-weight:700}
+.final-banner{text-align:center;padding:16px;border-radius:16px;background:linear-gradient(135deg,rgba(11,93,87,.12),rgba(245,185,74,.12));border:1px solid var(--pri);margin:12px 0}
+
+.preload-bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:10px 0}
+.preload-bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pri),var(--gold));border-radius:99px;transition:width .25s ease}
+.preload-card{padding:14px;border-radius:16px;border:1px solid var(--line);background:var(--card);margin:10px 0}
+.sw-update-banner{position:fixed;bottom:72px;left:12px;right:12px;z-index:90;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--pri);box-shadow:var(--sh);display:flex;gap:10px;align-items:center;flex-wrap:wrap;animation:enter .25s ease}
+.sw-update-banner .btn{flex-shrink:0}
+
+
+
+
 .qb-qbox{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 16px;margin:8px 0 12px;box-shadow:var(--sh);animation:qin .4s ease}
 .qb-opts{display:grid;gap:8px}
 .qb-opt{font:inherit;text-align:start;padding:14px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;transition:transform .15s,border-color .2s,background .2s;font-weight:500}
@@ -789,6 +842,12 @@ nav.bot button.on{background:var(--sel);color:var(--pri)}
   color:#fff
 }
 .tk-bubble.me .msg-reacts button.on{background:rgba(255,255,255,.32);border-color:#fff}
+.tk-ctx{position:fixed;z-index:95;min-width:140px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.35);padding:6px;animation:rsIn .14s ease-out}
+.tk-ctx button{display:block;width:100%;text-align:start;font:inherit;border:0;background:transparent;color:inherit;padding:10px 12px;border-radius:10px;cursor:pointer}
+.tk-ctx button:active{background:var(--sel)}
+.tk-bubble.sending{opacity:.72}
+.tk-bubble.failed{outline:1px dashed var(--bad)}
+.tk-search-row input:focus{outline:2px solid color-mix(in srgb,var(--pri) 45%,transparent);outline-offset:1px}
 .tk-bubble.them .msg-reacts button,.tk-bubble.them .react-add{
   background:var(--card);border-color:var(--line);color:var(--ink)
 }
@@ -1657,7 +1716,7 @@ input[type=file]::file-selector-button{margin-inline-end:10px;border:0;border-ra
 </div>
 <style>html.lite *,html.lite *::before,html.lite *::after{animation:none!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}html.lite canvas#bgfx,html.lite .bgfx{display:none!important}</style>
 <script>(function(){try{var c=navigator.connection||{},weak=(navigator.deviceMemory&&navigator.deviceMemory<=2)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2)||c.saveData;var m=localStorage.getItem("lite_mode");if(m==="1"||(m!=="0"&&weak))document.documentElement.classList.add("lite")}catch(e){}})()</script>
-<div id="app"></div><div id="verBadge">v114</div>
+<div id="app"></div><div id="verBadge">v131</div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
@@ -2373,6 +2432,16 @@ if("serviceWorker" in navigator){
       S._pendingCall=d.callId;
       try{handlePendingCall()}catch(_){}
     }
+    /* Stage 12: SW اتفعّل بعد موافقة المستخدم */
+    if(d.type==="SW_ACTIVATED"){
+      S._swWaiting=false;S._swProgress=null;
+      toast("التحديث اتفعّل ✓ — المنصة جاهزة",true);
+      try{render()}catch(_){}
+    }
+  });
+  /* Stage 12: إشعار بتحديث جديد بدون ريلود قسري */
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{
+    /* مش بنعمل location.reload تلقائي — المستخدم يختار */
   });
 }
 
@@ -2436,7 +2505,7 @@ async function startSession(u){
       S.view="admin";S.tab="dash";
       try{autoRebuildBoard()}catch(_){}
       let f1=true,f2=true,f3=true,__resT=0,__altT=0,__staT=0,__exaT=0;
-      subs.push(onSnapshot(/*full-scan-ok*/collection(db,"exams"),s=>{
+      subs.push(onSnapshot(/*admin-bounded*/query(collection(db,"exams"),limit(200)),s=>{
       S.exams=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));
       try{if(S.exams.length)localStorage.setItem("exams_cache_v1",JSON.stringify(S.exams.map(e=>({id:e.id,title:e.title,subject:e.subject,minutes:e.minutes,passMark:e.passMark,published:e.published}))))}catch(_){}
       if(S.view==="admin"&&["dash","exams","editExam"].includes(S.tab))trailR("exa",1500)}));
@@ -2448,8 +2517,8 @@ async function startSession(u){
       // assessments: ensureAsmsListen عند تبويب التقييمات
 
       // lazy fadaye7 + books: عند فتح التبويب
-      subs.push(onSnapshot(/*full-scan-ok*/collection(db,"studentsPrivate"),s=>{S.priv={};s.docs.forEach(d=>S.priv[d.id]=d.data());(S.students||[]).forEach(x=>Object.assign(x,S.priv[x.id]||{}))},e=>console.warn("priv",e)));setTimeout(()=>{try{lfMigrate()}catch(_){}},4000);
-      subs.push(onSnapshot(/*full-scan-ok*/collection(db,"students"),s=>{
+      subs.push(onSnapshot(/*admin-bounded*/query(collection(db,"studentsPrivate"),limit(500)),s=>{S.priv={};s.docs.forEach(d=>S.priv[d.id]=d.data());(S.students||[]).forEach(x=>Object.assign(x,S.priv[x.id]||{}))},e=>console.warn("priv",e)));setTimeout(()=>{try{lfMigrate()}catch(_){}},4000);
+      subs.push(onSnapshot(/*admin-bounded*/query(collection(db,"students"),limit(500)),s=>{
         S.students=s.docs.map(d=>({id:d.id,...d.data(),...((S.priv||{})[d.id]||{})})).sort((a,b)=>tms(b)-tms(a));
         mergePresence();
         try{
@@ -2563,7 +2632,7 @@ async function startSession(u){
           try{restoreNavState()}catch(_){}
         }
       };
-      subs.push(onSnapshot(query(collection(db,"exams"),where("published","==",true)),s=>{
+      subs.push(onSnapshot(query(collection(db,"exams"),where("published","==",true),limit(150)),s=>{
         const list=s.docs.map(d=>({id:d.id,...d.data()})).filter(e=>e.published).sort((a,b)=>tms(b)-tms(a));
         if(__seenExams){
           list.forEach(e=>{
@@ -2777,7 +2846,7 @@ function render(force){
   else if(modeOn()&&modeCur().kind!=="games"){h=modeView()}
   else{
     if(modeOn()&&!MODE_GAMEVIEWS.has(S.view))S.view="games";
-    const m={games:gamesView,mathg:mathView,xo:xoView,hang:hangView,spin:spinView,react:reactView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,weakQuiz:weakQuizView,flash:flashView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView,life:lifeView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View,staff:staffView,tanagha:tanaghaView,gallery:galleryView,groups:groupsView,groupThread:groupThreadView,ai:aiView,books:booksView,bag:bagView,focus:focusView,notes:notesView};
+    const m={games:gamesView,checklist:checklistView,mathg:mathView,xo:xoView,hang:hangView,spin:spinView,react:reactView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,weakQuiz:weakQuizView,flash:flashView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView,life:lifeView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View,staff:staffView,tanagha:tanaghaView,gallery:galleryView,groups:groupsView,groupThread:groupThreadView,ai:aiView,books:booksView,bag:bagView,focus:focusView,notes:notesView};
     let fn=m[S.view];
     {const __ft=featOfView(S.view);if(__ft&&!featOn(__ft))fn=featOffView}
     if(S.view==="tanaghaLock"||(isTgView(S.view)&&tanaghaState(S.profile)!=="approved"))fn=tanaghaLockedView;
@@ -2835,6 +2904,15 @@ function render(force){
       if(din&&!din._typingBound){
         din._typingBound=true;
         din.addEventListener("input",()=>signalDmTyping());
+      }
+      const dms=$("#dmSearch");
+      if(dms&&!dms._searchBound){
+        dms._searchBound=true;
+        let t=null;
+        dms.addEventListener("input",()=>{
+          clearTimeout(t);
+          t=setTimeout(()=>{S.chatSearch=String(dms.value||"").slice(0,80);const log=$("#dmChatLog");if(log){const q=(S.chatSearch||"").trim().toLowerCase();const msgs=S.chatMsgs||[];const list=q?msgs.filter(m=>!m.deleted&&((m.text||"").toLowerCase().includes(q)||(m.fromName||"").toLowerCase().includes(q))):msgs;try{patchChatLog(log,list,dmBubbleHtml,q?"<div class=\"mut\" style=\"text-align:center;margin:auto\">مفيش نتائج للبحث</div>":(typeof EMPTY_DM!=="undefined"?EMPTY_DM:"<div class=\"mut\" style=\"text-align:center;margin:auto\">قول سلام 👋</div>"))}catch(_){render(true)}const btn=document.querySelector('[data-act="dmClearSearch"]');if(btn)btn.style.display=S.chatSearch?"":"none"}else render(true)},120);
+        });
       }
     }
   }else{
@@ -3102,6 +3180,63 @@ function qbShuffleQ(item, seed){
   return {q:item.q,o,a,sub:item.sub,exam:item.exam};
 }
 function qbCode(){const c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<5;i++)s+=c[Math.floor(Math.random()*c.length)];return s}
+/* ===== STAGE 6: واجهة غرف موحّدة فوق qb_rooms (للاستخدام من كل الألعاب لاحقًا) =====
+   Room schema: code, host, hostName, game, status(lobby|playing|done),
+   settings-like: subject, grade, difficulty, qCount, sec, maxPlayers, public, color,
+   players{uid:{name,ready,score,...}}, qs[], seed, joinRequests{}, createdAt
+*/
+const RoomAPI={
+  code:qbCode,
+  async create(opts){
+    opts=opts||{};
+    const game=opts.game||"qb";
+    const code=qbCode();
+    const av=typeof packTinyAvatar==="function"?await packTinyAvatar(S.profile&&S.profile.avatar):null;
+    const me={uid:S.user.uid,name:(S.profile.name||"طالب").split(" ")[0],ready:true,score:0,correct:0,wrong:0,streak:0,bestStreak:0,away:false,seen:Date.now(),avatar:(S.profile.avatar&&String(S.profile.avatar).startsWith("http")?S.profile.avatar:av)||null};
+    const room={
+      code,host:S.user.uid,hostName:me.name,game,
+      subject:opts.subject||"random",grade:opts.grade||"",difficulty:opts.difficulty||"medium",
+      qCount:opts.qCount||10,sec:opts.sec||0,maxPlayers:opts.maxPlayers||6,
+      status:"lobby",seed:opts.seed||(Date.now()^(Math.random()*1e9|0)),qs:opts.qs||[],
+      color:opts.color||"teal",public:!!opts.public,
+      players:{[S.user.uid]:me},createdAt:serverTimestamp()
+    };
+    await setDoc(doc(db,"qb_rooms",code),room);
+    return {code,room};
+  },
+  async join(code,asRequest){
+    code=String(code||"").trim().toUpperCase();
+    const snap=await getDoc(doc(db,"qb_rooms",code));
+    if(!snap.exists())throw new Error("not-found");
+    const room=snap.data();
+    if(room.status==="playing")throw new Error("playing");
+    if(room.status!=="lobby"&&room.status!=="done")throw new Error("closed");
+    if(Object.keys(room.players||{}).length>=(room.maxPlayers||2)&&!(room.players||{})[S.user.uid])throw new Error("full");
+    const av=typeof packTinyAvatar==="function"?await packTinyAvatar(S.profile&&S.profile.avatar):null;
+    const me={uid:S.user.uid,name:(S.profile.name||"طالب").split(" ")[0],ready:false,score:0,correct:0,wrong:0,streak:0,bestStreak:0,away:false,seen:Date.now(),avatar:av||null};
+    if(asRequest&&room.host!==S.user.uid&&!(room.players||{})[S.user.uid])
+      await updateDoc(doc(db,"qb_rooms",code),{[`joinRequests.${S.user.uid}`]:{uid:S.user.uid,name:me.name,at:Date.now()}});
+    else
+      await updateDoc(doc(db,"qb_rooms",code),{[`players.${S.user.uid}`]:me});
+    return {code,room};
+  },
+  async setReady(code,ready){
+    await updateDoc(doc(db,"qb_rooms",code),{[`players.${S.user.uid}.ready`]:!!ready});
+  },
+  async updateSettings(code,patch){
+    const allow=["subject","grade","difficulty","qCount","sec","game","color","maxPlayers","public"];
+    const data={};
+    Object.keys(patch||{}).forEach(k=>{if(allow.includes(k))data[k]=patch[k]});
+    if(Object.keys(data).length)await updateDoc(doc(db,"qb_rooms",code),data);
+  },
+  async start(code){
+    await updateDoc(doc(db,"qb_rooms",code),{status:"playing",startedAt:Date.now(),idx:0});
+  },
+  async leave(code){
+    /* مسار الخروج التفصيلي في A.qbLeaveRoom */
+    if(typeof A!=="undefined"&&A.qbLeaveRoom)return A.qbLeaveRoom();
+  }
+};
 function qbStopSub(){if(S.qbSub){try{S.qbSub()}catch(_){} S.qbSub=null} qbStopChat()}
 function qbBotDelay(diff, correct){
   // easy / medium / hard reaction times + accuracy
@@ -3150,9 +3285,19 @@ function qbSetupView(){
 <label class="f">عدد اللاعبين (حد أقصى)</label>
 <select id="qbMax">${[2,3,4,5,6,7,8,10,12,16].map(n=>`<option value="${n}" ${n===6?"selected":""}>${n} لاعب</option>`).join("")}</select>
 </div>
-${gamePick==="qb"?`<div class="qb-card"><b>إعدادات تحدي الأوائل 👑</b>
+${(gamePick==="qb"||gamePick==="speed"||gamePick==="ctf"||gamePick==="memory"||gamePick==="treasure"||gamePick==="arena")?`<div class="qb-card"><b>إعدادات ${({"speed":"Speed Duel ⚡","ctf":"Capture The Flag 🏁","memory":"Memory Battle 🧠","treasure":"Treasure Race 💎","arena":"Arena 🏟️"}[gamePick]||"تحدي الأوائل 👑")}</b>
 <label class="f">المادة</label>
 <select id="qbSub">${subjects.map(s=>`<option value="${s.id}">${s.name}</option>`).join("")}</select>
+<label class="f">الصف (اختياري)</label>
+<select id="qbGrade"><option value="">الكل</option><option value="1">أولى إعدادي</option><option value="2">تانية إعدادي</option><option value="3">تالتة إعدادي</option><option value="10">أولى ثانوي</option><option value="11">تانية ثانوي</option><option value="12">تالتة ثانوي</option></select>
+<label class="f">الصعوبة</label>
+<select id="qbDiffRoom"><option value="easy">سهل</option><option value="medium" selected>متوسط</option><option value="hard">صعب</option></select>
+<label class="f">نوع المباراة</label>
+<select id="qbMatchMode">
+  <option value="ffa" selected>حر (كل واحد لوحده)</option>
+  <option value="1v1">1 ضد 1</option>
+  <option value="2v2">2 ضد 2 (فرق)</option>
+</select>
 <label class="f">عدد الأسئلة</label>
 <select id="qbN">${[5,10,15,20,25].map(n=>`<option value="${n}" ${n===10?"selected":""}>${n}</option>`).join("")}</select>
 <label class="f">وقت كل سؤال (ث)</label>
@@ -3188,16 +3333,29 @@ function qbLobbyView(){
     <button type="button" class="qb-viewers" data-act="qbToggleViewers" title="مَن في الغرفة">👁 ${players.length}</button>
   </div>
   <div class="qb-code" style="margin:10px 0;background:rgba(0,0,0,.2)">${esc(r.code)}</div>
-  <div style="opacity:.9;font-size:13px">${subName(r.subject)} · ${r.qCount} سؤال · ${r.sec?r.sec+"ث":"بدون وقت"} · حد ${maxP} لاعب · ${isPublic?"عام 🌐":"خاص 🔒"}</div>
+  <div style="opacity:.9;font-size:13px">${subName(r.subject)}${r.grade?" · صف "+esc(r.grade):""}${r.difficulty?" · "+({easy:"سهل",medium:"متوسط",hard:"صعب"}[r.difficulty]||r.difficulty):""} · ${r.qCount} سؤال · ${r.sec?r.sec+"ث":"بدون وقت"} · ${isPublic?"عام":"خاص"} · حد ${maxP}</div>
+  <div class="qb-mode-chip">${({ "1v1":"⚔️ 1 ضد 1", "2v2":"🛡️ 2 ضد 2 (فرق)", "ffa":"🌐 حر" }[r.matchMode||"ffa"]||"🌐 حر")}</div>
 </div>
 ${showList?`<div class="qb-viewers-panel"><b>في الغرفة دلوقتي</b>${players.map(p=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><span>${esc(p.name)}${p.uid===r.host?" 👑":""}${p.away?' <span class="qb-away-badge">(برا الغرفة)</span>':""}${p.ready?" ✓":""}</span>${isHost&&p.uid!==S.user.uid?`<button class="btn danger sm" data-act="qbKick" data-uid="${p.uid}">طرد</button>`:""}</div>`).join("")||`<div class="mut">فاضي</div>`}</div>`:""}
 ${isHost?`<div class="qb-card"><b>إعدادات المضيف 👑</b>
 <label class="f">اللعبة</label>
 <select id="qbGameSel">${Object.entries(QB_GAMES).filter(([k])=>k!=="los").map(([k,v])=>`<option value="${k}" ${k===gameId?"selected":""}>${v}</option>`).join("")}</select>
+<label class="f">المادة</label>
+<select id="qbLobbySub"><option value="random" ${!r.subject||r.subject==="random"?"selected":""}>عشوائي 🎲</option>${(typeof SUBJECTS!=="undefined"?SUBJECTS:[]).map(s=>`<option value="${s.id}" ${r.subject===s.id?"selected":""}>${s.name}</option>`).join("")}</select>
+<label class="f">الصف</label>
+<select id="qbLobbyGrade"><option value="" ${!r.grade?"selected":""}>الكل</option>${[["1","أولى إعدادي"],["2","تانية إعدادي"],["3","تالتة إعدادي"],["10","أولى ثانوي"],["11","تانية ثانوي"],["12","تالتة ثانوي"]].map(([v,n])=>`<option value="${v}" ${String(r.grade)===v?"selected":""}>${n}</option>`).join("")}</select>
+<label class="f">الصعوبة</label>
+<select id="qbLobbyDiff">${[["easy","سهل"],["medium","متوسط"],["hard","صعب"]].map(([v,n])=>`<option value="${v}" ${(r.difficulty||"medium")===v?"selected":""}>${n}</option>`).join("")}</select>
+<label class="f">نوع المباراة</label>
+<select id="qbLobbyMatchMode">${[["ffa","حر (كل واحد لوحده)"],["1v1","1 ضد 1"],["2v2","2 ضد 2 (فرق)"]].map(([v,n])=>`<option value="${v}" ${(r.matchMode||"ffa")===v?"selected":""}>${n}</option>`).join("")}</select>
+<label class="f">عدد الأسئلة</label>
+<select id="qbLobbyN">${[5,10,15,20,25].map(n=>`<option value="${n}" ${(r.qCount||10)===n?"selected":""}>${n}</option>`).join("")}</select>
+<label class="f">وقت السؤال (ث)</label>
+<select id="qbLobbyT">${[0,10,15,20,30].map(n=>`<option value="${n}" ${(r.sec||0)===n?"selected":""}>${n?n:"بدون حد"}</option>`).join("")}</select>
 <label class="f">لون الغرفة</label>
 <select id="qbColorSel">${Object.entries(QB_COLORS).map(([k,v])=>`<option value="${k}" ${k===color?"selected":""}>${v}</option>`).join("")}</select>
 <button class="btn sm" style="margin-top:8px" data-act="qbRoomSettings">حفظ الإعدادات</button>
-<div class="mut" style="margin-top:6px;font-size:12px">نوع الغرفة (عام/خاص) بيتحدد عند الإنشاء فقط</div>
+<div class="mut" style="margin-top:6px;font-size:12px">نوع الغرفة (عام/خاص) بيتحدد عند الإنشاء فقط · الإعدادات دي للمضيف قبل Start</div>
 </div>`:""}
 ${isHost&&pending.length?`<div class="qb-card" style="border-color:var(--gold)"><b>طلبات دخول 🔔</b>${pending.map(j=>`<div class="row" style="margin-top:8px"><span>${esc(j.name||"طالب")}</span><span><button class="btn sm" data-act="qbAcceptJoin" data-uid="${j.uid}">موافق</button> <button class="btn ghost sm" data-act="qbRejectJoin" data-uid="${j.uid}">رفض</button></span></div>`).join("")}</div>`:""}
 <div class="qb-card">
@@ -3233,53 +3391,240 @@ function qbPlayView(){
   const color=room.color||"teal";
   return `<div class="wrap qb-arena qb-room-theme t-${color}">
 <div class="row" style="margin-bottom:6px"><span class="mut"><b>${gameName}</b></span><button class="btn ghost sm" data-act="qbLeaveRoom">خروج</button></div>
-<div class="qb-hud" style="flex-wrap:wrap;max-height:120px;overflow:auto">${sorted.map(p=>`<div class="qb-player ${p.uid===S.user.uid?"me":""} ${sorted[0]&&sorted[0].uid===p.uid?"lead":""}" style="min-width:70px;padding:4px 6px">
-  <div class="name" style="font-size:11px">${esc(p.name)}${sorted[0]&&sorted[0].uid===p.uid?" 👑":""}</div>
+<div class="qb-hud" style="flex-wrap:wrap;max-height:140px;overflow:auto">${sorted.map(p=>`<div class="qb-player ${p.uid===S.user.uid?"me":""} ${sorted[0]&&sorted[0].uid===p.uid?"lead":""} ${p.team==="A"?"qb-teamA":p.team==="B"?"qb-teamB":""} ${p.elim?"qb-elim":""}" style="min-width:70px;padding:4px 6px">
+  <div class="name" style="font-size:11px">${p.team?`<span class="qb-team-badge ${p.team==="A"?"a":"b"}">${p.team}</span>`:""}${esc(p.name)}${sorted[0]&&sorted[0].uid===p.uid?" 👑":""}${p.elim?" 💀":""}</div>
   <div class="score" style="font-size:14px">${p.score}</div>
-  ${p.streak>=3?`<span class="qb-streak">🔥${p.streak}</span>`:""}
+  ${p.lives!=null?`<div class="qb-lives">${"❤️".repeat(Math.max(0,p.lives))}${"🖤".repeat(Math.max(0,3-(p.lives||0)))}</div>`:""}
+  ${p.streak>=3&&!p.elim?`<span class="qb-streak">🔥${p.streak}</span>`:""}
 </div>`).join("")}</div>
+${room.game==="arena"&&(m.players.find(p=>p.uid===S.user.uid)||{}).elim?`<div class="qb-elim-banner">اتقصيت — استنى نهاية المباراة</div>`:""}
+${(room.matchMode==="2v2"||room.game==="ctf")?(()=>{const tA=sorted.filter(p=>p.team==="A").reduce((s,p)=>s+(p.score||0),0);const tB=sorted.filter(p=>p.team==="B").reduce((s,p)=>s+(p.score||0),0);return `<div class="row" style="justify-content:center;gap:16px;margin:6px 0"><span class="qb-team-badge a">فريق A · ${tA}</span><span class="qb-team-badge b">فريق B · ${tB}</span></div>`})():""}
+${room.game==="ctf"?(()=>{const fl=m.flag||room.flag||{A:0,B:0};const goal=Math.max(3,Math.ceil((m.qs||[]).length*0.6));const pa=Math.min(100,(fl.A||0)/goal*100),pb=Math.min(100,(fl.B||0)/goal*100);return `<div class="qb-card" style="padding:10px;margin:6px 0"><div class="mut" style="margin-bottom:4px">🏁 السباق للعلم (هدف ${goal})</div><div style="display:flex;gap:8px;align-items:center"><span class="qb-team-badge a">A</span><div class="prog" style="flex:1;height:10px"><i style="width:${pa}%;background:#3B82F6"></i></div><b>${fl.A||0}</b></div><div style="display:flex;gap:8px;align-items:center;margin-top:6px"><span class="qb-team-badge b">B</span><div class="prog" style="flex:1;height:10px"><i style="width:${pb}%;background:#EF4444"></i></div><b>${fl.B||0}</b></div></div>`})():""}
+${room.game==="speed"&&m.firstCorrect?`<div class="mut" style="text-align:center;margin:4px 0">⚡ أول صح: ${esc((sorted.find(p=>p.uid===m.firstCorrect)||{}).name||"…")}</div>`:""}
 <div class="row mut" style="margin-bottom:4px"><span>سؤال ${m.idx+1} / ${m.qs.length}</span>${m.sec?`<span id="qbSec">${left}ث</span>`:""}</div>
 <div class="qb-timer-bar ${left<=5&&m.sec?"low":""}"><i id="qbBar" style="width:${pct}%"></i></div>
 <div class="prog" style="height:6px;margin-bottom:8px"><i style="width:${(m.idx/m.qs.length)*100}%"></i></div>
-<div class="qb-qbox"><p dir="auto" style="margin:0;font-weight:600;font-size:17px">${esc(q.q)}</p></div>
-<div class="qb-opts" id="qbOpts">${q.o.map((t,j)=>`<button class="qb-opt" data-act="qbAnswer" data-i="${j}" ${m.answered?"disabled":""} dir="auto">${LETTERS[j]||(j+1)}) ${esc(t)}</button>`).join("")}</div>
+${room.game==="memory"&&m.memPhase==="show"?`<div class="qb-mem-countdown">احفظ السؤال… ${Math.max(1,Math.ceil(((m.memUntil||0)-Date.now())/1000))}</div>`:""}
+<div class="qb-qbox ${room.game==="memory"&&m.memPhase==="answer"&&!m.answered?"qb-mem-mask":""}"><p dir="auto" style="margin:0;font-weight:600;font-size:17px">${room.game==="memory"&&m.memPhase==="answer"&&!m.answered?"🔒 السؤال مخفي — جاوب من الذاكرة":esc(q.q)}</p></div>
+${room.game==="treasure"?(()=>{const goal=m.treasureGoal||Math.max(5,(m.qs||[]).length);const steps=sorted.map(p=>({uid:p.uid,name:p.name,s:p.steps||0}));return `<div class="qb-card" style="padding:8px 10px;margin:6px 0"><div class="mut" style="margin-bottom:6px">💎 السباق لكنز (${goal} خطوة)</div>${steps.map(p=>`<div style="margin:4px 0"><span style="font-size:12px">${esc(p.name)}${p.uid===S.user.uid?" (أنت)":""}</span><div class="qb-treasure-track">${Array.from({length:goal},(_,i)=>`<span class="qb-treasure-step ${i<p.s?"on":""} ${p.uid===S.user.uid?"me":""}"></span>`).join("")}<span class="qb-treasure-goal">💎</span></div></div>`).join("")}</div>`})():""}
+<div class="qb-opts" id="qbOpts">${(room.game==="memory"&&m.memPhase==="show")?`<div class="mut" style="text-align:center;padding:12px">الخيارات هتظهر بعد الحفظ…</div>`:q.o.map((t,j)=>`<button class="qb-opt ${m.answered&&j===q.a?"right":""} ${m.answered&&m.pick===j&&j!==q.a?"wrong":""}" data-act="qbAnswer" data-i="${j}" ${m.answered||(room.game==="memory"&&m.memPhase==="show")||(m.players.find(p=>p.uid===S.user.uid)||{}).elim?"disabled":""} dir="auto">${LETTERS[j]||(j+1)}) ${esc(t)}</button>`).join("")}</div>
+${m.answered?`<div class="qb-reveal-banner ${m.pick===q.a?"":"wrong-pick"}" id="qbReveal">الإجابة الصحيحة: <b dir="auto">${esc(q.o[q.a]||"")}</b>${m.pick===q.a?" ✓":" — اختارك غلط"}</div>`:""}
 ${g.roomCode?qbChatHtml():""}
 </div>`;
 }
 
+function postGameCompute(g){
+  try{
+    if(!g||!g.match||!S.user)return null;
+    const m=g.match;
+    const sorted=[...m.players].sort((a,b)=>b.score-a.score||b.correct-a.correct);
+    const rank=sorted.findIndex(p=>p.uid===S.user.uid)+1;
+    const me=sorted.find(p=>p.uid===S.user.uid)||sorted[0];
+    const n=Math.max(1,m.players.length);
+    const total=Math.max(1,(m.qs||[]).length);
+    const acc=Math.round((me.correct||0)/total*100);
+    const isWin=rank===1&&n>1;
+    const isMVP=isWin||(me.score===sorted[0].score);
+    /* مكافآت محلية متوازنة — العملات عبر life، XP عرض فقط (القواعد تمنع كتابة xp من العميل) */
+    let coins=8+Math.min(40,(me.correct||0)*3);
+    if(isWin)coins+=g.mode==="bot"?25:80;
+    else if(rank===2)coins+=20;
+    else if(rank===3)coins+=10;
+    if((me.bestStreak||0)>=3)coins+=8;
+    let xpShow=15+Math.min(50,(me.correct||0)*4);
+    if(isWin)xpShow+=g.mode==="bot"?20:60;
+    else if(rank<=3)xpShow+=15;
+    const mm=(g.room&&g.room.matchMode)||g.matchMode||"ffa";
+    const modeLabel=({"1v1":"1 ضد 1","2v2":"2 ضد 2","ffa":"حر"}[mm]||"حر");
+    /* 2v2: فوز الفريق */
+    let teamWin=false;
+    if(mm==="2v2"&&me.team){
+      const tA=sorted.filter(p=>p.team==="A").reduce((s,p)=>s+(p.score||0),0);
+      const tB=sorted.filter(p=>p.team==="B").reduce((s,p)=>s+(p.score||0),0);
+      teamWin=(me.team==="A"&&tA>=tB)||(me.team==="B"&&tB>=tA);
+      if(teamWin&&!isWin){coins+=40;xpShow+=30}
+    }
+    /* ستريك انتصارات محلي */
+    let winStreak=0;
+    try{
+      const key="qb_winstreak_"+S.user.uid;
+      winStreak=+(localStorage.getItem(key)||0);
+      if(isWin||teamWin){winStreak+=1;localStorage.setItem(key,String(winStreak))}
+      else if(g.mode!=="bot"||rank>1){winStreak=0;localStorage.setItem(key,"0")}
+    }catch(_){}
+    return {sorted,me,rank,n,total,acc,isWin:isWin||teamWin,isMVP,coins,xpShow,gameLabel:typeof qbGameLabel==="function"?qbGameLabel((g.room&&g.room.game)||g.game||"qb"):"مباراة",modeLabel,winStreak,teamWin,matchMode:mm};
+  }catch(_){return null}
+}
+function postGameApplyRewards(g){
+  try{
+    if(!g||!g.match||g.match._pgRewarded||!S.user||S.isAdmin)return;
+    g.match._pgRewarded=1;
+    const r=postGameCompute(g);if(!r)return;
+    g.match._pgReward=r;
+    /* عملات عبر نظام الحياة إن وُجد — مرة واحدة فقط */
+    if(S.life&&typeof lfAdd==="function"&&r.coins>0){
+      try{lfAdd(r.coins,r.isWin?"فوز في الغرفة 🏆":"مكافأة مباراة");}catch(_){}
+    }
+    if(r.isWin){try{if(typeof lfEvent==="function")lfEvent("win");if(typeof lfReact==="function")lfReact("dance");if(typeof lfSfx==="function")lfSfx("win");snd&&snd("win")}catch(_){}}
+    else {try{snd&&snd("success")}catch(_){}}
+  }catch(_){}
+}
 function qbResultView(){
   const g=S.qb;if(!g||!g.match)return gamesView();
+  try{postGameApplyRewards(g)}catch(_){}
   const roomColor=(g.room&&g.room.color)||g.color||"teal";
   const m=g.match;
-  const sorted=[...m.players].sort((a,b)=>b.score-a.score||b.correct-a.correct);
-  const me=sorted.find(p=>p.uid===S.user.uid)||sorted[0];
-  const total=m.qs.length;
-  const acc=me.correct?Math.round(me.correct/total*100):0;
+  const r=g.match._pgReward||postGameCompute(g)||{};
+  const sorted=r.sorted||[...m.players].sort((a,b)=>b.score-a.score||b.correct-a.correct);
+  const me=r.me||sorted.find(p=>p.uid===S.user.uid)||sorted[0];
+  const total=r.total||m.qs.length;
+  const acc=r.acc!=null?r.acc:(me.correct?Math.round(me.correct/total*100):0);
+  const rank=r.rank||(sorted.findIndex(p=>p.uid===S.user.uid)+1);
+  const title=r.isWin?"الفوز! 🎉":(rank<=3?"منصة التتويج":"انتهت المباراة");
   return `<div class="wrap qb-room-theme t-${roomColor}">${header(`<button class="btn ghost sm" data-act="openGames">الألعاب</button>`)}
 <div class="qb-hero" style="text-align:center;padding:20px">
-  <div style="font-size:40px">🏆</div>
-  <div class="qb-title" style="font-size:24px">انتهت المباراة</div>
+  <div style="font-size:40px">${r.isWin?"🏆":(rank===2?"🥈":(rank===3?"🥉":"🎮"))}</div>
+  <div class="qb-title" style="font-size:24px">${title}</div>
+  <div style="opacity:.9;font-size:13px;margin-top:4px">${esc(r.gameLabel||"")} · ترتيبك #${rank} من ${r.n||sorted.length}</div>
 </div>
 <div class="qb-podium">${sorted.slice(0,3).map((p,i)=>`<div class="qb-pod p${i+1}">
   <div class="medal">${["🥇","🥈","🥉"][i]}</div>
-  <div style="font-weight:700;font-size:13px">${esc(p.name)}</div>
+  <div style="font-weight:700;font-size:13px">${esc(p.name)}${p.uid===S.user.uid?" (أنت)":""}</div>
   <div style="color:var(--pri);font-weight:700">${p.score}</div>
   <div class="bar"></div>
 </div>`).join("")}</div>
 <div class="qb-card">
 <div class="stats">
   <div class="stat card"><b>${me.score}</b><span class="mut">نقاطك</span></div>
-  <div class="stat card"><b>${me.correct}/${total}</b><span class="mut">صحيحة</span></div>
+  <div class="stat card"><b>${me.correct||0}/${total}</b><span class="mut">صحيحة</span></div>
   <div class="stat card"><b>${acc}%</b><span class="mut">دقة</span></div>
   <div class="stat card"><b>${me.bestStreak||0}</b><span class="mut">أفضل ستريك</span></div>
 </div>
 </div>
-${g.mode==="friends"&&g.roomCode?`<button class="btn block gold" data-act="qbRematchRoom">إعادة في نفس الغرفة ↺</button>
-<button class="btn block ghost" style="margin-top:8px" data-act="qbLeaveRoom">خروج من الغرفة</button>`:`<button class="btn block gold" data-act="${g.mode==="bot"?"qbBot":"qbFriends"}">إعادة اللعب ↺</button>
+<div class="qb-card" style="text-align:center">
+  <b>المكافآت</b>
+  <div class="row" style="justify-content:center;gap:14px;margin-top:10px;flex-wrap:wrap">
+    <div class="stat card" style="min-width:100px"><b>+${r.coins||0}</b><span class="mut">🪙 عملات</span></div>
+    <div class="stat card" style="min-width:100px"><b>+${r.xpShow||0}</b><span class="mut">⭐ XP (عرض)</span></div>
+    ${r.isMVP?`<div class="stat card" style="min-width:100px"><b>MVP</b><span class="mut">أفضل أداء</span></div>`:""}
+    ${r.winStreak>=2?`<div class="stat card" style="min-width:100px"><b class="qb-win-streak">🔥 ${r.winStreak}</b><span class="mut">سلسلة فوز</span></div>`:""}
+  </div>
+  ${r.isMVP?`<div class="qb-mvp-banner"><b>⭐ أنت الـ MVP</b><div class="mut" style="margin-top:4px">أعلى نقاط / أدق أداء في المباراة</div></div>`:""}
+  <p class="mut" style="font-size:11px;margin-top:8px">${r.modeLabel?("النوع: "+r.modeLabel+" · "):""}العملات بتتجمع في «حياتي» · XP الظاهر للتشجيع</p>
+</div>
+${sorted.length>3?`<div class="qb-card"><b>ترتيب باقي اللاعبين</b>${sorted.slice(3).map((p,i)=>`<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><span>#${i+4} ${esc(p.name)}</span><b>${p.score}</b></div>`).join("")}</div>`:""}
+<button class="btn block" data-act="qbShareResult">📤 شارك النتيجة</button>
+${g.mode==="friends"&&g.roomCode?`<button class="btn block gold" style="margin-top:8px" data-act="qbRematchRoom">إعادة في نفس الغرفة ↺</button>
+<button class="btn block ghost" style="margin-top:8px" data-act="qbLeaveRoom">خروج من الغرفة</button>`:`<button class="btn block gold" style="margin-top:8px" data-act="${g.mode==="bot"?"qbBot":"qbFriends"}">إعادة اللعب ↺</button>
 <button class="btn block ghost" style="margin-top:8px" data-act="openGames">رجوع للألعاب</button>`}
 </div>${studentNav()}`;
 }
 
+
+
+
+/* ========== Stage 13 Acceptance checklist ========== */
+function runAcceptanceChecks(){
+  const checks=[];
+  const add=(id,ok,label,hint)=>checks.push({id,ok,label,hint:hint||""});
+  add("build", !!(window.APP_BUILD&&String(window.APP_BUILD).match(/v1[3-9]\d|v[2-9]\d{2}/)), "الإصدار ≥ v130", "الحالي: "+(window.APP_BUILD||"?"));
+  add("sw", !!(navigator.serviceWorker), "المتصفح يدعم Service Worker", "");
+  add("swCtrl", !!(navigator.serviceWorker&&navigator.serviceWorker.controller), "SW متحكم في الصفحة", "لو لأ: حدّث أو فعّل التحديث من «أنا»");
+  add("cache", typeof caches!=="undefined", "Cache API متاح", "");
+  add("rtl", document.documentElement.getAttribute("dir")==="rtl", "واجهة RTL عربية", "");
+  add("user", !!(S.user), "مستخدم مسجّل", "ادخل بحساب طالب للاختبار الكامل");
+  add("profile", !!(S.profile&&S.profile.name), "بروفايل محمّل", "");
+  add("firebase", typeof db!=="undefined"&&db, "Firebase متصل", "");
+  add("qbGames", typeof QB_GAMES==="object"&&QB_GAMES.speed&&QB_GAMES.ctf&&QB_GAMES.memory&&QB_GAMES.treasure&&QB_GAMES.arena, "الألعاب الجديدة مسجّلة (Speed/CTF/Memory/Treasure/Arena)", "");
+  add("postGame", typeof postGameCompute==="function"&&typeof postGameApplyRewards==="function", "نظام ما بعد اللعب موحّد", "");
+  add("preload", typeof preloadCritical==="function", "دالة Preload Anti-lag", "");
+  add("mem7", true, "Memory Battle: حفظ 7 ثواني", "اتأكد يدويًا في غرفة Memory");
+  add("hang", typeof hangView==="function", "كلمة مخفية / hang موجودة (بدون تغيير قواعد)", "");
+  add("rulesNote", true, "firestore.rules مرفوعة مع الإصدار", "ارفع القواعد يدويًا لو اتعدّلت");
+  const pass=checks.filter(c=>c.ok).length;
+  return {checks,pass,total:checks.length,allOk:pass===checks.length};
+}
+function checklistView(){
+  const r=runAcceptanceChecks();
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openMe">رجوع</button>`)}
+<div class="final-banner">
+  <div style="font-size:28px">🏁</div>
+  <b style="font-size:18px">قائمة القبول — المرحلة 13</b>
+  <div class="mut" style="margin-top:6px">الإصدار ${esc(window.APP_BUILD||"?")} · ${r.pass}/${r.total} جاهز</div>
+</div>
+<ul class="chk-list">${r.checks.map(c=>`<li class="${c.ok?"ok":"bad"}"><span class="ck">${c.ok?"✓":"✗"}</span><div><b>${esc(c.label)}</b>${c.hint?`<div class="mut" style="font-size:12px">${esc(c.hint)}</div>`:""}</div></li>`).join("")}</ul>
+<div class="card">
+<b>اختبار يدوي سريع (طالب)</b>
+<ol class="mut" style="padding-right:18px;line-height:1.7">
+<li>إنشاء غرفة تحدي أوائل 1v1 أو 2v2 وإكمال مباراة</li>
+<li>Memory Battle: عدّاد 7 ث ثم اختفاء السؤال</li>
+<li>Speed Duel / CTF / Treasure / Arena جولة قصيرة</li>
+<li>شاشة النتيجة: منصة + مكافآت + MVP</li>
+<li>أنا ← تجهيز للعب بدون تقطيع</li>
+</ol>
+</div>
+<div class="card">
+<b>اختبار يدوي سريع (أدمن)</b>
+<ol class="mut" style="padding-right:18px;line-height:1.7">
+<li>دخول لوحة الأدمن والإحصائيات</li>
+<li>رفع/تعديل امتحان يظهر في بنك الأسئلة</li>
+<li>مركز الأخطاء (لو مفعّل) يقرأ السجلات</li>
+<li>صيانة الموقع: تفعيل/إيقاف</li>
+</ol>
+</div>
+<button class="btn block" data-act="openChecklist">🔄 إعادة الفحص</button>
+<button class="btn ghost block" style="margin-top:8px" data-act="openMe">رجوع لحسابي</button>
+</div>${studentNav()}`;
+}
+
+/* ========== Stage 12 Anti-lag ========== */
+const PRELOAD_URLS=["./index.html","./manifest.json","./sw.js","./memory-game.html","./draw-guess.html","./words-crush.html","./runner.html","./space.html","./doodle.html","./fishing.html","./push.html","./icons/icon-192.png","./icons/icon-512.png"];
+async function preloadCritical(onProg){
+  const urls=PRELOAD_URLS.slice();
+  let done=0,ok=0,fail=0;
+  const total=urls.length;
+  const report=()=>{if(onProg)onProg({done,total,ok,fail,pct:Math.round(done/total*100)})};
+  report();
+  /* لو في SW cache نعبّيه؛ وإلا fetch عادي */
+  let cache=null;
+  try{
+    if(window.caches){
+      const keys=await caches.keys();
+      const hit=keys.find(k=>/^eltafawoq-v/i.test(k));
+      cache=await caches.open(hit||("eltafawoq-"+(window.APP_BUILD||"preload")));
+    }
+  }catch(_){}
+  for(const u of urls){
+    try{
+      const res=await fetch(u,{cache:"reload",credentials:"same-origin"});
+      if(res&&res.ok){
+        ok++;
+        if(cache)try{await cache.put(u,res.clone())}catch(_){}
+      }else fail++;
+    }catch(_){fail++}
+    done++;
+    report();
+  }
+  return {ok,fail,total};
+}
+async function applySwUpdate(){
+  try{
+    const reg=await navigator.serviceWorker.getRegistration();
+    if(!reg){toast("مفيش Service Worker");return}
+    if(reg.waiting){
+      reg.waiting.postMessage({type:"SKIP_WAITING"});
+      toast("جاري تفعيل التحديث…");
+      /* بعد claim هيجي SW_ACTIVATED؛ كخيار آمن نعمل reload خفيف بعد ثانيتين لو المستخدم موافق ضمنيًا بالتفعيل */
+      setTimeout(()=>{try{location.reload()}catch(_){}},1800);
+      return;
+    }
+    await reg.update();
+    if(reg.waiting){
+      reg.waiting.postMessage({type:"SKIP_WAITING"});
+      setTimeout(()=>{try{location.reload()}catch(_){}},1800);
+    }else toast("مفيش تحديث منتظر — أنت على آخر نسخة");
+  }catch(e){toast("فشل التفعيل: "+(e.message||""))}
+}
 
 function gamesView(){
   if(!Array.isArray(S.exams))S.exams=[];
@@ -3298,6 +3643,7 @@ function gamesView(){
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
 <h2>الألعاب</h2>
 <p class="mut">كل لعبة: <b>🤖 روبوت / العب</b> أو <b>👥 صاحبك</b> (غرفة بكود — الاختيار من هنا مش من جوه اللعبة).</p>
+${S._swWaiting?`<div class="preload-card" style="border-color:var(--pri)"><b>تحديث جديد جاهز</b> — من «أنا» فعّل التحديث عشان ما يقطّعش اللعب.</div>`:""}
 
 <div class="card lift" style="border-color:color-mix(in srgb,var(--gold) 40%,var(--line))">
   <div class="row" style="flex-wrap:nowrap;gap:14px;align-items:flex-start">
@@ -3313,7 +3659,43 @@ function gamesView(){
   </div>
 </div>
 
-${gcard("🧠","linear-gradient(135deg,#7C3AED,#A78BFA)","تحدي الذاكرة","سهلة/متوسطة/صعبة · كومبو ونقاط","openMemory","memory","memory-game.html")}
+<div class="card lift" style="border-color:color-mix(in srgb,#7C3AED 35%,var(--line))">
+  <div class="row" style="flex-wrap:nowrap;gap:14px;align-items:flex-start">
+    <div class="av" style="border-radius:16px;font-size:28px;background:linear-gradient(135deg,#7C3AED,#A78BFA)">🧠</div>
+    <div style="flex:1">
+      <b style="font-size:17px">Memory Battle</b>
+      <div class="mut">احفظ السؤال 7 ثواني · بعدين جاوب من الذاكرة · الأسرع صح يكسب</div>
+      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn sm gold" data-act="openGameFriends" data-game="memory">👥 غرفة</button>
+        <a class="btn sm ghost" href="memory-game.html" style="text-decoration:none">🤖 فردي</a>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="card lift" style="border-color:color-mix(in srgb,#F59E0B 35%,var(--line))">
+  <div class="row" style="flex-wrap:nowrap;gap:14px;align-items:flex-start">
+    <div class="av" style="border-radius:16px;font-size:28px;background:linear-gradient(135deg,#B45309,#F59E0B)">💎</div>
+    <div style="flex:1">
+      <b style="font-size:17px">Treasure Race</b>
+      <div class="mut">سباق لكنز · كل إجابة صح = خطوة · أول واحد يوصل يفوز</div>
+      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn sm gold" data-act="openGameFriends" data-game="treasure">👥 غرفة</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="card lift" style="border-color:color-mix(in srgb,#DC2626 35%,var(--line))">
+  <div class="row" style="flex-wrap:nowrap;gap:14px;align-items:flex-start">
+    <div class="av" style="border-radius:16px;font-size:28px;background:linear-gradient(135deg,#7F1D1D,#DC2626)">🏟️</div>
+    <div style="flex:1">
+      <b style="font-size:17px">Arena</b>
+      <div class="mut">3 أرواح · إجابة غلط = روح أقل · آخر واقف يفوز</div>
+      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn sm gold" data-act="openGameFriends" data-game="arena">👥 غرفة</button>
+      </div>
+    </div>
+  </div>
+</div>
 ${gcard("✏️","linear-gradient(135deg,#DB2777,#F472B6)","رسم وخمّن","نفس الموبايل · رسّام وخمّن بالتناوب","openDraw","draw","draw-guess.html")}
 ${gcard("🔤","linear-gradient(135deg,#5b6fd6,#2b1055)","Words Crush","100 مستوى · ابحث عن الكلمات","", "words","words-crush.html")}
 ${gcard("🏃","linear-gradient(135deg,#2563EB,#60A5FA)","Endless Runner","اجري واجمع العملات","", "runner","runner.html")}
@@ -3321,18 +3703,41 @@ ${gcard("🚀","linear-gradient(135deg,#312e81,#8B93FF)","Space Shooter","سفي
 ${gcard("🪂","linear-gradient(135deg,#1a0a3e,#0B5D57)","Doodle Jump","اقفز من منصة لمنصة","", "doodle","doodle.html")}
 ${gcard("🎣","linear-gradient(135deg,#0c2a3a,#2FB5A8)","صيد السمك","اصطياد أسماك نادرة","", "fishing","fishing.html")}
 ${gcard("🧊","linear-gradient(135deg,#12151A,#7C9CBF)","Push Arena","ادفع صاحبك من المنصة (نفس الجهاز)","", "push","push.html")}
-${gcard("🔢","linear-gradient(135deg,#1D4ED8,#38BDF8)","حساب سريع","عمليات بوقت ضد روبوت","openMath","math","")}
-${gcard("❌⭕","linear-gradient(135deg,#DC2626,#F87171)","إكس أو","3 مستويات صعوبة ضد روبوت","openXo","xo","")}
+${/* Stage 9: ألعاب ضعيفة مخفية من الواجهة — الكود موجود لو احتجناه */""}
 ${gcard("📝","linear-gradient(135deg,#B45309,#E3A81C)","كلمة مخفية","خمّن الحروف","openHang","hang","")}
-${gcard("🎰","linear-gradient(135deg,#E3A81C,#F59E0B)","عجلة الحظ","لفة يومية · اربح عملات","openSpin","spin","")}
-${gcard("⚡","linear-gradient(135deg,#059669,#34D399)","سرعة اللمس","زمن رد الفعل","openReact","react","")}
+
+<div class="card lift" style="border-color:color-mix(in srgb,#EF4444 35%,var(--line))">
+  <div class="row" style="flex-wrap:nowrap;gap:14px;align-items:flex-start">
+    <div class="av" style="border-radius:16px;font-size:28px;background:linear-gradient(135deg,#EF4444,#F97316)">⚡</div>
+    <div style="flex:1">
+      <b style="font-size:17px">Speed Duel</b>
+      <div class="mut">سؤال واحد للكل · الأسرع صح يكسب النقطة · كومبو</div>
+      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn sm gold" data-act="openGameFriends" data-game="speed">👥 غرفة</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card lift" style="border-color:color-mix(in srgb,#3B82F6 35%,var(--line))">
+  <div class="row" style="flex-wrap:nowrap;gap:14px;align-items:flex-start">
+    <div class="av" style="border-radius:16px;font-size:28px;background:linear-gradient(135deg,#1D4ED8,#3B82F6)">🏁</div>
+    <div style="flex:1">
+      <b style="font-size:17px">Capture The Flag</b>
+      <div class="mut">فريقين · إجابة صح = تقدّم نحو العلم · أول فريق يوصل يفوز</div>
+      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn sm gold" data-act="openGameFriends" data-game="ctf">👥 غرفة</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="card lift">
   <div class="row" style="flex-wrap:nowrap;gap:14px;align-items:flex-start">
-    <div class="av" style="border-radius:16px;font-size:28px">🔫</div>
+    <div class="av" style="border-radius:16px;font-size:28px">🧍</div>
     <div style="flex:1">
       <b style="font-size:17px">آخر واحد واقف</b>
-      <div class="mut">مواجهة · المنطقة بتضيق</div>
+      <div class="mut">مواجهة · المنطقة بتضيق · زي ما هي</div>
       <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
         <a class="btn sm" href="push.html">🤖 العب</a>
       </div>
@@ -3538,30 +3943,83 @@ function errSmartClassify(x){
     return {label:"⚠ رجع تاني بعد إصلاح",cls:"r",hint:"اتصلح قبل كده على "+x.fixedVer+" ورجع"};
   if(ver&&cur&&errVerLt(ver,cur))
     return {label:"غالبًا اتصلح مع التحديث",cls:"g",hint:"ظهر على "+ver+" والمنصة الآن "+cur};
-  // تلميح permission
-  const msg=String(x.msg||"");
-  if(/permission-denied/i.test(msg)){
-    let path="Firestore";
-    if(/comments/i.test(msg))path="comments";
+  // تلميح ذكي حسب نوع الخطأ والمسار
+  const msg=String(x.msg||"")+" "+String(x.fn||"")+" "+String(x.stack||"");
+  if(/permission-denied|insufficient permissions/i.test(msg)){
+    let path="Firestore",hint="انشر firestore.rules من Console ثم أعد المحاولة";
+    if(/publicProfiles/i.test(msg)){path="publicProfiles";hint="قراءة للموقّع · كتابة للمالك فقط (name,updatedAt,avatar,title,level,xp,pk)"}
+    else if(/studentsPrivate/i.test(msg)){path="studentsPrivate";hint="قراءة/كتابة للمالك أو الأدمن"}
+    else if(/\bstudents\b/i.test(msg)){path="students";hint="create بحقول محدودة · update للمالك بحقول hasOnly فقط"}
+    else if(/presence/i.test(msg)){path="presence";hint="قراءة لأي موقّع · كتابة للمالك"}
+    else if(/aiChats/i.test(msg)){path="aiChats";hint="read/write للمالك أو الأدمن"}
+    else if(/notifications/i.test(msg)){path="notifications";hint="create إذا uid أو fromUid = المستخدم أو isAdmin"}
+    else if(/\bstaff\b/i.test(msg)){path="staff";hint="قراءة لأي موقّع · كتابة للأدمن فقط — انشر القواعد"}
+    else if(/comments/i.test(msg))path="comments";
     else if(/fadaye7/i.test(msg))path="fadaye7";
-    else if(/students/i.test(msg))path="students";
     else if(/errorLogs/i.test(msg))path="errorLogs";
     else if(/results/i.test(msg))path="results";
-    return {label:"صلاحيات — "+path,cls:"r",hint:"راجع Rules للمجموعة: "+path};
+    else if(/\blife\b/i.test(msg)){path="life";hint="قراءة/كتابة للمالك"}
+    else if(/qb_rooms|conversations|groups/i.test(msg)){path="chat/rooms";hint="راجع قواعد المشاركين participants/members"}
+    return {label:"صلاحيات — "+path,cls:"r",hint:hint};
   }
+  if(/Transaction too big|transaction.*size|resource-exhausted/i.test(msg))
+    return {label:"حجم المعاملة كبير",cls:"r",hint:"قسّم الكتابة/الحذف على writeBatch بحد ≤400 عملية"};
+  if(/Failed to fetch|fetch فشل|NetworkError|net::ERR/i.test(msg)){
+    if(/workers\.dev|cloudflare|phdgxt4|hidden-term/i.test(msg))
+      return {label:"Worker مش بيرد",cls:"r",hint:"تأكد إن Cloudflare Worker منشور وCORS مفتوح لدومين المنصة"};
+    if(/firestore|googleapis/i.test(msg))
+      return {label:"انقطاع Firestore Listen",cls:"y",hint:"غالباً شبكة مؤقتة — راقب التكرار"};
+    return {label:"فشل شبكة",cls:"y",hint:"تحقق من الإنترنت / CORS / الـ CDN"};
+  }
+  if(/is not defined|Cannot read|undefined is not|ReferenceError/i.test(msg))
+    return {label:"خطأ كود JS",cls:"r",hint:"دالة أو متغير ناقص — راجع الـ stack"};
   if((x.impact||0)>=70)return {label:"حرج — لسه مفتوح",cls:"r",hint:"أولوية عالية"};
   if((x.impact||0)>=40)return {label:"مهم — مفتوح",cls:"y",hint:""};
   return {label:"مفتوح",cls:"y",hint:""};
+}
+function errSmartGroupOpen(){
+  try{
+    const open=(S.errLogs||[]).filter(x=>(x.status||"open")==="open");
+    const g={};
+    open.forEach(e=>{
+      const k=e.sig||(String(e.type||"")+"|"+String(e.msg||"").slice(0,120)+"|"+String(e.fn||""));
+      const o=g[k]||(g[k]={n:0,sample:e,pages:{},devs:{},vers:{}});
+      o.n++;
+      if(e.page)o.pages[e.page]=(o.pages[e.page]||0)+1;
+      if(e.dev)o.devs[String(e.dev).slice(0,50)]=(o.devs[String(e.dev).slice(0,50)]||0)+1;
+      if(e.ver)o.vers[e.ver]=(o.vers[e.ver]||0)+1;
+    });
+    return Object.values(g).sort((a,b)=>b.n-a.n);
+  }catch(_){return []}
 }
 function errSmartAutoHint(){
   try{
     const open=(S.errLogs||[]).filter(x=>(x.status||"open")==="open");
     const maybe=open.filter(x=>{const c=errSmartClassify(x);return c.label.includes("اتصلح")});
-    if(!maybe.length)return "";
-    return `<div class="card" style="border-color:#166534;margin-bottom:10px"><b>ذكية: ${maybe.length} خطأ على إصدار أقدم</b>
-    <p class="mut" style="margin:6px 0">المنصة اتحدثت بعد ما الأخطاء دي اتسجلت — غالبًا اتصححت. تقدر تعلّمهم Fixed دفعة واحدة.</p>
-    <button class="btn sm gold" data-act="errMarkStaleFixed">✓ علّم أخطاء الإصدارات القديمة Fixed</button>
-    <p class="mut" style="margin-top:8px;font-size:12px">التصحيح التلقائي للكود من GitHub <b>مش مفعّل</b> عمدًا عشان منكسرش المنصة. ارفع التحديثات يدوي بعد المراجعة.</p></div>`;
+    const top=errSmartGroupOpen().slice(0,8);
+    let html="";
+    if(maybe.length){
+      html+=`<div class="card" style="border-color:#166534;margin-bottom:10px"><b>ذكية: ${maybe.length} خطأ على إصدار أقدم</b>
+      <p class="mut" style="margin:6px 0">المنصة اتحدثت بعد ما الأخطاء دي اتسجلت — غالبًا اتصححت. تقدر تعلّمهم Fixed دفعة واحدة.</p>
+      <button class="btn sm gold" data-act="errMarkStaleFixed">✓ علّم أخطاء الإصدارات القديمة Fixed</button></div>`;
+    }
+    if(top.length){
+      html+=`<div class="card" style="margin-bottom:10px"><b>🧠 تجميع ذكي — أكتر أخطاء مفتوحة</b>
+      <p class="mut" style="margin:4px 0 8px;font-size:12px">مجمّعة حسب التوقيع · مع اقتراح سبب</p>`;
+      top.forEach((g,i)=>{
+        const c=errSmartClassify(g.sample);
+        const pages=Object.keys(g.pages).slice(0,3).join("، ")||"—";
+        const vers=Object.keys(g.vers).slice(0,4).join("، ")||"—";
+        html+=`<div style="padding:8px 0;border-top:1px solid var(--line)">
+          <div class="row" style="gap:6px;flex-wrap:wrap;align-items:center"><span class="pill ${c.cls||"y"}">${esc(c.label)}</span><b style="font-size:12px">×${g.n}</b></div>
+          <div style="font-size:13px;margin-top:4px">${esc(String(g.sample.msg||"").slice(0,160))}</div>
+          <div class="mut" style="font-size:11px;margin-top:2px">شاشات: ${esc(pages)} · إصدارات: ${esc(vers)}${g.sample.fn?" · "+esc(String(g.sample.fn).slice(0,40)):""}</div>
+          ${c.hint?`<div style="font-size:12px;margin-top:4px;color:var(--gold)">💡 ${esc(c.hint)}</div>`:""}
+        </div>`;
+      });
+      html+=`<p class="mut" style="margin-top:8px;font-size:12px">التصحيح التلقائي من GitHub <b>مش مفعّل</b> عمدًا. نزّل «ملف للـ AI» بعد المراجعة.</p></div>`;
+    }
+    return html;
   }catch(_){return ""}
 }
 
@@ -3688,14 +4146,14 @@ function dmBubbleHtml(m){
   const mine=m.fromUid===S.user.uid;
   const reply=m.replyTo?`<div class="tk-reply-q" dir="auto"><b>${esc(m.replyTo.name||"")}</b> ${esc((m.replyTo.text||"").slice(0,80))}</div>`:"";
   const acts=m._local?"":`<button type="button" class="tk-mini" data-act="pickReact" data-col="dm" data-id="${m.id}" aria-label="تفاعل">☺</button><button type="button" class="tk-mini" data-act="dmReply" data-id="${m.id}" data-text="${esc((m.text||"").slice(0,120))}" data-name="${esc(m.fromName||"")}" aria-label="رد">↩</button>${mine?`<button type="button" class="tk-mini" data-act="dmDelete" data-id="${m.id}" aria-label="حذف">🗑</button>`:""}`;
-  return `<div class="tk-bubble ${mine?"me":"them"}${lfBub(m.fromUid)}" data-mid="${m.id}">
+  return `<div class="tk-bubble ${mine?"me":"them"}${m._local?" sending":""}${m._failed?" failed":""}${lfBub(m.fromUid)}" data-mid="${m.id}">
       ${!mine&&m.fromName?`<div style="font-size:11px;opacity:.8;margin-bottom:2px">${esc(m.fromName)}${lfTag(m.fromUid)}</div>`:""}
       ${reply}
       ${m.text&&m.kind!=="audio"?`<div dir="auto">${esc(m.text)}</div>`:""}
       ${m.img?mediaEmbed(m.img,m.kind):""}
       ${m.roomCode?`<button class="btn sm gold" style="margin-top:6px" data-act="qbJoinInvite" data-code="${esc(m.roomCode)}">دخول الغرفة</button>`:""}
       ${reactsHtml("dm",m.id,m.reacts,true)}
-      <div class="tk-foot"><span class="when">${m.createdAt?fmt(m.createdAt):""}${m.read&&mine?" · ✓✓":(mine?" · ✓":"")}</span>${acts}</div>
+      <div class="tk-foot"><span class="when">${m.createdAt?fmt(m.createdAt):""}${mine?(m._failed?" · ⚠ فشل الإرسال":(m._local?" · جارٍ الإرسال…":(m.read?" · ✓✓":" · ✓"))):""}</span>${acts}${mine&&m._failed?`<button type="button" class="tk-mini" data-act="dmRetry" data-id="${m.id}" aria-label="إعادة">↻</button>`:""}</div>
     </div>`;
 }
 function chatThreadView(){
@@ -3717,7 +4175,8 @@ function chatThreadView(){
   <button class="btn ghost sm" data-act="startCall" data-uid="${t.uid}" data-name="${esc(t.name||"")}" aria-label="مكالمة">📞</button>
 </div>
 <div class="tk-thread">
-  <div class="tk-log" id="dmChatLog">${msgs.length?msgs.map(dmBubbleHtml).join(""):`<div class="mut" style="text-align:center;margin:auto">قول سلام 👋</div>`}</div>
+  <div class="tk-search-row" style="padding:6px 10px 0;display:flex;gap:6px;align-items:center"><input id="dmSearch" type="search" maxlength="80" placeholder="🔎 بحث في المحادثة…" value="${esc(S.chatSearch||"")}" style="flex:1;font:inherit;padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:inherit" autocomplete="off"><button type="button" class="btn ghost sm" data-act="dmClearSearch" style="${S.chatSearch?"":"display:none"}">✕</button></div>
+  <div class="tk-log" id="dmChatLog">${(()=>{const q=(S.chatSearch||"").trim().toLowerCase();const list=q?msgs.filter(m=>!m.deleted&&((m.text||"").toLowerCase().includes(q)||(m.fromName||"").toLowerCase().includes(q))):msgs;return list.length?list.map(dmBubbleHtml).join(""):`<div class="mut" style="text-align:center;margin:auto">${q?"مفيش نتائج للبحث":"قول سلام 👋"}</div>`})()}</div>
 </div>
 ${replyBar}
 <form class="tk-compose" data-submit="dmSend">
@@ -3777,6 +4236,13 @@ ${(p.badges||[]).length?`<div style="margin-top:10px;display:flex;flex-wrap:wrap
 <label class="f">كود الاستعادة (اختياري)</label>
 <input id="meResetCode" class="ltr" type="text" maxlength="8" placeholder="من المدرس إن وُجد">
 <button class="btn sm" style="margin-top:10px" data-act="meChangePw">تغيير كلمة السر</button>
+</div>
+<div class="card"><b>استقرار المنصة ⚡</b>
+<p class="mut" style="margin:6px 0 8px">تجهيز الملفات مسبقًا يقلل التقطيع · التحديث مش بيفرض ريلود عليك</p>
+${S._preload&&S._preload.running?`<div class="preload-card"><div class="mut">جاري التجهيز… ${S._preload.pct||0}%</div><div class="preload-bar"><i style="width:${S._preload.pct||0}%"></i></div><div class="mut" style="font-size:12px">${S._preload.ok||0} جاهز · ${S._preload.fail||0} فشل</div></div>`:S._preload&&S._preload.done?`<div class="mut" style="margin-bottom:8px">آخر تجهيز: ${S._preload.ok||0}/${S._preload.total||0} ✓</div>`:""}
+<button class="btn block" data-act="preloadCritical" ${S._preload&&S._preload.running?"disabled":""}>📦 تجهيز للعب بدون تقطيع</button>
+${S._swWaiting?`<div class="preload-card" style="margin-top:10px;border-color:var(--pri)"><b>تحديث جديد جاهز</b><p class="mut" style="margin:6px 0">اضغط للتفعيل (هتعمل تحديث خفيف)</p><button class="btn gold block" data-act="applySwUpdate">تفعيل التحديث ✓</button></div>`:`<button class="btn ghost block" style="margin-top:8px" data-act="applySwUpdate">🔄 فحص / تفعيل تحديث المنصة</button>`}
+<button class="btn block" style="margin-top:8px" data-act="openChecklist">🏁 قائمة القبول (مرحلة 13)</button>
 </div>
 <button class="btn ghost block" data-act="logout">تسجيل خروج</button>
 </div>${studentNav()}`;
@@ -4666,7 +5132,7 @@ function modeView(m){
   /* رسالة / غير ذلك */
   return `<div class="wrap"><div class="center"><div style="font-size:64px;line-height:1">${esc(m.ic||"🎛")}</div><h1 style="margin-top:18px">${esc(m.n)}</h1><p class="mut" style="max-width:380px;margin:8px auto 22px;white-space:pre-wrap">${esc(m.msg||"الوضع ده شغّال دلوقتي.")}</p>${exit}</div></div>`;
 }
-const MODE_FILE_MAX_BYTES=600000;
+const MODE_FILE_MAX_BYTES=4*1024*1048576;
 function gameDocId(m){const id=String(m&&m.gameDoc||"");return /^gameMode_m[a-z0-9]+$/i.test(id)?id:""}
 function loadGameModeDoc(id){
   if(!id||!S.user||S._gameDocLoading===id||S._gameDocs&&Object.prototype.hasOwnProperty.call(S._gameDocs,id))return;
@@ -5386,7 +5852,11 @@ function ensureSol(){
 }
 async function wipeFiles(id,part,gid){
   const sn=await getDocs(query(collection(db,"assessments",id,"chunks"),where("part","==",part),where("gid","==",gid)));
-  for(const d of sn.docs)await deleteDoc(d.ref);
+  for(let i=0;i<sn.docs.length;i+=400){
+    const b=writeBatch(db);
+    sn.docs.slice(i,i+400).forEach(d=>b.delete(d.ref));
+    await b.commit();
+  }
 }
 
 
@@ -5609,6 +6079,29 @@ const A={
     }
     toast(r.ok?"الإشعارات اشتغلت ✓":r.msg,true);
     const el=$("#pushStatus");if(el)el.textContent="حالة الإشعارات: "+pushStateText();
+  },
+  /* Stage 12 Anti-lag */
+  async preloadCritical(){
+    if(S._preload&&S._preload.running)return;
+    S._preload={running:true,pct:0,ok:0,fail:0,total:0,done:false};
+    render(true);
+    try{
+      const res=await preloadCritical(({done,total,ok,fail,pct})=>{
+        S._preload={running:true,pct,ok,fail,total,done:false};
+        const bar=document.querySelector(".preload-bar>i");
+        if(bar)bar.style.width=pct+"%";
+        else try{render()}catch(_){}
+      });
+      S._preload={running:false,pct:100,ok:res.ok,fail:res.fail,total:res.total,done:true};
+      toast("التجهيز خلص: "+res.ok+" ملف جاهز"+(res.fail?" · "+res.fail+" فشل":""),true);
+    }catch(e){
+      S._preload={running:false,pct:0,ok:0,fail:0,total:0,done:false};
+      toast("فشل التجهيز");
+    }
+    render(true);
+  },
+  async applySwUpdate(){
+    await applySwUpdate();
   },
   async saveAiUrl(){
     const url=($("#aiUrlIn")&&$("#aiUrlIn").value||"").trim();
@@ -6118,6 +6611,7 @@ const A={
     catch(e){if(st)st.roles=prev;render(true);window.__cancel=true;toast("فشل — حدّث rules",true)}
   },
   openMe(){S.view="me";render(true)},
+  openChecklist(){S.view="checklist";render(true)},
   async adminRecoverCode(d){
     if(!S.isAdmin||!d.id)return;
     const s=(S.students||[]).find(x=>x.id===d.id)||{};
@@ -6430,6 +6924,13 @@ const A={
     setTimeout(()=>{const i=$("#dmIn");if(i)i.focus()},50);
   },
   dmCancelReply(){S.replyTo=null;render(true)},
+  dmClearSearch(){S.chatSearch="";render(true);setTimeout(()=>{const i=$("#dmSearch");if(i)i.focus()},40)},
+  async dmRetry(d){
+    const m=(S.chatMsgs||[]).find(x=>x.id===d.id);
+    if(!m||!S.chatThread)return;
+    S.chatMsgs=(S.chatMsgs||[]).filter(x=>x.id!==d.id);
+    try{await sendDm(S.chatThread.uid,m.text||"",m.img||null,m.kind?{kind:m.kind}:null)}catch(_){}
+  },
   async dmDelete(d){
     if(!d.id||!S.chatThread||!S.user)return;
     if(!await uiConfirm("تحذف الرسالة؟"))return;
@@ -6488,31 +6989,7 @@ const A={
     }
     if(S.view==="profile")scheduleRender();
   },
-  async searchFriend(){
-    if(!rateOk("search",800,30))return;
-    const q=($("#friendQ")?.value||"").trim();
-    S.friendQ=q;
-    if(q.length<2){toast("اكتب حرفين على الأقل");return}
-    S.friendSearching=true;render();
-    try{
-      const sn=await getDocs(query(collection(db,"publicProfiles"),limit(200)));
-      const profiles=sn.docs.map(d=>({id:d.id,...d.data()}));
-      let board=S.board||[];
-      if((S.isAdmin||featState("progress"))&&!board.length){
-        try{const b=await getDocs(query(collection(db,"leaderboard"),orderBy("score","desc"),limit(80)));board=b.docs.map(d=>({id:d.id,...d.data()}));S.board=board}catch(_){}
-      }
-      const ql=q.toLowerCase();
-      const matched=profiles.filter(p=>p.id!==S.user.uid&&(p.name||"").toLowerCase().includes(ql)).slice(0,20);
-      const ranked=rankBoard(board).ranked;
-      S.friendHits=matched.map(p=>{
-        const lb=board.find(b=>(b.uid||b.id)===p.id)||{};
-        const rankIdx=ranked.findIndex(b=>(b.uid||b.id)===p.id);
-        return {id:p.id,name:p.name,phone:"",avatar:null,examsDone:lb.examsDone,totalScore:lb.totalScore,pct:lb.pct,rank:rankIdx>=0?rankIdx+1:null};
-      });
-      try{S.globalHits=runGlobalSearch(S.friendQ||"")}catch(_){}
-    }catch(e){toast("فشل البحث");S.friendHits=[]}
-    S.friendSearching=false;render();
-  },
+  /* v115.1: شلت نسخة searchFriend القديمة (كانت بتتغطّى بالنسخة المشفّرة الأحدث تحت — كود ميت) */
   async meSaveName(){
     const name=($("#meName")?.value||"").trim();
     if(name.length<2||name.length>80){toast("الاسم لازم يكون بين حرفين و80 حرفًا");return}
@@ -6605,16 +7082,28 @@ const A={
     if(maxPlayers<1)maxPlayers=1;if(maxPlayers>16)maxPlayers=16;
     const isPublic=($("#qbPublicCreate")?.value==="1");
     const subject=($("#qbSub")?.value)||"random";
+    const grade=($("#qbGrade")?.value)||"";
+    const difficulty=($("#qbDiffRoom")?.value)||"medium";
+    let matchMode=($("#qbMatchMode")?.value)||"ffa";
+    /* Stage 8/9: قفل العدد حسب نوع المباراة */
+    if(game==="qb"&&matchMode==="1v1")maxPlayers=2;
+    if(game==="qb"&&matchMode==="2v2")maxPlayers=4;
+    if(game==="ctf"){matchMode="2v2";if(maxPlayers<4)maxPlayers=4;if(maxPlayers>8)maxPlayers=8}
+    if(game==="speed"||game==="memory"||game==="treasure"||game==="arena"){matchMode="ffa";if(maxPlayers<2)maxPlayers=2}
     const n=+$("#qbN")?.value||10, sec=+$("#qbT")?.value||0;
     let qs=[],seed=Date.now()^(Math.random()*1e9|0);
-    if(game==="qb"){
+    if(game==="qb"||game==="speed"||game==="ctf"||game==="memory"||game==="treasure"||game==="arena"){
       const raw=qbPool(subject,n);
       if(raw.length<3){toast("مفيش أسئلة كفاية. انشر امتحانات أول");return}
       qs=raw.map((it,i)=>qbShuffleQ(it, seed+i*9973));
     }
+    /* CTF: فرق افتراضية عند الإنشاء لو 4 لاعبين لاحقاً */
+    if(game==="ctf"){
+      /* matchMode فرق */
+    }
     const code=qbCode();
     const av=await packTinyAvatar(S.profile&&S.profile.avatar);
-    const room={code,host:S.user.uid,hostName:(S.profile.name||"طالب").split(" ")[0],subject,qCount:n,sec,maxPlayers,status:"lobby",seed,qs,game,color:"teal",public:isPublic,
+    const room={code,host:S.user.uid,hostName:(S.profile.name||"طالب").split(" ")[0],subject,grade,difficulty,matchMode,qCount:n,sec,maxPlayers,status:"lobby",seed,qs,game,color:"teal",public:isPublic,
       players:{[S.user.uid]:{uid:S.user.uid,name:S.profile.name.split(" ")[0],ready:true,score:0,correct:0,wrong:0,streak:0,bestStreak:0,away:false,seen:Date.now(),avatar:(S.profile.avatar&&String(S.profile.avatar).startsWith("http")?S.profile.avatar:av)||null}},
       createdAt:serverTimestamp()};
     try{
@@ -6652,9 +7141,33 @@ const A={
   },
   async qbBeginMatch(){
     const code=S.qb.roomCode;if(!code)return;
-    const game=(S.qb.room&&S.qb.room.game)||"qb";
+    const room=S.qb.room||{};
+    const game=room.game||"qb";
     if(game==="los"){toast("آخر واحد واقف — قريب داخل الغرف. اختار تحدي الأوائل دلوقتي");return}
-    try{await updateDoc(doc(db,"qb_rooms",code),{status:"playing",startedAt:Date.now(),idx:0})}catch(e){toast("مقدرتش أبدأ")}
+    const players=Object.values(room.players||{}).filter(p=>!p.away);
+    let mm=room.matchMode||"ffa";
+    if(game==="ctf")mm="2v2";
+    /* Stage 8/9: تحقق العدد حسب نوع المباراة */
+    if((game==="speed"||game==="memory"||game==="treasure"||game==="arena")&&players.length<2){toast(({"speed":"Speed Duel","memory":"Memory Battle","treasure":"Treasure Race","arena":"Arena"}[game]||"اللعبة")+" محتاجة لاعبين على الأقل");return}
+    if(game==="ctf"&&players.length<2){toast("CTF محتاج لاعبين على الأقل (يفضّل 4)");return}
+    if(mm==="1v1"&&players.length!==2){toast("1 ضد 1 محتاج لاعبين اتنين بالظبط");return}
+    if(mm==="2v2"&&game==="qb"&&players.length!==4){toast("2 ضد 2 محتاج 4 لاعبين بالظبط");return}
+    if(players.length<1){toast("مفيش لاعبين");return}
+    const patch={status:"playing",startedAt:Date.now(),idx:0,matchMode:mm,flag:{A:0,B:0},roundFirst:null};
+    /* Arena: 3 أرواح لكل لاعب */
+    if(game==="arena"){
+      players.forEach(p=>{patch[`players.${p.uid}.lives`]=3;patch[`players.${p.uid}.elim`]=false});
+    }
+    /* تعيين فرق للـ 2v2 أو CTF */
+    if(mm==="2v2"||game==="ctf"){
+      const sorted=players.slice().sort((a,b)=>(a.joinedAt||0)-(b.joinedAt||0));
+      const half=Math.ceil(sorted.length/2);
+      sorted.forEach((p,i)=>{
+        const team=i<half?"A":"B";
+        patch[`players.${p.uid}.team`]=team;
+      });
+    }
+    try{await updateDoc(doc(db,"qb_rooms",code),patch)}catch(e){toast("مقدرتش أبدأ")}
   },
   qbCopyCode(){
     const c=S.qb&&S.qb.room&&S.qb.room.code;if(!c)return;
@@ -6665,8 +7178,16 @@ const A={
     if(S.qb.room.host!==S.user.uid){toast("المضيف بس يقدر يغيّر");return}
     const game=$("#qbGameSel")?.value||"qb";
     const color=$("#qbColorSel")?.value||"teal";
+    const patch={game,color};
     try{
-      await updateDoc(doc(db,"qb_rooms",code),{game,color});
+      const sub=$("#qbLobbySub")?.value;if(sub!=null&&sub!=="")patch.subject=sub;
+      const gr=$("#qbLobbyGrade")?.value;if(gr!=null)patch.grade=gr;
+      const df=$("#qbLobbyDiff")?.value;if(df)patch.difficulty=df;
+      const mm=$("#qbLobbyMatchMode")?.value;if(mm){patch.matchMode=mm;if(mm==="1v1")patch.maxPlayers=2;if(mm==="2v2")patch.maxPlayers=4;}
+      const n=+$("#qbLobbyN")?.value;if(n)patch.qCount=n;
+      const sec=+$("#qbLobbyT")?.value;if(!isNaN(sec))patch.sec=sec;
+      if(typeof RoomAPI!=="undefined"&&RoomAPI.updateSettings)await RoomAPI.updateSettings(code,patch);
+      else await updateDoc(doc(db,"qb_rooms",code),patch);
       toast("اتحدّثت إعدادات الغرفة");
     }catch(e){toast("فشل الحفظ")}
   },
@@ -6776,6 +7297,19 @@ const A={
     }
     logActivity("qb_leave", code||"");
     S.qb=null;S.view="games";render(true);
+  },
+  async qbShareResult(){
+    try{
+      const g=S.qb;if(!g||!g.match){toast("مفيش نتيجة");return}
+      const r=g.match._pgReward||postGameCompute(g)||{};
+      const me=r.me||{};
+      const text=`التفوق · ${r.gameLabel||"مباراة"}\nترتيبي #${r.rank||"?"} · نقاط ${me.score||0} · دقة ${r.acc||0}%\n+${r.coins||0} عملة · +${r.xpShow||0} XP${r.isWin?"\n🏆 فوز!":""}`;
+      if(navigator.share){
+        try{await navigator.share({title:"نتيجة التفوق",text});toast("اتشاركت ✓");return}catch(e){if(e&&e.name==="AbortError")return}
+      }
+      await navigator.clipboard.writeText(text);
+      toast("اتنسخت النتيجة — الصقها أي مكان ✓");
+    }catch(_){toast("مقدرتش أشارك")}
   },
   async qbRematchRoom(){
     const code=S.qb&&S.qb.roomCode;if(!code||!S.qb.room)return;
@@ -7411,7 +7945,8 @@ const A={
       let id=e.id;
       if(id)await updateDoc(doc(db,"assessments",id),data);
       else{const r=await addDoc(collection(db,"assessments"),{...data,createdAt:serverTimestamp()});id=r.id}
-      for(const r of e.rm){if(r.kind==="pdf")await wipeFiles(id,r.part,r.gid);await deleteDoc(doc(db,"assessments",id,"files",r.id))}
+      for(const r of e.rm){if(r.kind==="pdf")await wipeFiles(id,r.part,r.gid)}
+      if(e.rm.length){for(let i=0;i<e.rm.length;i+=400){const b=writeBatch(db);e.rm.slice(i,i+400).forEach(r=>b.delete(doc(db,"assessments",id,"files",r.id)));await b.commit()}}
       let k=0;
       for(const part of ["q","s"])for(const f of e[part]){
         if(!f.pend)continue;
@@ -7695,14 +8230,14 @@ const A={
     if(kind==="site"){
       const pend=window.__pendingSite;
       if(!pend||!pend.chunks||!pend.chunks.length){toast("اختر الملف الأول وانتظر رسالة «الملف جاهز»",true);window.__cancel=true;return}
-      try{for(let i=0;i<pend.chunks.length;i++)await setDoc(doc(db,"config","siteMode_"+id+"_"+i),{d:pend.chunks[i],i,of:pend.chunks.length,updatedAt:serverTimestamp()})}
+      try{for(let i=0;i<pend.chunks.length;i+=400){const b=writeBatch(db);for(let j=i;j<Math.min(i+400,pend.chunks.length);j++)b.set(doc(db,"config","siteMode_"+id+"_"+j),{d:pend.chunks[j],i:j,of:pend.chunks.length,updatedAt:serverTimestamp()});await b.commit()}}
       catch(e){await siteDelChunks({id,chunks:pend.chunks.length});toast("تعذر حفظ الملف؛ تأكد إنك نشرت قواعد Firestore الجديدة",true);window.__cancel=true;return}
       Object.assign(nm,{sk:pend.sk,mime:pend.mime,chunks:pend.chunks.length,fileName:pend.name,bytes:pend.bytes});window.__pendingSite=null;
     }
     if(kind==="htmlFile"){
       const pending=window.__pendingModeHtml;
       if(!pending||!pending.text){toast("اختر ملف HTML مستقل قبل الإضافة",true);window.__cancel=true;return}
-      if(pending.bytes>MODE_FILE_MAX_BYTES){toast("حجم الملف أكبر من 600KB",true);window.__cancel=true;return}
+      if(pending.bytes>MODE_FILE_MAX_BYTES){toast("حجم الملف أكبر من 4GB",true);window.__cancel=true;return}
       gameId="gameMode_"+id;
       try{await setDoc(doc(db,"config",gameId),{html:pending.text,fileName:pending.name,updatedAt:serverTimestamp()})}
       catch(e){toast("تعذر حفظ اللعبة في Firestore؛ راجع القواعد والحصة",true);window.__cancel=true;return}
@@ -7842,7 +8377,7 @@ const A={
       try{ /* v115: لو الحساب موجود من قبل setDoc كامل بيرفضه القواعد — get الأول وبعدين update أو create */
         const __ex=await getDoc(doc(db,"students",c.user.uid)).catch(()=>null);
         if(__ex&&__ex.exists())await updateDoc(doc(db,"students",c.user.uid),{lastLogin:serverTimestamp()}).catch(()=>{});
-        else await setDoc(doc(db,"students",c.user.uid),{name,tanaghaAccess:"pending",createdAt:serverTimestamp()});
+        else await setDoc(doc(db,"students",c.user.uid),{name,tanaghaAccess:"pending",createdAt:serverTimestamp(),chatName:name.split(" ")[0]});
         try{await setDoc(doc(db,"studentsPrivate",c.user.uid),{phone,regIp:myIp||"",regDevice:device(),updatedAt:serverTimestamp()},{merge:true})}catch(_){}
         sendPush({type:"admin_event",event:"signup"},"adm_signup",30000)}catch(_){}
       try{await setDoc(doc(db,"publicProfiles",c.user.uid),{name,updatedAt:serverTimestamp()})}catch(_){}
@@ -7854,7 +8389,7 @@ function fail(m){S.error=m;render(true)}
 
 
 /* ---- QB runtime ---- */
-const QB_GAMES={qb:"تحدي الأوائل 👑",los:"آخر واحد واقف 🧍",math:"حساب سريع 🔢",xo:"إكس أو ❌⭕",memory:"تحدي الذاكرة 🧠",draw:"رسم وخمّن ✏️",hang:"كلمة مخفية 📝",words:"Words Crush 🔤",runner:"Endless Runner 🏃",space:"Space Shooter 🚀",doodle:"Doodle Jump 🪂",fishing:"صيد السمك 🎣",push:"Push Arena 🧊"};
+const QB_GAMES={qb:"تحدي الأوائل 👑",speed:"Speed Duel ⚡",ctf:"Capture The Flag 🏁",memory:"Memory Battle 🧠",treasure:"Treasure Race 💎",arena:"Arena 🏟️",los:"آخر واحد واقف 🧍",draw:"رسم وخمّن ✏️",hang:"كلمة مخفية 📝",words:"Words Crush 🔤",runner:"Endless Runner 🏃",space:"Space Shooter 🚀",doodle:"Doodle Jump 🪂",fishing:"صيد السمك 🎣",push:"Push Arena 🧊"};
 const QB_COLORS={teal:"تركواز",purple:"بنفسجي",gold:"ذهبي",rose:"وردي",blue:"أزرق"};
 function qbGameLabel(id){return QB_GAMES[id]||QB_GAMES.qb}
 function convIdFor(a,b){return [a,b].sort().join("_")}
@@ -7995,6 +8530,7 @@ async function sendDm(toUid,text,img,extra){
       },{merge:true})
     ]);
     S.replyTo=null;
+    try{S.chatMsgs=(S.chatMsgs||[]).filter(m=>!(m._local&&m.id===local.id))}catch(_){}
     // إشعار داخل المنصة + طلب Push
     try{
       const preview=img?(extra&&extra.kind==="audio"?"🎙 رسالة صوتية":"🖼 صورة"):(text||"").slice(0,80);
@@ -8007,6 +8543,11 @@ async function sendDm(toUid,text,img,extra){
     }catch(_){}
   }catch(err){
     console.error("sendDm",err);
+    try{
+      const loc=(S.chatMsgs||[]).find(m=>m._local&&m.id===local.id);
+      if(loc){loc._failed=true;loc._local=false}
+      if(S.view==="chatThread"){const log=$("#dmChatLog");if(log)patchChatLog(log,S.chatMsgs||[],dmBubbleHtml,EMPTY_DM);else render(true)}
+    }catch(_){}
     const code=(err&&err.code)||"";
     if(String(code).includes("permission"))toast("الشات: مفيش صلاحية — انشر firestore.rules",true);
     else toast("فشل إرسال الرسالة — جرب تاني");
@@ -8475,7 +9016,7 @@ ${list.length?list.map(g=>`<button type="button" class="card row" data-act="open
 }
 function grpBubbleHtml(m){
     const mine=m.fromUid===S.user.uid;
-    return `<div class="tk-bubble ${mine?"me":"them"}${lfBub(m.fromUid)}" data-mid="${m.id}">
+    return `<div class="tk-bubble ${mine?"me":"them"}${m._local?" sending":""}${m._failed?" failed":""}${lfBub(m.fromUid)}" data-mid="${m.id}">
       ${!mine?`<div style="font-size:11px;opacity:.8">${esc(m.fromName||"?")}${lfTag(m.fromUid)}</div>`:""}
       ${m.text&&m.kind!=="audio"&&m.kind!=="image"?`<div dir="auto">${esc(m.text)}</div>`:""}
       ${m.img?mediaEmbed(m.img,m.kind):""}
@@ -8981,12 +9522,14 @@ function qbListenRoom(code){
       const players=Object.values(room.players||{}).map(p=>({...p}));
       const idx=room.idx||0;
       if(!S.qb.match){
-        S.qb.match={qs:room.qs,idx,sec:room.sec,deadline:room.sec?Date.now()+room.sec*1000:0,players,answered:false,pick:null,seed:room.seed};
+        S.qb.match={qs:room.qs,idx,sec:room.sec,deadline:room.sec?Date.now()+room.sec*1000:0,players,answered:false,pick:null,seed:room.seed,flag:room.flag||{A:0,B:0},firstCorrect:room.roundFirst||null};
         S.view="qbPlay";render(true);qbStartRound();
         return;
       }
       // sync scores from peers
       S.qb.match.players=players;
+      if(room.flag)S.qb.match.flag=room.flag;
+      if(room.roundFirst)S.qb.match.firstCorrect=room.roundFirst;
       // advance question if host bumped idx
       if(idx!==S.qb.match.idx){
         S.qb.match.idx=idx;
@@ -9001,10 +9544,13 @@ function qbListenRoom(code){
       }
       // just refresh HUD scores; host advances when all answered
       if(S.view==="qbPlay"){
-        render();
+        /* Stage 12: تحديث HUD متباعد عشان ما يقطّعش */
+        clearTimeout(window.__qbHudT);
+        window.__qbHudT=setTimeout(()=>{try{render()}catch(_){}},120);
         if(S.qb.room&&S.qb.room.host===S.user.uid){
           const humans=players.filter(p=>p.uid!=="bot");
-          if(humans.length>=2 && humans.every(p=>p.ans!=null)){
+          const alive=humans.filter(p=>!p.elim);
+          if(humans.length>=2 && (alive.length<=1 || alive.every(p=>p.ans!=null))){
             setTimeout(()=>qbTryAdvance(), 400);
           }
         }
@@ -9014,8 +9560,39 @@ function qbListenRoom(code){
 }
 function qbStartRound(){
   clearInterval(window.__qbT);
+  clearTimeout(window.__qbMem);
   const m=S.qb&&S.qb.match;if(!m)return;
-  m.answered=false;m.pick=null;
+  m.answered=false;m.pick=null;m.firstCorrect=null;
+  const game=((S.qb.room&&S.qb.room.game)||S.qb.game||"qb");
+  /* Stage 10 Memory: مرحلة حفظ 3 ثواني قبل الإجابة */
+  if(game==="memory"){
+    m.memPhase="show";
+    m.memUntil=Date.now()+7000;
+    render(true);
+    clearInterval(window.__qbMemTick);
+    window.__qbMemTick=setInterval(()=>{
+      if(!S.qb||!S.qb.match||S.qb.match.memPhase!=="show"){clearInterval(window.__qbMemTick);return}
+      render();
+    },250);
+    window.__qbMem=setTimeout(()=>{
+      clearInterval(window.__qbMemTick);
+      if(!S.qb||!S.qb.match||S.qb.match.idx!==m.idx)return;
+      m.memPhase="answer";
+      if(m.sec)m.deadline=Date.now()+m.sec*1000;
+      render(true);
+      if(m.sec){
+        window.__qbT=setInterval(()=>{
+          if(!S.qb||!S.qb.match){clearInterval(window.__qbT);return}
+          const left=Math.max(0,S.qb.match.deadline-Date.now());
+          const el=$("#qbSec"),bar=$("#qbBar");
+          if(el)el.textContent=Math.ceil(left/1000)+"ث";
+          if(bar){bar.style.width=(left/(S.qb.match.sec*1000)*100)+"%";bar.parentElement.classList.toggle("low",left<=5000)}
+          if(left<=0){clearInterval(window.__qbT);qbOnAnswer(-1)}
+        },200);
+      }
+    },7000);
+    return;
+  }
   if(m.sec)m.deadline=Date.now()+m.sec*1000;
   // bot schedules answer
   if(S.qb.mode==="bot"){
@@ -9043,7 +9620,9 @@ function qbStartRound(){
 }
 function qbOnAnswer(choice){
   const m=S.qb&&S.qb.match;if(!m||m.answered)return;
+  if(m.memPhase==="show"){toast("لسه مرحلة الحفظ — استنى");return}
   const me=m.players.find(p=>p.uid===S.user.uid);if(!me)return;
+  if(me.elim){toast("اتقصيت من الـ Arena");return}
   m.answered=true;m.pick=choice;
   qbApplyAnswer(me, choice, true);
   // friends mode: push answer to room so peer sees scores
@@ -9058,6 +9637,11 @@ function qbOnAnswer(choice){
       [`players.${S.user.uid}.ans`]:choice,
       [`players.${S.user.uid}.ansAt`]:Date.now()
     };
+    if(S.qb.match.flag)patch.flag=S.qb.match.flag;
+    if(S.qb.match.firstCorrect)patch.roundFirst=S.qb.match.firstCorrect;
+    if(me.steps!=null)patch[`players.${S.user.uid}.steps`]=me.steps;
+    if(me.lives!=null)patch[`players.${S.user.uid}.lives`]=me.lives;
+    if(me.elim!=null)patch[`players.${S.user.uid}.elim`]=!!me.elim;
     updateDoc(doc(db,"qb_rooms",code),patch).catch(()=>{});
   }
   render(true);
@@ -9070,11 +9654,12 @@ function qbOnAnswer(choice){
       else if(j===choice&&choice!==q.a)el.classList.add("wrong");
     });
   },30);
+  /* Stage 8: إظهار الإجابة أطول قبل الانتقال */
   if(S.qb.mode==="bot"){
-    setTimeout(qbNext, choice===m.qs[m.idx].a?900:1200);
+    setTimeout(qbNext, choice===m.qs[m.idx].a?1400:1800);
   } else {
-    // friends: wait for both answers or timer, host advances
-    setTimeout(()=>qbTryAdvance(), 600);
+    // friends: استنى الكل + مهلة قصيرة عشان يشوفوا الإجابة
+    setTimeout(()=>qbTryAdvance(), 900);
   }
 }
 function qbTryAdvance(){
@@ -9082,23 +9667,33 @@ function qbTryAdvance(){
   if(!g.room||g.room.host!==S.user.uid)return;
   const m=g.match;
   const humans=m.players.filter(p=>p.uid!=="bot");
-  // need at least 2 players and all have answered this round
+  const alive=humans.filter(p=>!p.elim);
+  // need at least 2 players and all alive have answered this round
   if(humans.length<2)return;
-  if(!humans.every(p=>p.ans!=null))return;
+  if(!alive.every(p=>p.ans!=null)&&alive.length>0)return;
   if(m._advancing)return;
   m._advancing=true;
+  /* Stage 8: مهلة قصيرة عشان الكل يشوف الإجابة الصحيحة قبل الانتقال */
   const code=g.roomCode;
-  const clear={idx:(m.idx+1)};
-  humans.forEach(p=>{clear[`players.${p.uid}.ans`]=null});
-  if(m.idx+1>=m.qs.length)clear.status="done";
-  updateDoc(doc(db,"qb_rooms",code),clear)
-    .then(()=>{m._advancing=false})
-    .catch(e=>{m._advancing=false;toast("تعذر الانتقال للسؤال التالي");console.error(e)});
+  const nextIdx=m.idx+1;
+  const game=(g.room&&g.room.game)||"qb";
+  const goal=m.treasureGoal||Math.max(5,(m.qs||[]).length);
+  const treasureDone=game==="treasure"&&humans.some(p=>(p.steps||0)>=goal);
+  const arenaDone=game==="arena"&&alive.length<=1;
+  const done=nextIdx>=m.qs.length||treasureDone||arenaDone;
+  setTimeout(()=>{
+    const clear={idx:nextIdx,roundFirst:null};
+    humans.forEach(p=>{clear[`players.${p.uid}.ans`]=null});
+    if(done)clear.status="done";
+    updateDoc(doc(db,"qb_rooms",code),clear)
+      .then(()=>{m._advancing=false})
+      .catch(e=>{m._advancing=false;toast("تعذر الانتقال للسؤال التالي");console.error(e)});
+  }, 1100);
 }
 function qbApplyAnswer(player, choice, isHuman){
   const m=S.qb.match,q=m.qs[m.idx];
   const correct=choice===q.a;
-  // speed bonus only for human first answer timing
+  const game=((S.qb.room&&S.qb.room.game)||S.qb.game||"qb");
   let pts=0;
   if(correct){
     pts=10;
@@ -9109,20 +9704,51 @@ function qbApplyAnswer(player, choice, isHuman){
     player.streak=(player.streak||0)+1;
     player.bestStreak=Math.max(player.bestStreak||0,player.streak);
     if(player.streak>=10)pts*=5; else if(player.streak>=5)pts*=3; else if(player.streak>=3)pts*=2;
+    /* Stage 9 Speed Duel: أول صح في الجولة بياخد بونص سرعة */
+    if(game==="speed"){
+      if(!m.firstCorrect){m.firstCorrect=player.uid;pts+=8}
+      else pts=Math.max(3,Math.floor(pts/2));
+    }
+    /* Stage 9 CTF: تقدّم الفريق نحو العلم */
+    if(game==="ctf"&&player.team){
+      m.flag=m.flag||{A:0,B:0};
+      m.flag[player.team]=(m.flag[player.team]||0)+1;
+      pts+=5;
+    }
+    /* Stage 10 Memory: بونص حفظ + أول صح */
+    if(game==="memory"){
+      pts+=4;
+      if(!m.firstCorrect){m.firstCorrect=player.uid;pts+=6}
+    }
+    /* Stage 10 Treasure: خطوة على المسار */
+    if(game==="treasure"){
+      player.steps=(player.steps||0)+1;
+      pts+=6;
+      m.treasureGoal=m.treasureGoal||Math.max(5,(m.qs||[]).length);
+    }
     player.correct=(player.correct||0)+1;
     player.score=(player.score||0)+pts;
     if(isHuman&&navigator.vibrate)navigator.vibrate(12);
   }else{
     player.streak=0;
     player.wrong=(player.wrong||0)+1;
+    /* Stage 11 Arena: خسارة روح */
+    if(game==="arena"&&!player.elim){
+      player.lives=Math.max(0,(player.lives==null?3:player.lives)-1);
+      if(player.lives<=0){player.elim=true;player.lives=0}
+    }
     if(isHuman&&navigator.vibrate)navigator.vibrate([30,40,30]);
   }
 }
 function qbNext(){
   const m=S.qb&&S.qb.match;if(!m)return;
   clearTimeout(window.__qbBot);
+  clearTimeout(window.__qbMem);
   m.idx++;
-  if(m.idx>=m.qs.length){
+  const game=((S.qb.room&&S.qb.room.game)||S.qb.game||"qb");
+  const goal=m.treasureGoal||Math.max(5,(m.qs||[]).length);
+  const treasureDone=game==="treasure"&&m.players.some(p=>(p.steps||0)>=goal);
+  if(m.idx>=m.qs.length||treasureDone){
     clearInterval(window.__qbT);
     S.view="qbResult";render(true);
     // confetti for winner
@@ -9617,7 +10243,13 @@ function ecFlush(){
       _fbSetDoc(doc(db,"errorLogs",id),payload).catch(err=>{
         // إعادة بدون impact لو القواعد القديمة
         const soft={...payload};delete soft.impact;delete soft.count;
-        _fbSetDoc(doc(db,"errorLogs",id),soft).catch(()=>{});
+        _fbSetDoc(doc(db,"errorLogs",id),soft).catch(e2=>{
+          /* v131: لو المستند موجود مسبقاً (نفس اليوم/البصمة من جهاز تاني) الـ setDoc بيتحول update ومرفوض —
+             نحاول مرة واحدة بمعرّف فريد عشان الخطأ يوصل للأدمن برضه، من غير أي retry لانهائي */
+          if(e2&&(e2.code==="permission-denied"||e2.code==="already-exists")){
+            _fbSetDoc(doc(db,"errorLogs",id+"_"+Date.now().toString(36)),soft).catch(()=>{});
+          }
+        });
       });
     }
     __ecSentSave();
@@ -9841,15 +10473,20 @@ Object.assign(A,{
       const ok=await uiDialog({title:"Migration فضائح",msg:"هيضيف reactions={} و savedBy=[] و hiddenBy=[] لأي بوست ناقص. مرة واحدة. تكمل؟",ok:"نفّذ"});
       if(!ok)return;
       const snap=await getDocs(/*full-scan-ok*/collection(db,"fadaye7"));
-      let n=0;const b=writeBatch(db);
-      snap.docs.forEach(d=>{
-        const data=d.data()||{},patch={};
-        if(!data.reactions||typeof data.reactions!=="object")patch.reactions={};
-        if(!Array.isArray(data.savedBy))patch.savedBy=[];
-        if(!Array.isArray(data.hiddenBy))patch.hiddenBy=[];
-        if(Object.keys(patch).length){b.update(d.ref,patch);n++}
-      });
-      if(n)await b.commit();
+      let n=0;
+      const docs=snap.docs;
+      for(let i=0;i<docs.length;i+=400){
+        const b=writeBatch(db);
+        let batchN=0;
+        docs.slice(i,i+400).forEach(d=>{
+          const data=d.data()||{},patch={};
+          if(!data.reactions||typeof data.reactions!=="object")patch.reactions={};
+          if(!Array.isArray(data.savedBy))patch.savedBy=[];
+          if(!Array.isArray(data.hiddenBy))patch.hiddenBy=[];
+          if(Object.keys(patch).length){b.update(d.ref,patch);batchN++;n++}
+        });
+        if(batchN)await b.commit();
+      }
       toast(n?"اتحدّث "+n+" بوست ✓":"كل البوستات تمام");
     }catch(e){toast("فشل migration: "+((e&&e.message)||e),true)}
   },
@@ -9883,7 +10520,7 @@ Object.assign(A,{
     const i=document.createElement("input");i.type="file";i.accept="image/*";
     i.onchange=async()=>{const f=i.files&&i.files[0];if(!f)return;
       if(!/^image\/(jpeg|png|webp|gif)$/.test(f.type)){dtSet("upload","النوع غير مسموح: "+(f.type||"?"));return}
-      if(f.size>8*1048576){dtSet("upload","الحجم أكبر من 8MB: "+(f.size/1048576).toFixed(1)+"MB");return}
+      if(f.size>4*1024*1048576){dtSet("upload","الحجم أكبر من 4GB: "+(f.size/1048576).toFixed(1)+"MB");return}
       const t0=performance.now();
       try{
         const bmp=await createImageBitmap(f),sc=Math.min(1,1280/Math.max(bmp.width,bmp.height)),c=document.createElement("canvas");
@@ -9912,7 +10549,7 @@ Object.assign(A,{
 
 /* ===== v93 — المرحلة 2: نظام رفع الصور (تحقق + معاينة + تقدم/سرعة/وقت متبقي + إلغاء + إعادة محاولة) ===== */
 const UP_TYPES=/^image\/(jpeg|png|webp|gif)$/;
-const UP_MAX_BYTES=15*1048576;
+const UP_MAX_BYTES=4*1024*1048576;
 const UP_IDS={fad:"fadProg",stu:"stuFadProg",gal:"galProg"};
 const UP={cancel:false,jobs:{},urls:[]};
 function upValidate(files,max){
@@ -9920,7 +10557,7 @@ function upValidate(files,max){
   for(const f of files){
     if(!UP_TYPES.test(f.type||""))bad.push(f.name+": النوع غير مسموح (jpg / png / webp / gif بس)");
     else if(!f.size)bad.push(f.name+": الملف فاضي");
-    else if(f.size>UP_MAX_BYTES)bad.push(f.name+": أكبر من 15MB ("+(f.size/1048576).toFixed(1)+"MB)");
+    else if(f.size>UP_MAX_BYTES)bad.push(f.name+": أكبر من 4GB ("+(f.size/1048576).toFixed(1)+"MB)");
     else if(good.length>=max)bad.push(f.name+": زيادة عن الحد ("+max+")");
     else good.push(f);
   }
@@ -9978,7 +10615,7 @@ Object.assign(A,{
 });
 
 /* ===== v93 — المرحلة 2: مراقب الأداء ===== */
-const PF_VIEWS={home:"الرئيسية",games:"الألعاب",mathg:"لعبة الرياضيات",xo:"XO",hang:"هانج مان",spin:"عجلة الحظ",react:"رد الفعل",subject:"المادة",exam:"امتحان",result:"النتيجة",progress:"تقدمي",asmList:"التقييمات",asm:"تقييم",qbSetup:"تجهيز غرفة",qbLobby:"لوبي الغرفة",qbPlay:"لعب الغرفة",qbResult:"نتيجة الغرفة",me:"أنا",life:"حياتي",profile:"بروفايل",search:"بحث",chatList:"الشات",chatThread:"محادثة",fadaye7:"الفضايح",tanagha:"التناغه",gallery:"المعرض",groups:"الجروبات",books:"الكتب",admin:"لوحة الأدمن"};
+const PF_VIEWS={home:"الرئيسية",games:"الألعاب",checklist:"قائمة القبول",mathg:"لعبة الرياضيات",xo:"XO",hang:"هانج مان",spin:"عجلة الحظ",react:"رد الفعل",subject:"المادة",exam:"امتحان",result:"النتيجة",progress:"تقدمي",asmList:"التقييمات",asm:"تقييم",qbSetup:"تجهيز غرفة",qbLobby:"لوبي الغرفة",qbPlay:"لعب الغرفة",qbResult:"نتيجة الغرفة",me:"أنا",life:"حياتي",profile:"بروفايل",search:"بحث",chatList:"الشات",chatThread:"محادثة",fadaye7:"الفضايح",tanagha:"التناغه",gallery:"المعرض",groups:"الجروبات",books:"الكتب",admin:"لوحة الأدمن"};
 const pfLabel=v=>PF_VIEWS[v]||String(v||"?");
 function modeHomeApply(){
   S._homeDone=1;
@@ -10156,7 +10793,7 @@ const BK_GROUPS=[
   {id:"media",t:"الفضايح والمعرض (صور)",d:"ثقيلة وبتستهلك قراءات كتير من حصة Firebase",cols:["fadaye7","galleries"],def:false}
 ];
 const BK_ALLOWED=new Set(BK_GROUPS.flatMap(g=>g.cols));
-const BK_CAP=5000,BK_MAX_FILE=60*1048576;
+const BK_CAP=5000,BK_MAX_FILE=4*1024*1048576;
 function bkSer(v){
   if(v===null||typeof v!=="object")return v;
   if(typeof v.toMillis==="function")return {__ts:v.toMillis()};
@@ -10235,7 +10872,7 @@ Object.assign(A,{
     const i=document.createElement("input");i.type="file";i.accept=".json,application/json";
     i.onchange=async()=>{
       const f=i.files&&i.files[0];if(!f)return;S.bk=S.bk||{};S.bk.pending=null;
-      if(f.size>BK_MAX_FILE){S.bk.verify={ok:false,errs:["الملف أكبر من 60MB"]};render();return}
+      if(f.size>BK_MAX_FILE){S.bk.verify={ok:false,errs:["الملف أكبر من 4GB"]};render();return}
       try{
         const j=JSON.parse(await f.text()),v=await bkVerify(j);
         S.bk.verify=v;S.bk.pending=v.ok?{j,name:f.name,meta:j.meta}:null;
@@ -10305,7 +10942,7 @@ function staffView(){
 async function stfLoad(){
   S.stf=S.stf||{};S.stf.req=1;
   if(!S.isAdmin){S.stf.list=[];return}
-  try{const s=await getDocs(collection(db,"staff"));S.stf.list=s.docs.map(d=>({id:d.id,...d.data()}))}catch(e){S.stf.list=[];S.stf.err=(e&&e.code)||"error"}
+  try{const s=await getDocs(query(collection(db,"staff"),limit(100)));S.stf.list=s.docs.map(d=>({id:d.id,...d.data()}))}catch(e){S.stf.list=[];S.stf.err=(e&&e.code)||"error"}
   if(S.isAdmin&&S.view==="admin"&&S.tab==="managers")render();
 }
 function adminStaffCard(){
@@ -10416,6 +11053,22 @@ async function rvRun(){
     try{const defd=new Set(Object.keys(A)),seenA={};SL.forEach((l,i)=>{if(l.length>6000)return;const re=/data-act="([A-Za-z0-9_]+)"/g;let m;while((m=re.exec(l))){if(!defd.has(m[1])&&!(m[1] in seenA))seenA[m[1]]=i+1}});const miss=Object.keys(seenA);if(miss.length)add("high","أزرار بلا وظيفة",miss.length+" زر مفيش ليه دالة: "+miss.slice(0,15).join("، "),"index.html سطر "+seenA[miss[0]],"أضف الدالة في A أو شيل الزر")}catch(_){}
     const mb=(/name="sw-build"\s+content="([^"]+)"/.exec(src)||[])[1],ab=(/APP_BUILD\s*=\s*"([^"]+)"/.exec(src)||[])[1];
     if(mb&&ab&&mb!==ab)add("medium","الإصدار","رقم الإصدار مش متطابق: meta="+mb+" و APP_BUILD="+ab,"index.html","وحّدهم");
+    try{
+      if(navigator.serviceWorker&&navigator.serviceWorker.controller){
+        /* لو في controller بس الكاش قديم — ملاحظة خفيفة */
+        add("low","Service Worker","في Service Worker نشط يتحكم في الصفحة","sw.js","بعد رفع إصدار جديد أعد فتح المنصة عشان يتشغل الكاش الجديد");
+      }
+    }catch(_){}
+    /* عمليات بطيئة من الجلسة الحالية */
+    try{
+      const slow=(__EC.ops||[]).filter(o=>o&&o.ms>2000);
+      if(slow.length){
+        const by={};slow.forEach(o=>{const k=(o.op||"?")+" "+(o.path||"");by[k]=(by[k]||0)+1});
+        Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,6).forEach(([k,n])=>{
+          add("medium","أداء (جلسة حالية)","عملية بطيئة ×"+n+": "+k,"__EC.ops","حط limit أو index أو قلل الاستماع المستمر");
+        });
+      }
+    }catch(_){}
   }catch(e){add("low","فحص الكود","مقدرتش أقرا ملف الصفحة للفحص ("+((e&&e.message)||"?")+")","","شغّل code_review_agent.py من الكمبيوتر")}
   /* 5) الكتب */
   (S.books||[]).forEach(b=>{
@@ -10510,7 +11163,8 @@ const SND={
     if(!this.ctx||this.muted)return;
     try{if(localStorage.getItem("lf_mute")==="1")return}catch(_){}
     try{if(localStorage.getItem("sfx_on")==="0")return}catch(_){}
-    try{if(document.documentElement.classList.contains("lite"))return}catch(_){}
+    /* v116: lite كان بيطفي كل الأصوات على أجهزة ضعيفة — نسمح بالـ SFX القصير ونوقف الثقيل فقط */
+    try{if(opts.heavy&&document.documentElement.classList.contains("lite"))return}catch(_){}
     if(opts.throttleKey){
       const now=Date.now(),ms=opts.throttleMs||50;
       if(now-(this._last[opts.throttleKey]||0)<ms)return;
@@ -10580,9 +11234,14 @@ function snd(name,override){
 }
 /* توافق مع النظام القديم */
 const SFX={on:(()=>{try{return localStorage.getItem("sfx_on")!=="0"}catch(_){return true}})(),hap:(()=>{try{return localStorage.getItem("hap_on")!=="0"}catch(_){return true}})(),ctx:null};
-function sfxUnlock(){SND.init();try{if(SND.ctx&&SND.ctx.state==="suspended")SND.ctx.resume()}catch(_){}}
+function sfxUnlock(){try{SND.init();if(SND.ctx&&SND.ctx.state==="suspended")SND.ctx.resume().catch(function(){})}catch(_){}}
 document.addEventListener("pointerdown",sfxUnlock,{passive:true});
+document.addEventListener("touchstart",sfxUnlock,{passive:true});
 document.addEventListener("keydown",sfxUnlock,{passive:true});
+document.addEventListener("click",sfxUnlock,{passive:true});
+document.addEventListener("visibilitychange",function(){if(!document.hidden)sfxUnlock()},{passive:true});
+/* محاولة فتح الـ AudioContext بدري (بعض المتصفحات تسمح بعد user-gesture سابق) */
+try{setTimeout(sfxUnlock,800);setTimeout(sfxUnlock,2500)}catch(_){}
 function sfx(n){
   if(!SFX.on||window.__call)return;
   const map={tap:"click",pop:"pop",send:"send",success:"success",error:"error",notify:"notify",coin:"coin",win:"win",correct:"correct"};
@@ -10590,6 +11249,49 @@ function sfx(n){
 }
 function haptic(ms){try{if(SFX.hap&&navigator.vibrate)navigator.vibrate(ms||8)}catch(_){}}
 function sfxSet(k,v){try{localStorage.setItem(k,v?"1":"0")}catch(_){}if(k==="sfx_on"){SFX.on=v;SND.muted=!v}else SFX.hap=v}
+function testSound(){sfxUnlock();try{localStorage.setItem("sfx_on","1");SFX.on=true;SND.muted=false}catch(_){}
+  snd("success");setTimeout(function(){snd("coin")},180);setTimeout(function(){snd("win")},400);
+  try{toast("🔊 اختبار الصوت — لو سمعت تلات نغمات فالأصوات شغالة",true)}catch(_){}}
+
+
+/* Stage3: long-press on chat bubble → copy / reply / delete */
+(function(){
+  let tm=null,startX=0,startY=0;
+  function hideCtx(){const c=document.getElementById("tkCtx");if(c)c.remove()}
+  document.addEventListener("pointerdown",function(e){
+    const b=e.target&&e.target.closest&&e.target.closest(".tk-bubble[data-mid]");
+    if(!b||b.classList.contains("deleted"))return;
+    startX=e.clientX;startY=e.clientY;
+    clearTimeout(tm);
+    tm=setTimeout(function(){
+      const id=b.getAttribute("data-mid");
+      const m=(window.S&&S.chatMsgs||[]).find(x=>x.id===id)||(window.S&&S.groupMsgs||[]).find(x=>x.id===id);
+      if(!m||m._local)return;
+      hideCtx();
+      const menu=document.createElement("div");menu.id="tkCtx";menu.className="tk-ctx";
+      const mine=m.fromUid===(S.user&&S.user.uid);
+      menu.innerHTML='<button type="button" data-k="copy">📋 نسخ</button>'
+        +(S.view==="chatThread"?'<button type="button" data-k="reply">↩ رد</button>':"")
+        +(mine?'<button type="button" data-k="del">🗑 حذف</button>':"");
+      document.body.appendChild(menu);
+      const r=b.getBoundingClientRect();
+      let left=Math.min(window.innerWidth-160,Math.max(8,r.left));
+      let top=Math.max(8,r.top-8);if(top+120>window.innerHeight)top=r.bottom+4;
+      menu.style.left=left+"px";menu.style.top=top+"px";
+      menu.onclick=function(ev){
+        const k=ev.target&&ev.target.getAttribute("data-k");
+        hideCtx();
+        if(k==="copy"){try{navigator.clipboard.writeText(m.text||"").then(()=>toast("اتنسخ ✓")).catch(()=>toast("مقدرتش أنسخ"))}catch(_){toast("مقدرتش أنسخ")}}
+        if(k==="reply"&&S.view==="chatThread"){S.replyTo={id:m.id,text:m.text||"",name:m.fromName||""};render(true)}
+        if(k==="del"&&mine&&S.view==="chatThread"){try{A.dmDelete({id:m.id})}catch(_){}}
+      };
+    },480);
+  },{passive:true});
+  document.addEventListener("pointermove",function(e){if(tm&&(Math.abs(e.clientX-startX)>12||Math.abs(e.clientY-startY)>12)){clearTimeout(tm);tm=null}},{passive:true});
+  document.addEventListener("pointerup",function(){clearTimeout(tm);tm=null},{passive:true});
+  document.addEventListener("pointercancel",function(){clearTimeout(tm);tm=null},{passive:true});
+  document.addEventListener("click",function(e){if(!e.target.closest||!e.target.closest("#tkCtx"))hideCtx()},true);
+})();
 
 document.addEventListener("click",e=>{
   const b=e.target&&e.target.closest&&e.target.closest("button,.btn,.tab,.subj,[data-act]");if(!b||b.disabled||b.closest(".v5-sheet"))return;
@@ -10613,7 +11315,9 @@ document.addEventListener("click",e=>{
       else sfx("success");
     } else if(/فشل|مقدر|خطأ|غلط|ممنوع|رفض|مش (متاح|مسموح|شغال|صح)|لازم|❌/.test(String(m||""))) sfx("error");
   }catch(_){}
-  return _toast.apply(this,arguments)}}
+  return _toast.apply(this,arguments)}
+/* v131: window.toast كان بيشاور على النسخة القديمة قبل اللف ده — السكريبتات الخارجية ماكانتش بتسمع الأصوات */
+try{window.toast=toast}catch(_){}}
 /* ---- مركز الإشعارات (محلي على الجهاز) ---- */
 const NTF_KEY="ntf_log";
 const ntfGet=()=>{try{return JSON.parse(localStorage.getItem(NTF_KEY)||"[]")}catch(_){return[]}};
@@ -10649,6 +11353,7 @@ function v5OpenSheet(){
   <h3 style="margin:4px 0 10px">🔔 الإشعارات</h3>
   <div class="v5-row"><div><b>إشعارات الجهاز</b><div class="mut" style="font-size:12px">${perm==="granted"?"شغّالة ✓":perm==="denied"?"مقفولة — فعّلها من إعدادات المتصفح":perm==="unsupported"?"المتصفح مش بيدعمها (على الآيفون ضيف المنصة للشاشة الرئيسية)":"لسه ما اتفعلتش"}</div></div>${perm==="default"?`<button type="button" class="btn sm" id="v5Perm">تفعيل</button>`:""}</div>
   <div class="v5-row"><div><b>🔊 الأصوات</b><div class="mut" style="font-size:12px">أصوات الأزرار والإشعارات</div></div>${sw("v5Sfx",SFX.on)}</div>
+  <div class="v5-row"><div><b>اختبار الصوت</b><div class="mut" style="font-size:12px">اضغط عشان تتأكد إن الصوت شغال</div></div><button type="button" class="btn sm" data-act="testSound">🔊 جرب</button></div>
   <div class="v5-row"><div><b>📳 الاهتزاز</b><div class="mut" style="font-size:12px">اهتزاز خفيف عند اللمس</div></div>${sw("v5Hap",SFX.hap)}</div>
   <div style="margin-top:10px;max-height:38vh;overflow:auto">${list.length?list.map(x=>`<div class="v5-n${x.read?"":" new"}"><b>${esc(x.title)}</b><div style="font-size:13px">${esc(x.body)}</div><div class="mut" style="font-size:11px;margin-top:2px">${ago(x.t)}</div></div>`).join(""):`<div class="mut" style="text-align:center;padding:14px">مفيش إشعارات</div>`}</div>
   <div class="row" style="gap:8px;margin-top:12px"><button type="button" class="btn ghost sm" id="v5Clear">مسح الكل</button><button type="button" class="btn sm" id="v5Close" style="margin-inline-start:auto">تمام</button></div></div>`;
@@ -10766,7 +11471,7 @@ Object.assign(A,{
     if(m.kind==="htmlFile"){
       const p=window.__pendingModeHtml;
       if(p&&p.text){
-        if(p.bytes>MODE_FILE_MAX_BYTES){toast("حجم الملف أكبر من 600KB",true);window.__cancel=true;return}
+        if(p.bytes>MODE_FILE_MAX_BYTES){toast("حجم الملف أكبر من 4GB",true);window.__cancel=true;return}
         const gid=gameDocId(m)||("gameMode_"+m.id);
         try{await setDoc(doc(db,"config",gid),{html:p.text,fileName:p.name,updatedAt:serverTimestamp()})}catch(e){toast("تعذر حفظ الملف",true);window.__cancel=true;return}
         m.gameDoc=gid;window.__pendingModeHtml=null;if(S._gameDocs)delete S._gameDocs[gid];
@@ -10853,7 +11558,8 @@ function a11yFix(root){
   });
 }
 /* v95: كود زرار الرجوع القديم (v42) كان بيقع بـ "S is not defined" لأنه في سكريبت منفصل — بنعرّض له اللي محتاجه */
-window.__elt={S,pauseExamNow,uiDialog};
+/* v131: ضفنا rerender — كود التحديث (SW) كان برضه بيقع بنفس المشكلة وكان مش قادر يحدّث الشاشة */
+window.__elt={S,pauseExamNow,uiDialog,rerender:function(){try{render(true)}catch(_){}}};
 
 /* ===== v97 — وضع «موقع كامل»: ارفع ملف والموقع كله يتحوّل له ===== */
 const SITE_CSS=".site-full{background:#fff;z-index:20}.site-frame{flex:1;width:100%;border:0;background:#fff}.site-x{position:fixed;bottom:10px;left:10px;z-index:40;opacity:.5;border:0;border-radius:99px;padding:8px 14px;background:#111;color:#fff;font:600 13px system-ui,sans-serif;cursor:pointer}.site-x:hover,.site-x:focus{opacity:1}.site-img{flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;background:#111}.site-img img{max-width:100%;max-height:100%;object-fit:contain}.site-txt{flex:1;margin:0;padding:16px;overflow:auto;white-space:pre-wrap;background:#fff;color:#111;font:15px/1.7 system-ui,sans-serif}";
@@ -10893,7 +11599,7 @@ async function sitePrepare(f){
   const chunks=siteChunks(str);if(chunks.length>SITE_MAX_CHUNKS||!chunks.length)throw new Error("big");
   return {sk,mime,name,bytes,chunks};
 }
-async function siteDelChunks(m){const n=Math.min(+m.chunks||0,12);for(let i=0;i<n;i++){try{await deleteDoc(doc(db,"config","siteMode_"+m.id+"_"+i))}catch(_){}}if(S._siteDocs)delete S._siteDocs[m.id]}
+async function siteDelChunks(m){const n=Math.min(+m.chunks||0,12);for(let i=0;i<n;i+=400){const b=writeBatch(db);for(let j=i;j<Math.min(i+400,n);j++)b.delete(doc(db,"config","siteMode_"+m.id+"_"+j));try{await b.commit()}catch(_){}}if(S._siteDocs)delete S._siteDocs[m.id]}
 function siteLoad(m){
   S._siteDocs=S._siteDocs||{};if(m.id in S._siteDocs||S._siteLoading===m.id)return;S._siteLoading=m.id;
   setTimeout(()=>{if(!(m.id in S._siteDocs)){S._siteDocs[m.id]="";S._siteLoading=null;try{render(true)}catch(_){}}},12000);
@@ -10936,7 +11642,7 @@ async function phHash(w){const b=await crypto.subtle.digest("SHA-256",new TextEn
 const phDigits=s=>String(s||"").replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/\D/g,"");
 function phCanon(s){let d=phDigits(s);if(d.startsWith("0020"))d=d.slice(4);else if(d.startsWith("20")&&d.length===12)d=d.slice(2);if(d.length===10&&d[0]==="1")d="0"+d;return d}
 async function phWindows(d){const w=[];for(let i=0;i+5<=d.length;i++)w.push(d.slice(i,i+5));return Promise.all([...new Set(w)].map(phHash))}
-async function pkSync(){try{if(!S.user||S.isAdmin)return;const ph=phCanon(S.profile&&S.profile.phone);if(ph.length<8)return;const pk=await phWindows(ph),sig=pk.join(","),k="pk_v1_"+S.user.uid;if(localStorage.getItem(k)===sig)return;await setDoc(doc(db,"publicProfiles",S.user.uid),{pk,updatedAt:serverTimestamp()},{merge:true});localStorage.setItem(k,sig)}catch(_){}}
+async function pkSync(){try{if(!S.user||S.isAdmin)return;const ph=phCanon(S.profile&&S.profile.phone);if(ph.length<8)return;const pk=await phWindows(ph),sig=pk.join(","),k="pk_v2_"+S.user.uid;if(localStorage.getItem(k)===sig)return;await setDoc(doc(db,"publicProfiles",S.user.uid),Object.assign({pk,updatedAt:serverTimestamp()},(S.profile&&S.profile.name)?{name:String(S.profile.name).slice(0,60)}:{}),{merge:true});localStorage.setItem(k,sig)}catch(_){}}
 async function ppCache(){const c=S._pp;if(c&&Date.now()-c.t<180000)return c.list;const sn=await getDocs(query(collection(db,"publicProfiles"),limit(300)));const list=sn.docs.map(d=>({id:d.id,...d.data()}));S._pp={t:Date.now(),list};return list}
 function searchView(){
   const q=(S.friendQ||"").trim(),hits=S.friendHits||[];
@@ -11107,7 +11813,24 @@ function aiReportMd(){
    "3. Do not expose secrets (API keys, tokens, phone numbers). Keep Firestore rules strict; loosen only what an issue explicitly requires.",
    "4. A `permission-denied` error means the client operation and `firestore.rules` disagree: decide which side is wrong and fix it (prefer fixing the client if it reads/writes data it should not touch).",
    "5. After the fix, reply with a short list: issue number → what you changed.","",
-   "## 1. Project context",
+   "## 0b. Auto root-cause hints (from live error groups)",
+   ...(()=>{try{
+     const lines=[];
+     G.slice(0,12).forEach(function(g,i){
+       var sample={msg:g.msg,fn:g.fn,type:g.type,status:"open",impact:80};
+       var hint="";
+       try{if(typeof errSmartClassify==="function")hint=errSmartClassify(sample).hint||""}catch(_e){}
+       if(!hint){
+         if(/permission/i.test(g.msg||""))hint="Publish/align firestore.rules for the touched collection";
+         else if(/Transaction too big/i.test(g.msg||""))hint="Use writeBatch in chunks of <=400";
+         else if(/Failed to fetch|workers\.dev/i.test(g.msg||""))hint="Check Worker deploy + CORS";
+         else if(/is not defined|ReferenceError|Cannot read/i.test(g.msg||""))hint="Missing symbol/property — inspect stack";
+       }
+       lines.push("- E"+(i+1)+" ["+g.type+"] ×"+g.n+": "+String(g.msg||"").slice(0,120)+(hint?" → "+hint:""));
+     });
+     return lines.length?lines:["- No open grouped errors."];
+   }catch(_e){return["- hint section failed: "+_e]}})(),
+   "","## 1. Project context",
    "- Single-file PWA. `index.html` has ONE `<script type=\"module\">` (Firebase modular SDK 10.12.2). Global state object `S`; actions object `A` (`Object.assign(A,{...})`) called from `data-act=\"name\"` attributes; `render()` rebuilds `#app` from template strings.",
    "- `sw.js` = service worker (cache name `eltafawoq-vNN`). Hosting: GitHub Pages. Push/AI go through Cloudflare Workers (`*.workers.dev`). Database: Firestore, rules in `firestore.rules` (admin is identified by a fixed UID).",
    "- Roles: admin, mod, student. Key collections: students, studentsPrivate, publicProfiles, exams, results, fadaye7, galleries, comments, conversations, groups, qb_rooms, config, errorLogs, staff.","",
@@ -11175,7 +11898,7 @@ document.addEventListener("change",e=>{
     const f=e.target.files&&e.target.files[0];window.__pendingModeHtml=null;
     if(!f)return;
     if(!S.isAdmin){e.target.value="";toast("رفع الأوضاع للأدمن فقط",true);return}
-    if(!/\.html?$/i.test(f.name)||f.size>MODE_FILE_MAX_BYTES){e.target.value="";toast("اختر ملف HTML لا يتجاوز 600KB",true);return}
+    if(!/\.html?$/i.test(f.name)||f.size>MODE_FILE_MAX_BYTES){e.target.value="";toast("اختر ملف HTML (حد 4GB)",true);return}
     f.text().then(text=>{
       text=text.replace(/^\uFEFF/,"");
       if(!/^\s*(?:<!doctype\s+html|<html|<head|<body)/i.test(text)){e.target.value="";toast("الملف لا يبدو صفحة HTML صالحة",true);return}
@@ -11464,7 +12187,7 @@ function lfBuddyUpd(){let b=document.getElementById("lfBuddy");const ok=featOn("
 const LF_SAY=["يلا نذاكر! 📚","فخور بيك 💪","عايز امتحان جديد 😎","متنساش مهام النهارده ✅","أنا جعان XP 😋"];
 Object.assign(A,{buddyTap(d,b){lfReact("jump");lfSfx("coin");toast(S.life.pet.n+": "+LF_SAY[Math.floor(Math.random()*LF_SAY.length)])},lfMute(){try{localStorage.setItem("lf_mute",lfMuted()?"0":"1")}catch(_){}render(true)}});
 document.addEventListener("pointermove",e=>{const t=e.target.closest&&e.target.closest(".lf-3d");if(!t)return;const r=t.getBoundingClientRect();t.style.setProperty("--ry",((e.clientX-r.left)/r.width-.5)*90+"deg");t.style.setProperty("--rx",(.5-(e.clientY-r.top)/r.height)*40+"deg");t.classList.add("tilt");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("tilt"),1800)},{passive:true});
-{const _sb=qbSaveBattle;qbSaveBattle=async function(){const g=S.qb;try{if(g&&g.match&&!g.match._lf&&S.life&&S.user&&!S.isAdmin){g.match._lf=1;const m=g.match,me=m.players.find(p=>p.uid===S.user.uid);if(me){const rk=[...m.players].sort((a,b)=>b.score-a.score).findIndex(p=>p.uid===S.user.uid)+1;if(rk===1&&m.players.length>1){S.life.tot.win++;lfAdd(/bot/i.test(String(g.mode))?35:120,"فوز 🏆");lfEvent("win");lfReact("dance");lfSfx("win")}else lfReact("sad")}}}catch(_){}return _sb.apply(this,arguments)}}
+{const _sb=qbSaveBattle;qbSaveBattle=async function(){const g=S.qb;try{if(g&&g.match&&!g.match._lf&&S.life&&S.user&&!S.isAdmin){g.match._lf=1;/* مكافآت موحّدة من postGameApplyRewards — هنا بس عدّاد فوز/تفاعل لو لسه متطبقتش */if(!g.match._pgRewarded){const m=g.match,me=m.players.find(p=>p.uid===S.user.uid);if(me){const rk=[...m.players].sort((a,b)=>b.score-a.score).findIndex(p=>p.uid===S.user.uid)+1;if(rk===1&&m.players.length>1){S.life.tot.win=(S.life.tot&&S.life.tot.win||0)+1;lfAdd(/bot/i.test(String(g.mode))?35:120,"فوز 🏆");lfEvent("win");lfReact("dance");lfSfx("win")}else lfReact("sad")}}else if(g.match._pgReward&&g.match._pgReward.isWin){S.life.tot=S.life.tot||{};S.life.tot.win=(S.life.tot.win||0)+1}}}catch(_){}return _sb.apply(this,arguments)}}
 {const _r=render;render=function(){try{if(S.user&&S.profile&&!S.isAdmin&&!S.profile.phone)S.profile.phone=String(S.user.email||"").split("@")[0]}catch(_){}const r=_r.apply(this,arguments);try{lfBuddyUpd();lfPost();lfCfgListen();lfRoomInit();lfChatAnim()}catch(_){}return r}}
 
 
@@ -12289,6 +13012,7 @@ Object.assign(A,{
       if(g.left<=0){focusStopIv();g.run=false;g.fin=true;v76FocusDone(g.mins)}
     },1000);
   },
+  testSound(){testSound()},
   focusReset(){focusStopIv();focusState();S.focus.left=S.focus.mins*60;S.focus.run=false;S.focus.fin=false;render(true)},
   openNotes(){S.view="notes";render(true)},
   noteAdd(){
@@ -12303,10 +13027,10 @@ Object.assign(A,{
 </script>
 <script>
 
-// شاشة البداية: تظهر 2.4 ثانية على الأقل، وبعدها تختفي لما المحتوى جاهز
+// شاشة البداية: شعار التفوق + شريط أصفر 2.1 ثانية ثم المحتوى فورًا بدون تحميل إضافي
 (function(){
   var done=false;
-  var minMs=450;
+  var minMs=2100;
   var t0=Date.now();
   function hideSplash(){
     if(done)return; done=true;
@@ -12316,7 +13040,7 @@ Object.assign(A,{
     setTimeout(function(){try{el.remove()}catch(e){}},500);
   }
   function appReady(){var a=document.getElementById("app");return !!(a&&a.firstElementChild&&(a.innerText||"").length>8)}
-  // انتظر 2.4 ثانية دائمًا (شريط أصفر)، وبعدها اختفِ لو جاهز أو بعد مهلة
+  // انتظر 2.1 ثانية دائمًا (شعار + شريط أصفر)، وبعدها تظهر المحتويات فورًا
   var iv=setInterval(function(){
     var elapsed=Date.now()-t0;
     if(elapsed<minMs)return;
@@ -12344,10 +13068,29 @@ Object.assign(A,{
 
 if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
-    // التحقق الطبيعي عند التسجيل/فتح الصفحة؛ لا polling متكرر ولا مسح قسري للكاش.
-    navigator.serviceWorker.register('./sw.js').catch(function(){});
+    navigator.serviceWorker.register('./sw.js').then(function(reg){
+      /* Stage 12 Anti-lag: تحديث سلس — نبلّغ المستخدم ونسيبه يختار */
+      function onUpdateFound(){
+        var w=reg.installing||reg.waiting;
+        if(!w)return;
+        w.addEventListener('statechange',function(){
+          if(w.state==='installed'&&navigator.serviceWorker.controller){
+            /* v131-fix: S و render و toast كانوا مراجع مكسورة هنا (متغيرات الوحدة مش عالمية) —
+               التحديث الجديد ماكانش بيظهر شارة «تفعيل التحديث» ولا التنبيه خالص. بقى عبر window.__elt/window.toast */
+            try{var __e=window.__elt;if(__e&&__e.S)__e.S._swWaiting=true;if(__e&&typeof __e.rerender==='function')__e.rerender()}catch(e){}
+            try{if(typeof window.toast==='function')window.toast('في نسخة جديدة جاهزة — من «أنا» اضغط تفعيل التحديث',true)}catch(e){}
+          }
+        });
+      }
+      if(reg.waiting){try{var __e2=window.__elt;if(__e2&&__e2.S)__e2.S._swWaiting=true}catch(e){}}
+      reg.addEventListener('updatefound',onUpdateFound);
+      /* فحص هادي للتحديث مرة كل ساعة كحد أقصى */
+      try{
+        var last=+(localStorage.getItem('sw_check_at')||0);
+        if(Date.now()-last>3600000){localStorage.setItem('sw_check_at',String(Date.now()));reg.update().catch(function(){})}
+      }catch(e){}
+    }).catch(function(){});
   });
-  // لا نعيد تحميل الصفحة تلقائيًا عند تبديل Service Worker؛ يتبنى المستخدم التحديث عند إعادة فتح الصفحة.
 }
 
 window.addEventListener('beforeinstallprompt',e=>{

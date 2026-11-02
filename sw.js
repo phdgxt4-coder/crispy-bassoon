@@ -1,14 +1,23 @@
-/* التفوق SW — v115 — scoped cache cleanup; no forced page reload */
+/* التفوق SW — v131 — scoped cache cleanup; no forced page reload */
 /* v115-fix: PETS كان ناقص تعريفه من إصدارات → ReferenceError وقت الـ install → الـ SW مش بيتسجل خالص.
    هرّوا دلوقتي (موديلات الرفاق 3D) — Promise.allSettled بيتجاهل أي ملف مش موجود بأمان */
+/* v131-fix: importScripts كان من غير try/catch — لو gstatic مش متاح (أول تحميل أوفلاين) الـ SW كله كان بيفشل
+   ومش بيتسجل خالص (لا أوفلاين ولا إشعارات). بقي محمي — التسجيل بيكمل حتى لو مكتبات الإشعارات محملتش */
 const PETS = ["./pets/fox.glb","./pets/corgi.glb","./pets/hare.glb","./pets/sheep.glb","./pets/boar.glb"];
-const CACHE = "eltafawoq-v115";
-const BUILD = "20261102-v115"; /* review:keep — علامة بناء بيقراها فحص اتساق الإصدار */
+const CACHE = "eltafawoq-v131";
+const BUILD = "20261103-v131"; /* review:keep — علامة بناء بيقراها فحص اتساق الإصدار */
 
-importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
-importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
+let __fcmReady = false;
+try {
+  importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
+  importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
+  __fcmReady = true;
+} catch (e) {
+  /* v131: مكتبات الإشعارات محملتش (نت مقطوع أو المزود متاحش) — الـ SW يفضل شغال بدون إشعارات خلفية */
+}
 
 try {
+  if (!__fcmReady || typeof firebase === "undefined") throw new Error("fcm-lib-missing");
   firebase.initializeApp({
     apiKey: "AIzaSyCo99zGbGOJSw1p-rdy3bk9PSxzsINWkxQ",
     authDomain: "eltafawoq-8b700.firebaseapp.com",
@@ -51,7 +60,8 @@ self.addEventListener("notificationclick", (e) => {
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
       for (const c of list) {
         if (c.url && "focus" in c) {
-          c.focus();
+          /* v131: focus ممكن يفشل في بعض المتصفحات — منسيبوش يكسر باقي التنبيه */
+          try { c.focus(); } catch (_) {}
           try {
             c.postMessage({
               type: isCall ? "INCOMING_CALL" : "NOTIFICATION_CLICK",
@@ -84,13 +94,24 @@ self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter((k) => k.startsWith("eltafawoq-v") && k !== CACHE).map((k) => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    ).then(() => self.clients.claim()).then(() => {
+      /* Stage 12: إشعار الصفحات إن التحديث اتفعّل */
+      return self.clients.matchAll({ type: "window" }).then((list) => {
+        list.forEach((c) => { try { c.postMessage({ type: "SW_ACTIVATED", cache: CACHE }); } catch (_) {} });
+      });
+    })
   );
 });
 
 self.addEventListener("message", (e) => {
-  if (e.data && e.data.type === "CLEAR_CACHE") {
+  const d = e.data || {};
+  if (d.type === "CLEAR_CACHE") {
     e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k.startsWith("eltafawoq-v")).map((k) => caches.delete(k)))));
+  }
+  /* Stage 12: تفعيل التحديث بس لما المستخدم يوافق */
+  if (d.type === "SKIP_WAITING") {
+    /* v131: skipWaiting بيرجع Promise — بنلفه بـ waitUntil عشان المتصفح ما يوقفهوش نص شغل */
+    try { e.waitUntil(self.skipWaiting()); } catch (_) { try { self.skipWaiting(); } catch (_) {} }
   }
 });
 
