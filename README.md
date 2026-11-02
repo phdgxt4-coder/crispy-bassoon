@@ -1,10 +1,41 @@
-# Smart Code Review
+# منصة التفوق — نسخة v115 المصلّحة 🚀
 
+## محتويات الحزمة
+| الملف | وظيفته |
+|---|---|
+| `index.html` | المنصة كاملة (كل الإصلاحات v115) |
+| `sw.js` | الـ Service Worker المصلّح |
+| `firestore.rules` | قواعد صلاحيات Firestore الجديدة |
+| `book-proxy-worker.js` | وسيط Cloudflare للكتب والإشعارات |
+| `تقرير-الإصلاحات-v115.md` | تفاصيل كل ما تم إصلاحه |
+
+## خطوات النشر — بالترتيب
+
+### 1) قواعد Firebase (أهم خطوة — لوحدها بتحل 90% من أخطاء الصلاحيات)
+- افتح Firebase Console ← **Firestore Database** ← تبويب **Rules**
+- امسح القديم والصق محتوى `firestore.rules` ← اضغط **Publish**
+
+### 2) رفع المنصة على GitHub
+- ارفع `index.html` + `sw.js` في مكان الملفات القديمة (نفس المسار)
+- GitHub Pages هيحدّث لوحده خلال دقيقة تقريباً
+
+### 3) تحديث الموبايل
+- افتح المنصة من الموبايل — الـ PWA هتجيب **v115** لوحدها (الكاش بقى `eltafawoq-v115`)
+- لو مظهرش التحديث: اقفل التاب **خالص** (من مدير المهام) وافتح من جديد
+
+### 4) اختياري — الوسيط على Cloudflare (بيحل الإشعارات + امتحان من رابط الكتاب)
+- Cloudflare Dashboard ← **Workers & Pages** ← **Create Worker**
+- الصق محتوى `book-proxy-worker.js` ← **Deploy**
+- انسخ رابط الـ Worker وحطه في خانة «الوسيط» داخل المنصة
+
+### 5) الاختبار بعد النشر
+- جرّب **بحساب طالب + حساب أدمن** وراقب أي خطأ `permission-denied`
+- من لوحة الأدمن ← تبويب 🔴 الأخطاء ← زر «🤖 ملف للـ AI» ينزّل تقرير مفهوم لأي نموذج ذكاء اصطناعي — ابعته لأي مساعد وهيفهم المشكلة
+
+## لو عايز تجرب على الكمبيوتر الأول
 ```bash
-pip install -r requirements.txt
-python code_review_agent.py --root .
-cat CODE_REVIEW_REPORT.md
-python rules_checker.py firestore.rules   # لو عندك نسخة القواعد
+# في فولدر الملفات بعد فك الضغط:
+python -m http.server 8000
+# بعدين افتح: http://localhost:8000
 ```
-
-الإعدادات في `.reviewrc.json`. للتجاهل داخل الكود: `// review-ignore-next-line rule-id`.
+⚠️ متفتحش `index.html` بضغط مزدوج — الـ Service Worker مش بيشتغل غير على سيرفر.

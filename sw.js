@@ -1,6 +1,9 @@
-/* التفوق SW — v110 — scoped cache cleanup; no forced page reload */
-const CACHE = "eltafawoq-v110.3";
-const BUILD = "20261101-v110"; /* review:keep — علامة بناء بيقراها فحص اتساق الإصدار */
+/* التفوق SW — v115 — scoped cache cleanup; no forced page reload */
+/* v115-fix: PETS كان ناقص تعريفه من إصدارات → ReferenceError وقت الـ install → الـ SW مش بيتسجل خالص.
+   هرّوا دلوقتي (موديلات الرفاق 3D) — Promise.allSettled بيتجاهل أي ملف مش موجود بأمان */
+const PETS = ["./pets/fox.glb","./pets/corgi.glb","./pets/hare.glb","./pets/sheep.glb","./pets/boar.glb"];
+const CACHE = "eltafawoq-v115";
+const BUILD = "20261102-v115"; /* review:keep — علامة بناء بيقراها فحص اتساق الإصدار */
 
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
