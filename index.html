@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v137">
+<meta name="sw-build" content="v138">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v137";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
+<script>window.APP_BUILD="v138";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -1712,6 +1712,25 @@ input[type=file]::file-selector-button{margin-inline-end:10px;border:0;border-ra
 .adm-g>.mut{display:none}
 .adm-g .tabs{display:contents}
 .adm-nav .tab{flex:none;white-space:nowrap;padding:8px 14px;font-size:13px;min-height:36px}
+
+/* ===== v138 — متصفح Mora الداخلي ===== */
+.mora-btn{background:linear-gradient(135deg,#ff2a54,#b31432)!important;color:#fff!important;border:0!important;box-shadow:0 6px 18px rgba(255,42,84,.3)}
+#moraBrowserModal{display:none;position:fixed;inset:0;z-index:9999;flex-direction:column;background:#0B0C10;transform:none!important;contain:none}
+#moraBrowserModal.on{display:flex}
+html.mora-lock,html.mora-lock body{overflow:hidden!important}
+.mora-bar{display:flex;align-items:center;gap:6px;padding:8px 10px calc(8px + env(safe-area-inset-top,0px)) ;padding-top:calc(8px + env(safe-area-inset-top,0px));background:#13151b;border-bottom:1px solid rgba(255,255,255,.1)}
+.mora-ib{flex:none;width:34px;height:38px;padding:0;border:0;border-radius:12px;background:rgba(255,255,255,.06);color:#fff;font-size:18px;cursor:pointer}
+.mora-ib:active{background:rgba(255,255,255,.14)}
+.mora-url{flex:1;min-width:0;height:38px;padding:0 14px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;font:inherit;font-size:14px;outline:none;direction:ltr;text-align:left}
+.mora-url:focus{border-color:#ff2a54}
+.mora-x{flex:none;width:38px;height:38px;padding:0;border:0;border-radius:12px;background:#ff2a54;color:#fff;font:inherit;font-weight:700;cursor:pointer}
+.mora-hint{display:none;padding:6px 12px;font-size:12px;color:#ffd0d8;background:rgba(255,42,84,.12);text-align:center}
+.mora-hint.load{display:block}
+.mora-frame{flex:1;width:100%;border:0;background:#fff}
+.mora-home{flex:1;overflow:auto;padding:22px 16px;color:#fff;text-align:center}
+.mora-links{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:16px 0}
+.mora-chip{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);color:#fff;border-radius:99px;padding:10px 16px;font:inherit;cursor:pointer}
+.mora-chip:active{background:rgba(255,42,84,.3)}
 </style>
 </head>
 <body>
@@ -1724,7 +1743,7 @@ input[type=file]::file-selector-button{margin-inline-end:10px;border:0;border-ra
 </div>
 <style>html.lite *,html.lite *::before,html.lite *::after{animation:none!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}html.lite canvas#bgfx,html.lite .bgfx{display:none!important}</style>
 <script>(function(){try{var c=navigator.connection||{},weak=(navigator.deviceMemory&&navigator.deviceMemory<=2)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2)||c.saveData;var m=localStorage.getItem("lite_mode");if(m==="1"||(m!=="0"&&weak))document.documentElement.classList.add("lite")}catch(e){}})()</script>
-<div id="app"></div><div id="verBadge">v137</div>
+<div id="app"></div><div id="verBadge">v138</div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
@@ -4139,6 +4158,10 @@ ${(p.badges||[]).length?`<div style="margin-top:10px;display:flex;flex-wrap:wrap
 <div class="card">
   <button class="btn block gold" data-act="openAI">🤖 么</button>
   <p class="mut" style="margin:8px 0 0;text-align:center">اسأل 么 عن الدروس والامتحانات والمنصة</p>
+</div>
+<div class="card">
+  <button class="btn block mora-btn" data-act="openMora">🌐 افتح متصفح Mora الداخلي</button>
+  <p class="mut" style="margin:8px 0 0;text-align:center">تصفّح المواقع جوه المنصة من غير ما تخرج منها</p>
 </div>
 <div class="card"><b>الإشعارات</b>
 <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sm ghost" data-act="enablePush">🔔 تفعيل الإشعارات</button></div>
@@ -11846,6 +11869,80 @@ A.rvDownload=aiDownload;
 
 /* v114: شريط الأدمن أفقي وثابت — المحتوى يظهر من أول شاشة، والتبويب الشغّال يتوسّط */
 try{let __rq=0;new MutationObserver(()=>{if(__rq)return;__rq=requestAnimationFrame(()=>{__rq=0;const t=document.querySelector(".adm-nav .tab.on");if(t&&!t.__c){t.__c=1;try{t.scrollIntoView({inline:"center",block:"nearest"})}catch(_){}}})}).observe(document.documentElement,{childList:true,subtree:true})}catch(_){}
+
+/* ===== v138 — متصفح Mora الداخلي: iframe معزول + سجل تنقّل + شريط أدوات (DOM بيتبني عند أول فتح بس) ===== */
+const MORA={el:null,fr:null,inp:null,hist:[],i:-1,hint:null,tm:0};
+function moraNorm(v){
+  v=String(v||"").trim();if(!v)return "";
+  if(/^(javascript|data|vbscript|file|blob):/i.test(v))return "";
+  if(/^https?:\/\//i.test(v))return v;
+  if(v.includes(".")&&!/\s/.test(v))return "https://"+v;
+  return "https://www.google.com/search?q="+encodeURIComponent(v);
+}
+function moraBuild(){
+  if(MORA.el)return;
+  const d=document.createElement("div");d.id="moraBrowserModal";d.setAttribute("role","dialog");d.setAttribute("aria-label","متصفح Mora الداخلي");
+  d.innerHTML=`<div class="mora-bar" dir="ltr">
+<button type="button" class="mora-ib" data-m="back" aria-label="رجوع">←</button>
+<button type="button" class="mora-ib" data-m="fwd" aria-label="للأمام">→</button>
+<button type="button" class="mora-ib" data-m="rel" aria-label="تحديث">↻</button>
+<input type="text" class="mora-url" inputmode="url" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="رابط أو بحث">
+<button type="button" class="mora-ib" data-m="ext" aria-label="افتح برّه" title="افتح في المتصفح">↗</button>
+<button type="button" class="mora-x" data-m="close" aria-label="إغلاق">✕</button></div>
+<div class="mora-hint" dir="rtl"></div>
+<div class="mora-home" dir="rtl"><h3>🌐 متصفح Mora</h3><p class="mut">اكتب رابط أو كلمة بحث فوق، أو اختار موقع:</p>
+<div class="mora-links">${[["ويكيبيديا","https://ar.wikipedia.org/"],["بنك المعرفة المصري","https://ekb.eg/"],["أكاديمية خان","https://ar.khanacademy.org/"],["جوجل","https://www.google.com/"],["يوتيوب","https://m.youtube.com/"],["تلجرام ويب","https://web.telegram.org/"]].map(x=>`<button type="button" class="mora-chip" data-u="${x[1]}">${x[0]}</button>`).join("")}</div>
+<p class="mut" style="font-size:12px">⚠ بعض المواقع (جوجل، يوتيوب، فيس، واتساب…) بتمنع نفسها تتفتح جوه تطبيقات تانية، فممكن تظهر فاضية — دوس ↗ تفتحها برّه.</p></div>
+<iframe class="mora-frame" title="متصفح" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads" referrerpolicy="no-referrer" allow="fullscreen" style="display:none"></iframe>`;
+  document.body.appendChild(d);
+  MORA.el=d;MORA.fr=d.querySelector("iframe");MORA.inp=d.querySelector(".mora-url");MORA.hint=d.querySelector(".mora-hint");
+  d.addEventListener("click",e=>{
+    const b=e.target.closest("[data-m],[data-u]");if(!b)return;
+    if(b.dataset.u){moraGo(b.dataset.u);return}
+    const m=b.dataset.m;
+    if(m==="close")moraClose();else if(m==="back")moraStep(-1);else if(m==="fwd")moraStep(1);
+    else if(m==="rel")moraReload();else if(m==="ext"){const u=MORA.hist[MORA.i];if(u)window.open(u,"_blank","noopener")}
+  });
+  MORA.inp.addEventListener("keydown",e=>{if(e.key==="Enter"){moraGo(MORA.inp.value);MORA.inp.blur()}});
+  MORA.fr.addEventListener("load",()=>{clearTimeout(MORA.tm);if(MORA.hint)MORA.hint.classList.remove("load")});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&MORA.el&&MORA.el.classList.contains("on"))moraClose()});
+}
+function moraShow(u){
+  const has=!!u;
+  MORA.el.querySelector(".mora-home").style.display=has?"none":"";
+  MORA.fr.style.display=has?"":"none";
+  if(has){
+    MORA.fr.src=u;MORA.inp.value=u;
+    MORA.hint.textContent="لو الصفحة فاضية، الموقع بيمنع الفتح هنا — دوس ↗ لفتحه برّه";MORA.hint.classList.add("load");
+    clearTimeout(MORA.tm);MORA.tm=setTimeout(()=>MORA.hint.classList.remove("load"),9000);
+  }else{MORA.fr.src="about:blank";MORA.inp.value="";MORA.hint.classList.remove("load")}
+}
+function moraGo(v){
+  const u=moraNorm(v);if(!u){try{toast("الرابط مش صالح")}catch(_){}return}
+  MORA.hist=MORA.hist.slice(0,MORA.i+1);MORA.hist.push(u);MORA.i=MORA.hist.length-1;
+  if(MORA.hist.length>40){MORA.hist.shift();MORA.i--}
+  moraShow(u);
+}
+function moraStep(n){
+  const k=MORA.i+n;
+  if(k<-1||k>=MORA.hist.length)return;
+  MORA.i=k;moraShow(k>=0?MORA.hist[k]:"");
+}
+function moraReload(){const u=MORA.hist[MORA.i];if(u)moraShow(u)}
+function moraOpen(){
+  moraBuild();MORA.el.classList.add("on");document.documentElement.classList.add("mora-lock");
+  if(MORA.i<0)moraShow("");
+  setTimeout(()=>{try{if(MORA.i<0)MORA.inp.focus()}catch(_){}},120);
+}
+function moraClose(){
+  if(!MORA.el)return;
+  MORA.el.classList.remove("on");document.documentElement.classList.remove("mora-lock");
+  try{MORA.fr.src="about:blank"}catch(_){}   /* يوقّف أي فيديو/صوت */
+  MORA.hist=[];MORA.i=-1;
+}
+Object.assign(A,{openMora(){moraOpen()},closeMora(){moraClose()}});
+window.openMoraBrowser=moraOpen;window.closeMoraBrowser=moraClose;
+
 // gal-secure-context
 document.addEventListener("click",e=>{
   const b=e.target.closest("[data-act]");
