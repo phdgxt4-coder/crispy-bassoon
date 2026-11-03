@@ -1,11 +1,16 @@
-/* التفوق SW — v131 — scoped cache cleanup; no forced page reload */
+/* التفوق SW — v137 — تنزيل كامل أوفلاين + تحديث تلقائي بالخلفية
+   v137: مسار الجذر بيتحسب من نطاق التسجيل (من غير اسم ريبو ثابت — يشتغل على أي ريبو GitHub Pages)،
+   وطلبات Range (صوت/فيديو) بتعدّي على الشبكة بدل ما ترجع ملف كامل من الكاش، وأي طلب مش GET مبيتعترضش. */
 /* v115-fix: PETS كان ناقص تعريفه من إصدارات → ReferenceError وقت الـ install → الـ SW مش بيتسجل خالص.
    هرّوا دلوقتي (موديلات الرفاق 3D) — Promise.allSettled بيتجاهل أي ملف مش موجود بأمان */
 /* v131-fix: importScripts كان من غير try/catch — لو gstatic مش متاح (أول تحميل أوفلاين) الـ SW كله كان بيفشل
    ومش بيتسجل خالص (لا أوفلاين ولا إشعارات). بقي محمي — التسجيل بيكمل حتى لو مكتبات الإشعارات محملتش */
 const PETS = ["./pets/fox.glb","./pets/corgi.glb","./pets/hare.glb","./pets/sheep.glb","./pets/boar.glb"];
-const CACHE = "eltafawoq-v131";
-const BUILD = "20261103-v131"; /* review:keep — علامة بناء بيقراها فحص اتساق الإصدار */
+const CACHE = "eltafawoq-v137";
+const BUILD = "20261103-v137"; /* review:keep — علامة بناء بيقراها فحص اتساق الإصدار */
+
+/* v137: مسار جذر التطبيق (مثلاً /my-repo/ على GitHub Pages أو / على دومين خاص) */
+const SCOPE_PATH = (function () { try { return new URL(self.registration.scope).pathname; } catch (_) { return "/"; } })();
 
 let __fcmReady = false;
 try {
@@ -105,6 +110,12 @@ self.addEventListener("activate", (e) => {
 
 self.addEventListener("message", (e) => {
   const d = e.data || {};
+  /* v132: الصفحة بتبعت كل الملفات اللي استخدمتها → نحمّلها ونخزّنها مرة واحدة (أوفلاين كامل) */
+  if (d.type === "WARM" && Array.isArray(d.urls)) {
+    e.waitUntil(caches.open(CACHE).then((c) => Promise.allSettled(
+      d.urls.slice(0, 300).map((u) => c.match(u).then((hit) => hit || c.add(u)))
+    )));
+  }
   if (d.type === "CLEAR_CACHE") {
     e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k.startsWith("eltafawoq-v")).map((k) => caches.delete(k)))));
   }
@@ -121,9 +132,19 @@ function isHtmlResponse(res) {
   return ct.includes("text/html");
 }
 
+/* v132: تحديث دوري بالخلفية (لو المتصفح بيدعم periodicSync) */
+self.addEventListener("periodicsync", (e) => {
+  if (e.tag !== "eltafawoq-refresh") return;
+  e.waitUntil(caches.open(CACHE).then((c) => c.keys().then((reqs) => Promise.allSettled(
+    reqs.slice(0, 200).map((r) => fetch(r, { cache: "no-store" }).then((res) => { if (res && res.ok) return c.put(r, res); }))
+  ))));
+});
+
 self.addEventListener("fetch", (e) => {
-  if (e.request.method !== "GET") { e.respondWith(fetch(e.request)); return; }
+  if (e.request.method !== "GET") return; /* v137: POST وغيره يروح للشبكة مباشرة من غير تدخل */
   const url = new URL(e.request.url);
+  /* v137: Range (تشغيل صوت/فيديو/جزء من ملف) لازم يتجاب من الشبكة — الكاش بيخزّن الرد الكامل بس */
+  if (e.request.headers.has("range")) return;
 
   /* cache local GLB pets */
   if (url.origin === self.location.origin && url.pathname.endsWith(".glb")) {
@@ -186,7 +207,7 @@ self.addEventListener("fetch", (e) => {
     (e.request.destination === "document") ||
     (url.origin === self.location.origin &&
       (url.pathname.endsWith(".html") || url.pathname.endsWith("/") ||
-        /\/crispy-bassoon\/?$/.test(url.pathname)));
+        url.pathname === SCOPE_PATH.replace(/\/$/, "")));
 
   if (isNav && url.origin === self.location.origin) {
     const keyUrl = new URL(e.request.url);
@@ -195,7 +216,7 @@ self.addEventListener("fetch", (e) => {
     const cacheKey = new Request(keyUrl.href, { method: "GET" });
     const indexKey = new URL("./index.html", self.registration.scope).href;
     const isAppRoot = url.pathname.endsWith("/") || url.pathname.endsWith("/index.html") ||
-      /\/crispy-bassoon\/?$/.test(url.pathname);
+      url.pathname === SCOPE_PATH.replace(/\/$/, "");
     const updatePromise = fetch(e.request, { cache: "no-store" }).then((res) => {
       if (res.ok && isHtmlResponse(res)) {
         caches.open(CACHE).then((cache) => cache.put(cacheKey, res.clone())).catch(() => {});
@@ -221,19 +242,17 @@ self.addEventListener("fetch", (e) => {
   }
 
   if (url.origin === self.location.origin) {
-    e.respondWith(
-      fetch(e.request)
-        .then((res) => {
-          if (res && res.ok) {
-            const copy = res.clone();
-            caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
-          }
-          return res;
-        })
-        .catch(() => caches.match(e.request))
-    );
+    /* v132: الملف من الكاش فوراً (شغال أوفلاين) والنسخة الجديدة بتتنزّل في الخلفية */
+    e.respondWith(caches.open(CACHE).then((c) => c.match(e.request).then((hit) => {
+      const net = fetch(e.request).then((res) => {
+        if (res && res.ok) c.put(e.request, res.clone()).catch(() => {});
+        return res;
+      });
+      if (hit) { e.waitUntil(net.catch(() => {})); return hit; }
+      return net.catch(() => hit || new Response("", { status: 504 }));
+    })));
     return;
   }
 
-  e.respondWith(fetch(e.request));
+  /* باقي الطلبات الخارجية: المتصفح يتعامل معاها عادي */
 });
