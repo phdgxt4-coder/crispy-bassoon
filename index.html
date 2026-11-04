@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v149">
+<meta name="sw-build" content="v150">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v149";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
+<script>window.APP_BUILD="v150";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -12330,13 +12330,21 @@ async function idbPut(id,blob){
 async function idbDel(id){try{const d=await musIdb();d.transaction("songs","readwrite").objectStore("songs").delete(id)}catch(_){}}
 async function musFetchBlob(s){
   const c=await idbGet(s.id);if(c&&c.blob)return c.blob;
+  if(!s||!s.id)throw new Error("معرّف الأغنية ناقص");
   const sn=await getDocs(query(collection(db,"songParts"),where("sid","==",s.id)));
-  const arr=sn.docs.map(d=>d.data()).sort((a,b)=>a.k-b.k);
-  if(!arr.length||(s.parts&&arr.length!==s.parts))throw new Error("الأغنية ناقصة");
-  const blob=new Blob(arr.map(x=>{const b=atob(x.d),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u}),{type:s.mime||"audio/mpeg"});
-  idbPut(s.id,blob);return blob;
+  const raw=sn.docs.map(d=>d.data()).filter(x=>x&&Number.isInteger(x.k)&&typeof x.d==="string").sort((a,b)=>a.k-b.k);
+  const expected=Math.max(0,Number(s.parts)||0);
+  if(!expected||raw.length!==expected||raw.some((x,i)=>x.k!==i||!x.d.length))throw new Error("الأغنية ناقصة — أعد رفعها من لوحة الأدمن");
+  const chunks=[];
+  try{for(const x of raw){const b=atob(x.d),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);chunks.push(u)}}catch(_){throw new Error("بيانات الأغنية تالفة — أعد رفعها")}
+  const blob=new Blob(chunks,{type:s.mime||"audio/mpeg"});
+  if(!blob.size)throw new Error("ملف الأغنية فارغ");
+  await idbPut(s.id,blob);return blob;
 }
-async function musSrc(s){if(s.url)return s.url;const b=await musFetchBlob(s);return URL.createObjectURL(b)}
+async function musSrc(s){
+  if(s.url){try{const u=new URL(s.url);if(!/^https?:$/.test(u.protocol))throw new Error("رابط الأغنية غير صالح");return u.href}catch(_){throw new Error("رابط الأغنية غير صالح")}}
+  const b=await musFetchBlob(s);return URL.createObjectURL(b);
+}
 async function musPrefetch(){
   try{const n=MUS.list.length;if(n<2||MUS.shuf)return;const s=MUS.list[(MUS.cur+1)%n];if(!s||s.url)return;if(await idbGet(s.id))return;await musFetchBlob(s)}catch(_){}
 }
@@ -12346,7 +12354,10 @@ async function musPlay(i){
   try{
     const u=await musSrc(s);if(tok!==MUS.tok)return;
     let a=musAu();if(MUS.blobUrl&&MUS.blobUrl.indexOf("blob:")===0&&MUS.blobUrl!==u){try{URL.revokeObjectURL(MUS.blobUrl)}catch(_){}}
-    a=musGain(a,s)||a;MUS.blobUrl=u;a.src=u;musCtx();await a.play();musMeta();
+    a=musGain(a,s)||a;MUS.blobUrl=u;
+    a.pause();a.removeAttribute("src");a.load();a.src=u;a.load();musCtx();
+    await new Promise((resolve,reject)=>{let done=false;const ok=()=>{if(done)return;done=true;cleanup();resolve()};const bad=()=>{if(done)return;done=true;cleanup();reject(new Error("ملف الصوت لم يجهز"))};const timer=setTimeout(bad,15000);const cleanup=()=>{clearTimeout(timer);a.removeEventListener("canplay",ok);a.removeEventListener("error",bad)};a.addEventListener("canplay",ok,{once:true});a.addEventListener("error",bad,{once:true});if(a.readyState>=3)ok()});
+    await a.play();musMeta();
   }catch(e){if(tok!==MUS.tok)return;MUS.loading=false;const nm=e&&e.name,cd=e&&e.code;const why=nm==="NotAllowedError"?"المتصفح منع التشغيل التلقائي — اضغط ▶ تاني":cd==="permission-denied"?"الأغاني مقفولة من قواعد Firebase — الأدمن لازم ينشر القواعد":(e&&e.message)||"";moraErr(cd==="permission-denied"?"firebase":"network","فشل تشغيل أغنية: "+(cd||nm||(e&&e.message)||"?")+" · "+((s&&s.title)||"?"),"mus.load");try{toast("مقدرتش أشغّل الأغنية"+(why?" — "+why:""))}catch(_){}}
   musUi();
 }
@@ -12683,13 +12694,13 @@ async function musWarm(){
   if(__warmBusy||S.isAdmin)return;
   try{const c=navigator.connection;if(c&&(c.saveData||/2g/.test(c.effectiveType||"")))return}catch(_){}
   __warmBusy=1;
-  try{for(const s of MUS.list.slice(0,3)){if(s.url||!s.parts)continue;if(await idbGet(s.id))continue;await new Promise(r=>setTimeout(r,2500));await musFetchBlob(s)}}catch(_){}
+  try{for(const s of MUS.list.slice(0,3)){try{if(s.url||!s.parts)continue;if(await idbGet(s.id))continue;await new Promise(r=>setTimeout(r,500));await musFetchBlob(s)}catch(_){/* ملف واحد تالف لا يعطّل تجهيز باقي الأغاني */}}}catch(_){}
   __warmBusy=0;
 }
 
 Object.assign(A,{openMora(){moraOpen()},closeMora(){moraClose()},openSongs(){sgOpen(false)},
   songUpload(){sgOpen(false);setTimeout(()=>{try{sgSheet()}catch(_){}},150)},
-  songVol(d){const x=MUS.list[+d.i];if(!x||!S.isAdmin)return;const el=document.getElementById("sv"+d.i),v=Math.max(100,Math.min(1000,parseInt(el&&el.value,10)||100));updateDoc(doc(db,"songs",x.id),{vol:v}).then(()=>{x.vol=v;try{toast("اتحفظ مستوى الصوت "+v+"% ✓",true)}catch(_){}}).catch(e=>{try{toast("فشل الحفظ — "+((e&&e.code)||""))}catch(_){}})},
+  async songVol(d){const x=MUS.list[+d.i];if(!x||!S.isAdmin)return;const el=document.getElementById("sv"+d.i),v=Math.max(100,Math.min(1000,parseInt(el&&el.value,10)||100));try{await updateDoc(doc(db,"songs",x.id),{vol:v});x.vol=v;try{toast("اتحفظ مستوى الصوت "+v+"% ✓",true)}catch(_){}}catch(e){const code=(e&&e.code)||"unknown";try{toast(code==="permission-denied"?"مفيش صلاحية — انشر firestore.rules v150 من Firebase Console":"فشل الحفظ — "+code)}catch(_){}try{moraErr("firebase","فشل حفظ مستوى الصوت: "+code,"admin.songs.volume")}catch(_){}}},
   songsReload(){musLoad(true).then(()=>{if(S.tab==="songs")render(true)})},
   async songDel(d){await sgDel(+d.i);if(S.tab==="songs")render(true)}});
 document.addEventListener("click",function(ev){
