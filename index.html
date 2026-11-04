@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v142">
+<meta name="sw-build" content="v143">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v142";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
+<script>window.APP_BUILD="v143";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -1713,31 +1713,109 @@ input[type=file]::file-selector-button{margin-inline-end:10px;border:0;border-ra
 .adm-g .tabs{display:contents}
 .adm-nav .tab{flex:none;white-space:nowrap;padding:8px 14px;font-size:13px;min-height:36px}
 
-/* ===== v142 — متصفح Mora الداخلي ===== */
+/* ===== v143 — متصفح Mora: نوافذ + بوكي + أغاني ===== */
 .mora-btn{background:linear-gradient(135deg,#ff2a54,#b31432)!important;color:#fff!important;border:0!important;box-shadow:0 6px 18px rgba(255,42,84,.3)}
-#moraBrowserModal{display:none;position:fixed;inset:0;z-index:9999;flex-direction:column;background:#0B0C10;transform:none!important;contain:none}
+#toast{z-index:10050!important}
+#moraBrowserModal{display:none;position:fixed;inset:0;z-index:9999;flex-direction:column;background:#0A0B10;color:#fff;transform:none!important;contain:none;font-family:inherit}
 #moraBrowserModal.on{display:flex}
 html.mora-lock,html.mora-lock body{overflow:hidden!important}
-.mora-bar{display:flex;align-items:center;gap:6px;padding:8px 10px calc(8px + env(safe-area-inset-top,0px)) ;padding-top:calc(8px + env(safe-area-inset-top,0px));background:#13151b;border-bottom:1px solid rgba(255,255,255,.1)}
-.mora-ib{flex:none;width:34px;height:38px;padding:0;border:0;border-radius:12px;background:rgba(255,255,255,.06);color:#fff;font-size:18px;cursor:pointer}
-.mora-ib:active{background:rgba(255,255,255,.14)}
-.mora-url{flex:1;min-width:0;height:38px;padding:0 14px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;font:inherit;font-size:14px;outline:none;direction:ltr;text-align:left}
-.mora-url:focus{border-color:#ff2a54}
-.mora-x{flex:none;width:38px;height:38px;padding:0;border:0;border-radius:12px;background:#ff2a54;color:#fff;font:inherit;font-weight:700;cursor:pointer}
+.mora-top{flex:none;background:linear-gradient(180deg,rgba(28,30,40,.96),rgba(18,19,26,.96));-webkit-backdrop-filter:blur(22px) saturate(1.6);backdrop-filter:blur(22px) saturate(1.6);border-bottom:1px solid rgba(255,255,255,.08);padding-top:env(safe-area-inset-top,0px)}
+.mora-bar{display:flex;align-items:center;gap:6px;padding:8px 10px 6px}
+.mora-ib{flex:none;width:36px;height:38px;padding:0;border:0;border-radius:12px;background:rgba(255,255,255,.07);color:#fff;font-size:18px;cursor:pointer;transition:transform .12s,background .15s}
+.mora-ib:active{background:rgba(255,255,255,.18);transform:scale(.92)}
+.mora-ib[disabled]{opacity:.35}
+.mora-urlw{flex:1;min-width:0;display:flex;align-items:center;gap:6px;height:38px;padding:0 12px;border-radius:19px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07)}
+.mora-urlw:focus-within{border-color:#ff2a54;box-shadow:0 0 0 3px rgba(255,42,84,.18)}
+.mora-urlw i{font-style:normal;font-size:13px;opacity:.7}
+.mora-url{flex:1;min-width:0;border:0;background:transparent;color:#fff;font:inherit;font-size:14px;outline:none;direction:ltr;text-align:left;padding:0}
+.mora-x{flex:none;width:36px;height:38px;padding:0;border:0;border-radius:12px;background:linear-gradient(135deg,#ff2a54,#b31432);color:#fff;font:inherit;font-weight:700;cursor:pointer}
+.mora-prog{height:2px;overflow:hidden;opacity:0;transition:opacity .2s}
+.mora-prog.on{opacity:1}
+.mora-prog::after{content:"";display:block;height:100%;width:40%;background:linear-gradient(90deg,transparent,#ff2a54,transparent);animation:moraP 1.1s linear infinite}
+@keyframes moraP{from{transform:translateX(-100%)}to{transform:translateX(350%)}}
+.mora-tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 10px 8px;scrollbar-width:none}
+.mora-tabs::-webkit-scrollbar{display:none}
+.mora-tab{flex:none;display:flex;align-items:center;gap:6px;max-width:150px;height:32px;padding:0 10px;border-radius:16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);font-size:12.5px;cursor:pointer;color:rgba(255,255,255,.78)}
+.mora-tab span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr}
+.mora-tab.on{background:rgba(255,42,84,.2);border-color:rgba(255,42,84,.55);color:#fff}
+.mora-tab.pin{max-width:96px}
+.mora-tab .tx{border:0;background:rgba(255,255,255,.12);color:#fff;width:18px;height:18px;border-radius:50%;font-size:10px;line-height:18px;padding:0;cursor:pointer}
+.mora-tab.add{justify-content:center;width:32px;padding:0;font-size:18px;color:#fff}
+.mora-tab .pn{font-style:normal;font-size:11px}
 .mora-hint{display:none;padding:6px 12px;font-size:12px;color:#ffd0d8;background:rgba(255,42,84,.12);text-align:center}
 .mora-hint.load{display:block}
-.mora-frame{flex:1;width:100%;border:0;background:#fff}
-.mora-home{flex:1;overflow:auto;padding:22px 16px;color:#fff;text-align:center}
-.mora-links{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:16px 0}
-.mora-chip{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);color:#fff;border-radius:99px;padding:10px 16px;font:inherit;cursor:pointer}
+.mora-stage{flex:1;position:relative;min-height:0}
+.mora-frame{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
+.mora-home{position:absolute;inset:0;overflow:auto;padding:22px 16px calc(90px + env(safe-area-inset-bottom,0px));text-align:center;background:radial-gradient(70% 40% at 20% 0%,rgba(255,42,84,.18),transparent 70%),radial-gradient(60% 40% at 100% 30%,rgba(124,92,255,.16),transparent 70%),#0A0B10}
+.mh-logo{width:68px;height:68px;margin:6px auto 8px;border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:34px;background:linear-gradient(135deg,#ff2a54,#7c5cff);box-shadow:0 12px 34px rgba(255,42,84,.35)}
+.mora-home h2{margin:0 0 4px;font-size:22px}
+.mora-home p{margin:0 0 14px;color:rgba(255,255,255,.6);font-size:13px}
+.mh-tile{display:flex;align-items:center;gap:14px;width:100%;margin:0 0 12px;padding:16px;border-radius:22px;border:1px solid rgba(255,255,255,.12);color:#fff;font:inherit;text-align:start;cursor:pointer;transition:transform .15s;box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 12px 30px rgba(0,0,0,.3)}
+.mh-tile:active{transform:scale(.98)}
+.mh-tile span{flex:none;width:54px;height:54px;border-radius:17px;display:flex;align-items:center;justify-content:center;font-size:28px;background:rgba(255,255,255,.14)}
+.mh-tile b{display:block;font-size:17px}.mh-tile small{display:block;font-size:12px;opacity:.72;margin-top:2px}
+.mh-tile.games{background:linear-gradient(135deg,rgba(255,138,0,.55),rgba(255,42,84,.5))}
+.mh-tile.music{background:linear-gradient(135deg,rgba(124,92,255,.6),rgba(255,42,84,.45))}
+.mora-links{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:14px 0}
+.mora-chip{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);color:#fff;border-radius:99px;padding:10px 16px;font:inherit;font-size:13px;cursor:pointer}
 .mora-chip:active{background:rgba(255,42,84,.3)}
-
-.mora-games{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
-.mora-game{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:linear-gradient(145deg,rgba(255,42,84,.16),rgba(255,255,255,.04));color:#fff;font:inherit;cursor:pointer}
-.mora-game span{font-size:28px;line-height:1}
-.mora-game b{font-size:12.5px;font-weight:600}
-.mora-game:active{transform:scale(.95)}
-@media(min-width:560px){.mora-games{grid-template-columns:repeat(5,1fr)}}
+.mora-sub{font-size:12px;color:rgba(255,255,255,.5);margin:14px 0 0}
+.mora-menu{display:none;position:absolute;top:calc(env(safe-area-inset-top,0px) + 54px);inset-inline-end:10px;z-index:5;min-width:220px;padding:6px;border-radius:18px;background:rgba(32,34,46,.94);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.12);box-shadow:0 18px 50px rgba(0,0,0,.5)}
+.mora-menu.on{display:block}
+.mora-menu button{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border:0;border-radius:12px;background:transparent;color:#fff;font:inherit;font-size:14px;text-align:start;cursor:pointer}
+.mora-menu button:active{background:rgba(255,255,255,.1)}
+/* ---- مشغّل الأغاني ---- */
+.mus-panel{display:none;position:absolute;inset:0;z-index:4;flex-direction:column;overflow:hidden;background:radial-gradient(80% 45% at 50% 0%,rgba(124,92,255,.35),transparent 70%),radial-gradient(70% 40% at 0% 40%,rgba(255,42,84,.2),transparent 70%),#0A0B10}
+.mus-panel.on{display:flex}
+.mus-head{display:flex;align-items:center;gap:8px;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 6px}
+.mus-head h3{flex:1;margin:0;font-size:18px}
+.mus-hb{border:0;border-radius:14px;background:rgba(255,255,255,.1);color:#fff;font:inherit;font-size:13px;padding:9px 14px;cursor:pointer}
+.mus-scroll{flex:1;overflow:auto;padding:4px 14px calc(24px + env(safe-area-inset-bottom,0px))}
+.mus-now{padding:18px 14px 12px;border-radius:28px;text-align:center;background:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 20px 50px rgba(0,0,0,.4);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+.mus-disc{width:148px;height:148px;margin:2px auto 14px;border-radius:50%;background:conic-gradient(from 0deg,#ff2a54,#7c5cff,#14b8a6,#ff8a00,#ff2a54);display:flex;align-items:center;justify-content:center;box-shadow:0 14px 40px rgba(255,42,84,.4),0 0 0 6px rgba(255,255,255,.06)}
+.mus-disc i{width:46px;height:46px;border-radius:50%;background:#0A0B10;box-shadow:0 0 0 8px rgba(255,255,255,.08)}
+.mus-disc.spin{animation:musSpin 7s linear infinite}
+@keyframes musSpin{to{transform:rotate(360deg)}}
+.mus-ti{font-size:18px;font-weight:700;margin:0 6px 2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mus-ar{font-size:13px;color:rgba(255,255,255,.6);min-height:18px}
+.mus-seek{width:100%;margin:14px 0 2px;-webkit-appearance:none;appearance:none;height:5px;border-radius:3px;background:rgba(255,255,255,.18);outline:none}
+.mus-seek::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.mus-times{display:flex;justify-content:space-between;font-size:11.5px;color:rgba(255,255,255,.6)}
+.mus-ctl{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:10px}
+.mus-ctl button{border:0;background:transparent;color:#fff;font-size:24px;width:46px;height:46px;border-radius:50%;cursor:pointer;transition:transform .12s}
+.mus-ctl button:active{transform:scale(.88)}
+.mus-ctl button.on{color:#ff2a54}
+.mus-ctl .mus-pp{width:68px;height:68px;font-size:28px;background:linear-gradient(135deg,#ff2a54,#7c5cff);box-shadow:0 10px 28px rgba(255,42,84,.45)}
+.mus-q{width:100%;margin:14px 0 8px;height:42px;border-radius:21px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);color:#fff;font:inherit;padding:0 16px;outline:none}
+.mus-row{display:flex;align-items:center;gap:12px;padding:10px;margin-bottom:6px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid transparent;cursor:pointer}
+.mus-row.on{background:rgba(255,42,84,.16);border-color:rgba(255,42,84,.5)}
+.mus-row .ic{flex:none;width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#7c5cff,#ff2a54);font-size:18px}
+.mus-row .tx{flex:1;min-width:0;text-align:start}
+.mus-row b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mus-row small{display:block;font-size:12px;color:rgba(255,255,255,.55)}
+.mus-row .rm{border:0;background:rgba(255,255,255,.1);color:#fff;border-radius:10px;width:30px;height:30px;cursor:pointer}
+.mus-empty{padding:28px 10px;text-align:center;color:rgba(255,255,255,.55);font-size:14px}
+.mus-eq{display:inline-flex;align-items:flex-end;gap:2px;height:16px}
+.mus-eq i{width:3px;background:#ff2a54;border-radius:2px;height:4px}
+.mus-eq.go i{animation:musEq .8s ease-in-out infinite}
+.mus-eq.go i:nth-child(2){animation-delay:.2s}.mus-eq.go i:nth-child(3){animation-delay:.4s}
+@keyframes musEq{0%,100%{height:4px}50%{height:16px}}
+.mus-mini{display:none;align-items:center;gap:10px;margin:0 10px calc(10px + env(safe-area-inset-bottom,0px));padding:8px 10px;border-radius:20px;background:rgba(36,38,52,.9);-webkit-backdrop-filter:blur(22px) saturate(1.6);backdrop-filter:blur(22px) saturate(1.6);border:1px solid rgba(255,255,255,.14);box-shadow:0 12px 34px rgba(0,0,0,.45);cursor:pointer}
+.mus-mini .d{flex:none;width:38px;height:38px;border-radius:50%;background:conic-gradient(#ff2a54,#7c5cff,#14b8a6,#ff2a54)}
+.mus-mini .t{flex:1;min-width:0;text-align:start}
+.mus-mini .t b{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mus-mini .t small{font-size:11px;color:rgba(255,255,255,.6)}
+.mus-mini button{flex:none;border:0;background:rgba(255,255,255,.12);color:#fff;width:36px;height:36px;border-radius:50%;font-size:15px;cursor:pointer}
+#musPill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:120;width:min(92vw,420px);display:flex;color:#fff}
+#musPill.hide{display:none}
+.mus-sheet{position:absolute;inset:0;z-index:6;display:flex;align-items:flex-end;background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.mus-sheet>div{width:100%;max-height:90%;overflow:auto;padding:16px 16px calc(18px + env(safe-area-inset-bottom,0px));border-radius:26px 26px 0 0;background:#171923;border-top:1px solid rgba(255,255,255,.14)}
+.mus-sheet input[type=text],.mus-sheet input[type=url]{width:100%;margin:6px 0;height:42px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);color:#fff;font:inherit;padding:0 12px;outline:none}
+.mus-sheet .bar{height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden;margin:10px 0}.mus-sheet .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff2a54,#7c5cff);transition:width .2s}
+.mus-sheet .row2{display:flex;gap:8px;margin-top:10px}.mus-sheet .row2 button{flex:1;height:44px;border:0;border-radius:14px;font:inherit;font-weight:700;cursor:pointer;color:#fff;background:rgba(255,255,255,.12)}.mus-sheet .row2 .go{background:linear-gradient(135deg,#ff2a54,#7c5cff)}
+#musPill{margin:0}
+html.mora-lock .bgfx{display:none!important}
+html.mora-lock #app{visibility:hidden}
+@media (prefers-reduced-motion:reduce){.bgfx i,.mus-disc.spin{animation:none!important}}
 </style>
 </head>
 <body>
@@ -1750,7 +1828,7 @@ html.mora-lock,html.mora-lock body{overflow:hidden!important}
 </div>
 <style>html.lite *,html.lite *::before,html.lite *::after{animation:none!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}html.lite canvas#bgfx,html.lite .bgfx{display:none!important}</style>
 <script>(function(){try{var c=navigator.connection||{},weak=(navigator.deviceMemory&&navigator.deviceMemory<=2)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2)||c.saveData;var m=localStorage.getItem("lite_mode");if(m==="1"||(m!=="0"&&weak))document.documentElement.classList.add("lite")}catch(e){}})()</script>
-<div id="app"></div><div id="verBadge">v142</div>
+<div id="app"></div><div id="verBadge">v143</div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
@@ -3627,7 +3705,7 @@ function checklistView(){
 }
 
 /* ========== Stage 12 Anti-lag ========== */
-const PRELOAD_URLS=["./index.html","./manifest.json","./sw.js","./memory-game.html","./draw-guess.html","./words-crush.html","./runner.html","./space.html","./doodle.html","./fishing.html","./push.html","./icons/icon-192.png","./icons/icon-512.png"];
+const PRELOAD_URLS=["./index.html","./manifest.json","./sw.js","./memory-game.html","./draw-guess.html","./runner.html","./space.html","./doodle.html","./fishing.html","./push.html","./icons/icon-192.png","./icons/icon-512.png"];
 async function preloadCritical(onProg){
   const urls=PRELOAD_URLS.slice();
   let done=0,ok=0,fail=0;
@@ -4168,7 +4246,8 @@ ${(p.badges||[]).length?`<div style="margin-top:10px;display:flex;flex-wrap:wrap
 </div>
 <div class="card">
   <button class="btn block mora-btn" data-act="openMora">🌐 افتح متصفح Mora الداخلي</button>
-  <p class="mut" style="margin:8px 0 0;text-align:center">تصفّح المواقع جوه المنصة من غير ما تخرج منها</p>
+  <button class="btn block ghost" style="margin-top:8px" data-act="openSongs">🎵 أغاني المنصة</button>
+  <p class="mut" style="margin:8px 0 0;text-align:center">تصفّح وألعاب وأغاني — النوافذ والصوت بيفضلوا شغّالين</p>
 </div>
 <div class="card"><b>الإشعارات</b>
 <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sm ghost" data-act="enablePush">🔔 تفعيل الإشعارات</button></div>
@@ -8344,7 +8423,7 @@ function fail(m){S.error=m;render(true)}
 
 
 /* ---- QB runtime ---- */
-const QB_GAMES={qb:"تحدي الأوائل 👑",speed:"Speed Duel ⚡",ctf:"Capture The Flag 🏁",memory:"Memory Battle 🧠",treasure:"Treasure Race 💎",arena:"Arena 🏟️",los:"آخر واحد واقف 🧍",draw:"رسم وخمّن ✏️",hang:"كلمة مخفية 📝",words:"Words Crush 🔤",runner:"Endless Runner 🏃",space:"Space Shooter 🚀",doodle:"Doodle Jump 🪂",fishing:"صيد السمك 🎣",push:"Push Arena 🧊"};
+const QB_GAMES={qb:"تحدي الأوائل 👑",speed:"Speed Duel ⚡",ctf:"Capture The Flag 🏁",memory:"Memory Battle 🧠",treasure:"Treasure Race 💎",arena:"Arena 🏟️",los:"آخر واحد واقف 🧍",draw:"رسم وخمّن ✏️",hang:"كلمة مخفية 📝",runner:"Endless Runner 🏃",space:"Space Shooter 🚀",doodle:"Doodle Jump 🪂",fishing:"صيد السمك 🎣",push:"Push Arena 🧊"};
 const QB_COLORS={teal:"تركواز",purple:"بنفسجي",gold:"ذهبي",rose:"وردي",blue:"أزرق"};
 function qbGameLabel(id){return QB_GAMES[id]||QB_GAMES.qb}
 function convIdFor(a,b){return [a,b].sort().join("_")}
@@ -11877,62 +11956,13 @@ A.rvDownload=aiDownload;
 /* v114: شريط الأدمن أفقي وثابت — المحتوى يظهر من أول شاشة، والتبويب الشغّال يتوسّط */
 try{let __rq=0;new MutationObserver(()=>{if(__rq)return;__rq=requestAnimationFrame(()=>{__rq=0;const t=document.querySelector(".adm-nav .tab.on");if(t&&!t.__c){t.__c=1;try{t.scrollIntoView({inline:"center",block:"nearest"})}catch(_){}}})}).observe(document.documentElement,{childList:true,subtree:true})}catch(_){}
 
-/* ===== v142 — متصفح Mora الداخلي: iframe معزول + سجل تنقّل + شريط أدوات (DOM بيتبني عند أول فتح بس) ===== */
-const MORA_GAMES=[
- ["🔢","2048","https://gabrielecirulli.github.io/2048/"],
- ["🔷","Hextris","https://hextris.github.io/hextris/"],
- ["🧱","تتريس","https://chvin.github.io/react-tetris/"],
- ["🐤","Flappy Bird","https://nebez.github.io/floppybird/"],
- ["🐦","Clumsy Bird","https://ellisonleao.github.io/clumsy-bird/"],
- ["🦖","لعبة الديناصور","https://wayou.github.io/t-rex-runner/"],
- ["🐍","Snake","https://patorjk.com/games/snake/"],
- ["🍪","Cookie Clicker","https://orteil.dashnet.org/cookieclicker/"],
- ["👻","Pac-Man","https://www.google.com/logos/2010/pacman10-i.html"],
- ["🔴","Agar.io","https://agar.io/"],
- ["🐛","Slither.io","https://slither.io/"],
- ["⚗️","Little Alchemy 2","https://littlealchemy2.com/"],
- ["🫧","Bubble Shooter","https://poki.com/en/g/bubble-shooter"],
- ["⭕","X O","https://playtictactoe.org/"],
- ["🏍️","Moto X3M","https://poki.com/en/g/moto-x3m"],
- ["🪝","Stickman Hook","https://poki.com/en/g/stickman-hook"],
- ["🏃‍♂️","Temple Run 2","https://poki.com/en/g/temple-run-2"],
- ["🔥","Fireboy & Watergirl","https://poki.com/en/g/fireboy-and-watergirl-the-forest-temple"],
- ["🥚","Shell Shockers","https://poki.com/en/g/shell-shockers"],
- ["💣","Minesweeper","https://minesweeperonline.com/"],
- ["🔟","Sudoku","https://sudoku.com/"],
- ["♟️","شطرنج Lichess","https://lichess.org/"],
- ["🟡","Pac-Man Canvas","https://pacman.platzh1rsch.ch/"],
- ["🕯️","A Dark Room","https://adarkroom.doublespeakgames.com/"],
- ["⌨️","Z-Type (كتابة)","https://zty.pe/"],
- ["🎨","Skribbl.io","https://skribbl.io/"],
- ["🟩","Wordle","https://wordlegame.org/"],
- ["🧩","Tetris الرسمية","https://tetris.com/play-tetris"],
- ["🍬","Jewels (شبيهة Candy)","https://poki.com/en/g/jewel-blast"]
-];
-const MORA_WEB=[
- ["🏃","Subway Surfers","https://poki.com/en/g/subway-surfers"],
- ["🚙","Hill Climb Racing","https://poki.com/en/g/hill-climb-racing-lite"],
- ["🪱","Worms Zone","https://www.crazygames.com/embed/worms-zone"],
- ["🔤","Words Crush","./words-crush.html"],
- ["🎯","Sniper 3D","https://www.gamepix.com/play/sniper-3d"],
- ["🏍️","Traffic Rider (شبيهة)","https://www.crazygames.com/embed/traffic-rider-vvq"],
- ["🌻","Plants vs Zombies (معجبين)","https://kiz10.com/plants-vs-zombies"],
- ["🎲","لودو (شبيهة Parchisi)","https://www.crazygames.com/embed/ludo-hero"]
-];
-const MORA_APPS=[
- ["🍬","Candy Crush Saga","com.king.candycrushsaga"],
- ["🏃","Subway Surfers","com.sybogames.subway.surfers.game"],
- ["🔤","Words Crush","com.zytoona.wordscrush"],
- ["⚽","Score! Hero","com.firsttouchgames.story"],
- ["🎲","Parchisi STAR","com.superking.parchisi.star"],
- ["🪱","Worms Zone","com.wildspike.wormszone"],
- ["🌻","Plants vs Zombies","com.ea.game.pvzfree_row"],
- ["🏍️","Traffic Rider","com.skgames.trafficrider"],
- ["🚙","Hill Climb Racing","com.fingersoft.hillclimb"],
- ["➡️","Arrow Puzzle","com.easybrain.arrow.puzzle.game"],
- ["🎯","Sniper 3D","com.fungames.sniper3d"]
-];
-const MORA={el:null,fr:null,inp:null,hist:[],i:-1,hint:null,tm:0};
+/* ===== v143 — متصفح Mora: نوافذ متعددة (تثبيت/إغلاق) + جلسة محفوظة + بوكي + مكتبة أغاني بمشغّل فخم بيكمل في الخلفية ===== */
+const MORA_MAX=10,MORA_LIVE=4;
+const MORA={el:null,tabs:[],act:null,seq:0,live:[],tm:0,inp:null,hint:null,stage:null,home:null,prog:null};
+const MORA_SITES=[["ويكيبيديا","https://ar.wikipedia.org/"],["بنك المعرفة المصري","https://ekb.eg/"],["أكاديمية خان","https://ar.khanacademy.org/"],["جوجل","https://www.google.com/"],["يوتيوب","https://m.youtube.com/"],["تلجرام ويب","https://web.telegram.org/"]];
+const moraKey=()=>"mora_sess_v2_"+((S.user&&S.user.uid)||"g");
+const moraSeen=new Set();
+function moraErr(type,msg,fn){try{window.__EC&&window.__EC.report(type,{message:String(msg).slice(0,280)},{fn:fn||"mora"})}catch(_){}}
 function moraNorm(v){
   v=String(v||"").trim();if(!v)return "";
   if(/^\.\/[\w.-]+\.html$/i.test(v))return new URL(v,location.href).href;
@@ -11941,64 +11971,91 @@ function moraNorm(v){
   if(v.includes(".")&&!/\s/.test(v))return "https://"+v;
   return "https://www.google.com/search?q="+encodeURIComponent(v);
 }
-function moraBuild(){
-  if(MORA.el)return;
-  const d=document.createElement("div");d.id="moraBrowserModal";d.setAttribute("role","dialog");d.setAttribute("aria-label","متصفح Mora الداخلي");
-  d.innerHTML=`<div class="mora-bar" dir="ltr">
-<button type="button" class="mora-ib" data-m="back" aria-label="رجوع">←</button>
-<button type="button" class="mora-ib" data-m="fwd" aria-label="للأمام">→</button>
-<button type="button" class="mora-ib" data-m="rel" aria-label="تحديث">↻</button>
-<input type="text" class="mora-url" inputmode="url" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="رابط أو بحث">
-<button type="button" class="mora-ib" data-m="ext" aria-label="افتح برّه" title="افتح في المتصفح">↗</button>
-<button type="button" class="mora-x" data-m="close" aria-label="إغلاق">✕</button></div>
-<div class="mora-hint" dir="rtl"></div>
-<div class="mora-home" dir="rtl"><h3>🌐 متصفح Mora</h3><p class="mut">اكتب رابط أو كلمة بحث فوق، أو اختار موقع:</p>
-<div class="mora-links">${[["ويكيبيديا","https://ar.wikipedia.org/"],["بنك المعرفة المصري","https://ekb.eg/"],["أكاديمية خان","https://ar.khanacademy.org/"],["جوجل","https://www.google.com/"],["يوتيوب","https://m.youtube.com/"],["تلجرام ويب","https://web.telegram.org/"]].map(x=>`<button type="button" class="mora-chip" data-u="${x[1]}">${x[0]}</button>`).join("")}</div>
-<h3 style="margin-top:18px">⭐ ألعابك — نسخ ويب (من غير تنزيل)</h3>
-<div class="mora-games">${MORA_WEB.map(g=>`<button type="button" class="mora-game" data-u="${g[2]}"><span>${g[0]}</span><b>${g[1]}</b></button>`).join("")}</div>
-<h3 style="margin-top:18px">🎮 ألعاب تانية</h3>
-<div class="mora-games">${MORA_GAMES.map(g=>`<button type="button" class="mora-game" data-u="${g[2]}"><span>${g[0]}</span><b>${g[1]}</b></button>`).join("")}</div>
-<h3 style="margin-top:18px">📱 ألعاب أندرويد</h3>
-<p class="mut" style="font-size:12px;margin:0 0 6px">دي تطبيقات مش مواقع، فبتفتح التطبيق على موبايلك (أو صفحته في Play Store لو مش منزّل) — مش ممكن تتشغّل جوه المتصفح.</p>
-<div class="mora-games">${MORA_APPS.map(g=>`<button type="button" class="mora-game app" data-p="${g[2]}"><span>${g[0]}</span><b>${g[1]}</b></button>`).join("")}</div>
-<p class="mut" style="font-size:12px">⚠ بعض الألعاب ممكن تظهر فاضية لو موقعها بيمنع الفتح جوه تطبيقات تانية — دوس ↗ تفتحها برّه. الأولى في القايمة (على GitHub) هي الأضمن.</p></div>
-<iframe class="mora-frame" title="متصفح" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-pointer-lock allow-modals" referrerpolicy="no-referrer" allow="fullscreen; autoplay; gamepad; accelerometer; gyroscope" style="display:none"></iframe>`;
-  document.body.appendChild(d);
-  MORA.el=d;MORA.fr=d.querySelector("iframe");MORA.inp=d.querySelector(".mora-url");MORA.hint=d.querySelector(".mora-hint");
-  d.addEventListener("click",e=>{
-    const b=e.target.closest("[data-m],[data-u],[data-p]");if(!b)return;
-    if(b.dataset.u){moraGo(b.dataset.u);return}
-    if(b.dataset.p){moraApp(b.dataset.p);return}
-    const m=b.dataset.m;
-    if(m==="close")moraClose();else if(m==="back")moraStep(-1);else if(m==="fwd")moraStep(1);
-    else if(m==="rel")moraReload();else if(m==="ext"){const u=MORA.hist[MORA.i];if(u)window.open(u,"_blank","noopener")}
-  });
-  MORA.inp.addEventListener("keydown",e=>{if(e.key==="Enter"){moraGo(MORA.inp.value);MORA.inp.blur()}});
-  MORA.fr.addEventListener("load",()=>{clearTimeout(MORA.tm);if(MORA.hint)MORA.hint.classList.remove("load")});
-  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&MORA.el&&MORA.el.classList.contains("on"))moraClose()});
+const moraCur=()=>MORA.tabs.find(t=>t.id===MORA.act)||null;
+const moraTitle=t=>t.title||(t.url?"…":"نافذة جديدة");
+function moraSave(){try{localStorage.setItem(moraKey(),JSON.stringify({act:MORA.act,tabs:MORA.tabs.map(t=>({id:t.id,url:t.url,title:t.title,pin:t.pin?1:0,hist:t.hist.slice(-30),i:t.i}))}))}catch(_){}}
+function moraLoad(){
+  try{const s=JSON.parse(localStorage.getItem(moraKey())||"null");if(!s||!Array.isArray(s.tabs)||!s.tabs.length)return false;
+    MORA.tabs=s.tabs.slice(0,MORA_MAX).map(t=>({id:String(t.id),url:String(t.url||""),title:String(t.title||""),pin:!!t.pin,hist:Array.isArray(t.hist)?t.hist.map(String):[],i:typeof t.i==="number"?t.i:-1,fr:null}));
+    MORA.seq=Math.max(0,...MORA.tabs.map(t=>parseInt(String(t.id).replace(/\D/g,""),10)||0));MORA.act=s.act;return true}catch(_){return false}
 }
-function moraShow(u){
-  const has=!!u;
-  MORA.el.querySelector(".mora-home").style.display=has?"none":"";
-  MORA.fr.style.display=has?"":"none";
-  if(has){
-    MORA.fr.src=u;MORA.inp.value=u;
-    MORA.hint.textContent="لو الصفحة فاضية، الموقع بيمنع الفتح هنا — دوس ↗ لفتحه برّه";MORA.hint.classList.add("load");
-    clearTimeout(MORA.tm);MORA.tm=setTimeout(()=>MORA.hint.classList.remove("load"),9000);
-  }else{MORA.fr.src="about:blank";MORA.inp.value="";MORA.hint.classList.remove("load")}
+function moraAdd(){
+  if(MORA.tabs.length>=MORA_MAX){try{toast("وصلت أقصى عدد نوافذ ("+MORA_MAX+") — اقفل نافذة")}catch(_){}return null}
+  const t={id:"t"+(++MORA.seq),url:"",title:"",pin:false,hist:[],i:-1,fr:null};MORA.tabs.push(t);return t;
+}
+function moraFrame(t){
+  const f=document.createElement("iframe");f.className="mora-frame";f.title="نافذة";
+  f.setAttribute("sandbox","allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-pointer-lock allow-modals");f.setAttribute("allow","fullscreen; autoplay; gamepad; accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; clipboard-write");f.setAttribute("referrerpolicy","no-referrer");f.setAttribute("allowfullscreen","");
+  f.style.display="none";
+  f.addEventListener("load",()=>{if(t.fr===f&&f.getAttribute("src")&&f.getAttribute("src")!=="about:blank"){moraProg(false)}});
+  MORA.stage.appendChild(f);t.fr=f;return f;
+}
+function moraProg(on){
+  clearTimeout(MORA.tm);MORA.prog.classList.toggle("on",!!on);MORA.hint.classList.remove("load");
+  if(on)MORA.tm=setTimeout(()=>{MORA.prog.classList.remove("on");MORA.hint.classList.add("load");try{const c=moraCur();if(c&&c.url&&!moraSeen.has(c.title)){moraSeen.add(c.title);moraErr("network","المتصفح: بطء أو تعذّر تحميل "+c.title,"mora.frame")}}catch(_){}MORA.tm=setTimeout(()=>MORA.hint.classList.remove("load"),9000)},7000);
+}
+function moraLive(t){
+  MORA.live=MORA.live.filter(x=>x!==t.id);MORA.live.push(t.id);
+  while(MORA.live.length>MORA_LIVE){const old=MORA.live.shift(),o=MORA.tabs.find(x=>x.id===old);if(o&&o.fr&&o!==t){try{o.fr.src="about:blank";o.fr.remove()}catch(_){}o.fr=null}}
+}
+function moraTabsRender(){
+  const st=MORA.el.querySelector(".mora-tabs");
+  st.innerHTML=MORA.tabs.map(t=>`<div class="mora-tab${t.id===MORA.act?" on":""}${t.pin?" pin":""}" data-t="${esc(t.id)}">${t.pin?'<i class="pn">📌</i>':""}<span>${esc(moraTitle(t))}</span>${t.pin?"":`<button type="button" class="tx" data-x="${esc(t.id)}" aria-label="إغلاق النافذة">✕</button>`}</div>`).join("")+`<button type="button" class="mora-tab add" data-m="new" aria-label="نافذة جديدة">＋</button>`;
+  const on=st.querySelector(".on");if(on){try{on.scrollIntoView({inline:"center",block:"nearest"})}catch(_){}}
+}
+function moraNav(){
+  const t=moraCur(),b=MORA.el.querySelector('[data-m="back"]'),f=MORA.el.querySelector('[data-m="fwd"]');
+  if(b)b.disabled=!t||t.i<0;if(f)f.disabled=!t||t.i>=t.hist.length-1;
+  const l=MORA.el.querySelector(".mora-urlw i");if(l)l.textContent=t&&/^https:/i.test(t.url)?"🔒":"🔍";
+}
+function moraActivate(id){
+  const t=MORA.tabs.find(x=>x.id===id);if(!t)return;MORA.act=id;
+  MORA.tabs.forEach(x=>{if(x.fr&&x!==t)x.fr.style.display="none"});
+  MORA.home.style.display=t.url?"none":"";
+  if(t.url){if(!t.fr){moraFrame(t);t.fr.src=t.url;moraProg(true)}t.fr.style.display="";moraLive(t)}
+  else moraProg(false);
+  MORA.inp.value=t.url||"";moraTabsRender();moraNav();moraSave();
+}
+function moraSetUrl(t,u){
+  t.url=u;try{t.title=new URL(u).hostname.replace(/^www\./,"")}catch(_){t.title=""}
+  if(!t.fr)moraFrame(t);
+  t.fr.src=u;moraProg(true);moraActivate(t.id);
 }
 function moraGo(v){
   const u=moraNorm(v);if(!u){try{toast("الرابط مش صالح")}catch(_){}return}
-  MORA.hist=MORA.hist.slice(0,MORA.i+1);MORA.hist.push(u);MORA.i=MORA.hist.length-1;
-  if(MORA.hist.length>40){MORA.hist.shift();MORA.i--}
-  moraShow(u);
+  let t=moraCur();if(!t){t=moraAdd();if(!t)return}
+  t.hist=t.hist.slice(0,t.i+1);t.hist.push(u);t.i=t.hist.length-1;if(t.hist.length>40){t.hist.shift();t.i--}
+  moraSetUrl(t,u);
 }
 function moraStep(n){
-  const k=MORA.i+n;
-  if(k<-1||k>=MORA.hist.length)return;
-  MORA.i=k;moraShow(k>=0?MORA.hist[k]:"");
+  const t=moraCur();if(!t)return;const k=t.i+n;if(k<-1||k>=t.hist.length)return;t.i=k;
+  const u=k>=0?t.hist[k]:"";
+  if(u)moraSetUrl(t,u);else{t.url="";t.title="";if(t.fr){try{t.fr.src="about:blank"}catch(_){}}moraActivate(t.id)}
 }
-function moraReload(){const u=MORA.hist[MORA.i];if(u)moraShow(u)}
+function moraReload(){const t=moraCur();if(t&&t.url&&t.fr){moraProg(true);t.fr.src=t.url}}
+function moraNew(){const t=moraAdd();if(!t)return;moraActivate(t.id);setTimeout(()=>{try{MORA.inp.focus()}catch(_){}},80)}
+function moraCloseTab(id){
+  const k=MORA.tabs.findIndex(t=>t.id===id);if(k<0)return;const t=MORA.tabs[k];
+  if(t.pin){try{toast("النافذة مثبّتة — ألغِ التثبيت من ⋯ الأول")}catch(_){}return}
+  if(t.fr){try{t.fr.src="about:blank";t.fr.remove()}catch(_){}}
+  MORA.tabs.splice(k,1);MORA.live=MORA.live.filter(x=>x!==id);
+  if(!MORA.tabs.length){const n=moraAdd();MORA.act=n.id}
+  else if(MORA.act===id)MORA.act=MORA.tabs[Math.min(k,MORA.tabs.length-1)].id;
+  moraActivate(MORA.act);
+}
+function moraPin(){const t=moraCur();if(!t)return;t.pin=!t.pin;MORA.tabs.sort((a,b)=>(b.pin?1:0)-(a.pin?1:0));moraTabsRender();moraSave();try{toast(t.pin?"📌 اتثبّتت النافذة":"اتلغى التثبيت")}catch(_){}}
+function moraCloseOthers(){
+  MORA.tabs.filter(t=>!t.pin).forEach(t=>{if(t.fr){try{t.fr.src="about:blank";t.fr.remove()}catch(_){}}});
+  MORA.tabs=MORA.tabs.filter(t=>t.pin);MORA.live=MORA.live.filter(x=>MORA.tabs.some(t=>t.id===x));
+  if(!MORA.tabs.length){const n=moraAdd();MORA.act=n.id}else if(!MORA.tabs.some(t=>t.id===MORA.act))MORA.act=MORA.tabs[0].id;
+  moraActivate(MORA.act);
+}
+function moraMenu(on){
+  const m=MORA.el.querySelector(".mora-menu"),t=moraCur();
+  if(on===false||m.classList.contains("on")&&on===undefined){m.classList.remove("on");return}
+  m.innerHTML=`<button type="button" data-m="new">➕ نافذة جديدة</button><button type="button" data-m="pin">${t&&t.pin?"📍 إلغاء تثبيت النافذة":"📌 تثبيت النافذة"}</button><button type="button" data-m="home">🏠 الصفحة الرئيسية</button><button type="button" data-m="ext">↗ فتح في متصفح الجهاز</button><button type="button" data-m="closetab">🗑 إغلاق النافذة</button><button type="button" data-m="closeothers">🧹 إغلاق غير المثبّتة</button>`;
+  m.classList.add("on");
+}
 function moraApp(pkg){
   const web="https://play.google.com/store/apps/details?id="+pkg;
   try{
@@ -12006,19 +12063,270 @@ function moraApp(pkg){
     else window.open(web,"_blank","noopener");
   }catch(_){try{window.open(web,"_blank","noopener")}catch(__){}}
 }
-function moraOpen(){
+function moraBuild(){
+  if(MORA.el)return;
+  const d=document.createElement("div");d.id="moraBrowserModal";d.setAttribute("role","dialog");d.setAttribute("aria-label","متصفح Mora");
+  d.innerHTML=`<div class="mora-top"><div class="mora-bar" dir="ltr">
+<button type="button" class="mora-ib" data-m="back" aria-label="رجوع">←</button>
+<button type="button" class="mora-ib" data-m="fwd" aria-label="للأمام">→</button>
+<button type="button" class="mora-ib" data-m="rel" aria-label="تحديث">↻</button>
+<div class="mora-urlw"><i>🔍</i><input type="text" class="mora-url" inputmode="url" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="ابحث أو اكتب رابط"></div>
+<button type="button" class="mora-ib" data-m="menu" aria-label="القائمة">⋯</button>
+<button type="button" class="mora-x" data-m="close" aria-label="تصغير">⌄</button></div>
+<div class="mora-prog"></div><div class="mora-tabs" dir="rtl"></div></div>
+<div class="mora-hint" dir="rtl">لو الصفحة فاضية، الموقع بيمنع الفتح هنا — من ⋯ اختار «فتح في متصفح الجهاز»</div>
+<div class="mora-stage" dir="rtl">
+<div class="mora-home"><div class="mh-logo">🌐</div><h2>متصفح Mora</h2><p>ابحث أو اكتب رابط من فوق، أو اختار:</p>
+<button type="button" class="mh-tile games" data-u="https://poki.com/"><span>🎮</span><div><b>ألعاب</b><small>Poki — آلاف الألعاب المجانية</small></div></button>
+<button type="button" class="mh-tile music" data-m="songs"><span>🎵</span><div><b>أغاني</b><small>اسمع من مكتبة المنصة</small></div></button>
+<div class="mora-links">${MORA_SITES.map(x=>`<button type="button" class="mora-chip" data-u="${x[1]}">${x[0]}</button>`).join("")}</div></div>
+<div class="mus-panel" dir="rtl"></div></div>
+<div class="mus-mini" data-m="songs" dir="rtl"></div>
+<div class="mora-menu" dir="rtl"></div>`;
+  document.body.appendChild(d);
+  MORA.el=d;MORA.inp=d.querySelector(".mora-url");MORA.hint=d.querySelector(".mora-hint");MORA.stage=d.querySelector(".mora-stage");MORA.home=d.querySelector(".mora-home");MORA.prog=d.querySelector(".mora-prog");
+  d.addEventListener("click",e=>{
+    const mn=d.querySelector(".mora-menu");if(mn.classList.contains("on")&&!e.target.closest(".mora-menu")&&!e.target.closest('[data-m="menu"]'))mn.classList.remove("on");
+    const x=e.target.closest("[data-x]");if(x){e.stopPropagation();moraCloseTab(x.dataset.x);return}
+    const tb=e.target.closest("[data-t]");if(tb){moraActivate(tb.dataset.t);return}
+    const b=e.target.closest("[data-m],[data-u],[data-p],[data-s]");if(!b)return;
+    if(b.dataset.u){moraGo(b.dataset.u);return}
+    if(b.dataset.p){moraApp(b.dataset.p);return}
+    if(b.dataset.s!==undefined){musTap(b.dataset.s,e);return}
+    const m=b.dataset.m;mn.classList.remove("on");
+    if(m==="close")moraClose();else if(m==="back")moraStep(-1);else if(m==="fwd")moraStep(1);else if(m==="rel")moraReload();
+    else if(m==="menu"){moraMenu()}
+    else if(m==="new")moraNew();else if(m==="pin")moraPin();else if(m==="closetab"){const t=moraCur();if(t)moraCloseTab(t.id)}else if(m==="closeothers")moraCloseOthers();
+    else if(m==="home"){const t=moraCur();if(t){t.url="";t.title="";if(t.fr){try{t.fr.src="about:blank"}catch(_){}}moraActivate(t.id)}}
+    else if(m==="ext"){const t=moraCur();if(t&&t.url)window.open(t.url,"_blank","noopener");else try{toast("افتح موقع الأول")}catch(_){}}
+    else musClick(m,b,e);
+  });
+  d.addEventListener("input",musInput);d.addEventListener("change",musChange);
+  MORA.inp.addEventListener("keydown",e=>{if(e.key==="Enter"){moraGo(MORA.inp.value);MORA.inp.blur()}});
+  MORA.inp.addEventListener("focus",()=>{try{MORA.inp.select()}catch(_){}});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&MORA.el&&MORA.el.classList.contains("on"))moraClose()});
+  window.addEventListener("pagehide",moraSave);document.addEventListener("visibilitychange",()=>{if(document.hidden)moraSave()});
+  if(!moraLoad()){const t=moraAdd();MORA.act=t.id}
+  if(!MORA.tabs.some(t=>t.id===MORA.act))MORA.act=MORA.tabs[0].id;
+}
+function moraOpen(panel){
   moraBuild();MORA.el.classList.add("on");document.documentElement.classList.add("mora-lock");
-  if(MORA.i<0)moraShow("");
-  setTimeout(()=>{try{if(MORA.i<0)MORA.inp.focus()}catch(_){}},120);
+  moraActivate(MORA.act);
+  if(panel==="songs")musPanel(true);else musUi();
+  musUi();
 }
 function moraClose(){
   if(!MORA.el)return;
   MORA.el.classList.remove("on");document.documentElement.classList.remove("mora-lock");
-  try{MORA.fr.src="about:blank"}catch(_){}   /* يوقّف أي فيديو/صوت */
-  MORA.hist=[];MORA.i=-1;
+  moraSave();musUi();   /* النوافذ والصوت بيفضلوا شغّالين في الخلفية */
 }
-Object.assign(A,{openMora(){moraOpen()},closeMora(){moraClose()}});
+/* ================= مكتبة الأغاني ================= */
+const MUS={list:[],cur:-1,au:null,tok:0,loading:false,rep:0,shuf:false,panel:false,loaded:0,blobUrl:"",seeking:false,unlocked:false,pf:-1,posT:0};
+const musFmt=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
+function musAu(){
+  if(MUS.au)return MUS.au;
+  const a=document.createElement("audio");a.preload="auto";a.setAttribute("playsinline","");a.setAttribute("controlsList","nodownload");a.hidden=true;a.addEventListener("contextmenu",e=>e.preventDefault());
+  a.addEventListener("play",()=>{musUi()});a.addEventListener("pause",()=>{musUi()});
+  a.addEventListener("playing",()=>{try{navigator.mediaSession.playbackState="playing"}catch(_){}MUS.loading=false;musUi();if(MUS.pf!==MUS.cur){MUS.pf=MUS.cur;setTimeout(musPrefetch,4000)}});
+  a.addEventListener("pause",()=>{try{navigator.mediaSession.playbackState=a.ended?"none":"paused"}catch(_){}});
+  a.addEventListener("ended",()=>{if(MUS.rep===2){a.currentTime=0;a.play().catch(()=>{});return}musNext(true)});
+  a.addEventListener("error",()=>{if(a.getAttribute("src")&&a.getAttribute("src").indexOf("data:audio/wav")!==0){MUS.loading=false;const cs=MUS.list[MUS.cur];moraErr("network","تعذّر تشغيل أغنية: "+(cs&&cs.title||"?"),"mus.play");try{toast("مقدرتش أشغّل الأغنية")}catch(_){}musUi()}});
+  a.addEventListener("timeupdate",()=>{
+    const p=document.getElementById("musSeek");
+    if(p&&!MUS.seeking&&a.duration){p.value=Math.round(a.currentTime/a.duration*1000);const c=document.getElementById("musCur"),d=document.getElementById("musDur");if(c)c.textContent=musFmt(a.currentTime);if(d)d.textContent=musFmt(a.duration)}
+    const n=Date.now();if(n-MUS.posT>1000){MUS.posT=n;try{if(a.duration&&isFinite(a.duration))navigator.mediaSession.setPositionState({duration:a.duration,position:Math.min(a.currentTime,a.duration),playbackRate:1})}catch(_){}}
+  });
+  document.body.appendChild(a);MUS.au=a;return a;
+}
+function musUnlock(){
+  if(MUS.unlocked)return;MUS.unlocked=true;
+  try{const a=musAu();a.src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=";a.play().catch(()=>{})}catch(_){}
+}
+function musMeta(){
+  try{
+    const s=MUS.list[MUS.cur];if(!s||!("mediaSession"in navigator))return;const m=navigator.mediaSession,a=MUS.au;
+    m.metadata=new MediaMetadata({title:s.title||"أغنية",artist:s.artist||"منصة التفوق",album:"مكتبة التفوق",artwork:[{src:new URL("logo.webp",location.href).href,sizes:"512x512",type:"image/webp"}]});
+    [["play",()=>a.play()],["pause",()=>a.pause()],["previoustrack",()=>musPrev()],["nexttrack",()=>musNext(false)],["seekbackward",()=>{a.currentTime=Math.max(0,a.currentTime-10)}],["seekforward",()=>{a.currentTime=Math.min(a.duration||1e9,a.currentTime+10)}],["seekto",d=>{if(d&&typeof d.seekTime==="number")a.currentTime=d.seekTime}]].forEach(([k,f])=>{try{m.setActionHandler(k,f)}catch(_){}});
+  }catch(_){}
+}
+/* تخزين محلي للأغاني على الجهاز (أول تشغيل بيحمّل، وبعدها فورًا ومن غير قراءات) */
+function musIdb(){return new Promise((res,rej)=>{try{const r=indexedDB.open("mora-media",1);r.onupgradeneeded=()=>r.result.createObjectStore("songs");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}})}
+async function idbGet(id){try{const d=await musIdb();return await new Promise(res=>{const q=d.transaction("songs").objectStore("songs").get(id);q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)})}catch(_){return null}}
+async function idbPut(id,blob){
+  try{const d=await musIdb();await new Promise(res=>{const tx=d.transaction("songs","readwrite"),st=tx.objectStore("songs");st.put({blob,ts:Date.now()},id);
+    const all=[];st.openCursor().onsuccess=e=>{const c=e.target.result;if(c){all.push({k:c.key,ts:c.value&&c.value.ts||0});c.continue()}else{all.sort((a,b)=>b.ts-a.ts);all.slice(25).forEach(x=>st.delete(x.k))}};tx.oncomplete=()=>res();tx.onerror=()=>res()})}catch(_){}
+}
+async function idbDel(id){try{const d=await musIdb();d.transaction("songs","readwrite").objectStore("songs").delete(id)}catch(_){}}
+async function musFetchBlob(s){
+  const c=await idbGet(s.id);if(c&&c.blob)return c.blob;
+  const sn=await getDocs(query(collection(db,"songParts"),where("sid","==",s.id)));
+  const arr=sn.docs.map(d=>d.data()).sort((a,b)=>a.k-b.k);
+  if(!arr.length||(s.parts&&arr.length!==s.parts))throw new Error("الأغنية ناقصة");
+  const blob=new Blob(arr.map(x=>{const b=atob(x.d),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u}),{type:s.mime||"audio/mpeg"});
+  idbPut(s.id,blob);return blob;
+}
+async function musSrc(s){if(s.url)return s.url;const b=await musFetchBlob(s);return URL.createObjectURL(b)}
+async function musPrefetch(){
+  try{const n=MUS.list.length;if(n<2||MUS.shuf)return;const s=MUS.list[(MUS.cur+1)%n];if(!s||s.url)return;if(await idbGet(s.id))return;await musFetchBlob(s)}catch(_){}
+}
+async function musPlay(i){
+  const s=MUS.list[i];if(!s)return;
+  const tok=++MUS.tok;MUS.cur=i;MUS.loading=true;musUi();
+  try{
+    const u=await musSrc(s);if(tok!==MUS.tok)return;
+    const a=musAu();if(MUS.blobUrl&&MUS.blobUrl.indexOf("blob:")===0&&MUS.blobUrl!==u){try{URL.revokeObjectURL(MUS.blobUrl)}catch(_){}}
+    MUS.blobUrl=u;a.src=u;await a.play();musMeta();
+  }catch(e){if(tok!==MUS.tok)return;MUS.loading=false;moraErr("network","فشل تحميل أغنية: "+((e&&(e.code||e.message))||"?"),"mus.load");try{toast("مقدرتش أشغّل الأغنية"+(e&&e.message?" — "+e.message:""))}catch(_){}}
+  musUi();
+}
+function musNext(auto){
+  const n=MUS.list.length;if(!n)return;let i;
+  if(MUS.shuf&&n>1){do{i=Math.floor(Math.random()*n)}while(i===MUS.cur)}
+  else{i=MUS.cur+1;if(i>=n){if(MUS.rep===1||!auto)i=0;else{musUi();return}}}
+  musPlay(i);
+}
+function musPrev(){const a=MUS.au;if(a&&a.currentTime>4){a.currentTime=0;return}const n=MUS.list.length;if(!n)return;musPlay((MUS.cur-1+n)%n)}
+function musToggle(){const a=MUS.au;if(!a||MUS.cur<0)return;if(a.paused)a.play().catch(()=>{});else a.pause()}
+function musStop(){
+  const a=MUS.au;MUS.tok++;if(a){try{a.pause();a.removeAttribute("src");a.load()}catch(_){}}
+  MUS.cur=-1;MUS.loading=false;try{navigator.mediaSession.playbackState="none";navigator.mediaSession.metadata=null}catch(_){}musUi();
+}
+async function musLoad(force){
+  if(!force&&MUS.loaded&&Date.now()-MUS.loaded<180000)return;
+  try{
+    const sn=await getDocs(query(collection(db,"songs"),orderBy("ts","desc"),limit(100)));
+    const curId=MUS.list[MUS.cur]&&MUS.list[MUS.cur].id;
+    MUS.list=sn.docs.map(d=>({id:d.id,...d.data()}));MUS.loaded=Date.now();
+    MUS.cur=curId?MUS.list.findIndex(x=>x.id===curId):-1;
+  }catch(e){MUS.err=(e&&e.code)||"error"}
+  musPanelRender();musUi();
+}
+/* ---- واجهة ---- */
+const musMiniHtml=()=>{const s=MUS.list[MUS.cur],a=MUS.au,pl=a&&!a.paused&&!a.ended;return s?`<div class="d"></div><div class="t"><b>${esc(s.title||"أغنية")}</b><small>${MUS.loading?"⏳ بيحمّل…":esc(s.artist||"مكتبة التفوق")}</small></div><span class="mus-eq${pl?" go":""}"><i></i><i></i><i></i></span><button type="button" data-m="mtoggle" aria-label="تشغيل/إيقاف">${pl?"⏸":"▶"}</button><button type="button" data-m="mnext" aria-label="التالي">⏭</button><button type="button" data-m="mstop" aria-label="إيقاف">✕</button>`:""};
+function musUi(){
+  const s=MUS.list[MUS.cur],modalOn=!!(MORA.el&&MORA.el.classList.contains("on"));
+  let p=document.getElementById("musPill");
+  if(!s){if(p)p.remove()}
+  else{
+    if(!p){p=document.createElement("div");p.id="musPill";p.className="mus-mini";p.dataset.pill="1";p.addEventListener("click",e=>{const b=e.target.closest("[data-m]");if(b&&["mtoggle","mnext","mstop"].includes(b.dataset.m)){musClick(b.dataset.m,b,e);return}moraOpen("songs")});document.body.appendChild(p)}
+    p.style.display=modalOn?"none":"flex";p.innerHTML=musMiniHtml();
+  }
+  if(MORA.el){const m=MORA.el.querySelector(".mus-mini");if(m){m.style.display=(s&&!MUS.panel)?"flex":"none";if(s)m.innerHTML=musMiniHtml()}}
+  if(MUS.panel)musNowRender();
+}
+function musNowHtml(){
+  const s=MUS.list[MUS.cur],a=MUS.au,pl=a&&!a.paused&&!a.ended;
+  return `<div class="mus-disc${pl?" spin":""}"><i></i></div><div class="mus-ti">${esc(s?s.title:"اختار أغنية")}</div><div class="mus-ar">${s?(MUS.loading?"⏳ بيحمّل الأغنية…":esc(s.artist||"")):"اضغط على أي أغنية من القايمة"}</div>
+<input type="range" class="mus-seek" id="musSeek" min="0" max="1000" value="0" dir="ltr" aria-label="التقديم"><div class="mus-times" dir="ltr"><span id="musCur">0:00</span><span id="musDur">0:00</span></div>
+<div class="mus-ctl" dir="ltr"><button type="button" data-m="mshuf" class="${MUS.shuf?"on":""}" aria-label="عشوائي">🔀</button><button type="button" data-m="mprev" aria-label="السابق">⏮</button><button type="button" class="mus-pp" data-m="mtoggle" aria-label="تشغيل/إيقاف">${pl?"⏸":"▶"}</button><button type="button" data-m="mnext" aria-label="التالي">⏭</button><button type="button" data-m="mrep" class="${MUS.rep?"on":""}" aria-label="تكرار">${MUS.rep===2?"🔂":"🔁"}</button></div>`;
+}
+function musNowRender(){
+  const el=MORA.el&&MORA.el.querySelector(".mus-now");if(!el)return;
+  el.innerHTML=musNowHtml();
+  MORA.el.querySelectorAll(".mus-row").forEach(r=>r.classList.toggle("on",+r.dataset.s===MUS.cur));
+  const a=MUS.au,p=document.getElementById("musSeek");if(a&&p&&a.duration){p.value=Math.round(a.currentTime/a.duration*1000);document.getElementById("musCur").textContent=musFmt(a.currentTime);document.getElementById("musDur").textContent=musFmt(a.duration)}
+}
+function musPanelRender(){
+  const pn=MORA.el&&MORA.el.querySelector(".mus-panel");if(!pn||!MUS.panel)return;
+  const q=(pn.querySelector("#musQ")||{}).value||"";
+  pn.innerHTML=`<div class="mus-head"><button type="button" class="mus-hb" data-m="mback">‹ رجوع</button><h3>🎵 الأغاني</h3>${S.isAdmin?`<button type="button" class="mus-hb" data-m="madd">＋ رفع</button>`:""}</div>
+<div class="mus-scroll"><div class="mus-now"></div><input type="text" class="mus-q" id="musQ" placeholder="🔎 دوّر على أغنية" value="${esc(q)}" autocomplete="off">
+<div class="mus-list">${MUS.list.length?MUS.list.map((s,i)=>`<div class="mus-row${i===MUS.cur?" on":""}" data-s="${i}" data-q="${esc(((s.title||"")+" "+(s.artist||"")).toLowerCase())}"><div class="ic">🎵</div><div class="tx"><b>${esc(s.title||"أغنية")}</b><small>${esc(s.artist||"مكتبة التفوق")}${s.size?" · "+(s.size/1048576).toFixed(1)+" MB":""}</small></div>${S.isAdmin?`<button type="button" class="rm" data-m="mdel" data-i="${i}" aria-label="حذف">🗑</button>`:""}</div>`).join(""):`<div class="mus-empty">${MUS.err?"مقدرتش أحمّل الأغاني ("+esc(MUS.err)+")":MUS.loaded?"🎶 لسه مفيش أغاني"+(S.isAdmin?" — اضغط ＋ رفع":""):"⏳ بيحمّل المكتبة…"}</div>`}</div></div>`;
+  musNowRender();if(q)musFilter(q);
+}
+function musFilter(q){q=String(q||"").trim().toLowerCase();MORA.el.querySelectorAll(".mus-row").forEach(r=>{r.style.display=(!q||r.dataset.q.includes(q))?"":"none"})}
+function musPanel(on){
+  moraBuild();const pn=MORA.el.querySelector(".mus-panel");MUS.panel=!!on;pn.classList.toggle("on",!!on);
+  if(on){musPanelRender();musLoad(false)}
+  musUi();
+}
+function musTap(i,e){
+  if(e&&e.target.closest("[data-m]"))return;
+  musUnlock();i=+i;if(i===MUS.cur&&MUS.au&&MUS.au.src){musToggle();return}musPlay(i);
+}
+function musInput(e){
+  const t=e.target;
+  if(t.id==="musQ")musFilter(t.value);
+  else if(t.id==="musSeek"){MUS.seeking=true;const a=MUS.au;if(a&&a.duration){document.getElementById("musCur").textContent=musFmt(t.value/1000*a.duration)}}
+}
+function musChange(e){
+  const t=e.target;
+  if(t.id==="musSeek"){const a=MUS.au;if(a&&a.duration)a.currentTime=t.value/1000*a.duration;MUS.seeking=false}
+  else if(t.id==="musFile"){const f=t.files&&t.files[0];const ti=document.getElementById("musTitle");if(f&&ti&&!ti.value)ti.value=f.name.replace(/\.[^.]+$/,"")}
+}
+async function musClick(m,b,e){
+  if(m==="songs"){musPanel(true);return}
+  if(m==="mback"){musPanel(false);return}
+  if(m==="mtoggle"){e&&e.stopPropagation();musUnlock();musToggle();return}
+  if(m==="mnext"){e&&e.stopPropagation();musUnlock();musNext(false);return}
+  if(m==="mprev"){musUnlock();musPrev();return}
+  if(m==="mstop"){e&&e.stopPropagation();musStop();return}
+  if(m==="mshuf"){MUS.shuf=!MUS.shuf;musUi();return}
+  if(m==="mrep"){MUS.rep=(MUS.rep+1)%3;musUi();return}
+  if(!S.isAdmin)return;
+  if(m==="madd"){musSheet();return}
+  if(m==="mcancel"){const sh=MORA.el.querySelector(".mus-sheet");if(sh&&!MUS.upBusy)sh.remove();return}
+  if(m==="mup"){musDoUpload();return}
+  if(m==="mdel"){
+    const s=MUS.list[+b.dataset.i];if(!s)return;e&&e.stopPropagation();
+    const ok=await uiDialog({title:"حذف الأغنية",icon:"🗑",msg:"هتتحذف «"+(s.title||"")+"» نهائي لكل الطلاب.",ok:"احذف"});if(!ok)return;
+    try{
+      const sn=await getDocs(query(collection(db,"songParts"),where("sid","==",s.id)));
+      for(let i=0;i<sn.docs.length;i+=400){const w=writeBatch(db);sn.docs.slice(i,i+400).forEach(d=>w.delete(d.ref));await w.commit()}
+      await deleteDoc(doc(db,"songs",s.id));idbDel(s.id);
+      if(MUS.list[MUS.cur]&&MUS.list[MUS.cur].id===s.id)musStop();
+      await musLoad(true);try{toast("اتحذفت ✓",true)}catch(_){}
+    }catch(err){try{toast("فشل الحذف — "+((err&&err.code)||""))}catch(_){}}
+  }
+}
+function musSheet(){
+  const sh=document.createElement("div");sh.className="mus-sheet";
+  sh.innerHTML=`<div><h3 style="margin:0 0 8px">➕ إضافة أغنية</h3>
+<input type="file" id="musFile" accept="audio/*" style="width:100%;margin:4px 0;color:#fff">
+<input type="text" id="musTitle" placeholder="اسم الأغنية">
+<input type="text" id="musArtist" placeholder="الفنان (اختياري)">
+<input type="url" id="musUrl" placeholder="أو رابط مباشر لملف صوت https://…" dir="ltr">
+<div style="font-size:12px;color:rgba(255,255,255,.55)">الرفع من الجهاز حدّه 25 ميجا للأغنية. الطلاب بيسمعوا بس ومفيش زرار تنزيل.</div>
+<div class="bar"><i id="musBar"></i></div>
+<div class="row2"><button type="button" data-m="mcancel">إلغاء</button><button type="button" class="go" data-m="mup" id="musGo">رفع</button></div></div>`;
+  MORA.el.querySelector(".mus-panel").appendChild(sh);
+}
+async function musDoUpload(){
+  if(!S.isAdmin||MUS.upBusy)return;
+  const f=(document.getElementById("musFile").files||[])[0],url=document.getElementById("musUrl").value.trim(),
+    title=document.getElementById("musTitle").value.trim()||(f?f.name.replace(/\.[^.]+$/,""):""),artist=document.getElementById("musArtist").value.trim();
+  const bar=document.getElementById("musBar"),go=document.getElementById("musGo");
+  if(!f&&!/^https?:\/\//i.test(url)){try{toast("اختار ملف صوت أو حط رابط")}catch(_){}return}
+  if(!title){try{toast("اكتب اسم الأغنية")}catch(_){}return}
+  if(f&&f.size>25*1048576){try{toast("الملف أكبر من 25 ميجا — صغّره أو استخدم رابط")}catch(_){}return}
+  MUS.upBusy=true;go.disabled=true;go.textContent="⏳ بيرفع…";
+  const id="s"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);let wrote=0;
+  try{
+    if(f){
+      const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]||"");r.onerror=()=>rej(r.error);r.readAsDataURL(f)});
+      const CH=900000,parts=Math.ceil(b64.length/CH);
+      for(let i=0;i<parts;i+=5){
+        const w=writeBatch(db);for(let k=i;k<Math.min(parts,i+5);k++)w.set(doc(db,"songParts",id+"_"+k),{sid:id,k,d:b64.slice(k*CH,(k+1)*CH)});
+        await w.commit();wrote=Math.min(parts,i+5);bar.style.width=Math.round(wrote/parts*95)+"%";
+      }
+      await setDoc(doc(db,"songs",id),{title,artist,size:f.size,mime:f.type||"audio/mpeg",parts,ts:serverTimestamp(),by:S.user.uid});
+    }else{
+      await setDoc(doc(db,"songs",id),{title,artist,url,parts:0,ts:serverTimestamp(),by:S.user.uid});
+    }
+    bar.style.width="100%";try{toast("اترفعت الأغنية ✓",true)}catch(_){}
+    MUS.upBusy=false;const sh=MORA.el.querySelector(".mus-sheet");if(sh)sh.remove();await musLoad(true);
+  }catch(e){
+    MUS.upBusy=false;go.disabled=false;go.textContent="رفع";moraErr("upload","فشل رفع أغنية: "+((e&&(e.code||e.message))||"?"),"mus.upload");
+    try{for(let k=0;k<wrote;k++)await deleteDoc(doc(db,"songParts",id+"_"+k))}catch(_){}
+    try{toast("فشل الرفع — "+((e&&e.code)||(e&&e.message)||"")+((e&&e.code==="permission-denied")?" (ضيف قواعد songs)":""))}catch(_){}
+  }
+}
+Object.assign(A,{openMora(){moraOpen()},closeMora(){moraClose()},openSongs(){moraOpen("songs")}});
 window.openMoraBrowser=moraOpen;window.closeMoraBrowser=moraClose;
+/* v143 سرعة: لو الجهاز بيرسم أقل من 38 إطار/ثانية نفعّل وضع الأداء تلقائيًا مرة واحدة (والطالب يقدر يلغيه) */
+(function(){try{if(localStorage.getItem("lite_mode")!==null||localStorage.getItem("fps_probe"))return;
+setTimeout(()=>{if(document.hidden)return;let n=0;const t0=performance.now();const tick=ts=>{n++;if(ts-t0<3000)requestAnimationFrame(tick);else{const fps=n/((ts-t0)/1000);try{localStorage.setItem("fps_probe",String(Math.round(fps)))}catch(_){}if(fps<38){try{localStorage.setItem("lite_mode","1")}catch(_){}document.documentElement.classList.add("lite");try{toast("فعّلنا وضع الأداء تلقائيًا عشان المنصة تبقى أسرع")}catch(_){}}}};requestAnimationFrame(tick)},9000)}catch(_){}})();
+
 
 // gal-secure-context
 document.addEventListener("click",e=>{
@@ -12076,7 +12384,9 @@ document.addEventListener("change",e=>{
   }
   if(e.target.type==="radio"&&S.view==="exam"){updProg();saveExamDraft();if(navigator.vibrate)navigator.vibrate(8)}
   if(e.target.id==="qbChatImg"&&e.target.files&&e.target.files[0]&&S.qb&&S.qb.roomCode){
-    const files=[...e.target.files].slice(0,1500);e.target.value="";
+    /* لا نعالج آلاف الملفات دفعة واحدة حتى لا تتجمد الصفحة */
+    const files=[...e.target.files].slice(0,5);e.target.value="";
+    if(e.target.files&&e.target.files.length>5)toast("يمكن إرسال 5 صور كحد أقصى في المرة الواحدة");
     (async()=>{
       try{
       let n=0;for(const f of files){
@@ -12093,7 +12403,8 @@ document.addEventListener("change",e=>{
     })();
   }
   if(e.target.id==="grpImg"&&e.target.files&&e.target.files[0]&&S.groupId){
-    const files=[...e.target.files].slice(0,10);e.target.value="";
+    const files=[...e.target.files].slice(0,5);e.target.value="";
+    if(e.target.files&&e.target.files.length>5)toast("يمكن إرسال 5 صور كحد أقصى في المرة الواحدة");
     (async()=>{
       try{
       let n=0;for(const f of files){
@@ -12111,7 +12422,8 @@ document.addEventListener("change",e=>{
     })();
   }
   if(e.target.id==="dmImg"&&e.target.files&&e.target.files[0]&&S.chatThread){
-    const files=[...e.target.files].slice(0,10);e.target.value="";
+    const files=[...e.target.files].slice(0,5);e.target.value="";
+    if(e.target.files&&e.target.files.length>5)toast("يمكن إرسال 5 صور كحد أقصى في المرة الواحدة");
     (async()=>{
       try{
       let n=0;for(const f of files){
@@ -13181,7 +13493,8 @@ Object.assign(A,{
 // شاشة البداية: شعار التفوق + شريط أصفر 2.1 ثانية ثم المحتوى فورًا بدون تحميل إضافي
 (function(){
   var done=false;
-  var minMs=2100;
+  /* انتظار قصير فقط حتى لا تبدو المنصة معلّقة عند كل فتح */
+  var minMs=450;
   var t0=Date.now();
   function hideSplash(){
     if(done)return; done=true;
@@ -13191,7 +13504,7 @@ Object.assign(A,{
     setTimeout(function(){try{el.remove()}catch(e){}},500);
   }
   function appReady(){var a=document.getElementById("app");return !!(a&&a.firstElementChild&&(a.innerText||"").length>8)}
-  // انتظر 2.1 ثانية دائمًا (شعار + شريط أصفر)، وبعدها تظهر المحتويات فورًا
+  // أظهر التطبيق فور جاهزيته، مع مهلة قصيرة فقط لمنع الوميض
   var iv=setInterval(function(){
     var elapsed=Date.now()-t0;
     if(elapsed<minMs)return;
