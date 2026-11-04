@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v144">
+<meta name="sw-build" content="v145">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v144";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
+<script>window.APP_BUILD="v145";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -1708,6 +1708,11 @@ input[type=file]::file-selector-button{margin-inline-end:10px;border:0;border-ra
 /* ===== v114 — شريط تبويبات الأدمن: صف واحد قابل للسحب بدل 6 مجموعات ===== */
 .adm-nav{position:sticky;top:0;z-index:30;display:flex;gap:6px;overflow-x:auto;padding:8px 2px;margin:0 -2px 12px;background:color-mix(in srgb,var(--bg) 90%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);scrollbar-width:none}
 .adm-nav::-webkit-scrollbar{display:none}
+.adm-bar{display:flex;align-items:center;gap:10px;margin:0 0 8px}.adm-bar b{font-size:17px}
+.adm-menu{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:6px 0 18px}
+.adm-tile{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:start;padding:16px 14px;border-radius:22px;border:1px solid var(--line);background:linear-gradient(160deg,color-mix(in srgb,var(--pri) 14%,var(--card)),var(--card));color:inherit;cursor:pointer;font-family:inherit;min-height:122px;box-shadow:0 8px 22px rgba(0,0,0,.18);-webkit-tap-highlight-color:transparent}
+.adm-tile:active{transform:scale(.97)}.adm-tile .ic{font-size:30px}.adm-tile b{font-size:16px}.adm-tile small{font-size:12px;opacity:.65;line-height:1.4}
+.adm-tile .badge{position:absolute;top:10px;left:10px}
 .adm-g{display:contents}
 .adm-g>.mut{display:none}
 .adm-g .tabs{display:contents}
@@ -1828,7 +1833,7 @@ html.mora-lock #app{visibility:hidden}
 </div>
 <style>html.lite *,html.lite *::before,html.lite *::after{animation:none!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}html.lite canvas#bgfx,html.lite .bgfx{display:none!important}</style>
 <script>(function(){try{var c=navigator.connection||{},weak=(navigator.deviceMemory&&navigator.deviceMemory<=2)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2)||c.saveData;var m=localStorage.getItem("lite_mode");if(m==="1"||(m!=="0"&&weak))document.documentElement.classList.add("lite")}catch(e){}})()</script>
-<div id="app"></div><div id="verBadge">v144</div>
+<div id="app"></div><div id="verBadge">v145</div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
@@ -2855,7 +2860,7 @@ if(configured){
             render(true);return;
           }
           __authBoot=false;
-          Promise.resolve(startSession(u)).catch(e=>{
+          Promise.resolve(startSession(u)).then(()=>{try{musSubStart();if(S.isAdmin&&S.admMenu===undefined){S.admMenu=true;render(true)}}catch(_){}}).catch(e=>{
             console.error(e);
             // حتى لو التحميل فشل — متخرجوش من الحساب
             S.user=u;S.profile=S.profile||{name:"طالب",phone:""};
@@ -2864,7 +2869,7 @@ if(configured){
           });
         }else{
           // أول مرة null بعد الإقلاع = مش مسجّل؛ بعد كده null = خرج فعلًا
-          stopSubs();
+          stopSubs();try{musSubStop();musStop();S.admMenu=undefined}catch(_){}
           S.user=null;S.isAdmin=false;S.profile=null;S.myList=[];S.attempts={};
           S.view="auth";
           __authBoot=false;
@@ -3028,10 +3033,12 @@ function render(force){
   /* v144: نفس الشاشة → نحافظ على مكان السكرول (كان الأدمن يترمي لفوق مع كل ضغطة) */
   const __sy=(!__newView&&S.view!=="chatThread"&&S.view!=="groupThread")?window.scrollY:0;
   const __navL=((document.querySelector(".adm-nav")||{}).scrollLeft)||0;
+  const __inner=[];if(!__newView){try{app.querySelectorAll("div,section,ul,table,pre").forEach((el,i)=>{if(el.scrollTop>0&&el.scrollHeight>el.clientHeight+4)__inner.push([i,el.scrollTop])})}catch(_){}}
   app.innerHTML=h||`<div class="wrap"><div class="card empty"><div class="ei">⏳</div><b>لحظة…</b><div class="mut" style="margin:8px 0 12px">بنجهّز الصفحة</div><button class="btn" data-act="home">الرئيسية</button></div></div>`;
   if(!h&&!window.__emptyFix){window.__emptyFix=1;setTimeout(()=>{window.__emptyFix=0;try{if(!S.user){S.view="auth"}else if(!S.view||S.view==="loading"){S.view="home"}render(true)}catch(_){}},1200)}
   if(__aeId){const el=document.getElementById(__aeId);if(el){if(__aeVal!=null&&"value" in el)el.value=__aeVal;el.focus();if(__aePos!=null)try{el.setSelectionRange(__aePos,__aePos)}catch(_){}}}
   if(__sy>0){try{window.scrollTo(0,__sy)}catch(_){}}
+  if(__inner.length){try{const __all=app.querySelectorAll("div,section,ul,table,pre");__inner.forEach(([i,t])=>{const el=__all[i];if(el)el.scrollTop=t})}catch(_){}}
   if(__navL){try{const __nn=document.querySelector(".adm-nav");if(__nn)__nn.scrollLeft=__navL}catch(_){}}
 
   try{app.querySelectorAll("img:not([loading])").forEach(function(im){im.loading="lazy";im.decoding="async"})}catch(_){}
@@ -4257,11 +4264,8 @@ ${(p.badges||[]).length?`<div style="margin-top:10px;display:flex;flex-wrap:wrap
   <button class="btn block gold" data-act="openAI">🤖 么</button>
   <p class="mut" style="margin:8px 0 0;text-align:center">اسأل 么 عن الدروس والامتحانات والمنصة</p>
 </div>
-<div class="card">
-  <button class="btn block mora-btn" data-act="openMora">🌐 افتح متصفح Mora الداخلي</button>
-  <button class="btn block ghost" style="margin-top:8px" data-act="openSongs">🎵 أغاني المنصة</button>
-  <p class="mut" style="margin:8px 0 0;text-align:center">تصفّح وألعاب وأغاني — النوافذ والصوت بيفضلوا شغّالين</p>
-</div>
+<div class="card"><button class="btn block mora-btn" data-act="openMora">🌐 المتصفح</button><p class="mut" style="margin:8px 0 0;text-align:center">تصفّح المواقع والألعاب جوه المنصة</p></div>
+<div class="card"><button class="btn block gold" data-act="openSongs">🎵 الأغاني</button><p class="mut" style="margin:8px 0 0;text-align:center">مشغّل مستقل — بيكمّل في الخلفية</p></div>
 <div class="card"><b>الإشعارات</b>
 <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sm ghost" data-act="enablePush">🔔 تفعيل الإشعارات</button></div>
 <p class="mut" style="font-size:12px;margin:8px 0 0">${pushStateText()}</p></div>
@@ -5248,23 +5252,22 @@ function adminSongs(){
 function adminView(){
   const t=S.tab;
   const groups=[
-    {title:"تشغيل", items:[["modes","🎛 الأوضاع"],["dash","الرئيسية"],["live","مباشر"],["status","حالة المنصة"],["activity","نشاط"]]},
-    {title:"محتوى", items:[["exams","امتحانات"],["asm","تقييمات"],["books","كتب"]]},
-    {title:"مجتمع", items:[["fadaye7","فضايح 😂"],["tanagha","التناغه 💗"],["tgreq","طلبات التناغه"],["students","طلاب"]]},
-    {title:"رقابة", items:[["results","نتايج"],["alerts","تنبيهات"],["suspicious","احتيالي"]]},
-    {title:"تشخيص", items:[["review","🔍 مراجعة شاملة"],["errors","🔴 الأخطاء"],["health","📊 صحة المنصة"],["perf","⚡ الأداء"],["devtools","🧰 أدوات المطور"]]},
-    {title:"🎵 أغاني", items:[["songs","🎵 الأغاني"]]},
-    {title:"إدارة", items:[["managers","المسؤولين"],["backup","💾 النسخ الاحتياطي"],["security","🛡 الأمان"],["shopadm","🛒 المتجر"],["agent","🤖 الوكيل"],["settings","إعدادات"]]}
+    {id:"home",ic:"🏠",title:"الرئيسية والنشاط",d:"ملخص · مباشر · نشاط",items:[["dash","الرئيسية"],["live","مباشر"],["activity","نشاط"]]},
+    {id:"content",ic:"📚",title:"المحتوى",d:"امتحانات · تقييمات · كتب · فضايح",items:[["exams","امتحانات"],["asm","تقييمات"],["books","كتب"],["fadaye7","فضايح 😂"],["tanagha","التناغه 💗"]]},
+    {id:"students",ic:"👥",title:"الطلاب",d:"حسابات · نتايج · طلبات · تنبيهات",items:[["students","طلاب"],["results","نتايج"],["tgreq","طلبات التناغه"],["alerts","تنبيهات"],["suspicious","احتيالي"]]},
+    {id:"songs",ic:"🎵",title:"الأغاني",d:"رفع وحذف الأغاني",items:[["songs","الأغاني"]]},
+    {id:"control",ic:"🎛",title:"التحكم في المنصة",d:"أوضاع · قفل أقسام · إعدادات · متجر",items:[["modes","🎛 الأوضاع"],["status","حالة المنصة"],["security","🛡 الأمان وقفل الأقسام"],["settings","إعدادات"],["shopadm","🛒 المتجر"],["agent","🤖 الوكيل"]]},
+    {id:"tools",ic:"🔧",title:"الصيانة والتشخيص",d:"أخطاء · أداء · نسخ احتياطي · مسؤولين",items:[["errors","🔴 الأخطاء"],["review","🔍 مراجعة شاملة"],["health","📊 صحة المنصة"],["perf","⚡ الأداء"],["devtools","🧰 أدوات المطور"],["backup","💾 نسخ احتياطي"],["managers","المسؤولين"]]}
   ];
   const bd={tgreq:(Array.isArray(S.students)?S.students:[]).filter(x=>x.tanaghaAccess==="pending").length,results:S.unread,alerts:S.unreadAlerts,live:liveActive().length,suspicious:(S.suspicious||[]).filter(x=>!x.seen).length};
+  const curG=groups.find(g=>g.items.some(x=>x[0]===t))||groups[0];
+  const gBadge=g=>g.items.reduce((n,x)=>n+(+bd[x[0]]||0),0);
+  const menuHtml=`<div class="adm-menu">${groups.map(g=>`<button class="adm-tile" data-act="tab" data-id="${g.items[0][0]}"><span class="ic">${g.ic}</span><b>${g.title}</b><small>${g.d}</small>${gBadge(g)?`<span class="badge">${gBadge(g)}</span>`:""}</button>`).join("")}</div>`;
   return `<div class="wrap wide">${header(`${pill("أدمن","i")}<button class="btn ghost sm" data-act="logout">خروج</button>`)}
 ${modeCur().kind!=="platform"?`<div class="card" style="margin:0 0 12px;border-color:var(--gold);background:var(--ybg)"><div class="row"><span><b>🎛 الوضع الشغّال للطلاب: ${modeCur().ic} ${esc(modeCur().n)}</b><div class="mut" style="font-size:12px">وضع المنصة مقفول عليهم دلوقتي</div></span><button class="btn sm gold" data-act="setMode" data-id="platform">رجّع وضع المنصة</button></div></div>`:""}
 ${S.site.maintenance?`<div class="err" style="margin:0 0 12px">وضع الصيانة شغّال. الطلاب شايفين "المنصة تحت التعديل".</div>`:""}
-<nav class="adm-nav" aria-label="أقسام الأدمن">${groups.map(g=>`<div class="adm-g">
-  <div class="mut" style="font-size:11px;font-weight:700;margin-bottom:4px;opacity:.75">${g.title}</div>
-  <div class="tabs" style="margin-bottom:0">${g.items.map(([k,v])=>`<button class="tab ${t===k?"on":""}" data-act="tab" data-id="${k}">${v}${bd[k]?`<span class="badge">${bd[k]}</span>`:""}</button>`).join("")}</div>
-</div>`).join("")}</nav>
-${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,tanagha:adminTanagha,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,suspicious:adminSuspicious,managers:adminManagers,security:adminSecurity,tgreq:adminTgReq,settings:adminSettings,shopadm:adminShop,agent:adminAgent,modes:adminModes,songs:adminSongs,errors:adminErrors,health:adminHealth,perf:adminPerf,backup:adminBackup,devtools:adminDev,review:adminReview}[t]||adminDash)()}
+${S.admMenu===true?"":`<div class="adm-bar"><button class="btn sm gold" data-act="admMenu">☰ كل الأقسام</button><b>${(curG||{}).ic||""} ${(curG||{}).title||""}</b></div>${curG&&curG.items.length>1?`<nav class="adm-nav" aria-label="أقسام الأدمن"><div class="tabs" style="margin-bottom:0;display:flex;gap:6px">${curG.items.map(([k,v])=>`<button class="tab ${t===k?"on":""}" data-act="tab" data-id="${k}">${v}${bd[k]?`<span class="badge">${bd[k]}</span>`:""}</button>`).join("")}</div></nav>`:""}`}
+${S.admMenu===true?menuHtml:({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,tanagha:adminTanagha,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,suspicious:adminSuspicious,managers:adminManagers,security:adminSecurity,tgreq:adminTgReq,settings:adminSettings,shopadm:adminShop,agent:adminAgent,modes:adminModes,songs:adminSongs,errors:adminErrors,health:adminHealth,perf:adminPerf,backup:adminBackup,devtools:adminDev,review:adminReview}[t]||adminDash)()}
 ${t==="exams"?`<button class="fab" data-act="newExam" aria-label="امتحان جديد">+</button>`:""}
 
 </div>`}
@@ -8091,8 +8094,9 @@ const A={
     if(endAt&&Date.now()>=endAt){toast("وقت الامتحان كان خلص.");submitExam(true)}
   },
   submit(){submitExam(false)},
+  admMenu(){S.admMenu=true;render(true);try{window.scrollTo(0,0)}catch(_){}},
   tab(d){
-    S.tab=d.id;
+    S.tab=d.id;S.admMenu=false;
     if(d.id==="results")S.unread=0;
     if(d.id==="alerts")S.unreadAlerts=0;
     if(d.id==="suspicious"){S.unreadSuspicious=0;(S.suspicious||[]).forEach(x=>{if(!x.seen&&x.id)updateDoc(doc(db,"suspicious",x.id),{seen:true}).catch(()=>{})});}
@@ -11994,7 +11998,7 @@ function moraNorm(v){
   if(/^(javascript|data|vbscript|file|blob):/i.test(v))return "";
   if(/^https?:\/\//i.test(v))return v;
   if(v.includes(".")&&!/\s/.test(v))return "https://"+v;
-  return "https://www.google.com/search?q="+encodeURIComponent(v);
+  return "https://www.google.com/search?igu=1&q="+encodeURIComponent(v);
 }
 const moraCur=()=>MORA.tabs.find(t=>t.id===MORA.act)||null;
 const moraTitle=t=>t.title||(t.url?"…":"نافذة جديدة");
@@ -12035,7 +12039,6 @@ function moraNav(){
 }
 function moraActivate(id){
   const t=MORA.tabs.find(x=>x.id===id);if(!t)return;MORA.act=id;
-  if(t.url&&moraExt(t.url)){t.url="";t.title=""}
   MORA.tabs.forEach(x=>{if(x.fr&&x!==t)x.fr.style.display="none"});
   MORA.home.style.display=t.url?"none":"";
   if(t.url){if(!t.fr){moraFrame(t);t.fr.src=t.url;moraProg(true)}t.fr.style.display="";moraLive(t)}
@@ -12047,12 +12050,8 @@ function moraSetUrl(t,u){
   if(!t.fr)moraFrame(t);
   t.fr.src=u;moraProg(true);moraActivate(t.id);
 }
-/* v144: جوجل/بوكي/يوتيوب وغيرهم بيرفضوا الفتح جوه iframe ("رفض الاتصال") → بنفتحهم في متصفح الجهاز مباشرةً */
-const MORA_EXT=/(^|\.)(google\.[a-z.]+|poki\.com|youtube\.com|youtu\.be|facebook\.com|fb\.com|instagram\.com|tiktok\.com|x\.com|twitter\.com|web\.whatsapp\.com|web\.telegram\.org|netflix\.com|bing\.com|chatgpt\.com|claude\.ai)$/i;
-function moraExt(u){try{return MORA_EXT.test(new URL(u).hostname)}catch(_){return false}}
 function moraGo(v){
   const u=moraNorm(v);if(!u){try{toast("الرابط مش صالح")}catch(_){}return}
-  if(moraExt(u)){try{window.open(u,"_blank","noopener")}catch(_){}try{toast("اتفتح في متصفح الجهاز ↗")}catch(_){}try{MORA.inp.value=""}catch(_){}return}
   let t=moraCur();if(!t){t=moraAdd();if(!t)return}
   t.hist=t.hist.slice(0,t.i+1);t.hist.push(u);t.i=t.hist.length-1;if(t.hist.length>40){t.hist.shift();t.i--}
   moraSetUrl(t,u);
@@ -12097,22 +12096,41 @@ function moraBuild(){
   if(MORA.el)return;
   if(!document.getElementById("musCss2")){const st=document.createElement("style");st.id="musCss2";st.textContent=".mus-panel:not(.pl) .mus-now{display:none}.mus-panel.pl .mus-q,.mus-panel.pl .mus-list{display:none}.mus-panel.pl .mus-scroll{display:flex;flex-direction:column;justify-content:center;min-height:60%}.mus-panel.pl .mus-now{padding:26px 16px 22px}.mus-panel.pl .mus-disc{width:min(62vw,250px);height:min(62vw,250px)}.mus-panel.pl .mus-ti{font-size:22px}.mus-panel.pl .mus-npbar{display:none!important}.mus-npbar{flex:none;margin:6px 10px calc(10px + env(safe-area-inset-bottom,0px))}.mus-panel:not(.pl) .mus-scroll{padding-top:6px}";document.head.appendChild(st)}
   const d=document.createElement("div");d.id="moraBrowserModal";d.setAttribute("role","dialog");d.setAttribute("aria-label","متصفح Mora");
+  if(!document.getElementById("moraCss2")){const st=document.createElement("style");st.id="moraCss2";st.textContent=`
+#moraBrowserModal{background:#0b0d17}
+#moraBrowserModal .mora-top{background:rgba(18,21,36,.94);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.07)}
+#moraBrowserModal .mora-bar{gap:6px;padding:calc(8px + env(safe-area-inset-top,0px)) 10px 6px}
+#moraBrowserModal .mora-ib,#moraBrowserModal .mora-x{width:38px;height:38px;border-radius:12px;border:0;background:rgba(255,255,255,.08);color:#fff;font-size:17px}
+#moraBrowserModal .mora-ib:disabled{opacity:.3}
+#moraBrowserModal .mora-urlw{border-radius:14px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.08);height:40px}
+#moraBrowserModal .mora-tab{border-radius:12px;background:rgba(255,255,255,.06);border:1px solid transparent}
+#moraBrowserModal .mora-tab.on{background:linear-gradient(135deg,rgba(124,92,255,.5),rgba(20,184,166,.35));border-color:rgba(255,255,255,.2)}
+#moraBrowserModal .mora-hint{display:none;align-items:center;gap:10px;justify-content:space-between;margin:6px 10px;padding:8px 12px;border-radius:14px;background:rgba(255,176,32,.14);border:1px solid rgba(255,176,32,.35);font-size:12.5px;color:#ffd9a0}
+#moraBrowserModal .mora-hint.load{display:flex}
+#moraBrowserModal .mora-hint button{flex:none;border:0;border-radius:10px;padding:7px 10px;background:#ffb020;color:#201000;font-weight:700;font-size:12px;font-family:inherit;cursor:pointer}
+#moraBrowserModal .mora-home{background:radial-gradient(80% 40% at 50% 0%,rgba(124,92,255,.28),transparent 70%);padding:26px 16px 30px;overflow-y:auto}
+.mh-hero{text-align:center;margin-bottom:22px}.mh-hero .mh-logo{font-size:46px}.mh-hero h2{margin:6px 0 2px;font-size:24px}.mh-hero p{margin:0 0 16px;color:rgba(255,255,255,.6);font-size:13.5px}
+.mh-search{display:flex;gap:8px;max-width:520px;margin:0 auto}.mh-in{flex:1;min-width:0;height:50px;border-radius:16px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#fff;padding:0 16px;font-size:16px;font-family:inherit;outline:0}
+.mh-in:focus{border-color:#7c5cff;box-shadow:0 0 0 3px rgba(124,92,255,.3)}.mh-go{flex:none;width:50px;height:50px;border:0;border-radius:16px;background:linear-gradient(135deg,#7c5cff,#14b8a6);color:#fff;font-size:19px;cursor:pointer}
+.mh-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 8px;max-width:520px;margin:0 auto}
+.mh-site{display:flex;flex-direction:column;align-items:center;gap:7px;border:0;background:none;color:#fff;cursor:pointer;font-family:inherit;padding:4px 0}
+.mh-site i{font-style:normal;width:54px;height:54px;border-radius:17px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;background:linear-gradient(135deg,hsl(var(--h),75%,55%),hsl(calc(var(--h) + 45),80%,42%));box-shadow:0 8px 18px hsla(var(--h),70%,30%,.5)}
+.mh-site span{font-size:11.5px;color:rgba(255,255,255,.8);text-align:center;line-height:1.3}
+`;document.head.appendChild(st)}
   d.innerHTML=`<div class="mora-top"><div class="mora-bar" dir="ltr">
 <button type="button" class="mora-ib" data-m="back" aria-label="رجوع">←</button>
 <button type="button" class="mora-ib" data-m="fwd" aria-label="للأمام">→</button>
 <button type="button" class="mora-ib" data-m="rel" aria-label="تحديث">↻</button>
 <div class="mora-urlw"><i>🔍</i><input type="text" class="mora-url" inputmode="url" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="ابحث أو اكتب رابط"></div>
+<button type="button" class="mora-ib" data-m="ext" aria-label="فتح بره">↗</button>
 <button type="button" class="mora-ib" data-m="menu" aria-label="القائمة">⋯</button>
 <button type="button" class="mora-x" data-m="close" aria-label="تصغير">⌄</button></div>
 <div class="mora-prog"></div><div class="mora-tabs" dir="rtl"></div></div>
-<div class="mora-hint" dir="rtl">لو الصفحة فاضية، الموقع بيمنع الفتح هنا — من ⋯ اختار «فتح في متصفح الجهاز»</div>
+<div class="mora-hint" dir="rtl"><span>الصفحة بطيئة أو الموقع بيمنع الفتح هنا</span><button type="button" data-m="ext">↗ فتح في متصفح الجهاز</button></div>
 <div class="mora-stage" dir="rtl">
-<div class="mora-home"><div class="mh-logo">🌐</div><h2>متصفح Mora</h2><p>ابحث أو اكتب رابط من فوق، أو اختار:</p>
-<button type="button" class="mh-tile games" data-u="https://poki.com/"><span>🎮</span><div><b>ألعاب</b><small>Poki — آلاف الألعاب المجانية</small></div></button>
-<button type="button" class="mh-tile music" data-m="songs"><span>🎵</span><div><b>أغاني</b><small>اسمع من مكتبة المنصة</small></div></button>
-<div class="mora-links">${MORA_SITES.map(x=>`<button type="button" class="mora-chip" data-u="${x[1]}">${x[0]}</button>`).join("")}</div></div>
-<div class="mus-panel" dir="rtl"></div></div>
-<div class="mus-mini" data-m="songs" dir="rtl"></div>
+<div class="mora-home"><div class="mh-hero"><div class="mh-logo">🌐</div><h2>متصفح التفوق</h2><p>ابحث في جوجل أو اكتب رابط موقع</p>
+<div class="mh-search"><input type="text" class="mh-in" inputmode="url" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="ابحث أو اكتب رابط…"><button type="button" class="mh-go" data-m="hgo" aria-label="بحث">🔍</button></div></div>
+<div class="mh-grid"><button type="button" class="mh-site" data-u="https://poki.com/"><i style="--h:20">🎮</i><span>ألعاب Poki</span></button>${MORA_SITES.map((x,k)=>`<button type="button" class="mh-site" data-u="${x[1]}"><i style="--h:${(k*47+200)%360}">${esc(x[0]).slice(0,1)}</i><span>${x[0]}</span></button>`).join("")}</div></div></div>
 <div class="mora-menu" dir="rtl"></div>`;
   document.body.appendChild(d);
   MORA.el=d;MORA.inp=d.querySelector(".mora-url");MORA.hint=d.querySelector(".mora-hint");MORA.stage=d.querySelector(".mora-stage");MORA.home=d.querySelector(".mora-home");MORA.prog=d.querySelector(".mora-prog");
@@ -12123,16 +12141,15 @@ function moraBuild(){
     const b=e.target.closest("[data-m],[data-u],[data-p],[data-s]");if(!b)return;
     if(b.dataset.u){moraGo(b.dataset.u);return}
     if(b.dataset.p){moraApp(b.dataset.p);return}
-    if(b.dataset.s!==undefined){musTap(b.dataset.s,e);return}
     const m=b.dataset.m;mn.classList.remove("on");
     if(m==="close")moraClose();else if(m==="back")moraStep(-1);else if(m==="fwd")moraStep(1);else if(m==="rel")moraReload();
     else if(m==="menu"){moraMenu()}
     else if(m==="new")moraNew();else if(m==="pin")moraPin();else if(m==="closetab"){const t=moraCur();if(t)moraCloseTab(t.id)}else if(m==="closeothers")moraCloseOthers();
     else if(m==="home"){const t=moraCur();if(t){t.url="";t.title="";if(t.fr){try{t.fr.src="about:blank"}catch(_){}}moraActivate(t.id)}}
     else if(m==="ext"){const t=moraCur();if(t&&t.url)window.open(t.url,"_blank","noopener");else try{toast("افتح موقع الأول")}catch(_){}}
-    else musClick(m,b,e);
+    else if(m==="hgo"){const i=d.querySelector(".mh-in");if(i&&i.value.trim()){moraGo(i.value);i.value=""}}
   });
-  d.addEventListener("input",musInput);d.addEventListener("change",musChange);
+  d.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.classList&&e.target.classList.contains("mh-in")&&e.target.value.trim()){moraGo(e.target.value);e.target.value="";e.target.blur()}});
   MORA.inp.addEventListener("keydown",e=>{if(e.key==="Enter"){moraGo(MORA.inp.value);MORA.inp.blur()}});
   MORA.inp.addEventListener("focus",()=>{try{MORA.inp.select()}catch(_){}});
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&MORA.el&&MORA.el.classList.contains("on"))moraClose()});
@@ -12143,13 +12160,11 @@ function moraBuild(){
 function moraOpen(panel){
   moraBuild();MORA.el.classList.add("on");document.documentElement.classList.add("mora-lock");
   moraActivate(MORA.act);
-  if(panel==="songs")musPanel(true);else musUi();
-  musUi();
 }
 function moraClose(){
   if(!MORA.el)return;
   MORA.el.classList.remove("on");document.documentElement.classList.remove("mora-lock");
-  moraSave();musUi();   /* النوافذ والصوت بيفضلوا شغّالين في الخلفية */
+  moraSave();   /* النوافذ بتفضل شغّالة في الخلفية */
 }
 /* ================= مكتبة الأغاني ================= */
 const MUS={list:[],cur:-1,au:null,tok:0,loading:false,rep:0,shuf:false,panel:false,loaded:0,blobUrl:"",seeking:false,unlocked:false,pf:-1,posT:0};
@@ -12157,7 +12172,9 @@ const musFmt=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+":"+Stri
 function musAu(){
   if(MUS.au)return MUS.au;
   const a=document.createElement("audio");a.preload="auto";a.setAttribute("playsinline","");a.setAttribute("controlsList","nodownload");a.hidden=true;a.addEventListener("contextmenu",e=>e.preventDefault());
-  a.addEventListener("play",()=>{musUi()});a.addEventListener("pause",()=>{musUi()});
+  a.addEventListener("play",()=>{musUi()});a.addEventListener("pause",()=>{musUi();
+    /* v145: لو الأغنية اتوقفت من غير ما المستخدم يوقفها (النظام/تبويب/مكالمة) نكمّلها تلقائي */
+    setTimeout(()=>{try{if(MUS.cur>=0&&a.paused&&!a.ended&&!MUS.loading&&Date.now()-(MUS.up||0)>1800&&(MUS.rs||0)<5&&a.getAttribute("src")&&a.getAttribute("src").indexOf("data:audio")!==0){MUS.rs=(MUS.rs||0)+1;a.play().catch(()=>{})}}catch(_){}},400)});
   a.addEventListener("playing",()=>{try{navigator.mediaSession.playbackState="playing"}catch(_){}MUS.loading=false;musUi();if(MUS.pf!==MUS.cur){MUS.pf=MUS.cur;setTimeout(musPrefetch,4000)}});
   a.addEventListener("pause",()=>{try{navigator.mediaSession.playbackState=a.ended?"none":"paused"}catch(_){}});
   a.addEventListener("ended",()=>{if(MUS.rep===2){a.currentTime=0;a.play().catch(()=>{});return}musNext(true)});
@@ -12177,7 +12194,7 @@ function musMeta(){
   try{
     const s=MUS.list[MUS.cur];if(!s||!("mediaSession"in navigator))return;const m=navigator.mediaSession,a=MUS.au;
     m.metadata=new MediaMetadata({title:s.title||"أغنية",artist:s.artist||"منصة التفوق",album:"مكتبة التفوق",artwork:[{src:new URL("logo.webp",location.href).href,sizes:"512x512",type:"image/webp"}]});
-    [["play",()=>a.play()],["pause",()=>a.pause()],["previoustrack",()=>musPrev()],["nexttrack",()=>musNext(false)],["seekbackward",()=>{a.currentTime=Math.max(0,a.currentTime-10)}],["seekforward",()=>{a.currentTime=Math.min(a.duration||1e9,a.currentTime+10)}],["seekto",d=>{if(d&&typeof d.seekTime==="number")a.currentTime=d.seekTime}]].forEach(([k,f])=>{try{m.setActionHandler(k,f)}catch(_){}});
+    [["play",()=>a.play()],["pause",()=>{MUS.up=Date.now();a.pause()}],["previoustrack",()=>musPrev()],["nexttrack",()=>musNext(false)],["seekbackward",()=>{a.currentTime=Math.max(0,a.currentTime-10)}],["seekforward",()=>{a.currentTime=Math.min(a.duration||1e9,a.currentTime+10)}],["seekto",d=>{if(d&&typeof d.seekTime==="number")a.currentTime=d.seekTime}]].forEach(([k,f])=>{try{m.setActionHandler(k,f)}catch(_){}});
   }catch(_){}
 }
 /* تخزين محلي للأغاني على الجهاز (أول تشغيل بيحمّل، وبعدها فورًا ومن غير قراءات) */
@@ -12202,7 +12219,7 @@ async function musPrefetch(){
 }
 async function musPlay(i){
   const s=MUS.list[i];if(!s)return;
-  const tok=++MUS.tok;MUS.cur=i;MUS.loading=true;musUi();
+  const tok=++MUS.tok;MUS.cur=i;MUS.rs=0;MUS.loading=true;musUi();
   try{
     const u=await musSrc(s);if(tok!==MUS.tok)return;
     const a=musAu();if(MUS.blobUrl&&MUS.blobUrl.indexOf("blob:")===0&&MUS.blobUrl!==u){try{URL.revokeObjectURL(MUS.blobUrl)}catch(_){}}
@@ -12217,9 +12234,9 @@ function musNext(auto){
   musPlay(i);
 }
 function musPrev(){const a=MUS.au;if(a&&a.currentTime>4){a.currentTime=0;return}const n=MUS.list.length;if(!n)return;musPlay((MUS.cur-1+n)%n)}
-function musToggle(){const a=MUS.au;if(!a||MUS.cur<0)return;if(a.paused)a.play().catch(()=>{});else a.pause()}
+function musToggle(){const a=MUS.au;if(!a||MUS.cur<0)return;if(a.paused)a.play().catch(()=>{});else{MUS.up=Date.now();a.pause()}}
 function musStop(){
-  const a=MUS.au;MUS.tok++;if(a){try{a.pause();a.removeAttribute("src");a.load()}catch(_){}}
+  const a=MUS.au;MUS.tok++;MUS.up=Date.now();if(a){try{a.pause();a.removeAttribute("src");a.load()}catch(_){}}
   MUS.cur=-1;MUS.loading=false;try{navigator.mediaSession.playbackState="none";navigator.mediaSession.metadata=null}catch(_){}musUi();
 }
 async function musLoad(force){
@@ -12232,134 +12249,236 @@ async function musLoad(force){
   }catch(e){MUS.err=(e&&e.code)||"error"}
   musPanelRender();musUi();
 }
-/* ---- واجهة ---- */
-const musMiniHtml=()=>{const s=MUS.list[MUS.cur],a=MUS.au,pl=a&&!a.paused&&!a.ended;return s?`<div class="d"></div><div class="t"><b>${esc(s.title||"أغنية")}</b><small>${MUS.loading?"⏳ بيحمّل…":esc(s.artist||"مكتبة التفوق")}</small></div><span class="mus-eq${pl?" go":""}"><i></i><i></i><i></i></span><button type="button" data-m="mtoggle" aria-label="تشغيل/إيقاف">${pl?"⏸":"▶"}</button><button type="button" data-m="mnext" aria-label="التالي">⏭</button><button type="button" data-m="mstop" aria-label="إيقاف">✕</button>`:""};
-function musUi(){
-  const s=MUS.list[MUS.cur],modalOn=!!(MORA.el&&MORA.el.classList.contains("on"));
-  let p=document.getElementById("musPill");
-  if(!s){if(p)p.remove()}
-  else{
-    if(!p){p=document.createElement("div");p.id="musPill";p.className="mus-mini";p.dataset.pill="1";p.addEventListener("click",e=>{const b=e.target.closest("[data-m]");if(b&&["mtoggle","mnext","mstop"].includes(b.dataset.m)){musClick(b.dataset.m,b,e);return}moraOpen("songs")});document.body.appendChild(p)}
-    p.style.display=modalOn?"none":"flex";p.innerHTML=musMiniHtml();
+/* ---- v145: تطبيق الأغاني — منفصل تماماً عن المتصفح (مشغّل + قايمة + شريط عايم) ---- */
+const SG_CSS=`
+html.sg-lock,html.sg-lock body{overflow:hidden!important}
+#sgApp{display:none;position:fixed;inset:0;z-index:9990;color:#fff;font-family:inherit;background:#0a0b14;overflow:hidden}
+#sgApp.on{display:block}
+#sgApp .sg-bg{position:absolute;inset:0;background:radial-gradient(90% 55% at 50% -5%,hsla(var(--bh,262),85%,55%,.45),transparent 70%),radial-gradient(70% 45% at 100% 85%,hsla(calc(var(--bh,262) + 70),80%,50%,.28),transparent 70%),#0a0b14;transition:background .6s}
+#sgApp .sg-lib,#sgApp .sg-pl{position:absolute;inset:0;display:flex;flex-direction:column;transition:transform .32s cubic-bezier(.2,.8,.2,1),opacity .25s}
+#sgApp .sg-pl{transform:translateY(100%);opacity:0;pointer-events:none;background:linear-gradient(180deg,rgba(10,11,20,.2),rgba(10,11,20,.85))}
+#sgApp.pl .sg-pl{transform:none;opacity:1;pointer-events:auto}
+#sgApp.pl .sg-lib{transform:scale(.96);opacity:0;pointer-events:none}
+.sg-top{display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top,0px)) 14px 8px}
+.sg-h{flex:1;text-align:center;line-height:1.2}.sg-h b{font-size:19px;display:block}.sg-h small{font-size:12px;color:rgba(255,255,255,.6)}
+.sg-ib{flex:none;width:42px;height:42px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+.sg-ib.gold{background:linear-gradient(135deg,#ffb020,#ff6a3d);border:0;color:#201000;font-weight:800}
+.sg-ib:active,.sg-ctl button:active,.sg-pill button:active{transform:scale(.92)}
+.sg-sw{display:flex;align-items:center;gap:8px;margin:4px 14px 10px;padding:0 14px;height:46px;border-radius:16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1)}
+.sg-sw input{flex:1;min-width:0;background:none;border:0;outline:0;color:#fff;font-size:15px;font-family:inherit}
+.sg-sw input::placeholder{color:rgba(255,255,255,.45)}
+.sg-scroll{flex:1;overflow-y:auto;padding:2px 14px 12px;-webkit-overflow-scrolling:touch}
+.sg-row{display:flex;align-items:center;gap:12px;padding:10px;margin-bottom:8px;border-radius:18px;background:rgba(255,255,255,.055);border:1px solid transparent;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sg-row.on{background:hsla(var(--h,262),80%,60%,.2);border-color:hsla(var(--h,262),85%,65%,.55)}
+.sg-cv{flex:none;width:52px;height:52px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:22px;background:linear-gradient(135deg,hsl(var(--h,262),80%,58%),hsl(calc(var(--h,262) + 50),85%,48%));box-shadow:0 6px 16px hsla(var(--h,262),80%,40%,.45)}
+.sg-row .tx{flex:1;min-width:0;text-align:start}.sg-row b{display:block;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sg-row small{display:block;font-size:12px;color:rgba(255,255,255,.55);margin-top:2px}
+.sg-row .rm{flex:none;border:0;background:rgba(255,80,80,.18);color:#fff;border-radius:11px;width:34px;height:34px;cursor:pointer}
+.sg-eq{display:inline-flex;gap:3px;align-items:flex-end;height:20px}.sg-eq i{width:4px;height:6px;border-radius:2px;background:#fff;opacity:.95}
+.sg-eq.go i{animation:sgEq .9s ease-in-out infinite}.sg-eq.go i:nth-child(2){animation-delay:.2s}.sg-eq.go i:nth-child(3){animation-delay:.4s}
+@keyframes sgEq{0%,100%{height:5px}50%{height:20px}}
+.sg-empty{text-align:center;padding:50px 20px;color:rgba(255,255,255,.6);font-size:15px}
+.sg-bar,.sg-pill{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:22px;background:rgba(30,32,52,.92);-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);border:1px solid rgba(255,255,255,.12);box-shadow:0 10px 30px rgba(0,0,0,.45);color:#fff;cursor:pointer}
+.sg-bar{margin:6px 12px calc(12px + env(safe-area-inset-bottom,0px))}
+.sg-pill{position:fixed;z-index:9980;left:10px;right:10px;bottom:calc(76px + env(safe-area-inset-bottom,0px));max-width:520px;margin:0 auto}
+.sg-bar .d,.sg-pill .d{flex:none;width:40px;height:40px;border-radius:50%;background:conic-gradient(hsl(var(--h,262),85%,60%),hsl(calc(var(--h,262) + 120),85%,55%),hsl(var(--h,262),85%,60%))}
+.sg-bar .t,.sg-pill .t{flex:1;min-width:0;text-align:start}.sg-bar .t b,.sg-pill .t b{display:block;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sg-bar .t small,.sg-pill .t small{font-size:11.5px;color:rgba(255,255,255,.6)}
+.sg-bar button,.sg-pill button{flex:none;border:0;background:rgba(255,255,255,.13);color:#fff;width:38px;height:38px;border-radius:50%;font-size:15px;cursor:pointer}
+.sg-now{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 26px calc(26px + env(safe-area-inset-bottom,0px));text-align:center;overflow-y:auto}
+.sg-art{position:relative;width:min(68vw,290px);aspect-ratio:1;margin:0 auto 26px;border-radius:34px;background:linear-gradient(135deg,hsl(var(--h,262),82%,58%),hsl(calc(var(--h,262) + 60),85%,45%));box-shadow:0 26px 60px hsla(var(--h,262),80%,35%,.6),inset 0 0 0 1px rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;transition:transform .5s}
+.sg-art .ring{position:absolute;inset:14%;border-radius:50%;border:2px solid rgba(255,255,255,.28);box-shadow:0 0 0 14px rgba(255,255,255,.06),0 0 0 30px rgba(255,255,255,.04)}
+.sg-art .core{font-size:64px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.4))}
+.sg-art.spin{animation:sgPulse 3.2s ease-in-out infinite}
+@keyframes sgPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+.sg-ti{font-size:23px;font-weight:800;line-height:1.35;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.sg-ar{font-size:14px;color:rgba(255,255,255,.65);margin:6px 0 18px;min-height:20px}
+.sg-seek{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:99px;outline:0;background:rgba(255,255,255,.2);margin:6px 0}
+.sg-seek::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+.sg-seek::-moz-range-thumb{width:18px;height:18px;border:0;border-radius:50%;background:#fff}
+.sg-tm{display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,.6);margin-bottom:14px}
+.sg-ctl{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.sg-ctl button{border:0;background:none;color:#fff;font-size:24px;width:52px;height:52px;border-radius:50%;cursor:pointer;opacity:.85}
+.sg-ctl button.on{color:#ffb020;opacity:1;background:rgba(255,176,32,.14)}
+.sg-ctl .sg-pp{width:74px;height:74px;font-size:30px;opacity:1;background:linear-gradient(135deg,hsl(var(--h,262),85%,62%),hsl(calc(var(--h,262) + 60),90%,52%));box-shadow:0 12px 30px hsla(var(--h,262),80%,40%,.6)}
+.sg-stop{margin:22px auto 0;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:rgba(255,255,255,.75);border-radius:14px;padding:10px 18px;font-size:13px;cursor:pointer;font-family:inherit}
+.sg-sheet{position:absolute;inset:0;z-index:5;background:rgba(0,0,0,.6);display:flex;align-items:flex-end}
+.sg-sheet>div{width:100%;max-height:92%;overflow:auto;background:#14162a;border-radius:26px 26px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));border-top:1px solid rgba(255,255,255,.12)}
+.sg-sheet h3{margin:0 0 12px}.sg-sheet input[type=text],.sg-sheet input[type=url]{width:100%;margin:5px 0;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;font-family:inherit;font-size:15px;box-sizing:border-box}
+.sg-sheet input[type=file]{width:100%;margin:6px 0;color:#fff}
+.sg-pbar{height:8px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden;margin:12px 0 6px}.sg-pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffb020,#ff6a3d);transition:width .2s}
+.sg-st{font-size:12px;color:rgba(255,255,255,.6);min-height:16px}
+.sg-sheet .r2{display:flex;gap:10px;margin-top:12px}.sg-sheet .r2 button{flex:1;padding:13px;border-radius:14px;border:0;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;background:rgba(255,255,255,.1);color:#fff}.sg-sheet .r2 .go{background:linear-gradient(135deg,#ffb020,#ff6a3d);color:#201000}
+`;
+const SG={el:null,pill:null,open:false,pv:false,q:""};
+const sgHue=t=>{let h=0;for(const c of String(t||"x")){h=(h*31+c.charCodeAt(0))%360}return h};
+const sgPlaying=()=>{const a=MUS.au;return !!(a&&!a.paused&&!a.ended)};
+const sgMini=()=>{const s=MUS.list[MUS.cur];if(!s)return"";const pl=sgPlaying();return `<div class="d"></div><div class="t"><b>${esc(s.title||"أغنية")}</b><small>${MUS.loading?"⏳ بيحمّل…":esc(s.artist||"مكتبة التفوق")}</small></div><span class="sg-eq${pl?" go":""}"><i></i><i></i><i></i></span><button type="button" data-g="toggle" aria-label="تشغيل/إيقاف">${pl?"⏸":"▶"}</button><button type="button" data-g="next" aria-label="التالي">⏭</button><button type="button" data-g="stop" aria-label="إيقاف">✕</button>`};
+function sgBuild(){
+  if(SG.el)return;
+  if(!document.getElementById("sgCss")){const st=document.createElement("style");st.id="sgCss";st.textContent=SG_CSS;document.head.appendChild(st)}
+  const d=document.createElement("div");d.id="sgApp";d.dir="rtl";d.setAttribute("role","dialog");d.setAttribute("aria-label","الأغاني");
+  d.innerHTML=`<div class="sg-bg"></div>
+<div class="sg-lib"><div class="sg-top"><button type="button" class="sg-ib" data-g="close" aria-label="إغلاق">⌄</button><div class="sg-h"><b>🎵 الأغاني</b><small id="sgCount"></small></div>${S.isAdmin?'<button type="button" class="sg-ib gold" data-g="add" aria-label="رفع أغنية">＋</button>':'<span class="sg-ib" style="visibility:hidden"></span>'}</div>
+<div class="sg-sw"><i>🔎</i><input type="text" id="sgQ" placeholder="ابحث عن أغنية أو فنان" autocomplete="off"></div>
+<div class="sg-scroll"><div class="sg-list"></div></div><div class="sg-bar" data-g="open" style="display:none"></div></div>
+<div class="sg-pl"><div class="sg-top"><button type="button" class="sg-ib" data-g="list" aria-label="القائمة">‹</button><div class="sg-h"><small>بتشتغل الآن</small></div><button type="button" class="sg-ib" data-g="close" aria-label="تصغير">⌄</button></div><div class="sg-now"></div></div>`;
+  document.body.appendChild(d);SG.el=d;
+  d.addEventListener("click",sgClick);d.addEventListener("input",sgInput);d.addEventListener("change",sgChange);
+}
+function sgOpen(pv){
+  sgBuild();SG.open=true;SG.pv=!!pv&&MUS.cur>=0;
+  SG.el.classList.add("on");document.documentElement.classList.add("sg-lock");
+  musSubStart();sgList();sgNow();musLoad(false);
+}
+function sgClose(){if(!SG.el)return;SG.open=false;SG.el.classList.remove("on","pl");document.documentElement.classList.remove("sg-lock");sgNow()}
+function sgList(){
+  if(!SG.el)return;
+  const q=String(SG.q||"").trim().toLowerCase(),list=SG.el.querySelector(".sg-list");if(!list)return;
+  const rows=MUS.list.map((s,i)=>({s,i})).filter(x=>!q||((x.s.title||"")+" "+(x.s.artist||"")).toLowerCase().includes(q));
+  list.innerHTML=rows.length?rows.map(({s,i})=>{const on=i===MUS.cur;return `<div class="sg-row${on?" on":""}" data-s="${i}" style="--h:${sgHue(s.title)}"><div class="sg-cv">${on&&sgPlaying()?'<span class="sg-eq go"><i></i><i></i><i></i></span>':"♪"}</div><div class="tx"><b>${esc(s.title||"أغنية")}</b><small>${esc(s.artist||"مكتبة التفوق")}${s.size?" · "+(s.size/1048576).toFixed(1)+" MB":""}</small></div>${S.isAdmin?`<button type="button" class="rm" data-g="del" data-i="${i}" aria-label="حذف">🗑</button>`:""}</div>`}).join(""):`<div class="sg-empty">${MUS.err?"مقدرتش أحمّل الأغاني ("+esc(MUS.err)+")":MUS.loaded?(q?"مفيش نتيجة للبحث":"🎶 لسه مفيش أغاني"+(S.isAdmin?" — اضغط ＋ لرفع أول أغنية":"")):"⏳ بيحمّل المكتبة…"}</div>`;
+  const c=SG.el.querySelector("#sgCount");if(c)c.textContent=MUS.list.length?MUS.list.length+" أغنية":"";
+}
+function sgNow(){
+  const s=MUS.list[MUS.cur],pl=sgPlaying(),h=s?sgHue(s.title):262;
+  if(SG.el){
+    SG.el.classList.toggle("pl",!!(SG.pv&&s));SG.el.style.setProperty("--bh",h);
+    const n=SG.el.querySelector(".sg-now");
+    if(n){
+      n.style.setProperty("--h",h);
+      n.innerHTML=s?`<div class="sg-art${pl?" spin":""}"><div class="ring"></div><div class="core">♪</div></div><div class="sg-ti">${esc(s.title||"أغنية")}</div><div class="sg-ar">${MUS.loading?"⏳ بيحمّل الأغنية…":esc(s.artist||"مكتبة التفوق")}</div>
+<input type="range" class="sg-seek" id="musSeek" min="0" max="1000" value="0" dir="ltr" aria-label="التقديم"><div class="sg-tm" dir="ltr"><span id="musCur">0:00</span><span id="musDur">0:00</span></div>
+<div class="sg-ctl" dir="ltr"><button type="button" data-g="shuf" class="${MUS.shuf?"on":""}" aria-label="عشوائي">🔀</button><button type="button" data-g="prev" aria-label="السابق">⏮</button><button type="button" class="sg-pp" data-g="toggle" aria-label="تشغيل/إيقاف">${pl?"⏸":"▶"}</button><button type="button" data-g="next" aria-label="التالي">⏭</button><button type="button" data-g="rep" class="${MUS.rep?"on":""}" aria-label="تكرار">${MUS.rep===2?"🔂":"🔁"}</button></div>
+<button type="button" class="sg-stop" data-g="stop">⏹ إيقاف الأغنية</button>`:`<div class="sg-empty">اختار أغنية من القائمة</div>`;
+      const a=MUS.au,p=document.getElementById("musSeek");
+      if(a&&p&&a.duration&&isFinite(a.duration)){p.value=Math.round(a.currentTime/a.duration*1000);const c=document.getElementById("musCur"),d=document.getElementById("musDur");if(c)c.textContent=musFmt(a.currentTime);if(d)d.textContent=musFmt(a.duration)}
+    }
+    SG.el.querySelectorAll(".sg-row").forEach(r=>{const on=+r.dataset.s===MUS.cur;r.classList.toggle("on",on);const cv=r.querySelector(".sg-cv");if(cv)cv.innerHTML=on&&pl?'<span class="sg-eq go"><i></i><i></i><i></i></span>':"♪"});
+    const bar=SG.el.querySelector(".sg-bar");if(bar){const on=!!s&&!SG.pv;bar.style.display=on?"flex":"none";if(on){bar.style.setProperty("--h",h);bar.innerHTML=sgMini()}}
   }
-  if(MORA.el){const m=MORA.el.querySelector(".mus-mini");if(m){m.style.display=(s&&!MUS.panel)?"flex":"none";if(s)m.innerHTML=musMiniHtml()}}
-  if(MUS.panel)musNowRender();
+  let p=SG.pill;
+  if(!s||SG.open){if(p)p.style.display="none";return}
+  if(!p){p=document.createElement("div");p.className="sg-pill";p.dir="rtl";p.dataset.g="open";p.addEventListener("click",sgClick);document.body.appendChild(p);SG.pill=p}
+  p.style.display="flex";p.style.setProperty("--h",h);p.innerHTML=sgMini();
 }
-function musNowHtml(){
-  const s=MUS.list[MUS.cur],a=MUS.au,pl=a&&!a.paused&&!a.ended;
-  return `<div class="mus-disc${pl?" spin":""}"><i></i></div><div class="mus-ti">${esc(s?s.title:"اختار أغنية")}</div><div class="mus-ar">${s?(MUS.loading?"⏳ بيحمّل الأغنية…":esc(s.artist||"")):"اضغط على أي أغنية من القايمة"}</div>
-<input type="range" class="mus-seek" id="musSeek" min="0" max="1000" value="0" dir="ltr" aria-label="التقديم"><div class="mus-times" dir="ltr"><span id="musCur">0:00</span><span id="musDur">0:00</span></div>
-<div class="mus-ctl" dir="ltr"><button type="button" data-m="mshuf" class="${MUS.shuf?"on":""}" aria-label="عشوائي">🔀</button><button type="button" data-m="mprev" aria-label="السابق">⏮</button><button type="button" class="mus-pp" data-m="mtoggle" aria-label="تشغيل/إيقاف">${pl?"⏸":"▶"}</button><button type="button" data-m="mnext" aria-label="التالي">⏭</button><button type="button" data-m="mrep" class="${MUS.rep?"on":""}" aria-label="تكرار">${MUS.rep===2?"🔂":"🔁"}</button></div>`;
+function musUi(){try{sgNow()}catch(_){}}
+function musPanelRender(){try{sgList();sgNow()}catch(_){}}
+async function sgClick(e){
+  const b=e.target.closest("[data-g]");
+  if(!b){const r=e.target.closest(".sg-row");if(r){sgTap(+r.dataset.s)}return}
+  const g=b.dataset.g;musUnlock();
+  if(g==="toggle"){e.stopPropagation();MUS.rs=0;musToggle();return}
+  if(g==="next"){e.stopPropagation();musNext(false);return}
+  if(g==="stop"){e.stopPropagation();musStop();SG.pv=false;sgNow();return}
+  if(g==="prev"){musPrev();return}
+  if(g==="shuf"){MUS.shuf=!MUS.shuf;sgNow();return}
+  if(g==="rep"){MUS.rep=(MUS.rep+1)%3;sgNow();return}
+  if(g==="close"){e.stopPropagation();sgClose();return}
+  if(g==="list"){SG.pv=false;sgNow();return}
+  if(g==="open"){if(MUS.cur>=0){SG.pv=true;if(!SG.open){sgOpen(true);return}sgNow()}return}
+  if(!S.isAdmin)return;
+  if(g==="add"){sgSheet();return}
+  if(g==="cancel"){const sh=SG.el.querySelector(".sg-sheet");if(sh&&!MUS.upBusy)sh.remove();return}
+  if(g==="up"){musDoUpload();return}
+  if(g==="del"){e.stopPropagation();sgDel(+b.dataset.i)}
 }
-function musNowRender(){
-  const el=MORA.el&&MORA.el.querySelector(".mus-now");if(!el)return;
-  try{const nb=MORA.el.querySelector(".mus-npbar");if(nb){const on=MUS.cur>=0&&!MUS.pv;nb.style.display=on?"flex":"none";if(on)nb.innerHTML=musMiniHtml()}}catch(_){}
-  el.innerHTML=musNowHtml();
-  MORA.el.querySelectorAll(".mus-row").forEach(r=>r.classList.toggle("on",+r.dataset.s===MUS.cur));
-  const a=MUS.au,p=document.getElementById("musSeek");if(a&&p&&a.duration){p.value=Math.round(a.currentTime/a.duration*1000);document.getElementById("musCur").textContent=musFmt(a.currentTime);document.getElementById("musDur").textContent=musFmt(a.duration)}
+function sgTap(i){
+  musUnlock();const s=MUS.list[i];if(!s)return;
+  SG.pv=true;
+  if(i!==MUS.cur||!MUS.au||!MUS.au.getAttribute("src")||MUS.au.getAttribute("src").indexOf("data:audio")===0)musPlay(i);   /* نفس الأغنية: بنفتح المشغّل بس من غير ما نوقفها */
+  sgNow();
 }
-function musPanelRender(){
-  const pn=MORA.el&&MORA.el.querySelector(".mus-panel");if(!pn||!MUS.panel)return;
-  const q=(pn.querySelector("#musQ")||{}).value||"";
-  pn.classList.toggle("pl",!!MUS.pv);
-  pn.innerHTML=`<div class="mus-head"><button type="button" class="mus-hb" data-m="mback">‹ ${MUS.pv?"القائمة":"رجوع"}</button><h3>🎵 الأغاني</h3>${S.isAdmin?`<button type="button" class="mus-hb" data-m="madd">＋ رفع</button>`:""}</div>
-<div class="mus-scroll"><div class="mus-now"></div><input type="text" class="mus-q" id="musQ" placeholder="🔎 دوّر على أغنية" value="${esc(q)}" autocomplete="off">
-<div class="mus-list">${MUS.list.length?MUS.list.map((s,i)=>`<div class="mus-row${i===MUS.cur?" on":""}" data-s="${i}" data-q="${esc(((s.title||"")+" "+(s.artist||"")).toLowerCase())}"><div class="ic">🎵</div><div class="tx"><b>${esc(s.title||"أغنية")}</b><small>${esc(s.artist||"مكتبة التفوق")}${s.size?" · "+(s.size/1048576).toFixed(1)+" MB":""}</small></div>${S.isAdmin?`<button type="button" class="rm" data-m="mdel" data-i="${i}" aria-label="حذف">🗑</button>`:""}</div>`).join(""):`<div class="mus-empty">${MUS.err?"مقدرتش أحمّل الأغاني ("+esc(MUS.err)+")":MUS.loaded?"🎶 لسه مفيش أغاني"+(S.isAdmin?" — اضغط ＋ رفع":""):"⏳ بيحمّل المكتبة…"}</div>`}</div></div><div class="mus-npbar mus-mini" data-m="mopen" style="display:none"></div>`;
-  musNowRender();if(q)musFilter(q);
-}
-function musFilter(q){q=String(q||"").trim().toLowerCase();MORA.el.querySelectorAll(".mus-row").forEach(r=>{r.style.display=(!q||r.dataset.q.includes(q))?"":"none"})}
-function musPanel(on){
-  moraBuild();const pn=MORA.el.querySelector(".mus-panel");MUS.panel=!!on;MUS.pv=false;pn.classList.toggle("on",!!on);
-  if(on){musPanelRender();musLoad(false)}
-  musUi();
-}
-function musTap(i,e){
-  if(e&&e.target.closest("[data-m]"))return;
-  musUnlock();i=+i;MUS.pv=true;musPanelRender();
-  if(i===MUS.cur&&MUS.au&&MUS.au.src){musToggle();return}musPlay(i);
-}
-function musInput(e){
+function sgInput(e){
   const t=e.target;
-  if(t.id==="musQ")musFilter(t.value);
-  else if(t.id==="musSeek"){MUS.seeking=true;const a=MUS.au;if(a&&a.duration){document.getElementById("musCur").textContent=musFmt(t.value/1000*a.duration)}}
+  if(t.id==="sgQ"){SG.q=t.value;sgList()}
+  else if(t.id==="musSeek"){MUS.seeking=true;const a=MUS.au;if(a&&a.duration){const c=document.getElementById("musCur");if(c)c.textContent=musFmt(t.value/1000*a.duration)}}
 }
-function musChange(e){
+function sgChange(e){
   const t=e.target;
   if(t.id==="musSeek"){const a=MUS.au;if(a&&a.duration)a.currentTime=t.value/1000*a.duration;MUS.seeking=false}
-  else if(t.id==="musFile"){const f=t.files&&t.files[0];const ti=document.getElementById("musTitle");if(f&&ti&&!ti.value)ti.value=f.name.replace(/\.[^.]+$/,"")}
+  else if(t.id==="musFile"){const f=t.files&&t.files[0],ti=document.getElementById("musTitle");if(f&&ti&&!ti.value)ti.value=f.name.replace(/\.[^.]+$/,"")}
 }
-async function musClick(m,b,e){
-  if(m==="songs"){musPanel(true);return}
-  if(m==="mback"){if(MUS.panel&&MUS.pv){MUS.pv=false;musPanelRender();return}musPanel(false);return}
-  if(m==="mopen"){MUS.pv=true;musPanelRender();return}
-  if(m==="mtoggle"){e&&e.stopPropagation();musUnlock();musToggle();return}
-  if(m==="mnext"){e&&e.stopPropagation();musUnlock();musNext(false);return}
-  if(m==="mprev"){musUnlock();musPrev();return}
-  if(m==="mstop"){e&&e.stopPropagation();musStop();return}
-  if(m==="mshuf"){MUS.shuf=!MUS.shuf;musUi();return}
-  if(m==="mrep"){MUS.rep=(MUS.rep+1)%3;musUi();return}
-  if(!S.isAdmin)return;
-  if(m==="madd"){musSheet();return}
-  if(m==="mcancel"){const sh=MORA.el.querySelector(".mus-sheet");if(sh&&!MUS.upBusy)sh.remove();return}
-  if(m==="mup"){musDoUpload();return}
-  if(m==="mdel"){
-    const s=MUS.list[+b.dataset.i];if(!s)return;e&&e.stopPropagation();
-    const ok=await uiDialog({title:"حذف الأغنية",icon:"🗑",msg:"هتتحذف «"+(s.title||"")+"» نهائي لكل الطلاب.",ok:"احذف"});if(!ok)return;
-    try{
-      const sn=await getDocs(query(collection(db,"songParts"),where("sid","==",s.id)));
-      for(let i=0;i<sn.docs.length;i+=400){const w=writeBatch(db);sn.docs.slice(i,i+400).forEach(d=>w.delete(d.ref));await w.commit()}
-      await deleteDoc(doc(db,"songs",s.id));idbDel(s.id);
-      if(MUS.list[MUS.cur]&&MUS.list[MUS.cur].id===s.id)musStop();
-      await musLoad(true);try{toast("اتحذفت ✓",true)}catch(_){}
-    }catch(err){try{toast("فشل الحذف — "+((err&&err.code)||""))}catch(_){}}
-  }
+async function sgDel(i){
+  const s=MUS.list[i];if(!s)return;
+  const ok=await uiDialog({title:"حذف الأغنية",icon:"🗑",msg:"هتتحذف «"+(s.title||"")+"» نهائي لكل الطلاب.",ok:"احذف"});if(!ok)return;
+  try{
+    const sn=await getDocs(query(collection(db,"songParts"),where("sid","==",s.id)));
+    for(let k=0;k<sn.docs.length;k+=400){const w=writeBatch(db);sn.docs.slice(k,k+400).forEach(d=>w.delete(d.ref));await w.commit()}
+    await deleteDoc(doc(db,"songs",s.id));idbDel(s.id);
+    if(MUS.list[MUS.cur]&&MUS.list[MUS.cur].id===s.id)musStop();
+    try{toast("اتحذفت ✓",true)}catch(_){}
+  }catch(err){try{toast("فشل الحذف — "+((err&&err.code)||""))}catch(_){}}
 }
-function musSheet(){
-  const sh=document.createElement("div");sh.className="mus-sheet";
-  sh.innerHTML=`<div><h3 style="margin:0 0 8px">➕ إضافة أغنية</h3>
-<input type="file" id="musFile" accept="audio/*" style="width:100%;margin:4px 0;color:#fff">
+function sgSheet(){
+  if(SG.el.querySelector(".sg-sheet"))return;
+  const sh=document.createElement("div");sh.className="sg-sheet";
+  sh.innerHTML=`<div><h3>➕ إضافة أغنية</h3>
+<input type="file" id="musFile" accept="audio/*">
 <input type="text" id="musTitle" placeholder="اسم الأغنية">
 <input type="text" id="musArtist" placeholder="الفنان (اختياري)">
 <input type="url" id="musUrl" placeholder="أو رابط مباشر لملف صوت https://…" dir="ltr">
-<div style="font-size:12px;color:rgba(255,255,255,.55)">الرفع من الجهاز حدّه 25 ميجا للأغنية. الطلاب بيسمعوا بس ومفيش زرار تنزيل.</div>
-<div class="bar"><i id="musBar"></i></div>
-<div class="row2"><button type="button" data-m="mcancel">إلغاء</button><button type="button" class="go" data-m="mup" id="musGo">رفع</button></div></div>`;
-  MORA.el.querySelector(".mus-panel").appendChild(sh);
+<div class="sg-st">الرفع من الجهاز لحد 25 ميجا. الرفع أسرع لو الملف أصغر (128kbps كافي). الطلاب بيسمعوا بس.</div>
+<div class="sg-pbar"><i id="musBar"></i></div><div class="sg-st" id="musSt"></div>
+<div class="r2"><button type="button" data-g="cancel">إلغاء</button><button type="button" class="go" data-g="up" id="musGo">رفع</button></div></div>`;
+  SG.el.appendChild(sh);
 }
 async function musDoUpload(){
   if(!S.isAdmin||MUS.upBusy)return;
   const f=(document.getElementById("musFile").files||[])[0],url=document.getElementById("musUrl").value.trim(),
     title=document.getElementById("musTitle").value.trim()||(f?f.name.replace(/\.[^.]+$/,""):""),artist=document.getElementById("musArtist").value.trim();
-  const bar=document.getElementById("musBar"),go=document.getElementById("musGo");
+  const bar=document.getElementById("musBar"),go=document.getElementById("musGo"),st=document.getElementById("musSt");
   if(!f&&!/^https?:\/\//i.test(url)){try{toast("اختار ملف صوت أو حط رابط")}catch(_){}return}
   if(!title){try{toast("اكتب اسم الأغنية")}catch(_){}return}
   if(f&&f.size>25*1048576){try{toast("الملف أكبر من 25 ميجا — صغّره أو استخدم رابط")}catch(_){}return}
   MUS.upBusy=true;go.disabled=true;go.textContent="⏳ بيرفع…";
-  const id="s"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);let wrote=0;
+  const id="s"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);let parts=0;
   try{
     if(f){
+      st.textContent="تجهيز الملف…";
       const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]||"");r.onerror=()=>rej(r.error);r.readAsDataURL(f)});
-      const CH=900000,parts=Math.ceil(b64.length/CH);
-      for(let i=0;i<parts;i+=5){
-        const w=writeBatch(db);for(let k=i;k<Math.min(parts,i+5);k++)w.set(doc(db,"songParts",id+"_"+k),{sid:id,k,d:b64.slice(k*CH,(k+1)*CH)});
-        await w.commit();wrote=Math.min(parts,i+5);bar.style.width=Math.round(wrote/parts*95)+"%";
-      }
+      const CH=900000;parts=Math.ceil(b64.length/CH);let next=0,done=0;const t0=Date.now();
+      /* v145: رفع الأجزاء بالتوازي (5 مرة واحدة) بدل جزء ورا جزء — أسرع بكتير */
+      const worker=async()=>{while(true){const k=next++;if(k>=parts)return;await setDoc(doc(db,"songParts",id+"_"+k),{sid:id,k,d:b64.slice(k*CH,(k+1)*CH)});done++;bar.style.width=Math.round(done/parts*96)+"%";const sec=(Date.now()-t0)/1000;st.textContent="رفع "+done+" / "+parts+" جزء · "+((done*CH*0.75/1048576)/Math.max(sec,.1)).toFixed(1)+" MB/s"}};
+      await Promise.all(Array.from({length:Math.min(5,parts)},worker));
+      st.textContent="تثبيت الأغنية…";
       await setDoc(doc(db,"songs",id),{title,artist,size:f.size,mime:f.type||"audio/mpeg",parts,ts:serverTimestamp(),by:S.user.uid});
     }else{
       await setDoc(doc(db,"songs",id),{title,artist,url,parts:0,ts:serverTimestamp(),by:S.user.uid});
     }
-    bar.style.width="100%";try{toast("اترفعت الأغنية ✓",true)}catch(_){}
-    MUS.upBusy=false;const sh=MORA.el.querySelector(".mus-sheet");if(sh)sh.remove();await musLoad(true);
+    bar.style.width="100%";try{toast("اترفعت الأغنية ✓ — بتظهر للطلاب فوراً",true)}catch(_){}
+    MUS.upBusy=false;const sh=SG.el&&SG.el.querySelector(".sg-sheet");if(sh)sh.remove();
   }catch(e){
     MUS.upBusy=false;go.disabled=false;go.textContent="رفع";moraErr("upload","فشل رفع أغنية: "+((e&&(e.code||e.message))||"?"),"mus.upload");
-    try{for(let i0=0;i0<wrote;i0+=20){const wb=writeBatch(db);for(let k=i0;k<Math.min(wrote,i0+20);k++)wb.delete(doc(db,"songParts",id+"_"+k));await wb.commit()}}catch(_){}
-    try{toast("فشل الرفع — "+((e&&e.code)||(e&&e.message)||"")+((e&&e.code==="permission-denied")?" (ضيف قواعد songs)":""))}catch(_){}
+    try{for(let i0=0;i0<parts;i0+=20){const wb=writeBatch(db);for(let k=i0;k<Math.min(parts,i0+20);k++)wb.delete(doc(db,"songParts",id+"_"+k));await wb.commit()}}catch(_){}
+    try{toast("فشل الرفع — "+((e&&e.code)||(e&&e.message)||"")+((e&&e.code==="permission-denied")?" (انشر firestore.rules الجديدة)":""))}catch(_){}
   }
 }
-Object.assign(A,{openMora(){moraOpen()},closeMora(){moraClose()},openSongs(){moraOpen("songs")},
-  songUpload(){moraOpen("songs");setTimeout(()=>{try{musSheet()}catch(_){}},200)},
+/* قايمة الأغاني لحظية (من غير كاش 3 دقايق) + تحميل مسبق لآخر 3 أغاني على جهاز الطالب */
+let __musUnsub=null,__warmBusy=0;
+function musSubStart(){
+  if(__musUnsub||!db||!S.user)return;
+  try{__musUnsub=onSnapshot(query(collection(db,"songs"),orderBy("ts","desc"),limit(100)),sn=>{
+    const curId=MUS.list[MUS.cur]&&MUS.list[MUS.cur].id;
+    MUS.list=sn.docs.map(d=>({id:d.id,...d.data()})).filter(x=>!x.hidden);MUS.loaded=Date.now();MUS.err="";
+    MUS.cur=curId?MUS.list.findIndex(x=>x.id===curId):-1;
+    if(curId&&MUS.cur<0)musStop();
+    try{sgList();sgNow()}catch(_){}
+    musWarm();
+  },e=>{MUS.err=(e&&e.code)||"error";__musUnsub=null;try{sgList()}catch(_){}})}catch(_){}
+}
+function musSubStop(){try{__musUnsub&&__musUnsub()}catch(_){}__musUnsub=null}
+async function musWarm(){
+  if(__warmBusy||S.isAdmin)return;
+  try{const c=navigator.connection;if(c&&(c.saveData||/2g/.test(c.effectiveType||"")))return}catch(_){}
+  __warmBusy=1;
+  try{for(const s of MUS.list.slice(0,3)){if(s.url||!s.parts)continue;if(await idbGet(s.id))continue;await new Promise(r=>setTimeout(r,2500));await musFetchBlob(s)}}catch(_){}
+  __warmBusy=0;
+}
+
+Object.assign(A,{openMora(){moraOpen()},closeMora(){moraClose()},openSongs(){sgOpen(false)},
+  songUpload(){sgOpen(false);setTimeout(()=>{try{sgSheet()}catch(_){}},150)},
   songsReload(){musLoad(true).then(()=>{if(S.tab==="songs")render(true)})},
-  async songDel(d){await musClick("mdel",{dataset:{i:d.i}},null);if(S.tab==="songs")render(true)}});
+  async songDel(d){await sgDel(+d.i);if(S.tab==="songs")render(true)}});
 window.openMoraBrowser=moraOpen;window.closeMoraBrowser=moraClose;
 /* v143 سرعة: لو الجهاز بيرسم أقل من 38 إطار/ثانية نفعّل وضع الأداء تلقائيًا مرة واحدة (والطالب يقدر يلغيه) */
 (function(){try{if(localStorage.getItem("lite_mode")!==null||localStorage.getItem("fps_probe"))return;
