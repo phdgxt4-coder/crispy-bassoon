@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v150">
+<meta name="sw-build" content="v152">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v150";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
+<script>window.APP_BUILD="v152";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -1926,7 +1926,7 @@ function ensureBooksListen(){
   if(window.__bookUnsub||!db)return;
   window.__bookUnsub=onSnapshot(query(collection(db,"books"),limit(50)),s=>{
     S.books=s.docs.map(d=>({id:d.id,...d.data()}));
-    try{localStorage.setItem("books_cache_v1",JSON.stringify(S.books.slice(0,40).map(b=>({id:b.id,title:b.title,url:b.url,subject:b.subject}))))}catch(_){}
+    try{localStorage.setItem("books_cache_v1_"+(S.user&&S.user.uid||"guest"),JSON.stringify(S.books.slice(0,40).map(b=>({id:b.id,title:b.title,url:b.url,subject:b.subject}))))}catch(_){}
     if(S.view==="books"||(S.view==="admin"&&S.tab==="books"))scheduleRender();
   },err=>console.warn("books",err));
 }
@@ -2584,7 +2584,7 @@ async function startSession(u){
 
   // عرض فوري من الكاش المحلي قبل ما Firestore يرد
   try{
-    const raw=localStorage.getItem("exams_cache_v1");
+    const raw=localStorage.getItem("exams_cache_v1_"+(S.user&&S.user.uid||"guest"));
     if(raw&&(!S.exams||!S.exams.length)){
       const cached=JSON.parse(raw);
       if(Array.isArray(cached)&&cached.length){
@@ -2593,7 +2593,7 @@ async function startSession(u){
     }
   }catch(_){}
   try{
-    const rawB=localStorage.getItem("books_cache_v1");
+    const rawB=localStorage.getItem("books_cache_v1_"+(S.user&&S.user.uid||"guest"));
     if(rawB&&(!S.books||!S.books.length)){
       const cached=JSON.parse(rawB);
       if(Array.isArray(cached)&&cached.length)S.books=cached;
@@ -2626,7 +2626,7 @@ async function startSession(u){
       let f1=true,f2=true,f3=true,__resT=0,__altT=0,__staT=0,__exaT=0;
       subs.push(onSnapshot(/*admin-bounded*/query(collection(db,"exams"),limit(200)),s=>{
       S.exams=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>tms(b)-tms(a));
-      try{if(S.exams.length)localStorage.setItem("exams_cache_v1",JSON.stringify(S.exams.map(e=>({id:e.id,title:e.title,subject:e.subject,minutes:e.minutes,passMark:e.passMark,published:e.published}))))}catch(_){}
+      try{if(S.exams.length)localStorage.setItem("exams_cache_v1_"+(S.user&&S.user.uid||"guest"),JSON.stringify(S.exams.map(e=>({id:e.id,title:e.title,subject:e.subject,minutes:e.minutes,passMark:e.passMark,published:e.published}))))}catch(_){}
       if(S.view==="admin"&&["dash","exams","editExam"].includes(S.tab))trailR("exa",1500)}));
       subs.push(onSnapshot(query(collection(db,"results"),orderBy("createdAt","desc"),limit(200)),s=>{
         if(!f1)s.docChanges().forEach(c=>{if(c.type==="added"&&c.doc.data().createdAt){const r=c.doc.data();toast(`${r.name} امتحن ${r.examTitle} (محاولة ${r.attempt||1}) وجاب ${r.score}/${r.total}`,true);if(S.tab!=="results"){S.unread++;updTitle()}}});
@@ -3725,7 +3725,8 @@ function checklistView(){
 }
 
 /* ========== Stage 12 Anti-lag ========== */
-const PRELOAD_URLS=["./","./index.html","./manifest.json","./sw.js","./alien.html","./bomber.html","./bowling.html","./doodle.html","./draw-guess.html","./fishing.html","./hide.html","./ice.html","./last-one-standing.html","./memory-game.html","./push.html","./room.html","./runner.html","./space.html","./words-crush.html","./logo.webp","./mark.png","./icons/icon-192.png","./icons/icon-512.png","./icons/eKXVc.png","./icons/QG30M.png","./pets/boar.glb","./pets/corgi.glb","./pets/fox.glb","./pets/hare.glb","./pets/hippo.glb","./pets/lion.glb","./pets/sheep.glb","./pets/spino.glb","./pets/trex.glb","./pets/zebra.glb"];
+const PRELOAD_URLS=["./","./index.html","./manifest.json","./sw.js"];
+const PRELOAD_SCOPE=()=>"student:"+((S.user&&S.user.uid)||"guest");
 async function preloadCritical(onProg){
   const urls=PRELOAD_URLS.slice();
   let done=0,ok=0,fail=0;
@@ -11674,12 +11675,20 @@ function a11yFix(root){
 }
 /* حالة الاتصال */
 {
-  let b=null;
-  const upd=()=>{
-    if(!b){b=document.createElement("div");b.id="netBanner";b.className="netb";b.setAttribute("role","alert");b.textContent="📡 مفيش اتصال بالإنترنت — بعض الحاجات مش هتشتغل لحد ما يرجع";document.body.appendChild(b)}
-    b.classList.toggle("on",!navigator.onLine);
+  let b=null,probeT=0;
+  const paint=(offline,soft)=>{
+    if(!b){b=document.createElement("div");b.id="netBanner";b.className="netb";b.setAttribute("role","status");document.body.appendChild(b)}
+    b.textContent=offline?"📡 اتصال غير مستقر — شغّل من المحفوظات أو جرّب بعد لحظات":soft?"⌁ بنراجع الاتصال…":"";
+    b.classList.toggle("on",!!offline||!!soft);
+    b.classList.toggle("soft",!!soft&&!offline);
   };
-  addEventListener("online",upd);addEventListener("offline",upd);if(!navigator.onLine)upd();
+  const probe=()=>{
+    if(!navigator.onLine){paint(true,false);return}
+    paint(false,true);clearTimeout(probeT);probeT=setTimeout(()=>paint(false,false),900);
+    fetch("./?net="+Date.now(),{cache:"no-store",credentials:"same-origin"}).then(r=>paint(!r.ok,false)).catch(()=>paint(true,false));
+  };
+  addEventListener("online",probe);addEventListener("offline",()=>paint(true,false));
+  probe();setInterval(()=>{if(document.visibilityState!=="hidden")probe()},45000);
 }
 /* رسالة واضحة للطالب عند خطأ غير متوقع (مرة كل دقيقة بحد أقصى) */
 {
@@ -12137,7 +12146,17 @@ function moraBuild(){
 #moraBrowserModal .mora-hint{display:none;align-items:center;gap:10px;justify-content:space-between;margin:6px 10px;padding:8px 12px;border-radius:14px;background:rgba(255,176,32,.14);border:1px solid rgba(255,176,32,.35);font-size:12.5px;color:#ffd9a0}
 #moraBrowserModal .mora-hint.load{display:flex}
 #moraBrowserModal .mora-hint button{flex:none;border:0;border-radius:10px;padding:7px 10px;background:#ffb020;color:#201000;font-weight:700;font-size:12px;font-family:inherit;cursor:pointer}
-#moraBrowserModal .mora-home{background:radial-gradient(80% 40% at 50% 0%,rgba(124,92,255,.28),transparent 70%);padding:26px 16px 30px;overflow-y:auto}
+#moraBrowserModal{background:radial-gradient(120% 80% at 50% -10%,rgba(124,92,255,.22),transparent 60%),#070914}
+#moraBrowserModal .mora-top{box-shadow:0 12px 40px rgba(0,0,0,.28)}
+#moraBrowserModal .mora-bar{max-width:1180px;margin:0 auto}
+#moraBrowserModal .mora-tabs{max-width:1180px;margin:0 auto}
+#moraBrowserModal .mora-quick{display:flex;gap:8px;max-width:1180px;margin:0 auto;padding:0 10px 8px;overflow-x:auto;scrollbar-width:none}
+#moraBrowserModal .mora-quick::-webkit-scrollbar{display:none}
+#moraBrowserModal .mora-quick button{flex:none;border:1px solid rgba(255,255,255,.14);background:linear-gradient(135deg,rgba(255,176,32,.22),rgba(124,92,255,.22));color:#fff;border-radius:13px;padding:8px 14px;font:600 13px inherit;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.18)}
+#moraBrowserModal .mora-quick button.active{border-color:#ffb020;background:linear-gradient(135deg,#ffb020,#ff6a3d);color:#201000}
+#moraBrowserModal .mora-stage{background:#080a14}
+@media (min-width:768px){#moraBrowserModal{inset:18px;max-width:1440px;margin:auto;border:1px solid rgba(255,255,255,.14);border-radius:30px;overflow:hidden;box-shadow:0 28px 100px rgba(0,0,0,.55)}#moraBrowserModal .mora-top{padding-top:6px}.mora-frame{border-radius:0 0 24px 24px}}
+#moraBrowserModal .mora-home{background:radial-gradient(80% 40% at 50% 0%,rgba(124,92,255,.32),transparent 70%),radial-gradient(50% 35% at 10% 80%,rgba(20,184,166,.18),transparent 70%),#090b16;padding:34px 20px 42px;overflow-y:auto}
 .mh-hero{text-align:center;margin-bottom:22px}.mh-hero .mh-logo{font-size:46px}.mh-hero h2{margin:6px 0 2px;font-size:24px}.mh-hero p{margin:0 0 16px;color:rgba(255,255,255,.6);font-size:13.5px}
 .mh-search{display:flex;gap:8px;max-width:520px;margin:0 auto}.mh-in{flex:1;min-width:0;height:50px;border-radius:16px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#fff;padding:0 16px;font-size:16px;font-family:inherit;outline:0}
 .mh-in:focus{border-color:#7c5cff;box-shadow:0 0 0 3px rgba(124,92,255,.3)}.mh-go{flex:none;width:50px;height:50px;border:0;border-radius:16px;background:linear-gradient(135deg,#7c5cff,#14b8a6);color:#fff;font-size:19px;cursor:pointer}
@@ -12154,10 +12173,10 @@ function moraBuild(){
 <button type="button" class="mora-ib" data-m="ext" aria-label="فتح بره">↗</button>
 <button type="button" class="mora-ib" data-m="menu" aria-label="القائمة">⋯</button>
 <button type="button" class="mora-x" data-m="close" aria-label="تصغير">⌄</button></div>
-<div class="mora-prog"></div><div class="mora-tabs" dir="rtl"></div></div>
+<div class="mora-prog"></div><div class="mora-quick" dir="rtl"><button type="button" class="active" data-u="https://poki.com/">🎮 الألعاب · Poki</button><button type="button" data-m="home">⌂ الرئيسية</button><button type="button" data-m="new">＋ نافذة جديدة</button></div><div class="mora-tabs" dir="rtl"></div></div>
 <div class="mora-hint" dir="rtl"><span>الصفحة بطيئة أو الموقع بيمنع الفتح هنا</span><button type="button" class="pxb" data-m="px" style="display:none">🛡 عبر الوسيط</button><button type="button" data-m="ext">↗ فتح في متصفح الجهاز</button></div>
 <div class="mora-stage" dir="rtl">
-<div class="mora-home"><div class="mh-hero"><div class="mh-logo">🌐</div><h2>متصفح التفوق</h2><p>ابحث في جوجل أو اكتب رابط موقع</p>
+<div class="mora-home"><div class="mh-hero"><div class="mh-logo">🌐</div><h2>متصفح التفوق</h2><p>تجربة ويب فاخرة داخل المنصة — من غير ما تخرج منها</p>
 <div class="mh-search"><input type="text" class="mh-in" inputmode="url" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="ابحث أو اكتب رابط…"><button type="button" class="mh-go" data-m="hgo" aria-label="بحث">🔍</button></div></div>
 <div class="mh-grid"><button type="button" class="mh-site" data-u="https://poki.com/"><i style="--h:20">🎮</i><span>ألعاب Poki</span></button>${MORA_SITES.map((x,k)=>`<button type="button" class="mh-site" data-u="${x[1]}"><i style="--h:${(k*47+200)%360}">${esc(x[0]).slice(0,1)}</i><span>${x[0]}</span></button>`).join("")}</div></div></div>
 <div class="mora-menu" dir="rtl"></div>`;
@@ -12700,7 +12719,7 @@ async function musWarm(){
 
 Object.assign(A,{openMora(){moraOpen()},closeMora(){moraClose()},openSongs(){sgOpen(false)},
   songUpload(){sgOpen(false);setTimeout(()=>{try{sgSheet()}catch(_){}},150)},
-  async songVol(d){const x=MUS.list[+d.i];if(!x||!S.isAdmin)return;const el=document.getElementById("sv"+d.i),v=Math.max(100,Math.min(1000,parseInt(el&&el.value,10)||100));try{await updateDoc(doc(db,"songs",x.id),{vol:v});x.vol=v;try{toast("اتحفظ مستوى الصوت "+v+"% ✓",true)}catch(_){}}catch(e){const code=(e&&e.code)||"unknown";try{toast(code==="permission-denied"?"مفيش صلاحية — انشر firestore.rules v150 من Firebase Console":"فشل الحفظ — "+code)}catch(_){}try{moraErr("firebase","فشل حفظ مستوى الصوت: "+code,"admin.songs.volume")}catch(_){}}},
+  async songVol(d){const x=MUS.list[+d.i];if(!x||!S.isAdmin)return;const el=document.getElementById("sv"+d.i),v=Math.max(100,Math.min(1000,parseInt(el&&el.value,10)||100));try{await updateDoc(doc(db,"songs",x.id),{vol:v});x.vol=v;try{toast("اتحفظ مستوى الصوت "+v+"% ✓",true)}catch(_){}}catch(e){const code=(e&&e.code)||"unknown";try{toast(code==="permission-denied"?"مفيش صلاحية — انشر firestore.rules v152 من Firebase Console":"فشل الحفظ — "+code)}catch(_){}try{moraErr("firebase","فشل حفظ مستوى الصوت: "+code,"admin.songs.volume")}catch(_){}}},
   songsReload(){musLoad(true).then(()=>{if(S.tab==="songs")render(true)})},
   async songDel(d){await sgDel(+d.i);if(S.tab==="songs")render(true)}});
 document.addEventListener("click",function(ev){

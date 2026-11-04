@@ -4,8 +4,8 @@
 /* v131-fix: importScripts كان من غير try/catch — لو gstatic مش متاح (أول تحميل أوفلاين) الـ SW كله كان بيفشل
    ومش بيتسجل خالص (لا أوفلاين ولا إشعارات). بقي محمي — التسجيل بيكمل حتى لو مكتبات الإشعارات محملتش */
 const PETS = ["./pets/fox.glb","./pets/corgi.glb","./pets/hare.glb","./pets/sheep.glb","./pets/boar.glb"];
-const CACHE = "eltafawoq-v150";
-const BUILD = "20261104-v150"; /* review:keep — علامة بناء بيقراها فحص اتساق الإصدار */
+const CACHE = "eltafawoq-v152";
+const BUILD = "20261104-v152"; /* review:keep — علامة بناء بيقراها فحص اتساق الإصدار */
 
 let __fcmReady = false;
 try {
@@ -85,7 +85,7 @@ self.addEventListener("install", (e) => {
   e.waitUntil(
     caches.open(CACHE).then((c) =>
       /* كل ملف لوحده: لو ملف واحد مش موجود (404) بقية الملفات تتخزّن عادي — addAll كان بيفشل كله */
-      Promise.allSettled(["./index.html","./manifest.json","./memory-game.html","./draw-guess.html","./words-crush.html","./runner.html","./space.html","./doodle.html","./fishing.html","./push.html"].concat(PETS).map((u) => c.add(u)))
+      Promise.allSettled(["./index.html","./manifest.json","./sw.js"].map((u) => c.add(u)))
     )
   );
 });
@@ -107,7 +107,9 @@ self.addEventListener("message", (e) => {
   const d = e.data || {};
   /* v132: الصفحة بتبعت كل الملفات اللي استخدمتها → نحمّلها ونخزّنها مرة واحدة (أوفلاين كامل) */
   if (d.type === "WARM" && Array.isArray(d.urls)) {
-    e.waitUntil(caches.open(CACHE).then((c) => Promise.allSettled(
+    /* الطالب يدفّي ملفات المنصة المشتركة فقط؛ لا يتم تنزيل أي مجموعة أدمن أو بيانات طالب آخر. */
+    const scoped = d.scope ? (CACHE + "-" + String(d.scope).replace(/[^a-zA-Z0-9:_-]/g, "").slice(0,80)) : CACHE;
+    e.waitUntil(caches.open(scoped).then((c) => Promise.allSettled(
       d.urls.slice(0, 300).map((u) => c.match(u).then((hit) => hit || c.add(u)))
     )));
   }
