@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v146">
+<meta name="sw-build" content="v149">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v145";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
+<script>window.APP_BUILD="v149";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -2784,7 +2784,7 @@ async function startSession(u){
       }));
       subs.push(onSnapshot(query(collection(db,"leaderboard"),orderBy("score","desc"),limit(40)),s=>{
         S.board=s.docs.map(d=>({id:d.id,...d.data()})).filter(x=>S.isAdmin||x.id!==ADMIN_UID);
-        if(S.board.length<3&&!S._boardFb){
+        if(S.board.length<3&&!S._boardFb&&(S.isAdmin||featState("progress"))){
           S._boardFb=1;
           getDocs(query(collection(db,"leaderboard"),orderBy("examsDone","desc"),limit(40))).then(sn=>{
             if((S.board||[]).length<3){S.board=sn.docs.map(d=>({id:d.id,...d.data()})).filter(x=>S.isAdmin||x.id!==ADMIN_UID);if(S.view==="progress")scheduleRender()}
@@ -3725,7 +3725,7 @@ function checklistView(){
 }
 
 /* ========== Stage 12 Anti-lag ========== */
-const PRELOAD_URLS=["./index.html","./manifest.json","./sw.js","./memory-game.html","./draw-guess.html","./runner.html","./space.html","./doodle.html","./fishing.html","./push.html","./icons/icon-192.png","./icons/icon-512.png"];
+const PRELOAD_URLS=["./","./index.html","./manifest.json","./sw.js","./alien.html","./bomber.html","./bowling.html","./doodle.html","./draw-guess.html","./fishing.html","./hide.html","./ice.html","./last-one-standing.html","./memory-game.html","./push.html","./room.html","./runner.html","./space.html","./words-crush.html","./logo.webp","./mark.png","./icons/icon-192.png","./icons/icon-512.png","./icons/eKXVc.png","./icons/QG30M.png","./pets/boar.glb","./pets/corgi.glb","./pets/fox.glb","./pets/hare.glb","./pets/hippo.glb","./pets/lion.glb","./pets/sheep.glb","./pets/spino.glb","./pets/trex.glb","./pets/zebra.glb"];
 async function preloadCritical(onProg){
   const urls=PRELOAD_URLS.slice();
   let done=0,ok=0,fail=0;
@@ -3752,7 +3752,17 @@ async function preloadCritical(onProg){
     done++;
     report();
   }
-  return {ok,fail,total};
+  /* الأغاني المرفوعة: تتخزن في الجهاز عشان تشتغل بدون نت */
+  let songsOk=0,songsFail=0;
+  try{
+    if(typeof musLoad==="function"&&!MUS.list.length)await musLoad(false);
+    const up=(MUS.list||[]).filter(x=>x&&!x.url&&x.parts);
+    for(let i=0;i<up.length;i++){
+      try{await musFetchBlob(up[i]);songsOk++}catch(_){songsFail++}
+      if(onProg)onProg({done:total,total:total,ok:ok+songsOk,fail:fail+songsFail,pct:100,note:"أغاني "+(i+1)+"/"+up.length});
+    }
+  }catch(_){}
+  return {ok:ok+songsOk,fail:fail+songsFail,total:total+songsOk+songsFail};
 }
 async function applySwUpdate(){
   try{
@@ -5247,7 +5257,7 @@ function adminSongs(){
   return `<div class="card"><h3>🎵 مكتبة الأغاني</h3>
 <p class="mut">ارفع أغاني من جهازك (لحد 25 ميجا للأغنية) أو حط رابط مباشر. الطلاب بيسمعوا بس ومفيش تنزيل. بتظهر لهم في «أنا» ← 🎵 أغاني المنصة.</p>
 <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn gold" data-act="songUpload">＋ رفع أغنية</button><button class="btn ghost" data-act="openSongs">▶ فتح المشغّل</button><button class="btn ghost" data-act="songsReload">↻ تحديث</button></div></div>
-<div class="card"><b>الأغاني الحالية (${l.length})</b>${l.length?l.map((x,i)=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><div><b>${esc(x.title||"أغنية")}</b><div class="mut">${esc(x.artist||"—")}${x.size?" · "+(x.size/1048576).toFixed(1)+" MB":""}</div></div><button class="btn sm danger" data-act="songDel" data-i="${i}">🗑 حذف</button></div>`).join(""):`<div class="mut" style="text-align:center;padding:14px 0">${MUS.err?"تعذّر التحميل ("+esc(MUS.err)+") — انشر firestore.rules الجديدة":MUS.loaded?"لسه مفيش أغاني — اضغط ＋ رفع أغنية":"⏳ بيحمّل…"}</div>`}</div>`;
+<div class="card"><b>الأغاني الحالية (${l.length})</b>${l.length?l.map((x,i)=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><div><b>${esc(x.title||"أغنية")}</b><div class="mut">${esc(x.artist||"—")}${x.size?" · "+(x.size/1048576).toFixed(1)+" MB":""}</div></div><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${x.url?'<span class="mut">🔗 رابط خارجي (بدون تضخيم)</span>':`<span class="mut">🔊</span><input type="number" min="100" max="1000" step="50" value="${x.vol||100}" id="sv${i}" style="width:90px;padding:6px 8px" inputmode="numeric"><span class="mut">%</span><button class="btn sm ghost" data-act="songVol" data-i="${i}">حفظ</button>`}<button class="btn sm danger" data-act="songDel" data-i="${i}">🗑 حذف</button></div></div>`).join(""):`<div class="mut" style="text-align:center;padding:14px 0">${MUS.err?"تعذّر التحميل ("+esc(MUS.err)+") — انشر firestore.rules الجديدة":MUS.loaded?"لسه مفيش أغاني — اضغط ＋ رفع أغنية":"⏳ بيحمّل…"}</div>`}</div>`;
 }
 function adminView(){
   const t=S.tab;
@@ -7024,7 +7034,7 @@ const A={
       const [stSnap,pubSnap,lbSnap,resSnap]=await Promise.all([
         canReadPrivate?getDoc(doc(db,"students",uid)):Promise.resolve(null),
         getDoc(doc(db,"publicProfiles",uid)).catch(()=>null),
-        getDoc(doc(db,"leaderboard",uid)).catch(()=>null),
+        (S.isAdmin||featState("progress"))?getDoc(doc(db,"leaderboard",uid)).catch(()=>null):Promise.resolve(null),
         canReadPrivate?getDocs(query(collection(db,"results"),where("uid","==",uid),limit(12))).catch(()=>null):Promise.resolve(null)
       ]);
       const st=stSnap&&stSnap.exists()?stSnap.data():{};
@@ -7033,7 +7043,7 @@ const A={
       let rank=null;
       try{
         let board=S.board||[];
-        if(!board.length){
+        if(!board.length&&(S.isAdmin||featState("progress"))){
           const sn=await getDocs(query(collection(db,"leaderboard"),orderBy("score","desc"),limit(80)));
           board=sn.docs.map(x=>({id:x.id,...x.data()})).filter(x=>S.isAdmin||x.id!==ADMIN_UID);S.board=board;
         }
@@ -12002,6 +12012,7 @@ const MORA={el:null,tabs:[],act:null,seq:0,live:[],tm:0,inp:null,hint:null,stage
 const MORA_SITES=[["ويكيبيديا","https://ar.wikipedia.org/"],["بنك المعرفة المصري","https://ekb.eg/"],["أكاديمية خان","https://ar.khanacademy.org/"],["جوجل","https://www.google.com/"],["يوتيوب","https://m.youtube.com/"],["تلجرام ويب","https://web.telegram.org/"]];
 const moraKey=()=>"mora_sess_v2_"+((S.user&&S.user.uid)||"g");
 const moraSeen=new Set();
+(function(){const seen={};window.addEventListener("error",function(e){try{const t=e&&e.target;if(!t||t===window||!t.tagName)return;const tg=String(t.tagName).toLowerCase();if(!/^(img|audio|video|script|link|source|iframe)$/.test(tg))return;const u=String(t.currentSrc||t.src||t.href||"").replace(/[?#].*$/,"").slice(0,160);if(!u||/^(data|blob):/.test(u)||seen[u])return;seen[u]=1;window.__EC&&window.__EC.report("network",{message:"المتصفح: فشل تحميل "+tg+" — "+u},{fn:"resource."+tg})}catch(_){}},true)})();
 function moraErr(type,msg,fn){try{window.__EC&&window.__EC.report(type,{message:String(msg).slice(0,280)},{fn:fn||"mora"})}catch(_){}}
 function moraNorm(v){
   v=String(v||"").trim();if(!v)return "";
@@ -12259,7 +12270,7 @@ window.__modalBack=function(){
 };
 
 /* ================= مكتبة الأغاني ================= */
-const MUS={list:[],cur:-1,au:null,tok:0,loading:false,rep:0,shuf:false,panel:false,loaded:0,blobUrl:"",seeking:false,unlocked:false,pf:-1,posT:0};
+const MUS={ctx:null,gain:null,graph:false,list:[],cur:-1,au:null,tok:0,loading:false,rep:0,shuf:false,panel:false,loaded:0,blobUrl:"",seeking:false,unlocked:false,pf:-1,posT:0};
 const musFmt=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
 function musAu(){
   if(MUS.au)return MUS.au;
@@ -12267,10 +12278,10 @@ function musAu(){
   a.addEventListener("play",()=>{musUi()});a.addEventListener("pause",()=>{musUi();
     /* v145: لو الأغنية اتوقفت من غير ما المستخدم يوقفها (النظام/تبويب/مكالمة) نكمّلها تلقائي */
     setTimeout(()=>{try{if(MUS.cur>=0&&a.paused&&!a.ended&&!MUS.loading&&Date.now()-(MUS.up||0)>1800&&(MUS.rs||0)<5&&a.getAttribute("src")&&a.getAttribute("src").indexOf("data:audio")!==0){MUS.rs=(MUS.rs||0)+1;a.play().catch(()=>{})}}catch(_){}},400)});
-  a.addEventListener("playing",()=>{try{navigator.mediaSession.playbackState="playing"}catch(_){}MUS.loading=false;musUi();if(MUS.pf!==MUS.cur){MUS.pf=MUS.cur;setTimeout(musPrefetch,4000)}});
+  a.addEventListener("waiting",()=>{clearTimeout(MUS.stT);MUS.stT=setTimeout(()=>{try{if(MUS.cur>=0&&!a.paused&&a.readyState<3){const cs=MUS.list[MUS.cur];moraErr("network","الأغنية بتقطّع/واقفة أكتر من 10 ثواني: "+(cs&&cs.title||"?"),"mus.stall")}}catch(_){}},10000)});a.addEventListener("playing",()=>{clearTimeout(MUS.stT);try{navigator.mediaSession.playbackState="playing"}catch(_){}MUS.loading=false;musUi();if(MUS.pf!==MUS.cur){MUS.pf=MUS.cur;setTimeout(musPrefetch,4000)}});
   a.addEventListener("pause",()=>{try{navigator.mediaSession.playbackState=a.ended?"none":"paused"}catch(_){}});
   a.addEventListener("ended",()=>{if(MUS.rep===2){a.currentTime=0;a.play().catch(()=>{});return}musNext(true)});
-  a.addEventListener("error",()=>{if(a.getAttribute("src")&&a.getAttribute("src").indexOf("data:audio/wav")!==0){MUS.loading=false;const cs=MUS.list[MUS.cur];moraErr("network","تعذّر تشغيل أغنية: "+(cs&&cs.title||"?"),"mus.play");try{toast("مقدرتش أشغّل الأغنية")}catch(_){}musUi()}});
+  a.addEventListener("error",()=>{if(a.getAttribute("src")&&a.getAttribute("src").indexOf("data:audio/wav")!==0){MUS.loading=false;const cs=MUS.list[MUS.cur];const mc=a.error&&a.error.code,mt={1:"اتلغى التحميل",2:"مشكلة شبكة",3:"الملف تالف أو صيغته غير مدعومة",4:"المتصفح مش بيدعم الصيغة أو الرابط مش صالح"}[mc]||"سبب غير معروف";moraErr("network","تعذّر تشغيل أغنية: "+(cs&&cs.title||"?")+" — "+mt+(cs&&cs.url?" · رابط خارجي":" · ملف مرفوع"),"mus.play");try{toast("مقدرتش أشغّل الأغنية")}catch(_){}musUi()}});
   a.addEventListener("timeupdate",()=>{
     const p=document.getElementById("musSeek");
     if(p&&!MUS.seeking&&a.duration){p.value=Math.round(a.currentTime/a.duration*1000);const c=document.getElementById("musCur"),d=document.getElementById("musDur");if(c)c.textContent=musFmt(a.currentTime);if(d)d.textContent=musFmt(a.duration)}
@@ -12278,7 +12289,27 @@ function musAu(){
   });
   document.body.appendChild(a);MUS.au=a;return a;
 }
+function musCtx(){
+  try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;if(!MUS.ctx)MUS.ctx=new AC();if(MUS.ctx.state==="suspended")MUS.ctx.resume().catch(()=>{});return MUS.ctx}catch(_){return null}
+}
+/* تضخيم الصوت: 100% = الأصلي، لحد 1000% (للأغاني المرفوعة فقط — الروابط الخارجية ما ينفعش) مع ليميتر يمنع التقطيع */
+function musGain(a,s){
+  const v=Math.max(100,Math.min(1000,Number(s&&s.vol)||100));
+  try{
+    if(s&&s.url){ if(MUS.graph){try{a.pause();a.remove()}catch(_){}MUS.au=null;MUS.graph=false;MUS.gain=null;return musAu()} return a }
+    if(v<=100&&!MUS.graph)return a;
+    const c=musCtx();if(!c)return a;
+    if(!MUS.graph){
+      const src=c.createMediaElementSource(a),g=c.createGain(),lim=c.createDynamicsCompressor();
+      lim.threshold.value=-6;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.002;lim.release.value=.12;
+      src.connect(g);g.connect(lim);lim.connect(c.destination);MUS.gain=g;MUS.graph=true;
+    }
+    MUS.gain.gain.value=v/100;
+  }catch(e){try{moraErr("js","تعذّر تضخيم الصوت: "+((e&&e.message)||"?"),"mus.gain")}catch(_){}}
+  return a;
+}
 function musUnlock(){
+  musCtx();
   if(MUS.unlocked)return;MUS.unlocked=true;
   try{const a=musAu();a.src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=";a.play().catch(()=>{})}catch(_){}
 }
@@ -12314,9 +12345,9 @@ async function musPlay(i){
   const tok=++MUS.tok;MUS.cur=i;MUS.rs=0;MUS.loading=true;musUi();
   try{
     const u=await musSrc(s);if(tok!==MUS.tok)return;
-    const a=musAu();if(MUS.blobUrl&&MUS.blobUrl.indexOf("blob:")===0&&MUS.blobUrl!==u){try{URL.revokeObjectURL(MUS.blobUrl)}catch(_){}}
-    MUS.blobUrl=u;a.src=u;await a.play();musMeta();
-  }catch(e){if(tok!==MUS.tok)return;MUS.loading=false;moraErr("network","فشل تحميل أغنية: "+((e&&(e.code||e.message))||"?"),"mus.load");try{toast("مقدرتش أشغّل الأغنية"+(e&&e.message?" — "+e.message:""))}catch(_){}}
+    let a=musAu();if(MUS.blobUrl&&MUS.blobUrl.indexOf("blob:")===0&&MUS.blobUrl!==u){try{URL.revokeObjectURL(MUS.blobUrl)}catch(_){}}
+    a=musGain(a,s)||a;MUS.blobUrl=u;a.src=u;musCtx();await a.play();musMeta();
+  }catch(e){if(tok!==MUS.tok)return;MUS.loading=false;const nm=e&&e.name,cd=e&&e.code;const why=nm==="NotAllowedError"?"المتصفح منع التشغيل التلقائي — اضغط ▶ تاني":cd==="permission-denied"?"الأغاني مقفولة من قواعد Firebase — الأدمن لازم ينشر القواعد":(e&&e.message)||"";moraErr(cd==="permission-denied"?"firebase":"network","فشل تشغيل أغنية: "+(cd||nm||(e&&e.message)||"?")+" · "+((s&&s.title)||"?"),"mus.load");try{toast("مقدرتش أشغّل الأغنية"+(why?" — "+why:""))}catch(_){}}
   musUi();
 }
 function musNext(auto){
@@ -12428,7 +12459,7 @@ function sgList(){
   if(!SG.el)return;
   const q=String(SG.q||"").trim().toLowerCase(),list=SG.el.querySelector(".sg-list");if(!list)return;
   const rows=MUS.list.map((s,i)=>({s,i})).filter(x=>!q||((x.s.title||"")+" "+(x.s.artist||"")).toLowerCase().includes(q));
-  list.innerHTML=rows.length?rows.map(({s,i})=>{const on=i===MUS.cur;return `<div class="sg-row${on?" on":""}" data-s="${i}" style="--h:${sgHue(s.title)}"><div class="sg-cv">${on&&sgPlaying()?'<span class="sg-eq go"><i></i><i></i><i></i></span>':"♪"}</div><div class="tx"><b>${esc(s.title||"أغنية")}</b><small>${esc(s.artist||"مكتبة التفوق")}${s.size?" · "+(s.size/1048576).toFixed(1)+" MB":""}</small></div>${S.isAdmin?`<button type="button" class="rm" data-g="del" data-i="${i}" aria-label="حذف">🗑</button>`:""}</div>`}).join(""):`<div class="sg-empty">${MUS.err?"مقدرتش أحمّل الأغاني ("+esc(MUS.err)+")":MUS.loaded?(q?"مفيش نتيجة للبحث":"🎶 لسه مفيش أغاني"+(S.isAdmin?" — اضغط ＋ لرفع أول أغنية":"")):"⏳ بيحمّل المكتبة…"}</div>`;
+  list.innerHTML=rows.length?rows.map(({s,i})=>{const on=i===MUS.cur;return `<div class="sg-row${on?" on":""}" data-s="${i}" style="--h:${sgHue(s.title)}"><div class="sg-cv">${on&&sgPlaying()?'<span class="sg-eq go"><i></i><i></i><i></i></span>':"♪"}</div><div class="tx"><b>${esc(s.title||"أغنية")}</b><small>${esc(s.artist||"مكتبة التفوق")}${s.size?" · "+(s.size/1048576).toFixed(1)+" MB":""}</small></div>${S.isAdmin?`<button type="button" class="rm" data-g="del" data-i="${i}" aria-label="حذف">🗑</button>`:""}</div>`}).join(""):`<div class="sg-empty">${MUS.err?(MUS.err==="permission-denied"?"الأغاني لسه مش متاحة — بلّغ الأدمن ينشر قواعد Firebase":"مقدرتش أحمّل الأغاني ("+esc(MUS.err)+")"):MUS.loaded?(q?"مفيش نتيجة للبحث":"🎶 لسه مفيش أغاني"+(S.isAdmin?" — اضغط ＋ لرفع أول أغنية":"")):"⏳ بيحمّل المكتبة…"}</div>`;
   const c=SG.el.querySelector("#sgCount");if(c)c.textContent=MUS.list.length?MUS.list.length+" أغنية":"";
 }
 function sgNow(){
@@ -12597,6 +12628,7 @@ function sgSheet(){
 <input type="text" id="musTitle" placeholder="اسم الأغنية">
 <input type="text" id="musArtist" placeholder="الفنان (اختياري)">
 <input type="url" id="musUrl" placeholder="أو رابط مباشر لملف صوت https://…" dir="ltr">
+<label class="sg-st" style="display:block;margin:6px 0 2px">🔊 مستوى الصوت % (100 = الأصلي · لحد 1000) — للملفات المرفوعة فقط</label><select id="musVol"><option value="100" selected>🎚 طبيعي — 100% (الصوت الأصلي)</option><option value="150">🔊 رفع 150%</option><option value="200">🔊 رفع 200%</option><option value="300">🔊 رفع 300%</option><option value="500">📢 رفع 500%</option><option value="700">📢 رفع 700%</option><option value="1000">🚀 أقصى رفع 1000%</option></select>
 <div class="sg-st">الرفع من الجهاز لحد 25 ميجا. الرفع أسرع لو الملف أصغر (128kbps كافي). الطلاب بيسمعوا بس.</div>
 <div class="sg-pbar"><i id="musBar"></i></div><div class="sg-st" id="musSt"></div>
 <div class="r2"><button type="button" data-g="cancel">إلغاء</button><button type="button" class="go" data-g="up" id="musGo">رفع</button></div></div>`;
@@ -12605,7 +12637,7 @@ function sgSheet(){
 async function musDoUpload(){
   if(!S.isAdmin||MUS.upBusy)return;
   const f=(document.getElementById("musFile").files||[])[0],url=document.getElementById("musUrl").value.trim(),
-    title=document.getElementById("musTitle").value.trim()||(f?f.name.replace(/\.[^.]+$/,""):""),artist=document.getElementById("musArtist").value.trim();
+    title=document.getElementById("musTitle").value.trim()||(f?f.name.replace(/\.[^.]+$/,""):""),artist=document.getElementById("musArtist").value.trim(),vol=Math.max(100,Math.min(1000,parseInt((document.getElementById("musVol")||{}).value,10)||100));
   const bar=document.getElementById("musBar"),go=document.getElementById("musGo"),st=document.getElementById("musSt");
   if(!f&&!/^https?:\/\//i.test(url)){try{toast("اختار ملف صوت أو حط رابط")}catch(_){}return}
   if(!title){try{toast("اكتب اسم الأغنية")}catch(_){}return}
@@ -12621,7 +12653,7 @@ async function musDoUpload(){
       const worker=async()=>{while(true){const k=next++;if(k>=parts)return;await setDoc(doc(db,"songParts",id+"_"+k),{sid:id,k,d:b64.slice(k*CH,(k+1)*CH)});done++;bar.style.width=Math.round(done/parts*96)+"%";const sec=(Date.now()-t0)/1000;st.textContent="رفع "+done+" / "+parts+" جزء · "+((done*CH*0.75/1048576)/Math.max(sec,.1)).toFixed(1)+" MB/s"}};
       await Promise.all(Array.from({length:Math.min(5,parts)},worker));
       st.textContent="تثبيت الأغنية…";
-      await setDoc(doc(db,"songs",id),{title,artist,size:f.size,mime:f.type||"audio/mpeg",parts,ts:serverTimestamp(),by:S.user.uid});
+      await setDoc(doc(db,"songs",id),{title,artist,size:f.size,mime:f.type||"audio/mpeg",parts,vol,ts:serverTimestamp(),by:S.user.uid});
     }else{
       await setDoc(doc(db,"songs",id),{title,artist,url,parts:0,ts:serverTimestamp(),by:S.user.uid});
     }
@@ -12644,7 +12676,7 @@ function musSubStart(){
     if(curId&&MUS.cur<0)musStop();
     try{sgList();sgNow()}catch(_){}
     musWarm();
-  },e=>{MUS.err=(e&&e.code)||"error";__musUnsub=null;try{sgList()}catch(_){}})}catch(_){}
+  },e=>{MUS.err=(e&&e.code)||"error";__musUnsub=null;try{moraErr(MUS.err==="permission-denied"?"firebase":"network","قايمة الأغاني: "+MUS.err+(MUS.err==="permission-denied"?" (قواعد songs/songParts ناقصة)":""),"mus.list")}catch(_){}try{sgList()}catch(_){}})}catch(_){}
 }
 function musSubStop(){try{__musUnsub&&__musUnsub()}catch(_){}__musUnsub=null}
 async function musWarm(){
@@ -12657,8 +12689,20 @@ async function musWarm(){
 
 Object.assign(A,{openMora(){moraOpen()},closeMora(){moraClose()},openSongs(){sgOpen(false)},
   songUpload(){sgOpen(false);setTimeout(()=>{try{sgSheet()}catch(_){}},150)},
+  songVol(d){const x=MUS.list[+d.i];if(!x||!S.isAdmin)return;const el=document.getElementById("sv"+d.i),v=Math.max(100,Math.min(1000,parseInt(el&&el.value,10)||100));updateDoc(doc(db,"songs",x.id),{vol:v}).then(()=>{x.vol=v;try{toast("اتحفظ مستوى الصوت "+v+"% ✓",true)}catch(_){}}).catch(e=>{try{toast("فشل الحفظ — "+((e&&e.code)||""))}catch(_){}})},
   songsReload(){musLoad(true).then(()=>{if(S.tab==="songs")render(true)})},
   async songDel(d){await sgDel(+d.i);if(S.tab==="songs")render(true)}});
+document.addEventListener("click",function(ev){
+  try{
+    const a=ev.target&&ev.target.closest&&ev.target.closest("a[href]");if(!a)return;
+    if(ev.defaultPrevented||a.hasAttribute("download")||a.dataset.ext==="1")return;
+    const u=new URL(a.href,location.href);
+    if(!/^https?:$/.test(u.protocol)||u.origin===location.origin)return;
+    if(MORA_BLOCK.test(u.hostname)||/\.(apk|zip|pdf)(\?|$)/i.test(u.pathname))return;
+    if(!(S.user||S.isAdmin))return;
+    ev.preventDefault();moraOpen();moraGo(u.href);
+  }catch(_){}
+},true);
 window.openMoraBrowser=moraOpen;window.closeMoraBrowser=moraClose;
 /* v143 سرعة: لو الجهاز بيرسم أقل من 38 إطار/ثانية نفعّل وضع الأداء تلقائيًا مرة واحدة (والطالب يقدر يلغيه) */
 (function(){try{if(localStorage.getItem("lite_mode")!==null||localStorage.getItem("fps_probe"))return;
