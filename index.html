@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v145">
+<meta name="sw-build" content="v146">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
@@ -2815,7 +2815,7 @@ if(configured){
   onSnapshot(doc(db,"config","site"),s=>{
     const d=s.exists()?s.data():{};
     const was=S.site.maintenance;
-    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",aiProxy:d.aiProxy||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",pushUrl:d.pushUrl||"",resetPassUrl:d.resetPassUrl||"",booksUrl:d.booksUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0,appMode:d.appMode||"platform",modes:Array.isArray(d.modes)?d.modes:[],modesOff:Array.isArray(d.modesOff)?d.modesOff.filter(x=>typeof x==="string").slice(0,30):[],modeHome:(d.modeHome&&typeof d.modeHome==="object")?d.modeHome:{},lastBackupAt:d.lastBackupAt||null,lastBackupDocs:d.lastBackupDocs||0};
+    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",aiProxy:d.aiProxy||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",pushUrl:d.pushUrl||"",resetPassUrl:d.resetPassUrl||"",booksUrl:d.booksUrl||"",proxyUrl:d.proxyUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0,appMode:d.appMode||"platform",modes:Array.isArray(d.modes)?d.modes:[],modesOff:Array.isArray(d.modesOff)?d.modesOff.filter(x=>typeof x==="string").slice(0,30):[],modeHome:(d.modeHome&&typeof d.modeHome==="object")?d.modeHome:{},lastBackupAt:d.lastBackupAt||null,lastBackupDocs:d.lastBackupDocs||0};
     S.siteRaw=d;applyAiCfg();
     if(S.user&&!S.isAdmin)try{syncFeatureAvailability()}catch(_){}
     // تحديث جماعي غير قسري: لا نمسح كاش المستخدم ولا نعيد تحميل الصفحة تلقائيًا.
@@ -5809,6 +5809,10 @@ function adminSettings(){
 <input id="resetUrlIn" name="reset_worker_x" class="ltr" type="text" inputmode="url" placeholder="https://mora-reset.xxxx.workers.dev/reset-pass" value="${esc(/^https?:\/\//i.test(S.site.resetPassUrl||"")?S.site.resetPassUrl:"")}" autocomplete="off" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')">
 <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sm" data-act="saveResetUrl">💾 حفظ وسيط الاستعادة</button></div>
 <div class="mut" style="margin-top:6px">لو حظيته: الطالب اللي نسي كلمة السر يفتح صفحة الدخول → «نسيت كلمة السر؟» → يدخل رقمه + الكود اللي انت أصدرته من ملف الطالب + كلمة سر جديدة. (الكود بيتولّد من زرار «🔑 كود استعادة» في ملف الطالب عندك).</div>
+<label class="f" style="margin-top:12px">🌐 وسيط المتصفح والبحث (Cloudflare Worker) — بيخلي المتصفح يفتح المواقع الممنوعة ويبحث في الويب فعلاً</label>
+<input id="proxyUrlIn" name="proxy_worker_x" class="ltr" type="text" inputmode="url" placeholder="https://mora-proxy.xxxx.workers.dev" value="${esc(/^https?:\/\//i.test(S.site.proxyUrl||"")?S.site.proxyUrl:"")}" autocomplete="off">
+<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sm" data-act="saveProxyUrl">💾 حفظ وسيط المتصفح</button></div>
+<div class="mut" style="margin-top:6px">ارفع ملف mora-proxy-worker.js على Cloudflare Workers وحط رابطه هنا. من غيره: البحث بيجيب نتائج ويكيبيديا بس، والمواقع الممنوعة بتتفتح بره المنصة.</div>
 <label class="f" style="margin-top:12px">📚 رابط وسيط كتب الـ AI (Cloudflare Worker)</label>
 <input id="booksUrlIn" name="books_worker_x" class="ltr" type="text" inputmode="url" placeholder="https://mora-books.xxxx.workers.dev" value="${esc(/^https?:\/\//i.test(S.site.booksUrl||"")?S.site.booksUrl:"")}" autocomplete="off" data-1p-ignore readonly onfocus="this.removeAttribute('readonly')">
 <label class="f" style="margin-top:6px">🔑 مفتاح أدمن الكتب (ADMIN_KEY بتاع الوسيط)</label>
@@ -6082,6 +6086,13 @@ const A={
     const u=($("#resetUrlIn")&&$("#resetUrlIn").value||"").trim().replace(/\/+$/,"");
     if(u&&!/^https:\/\/[^\s]+\.[^\s]+$/i.test(u)){toast("الرابط لازم يبدأ بـ https://",true);return}
     try{await setDoc(doc(db,"config","site"),{resetPassUrl:u},{merge:true});if(S.site)S.site.resetPassUrl=u;toast(u?"اتحفظ وسيط الاستعادة ✓":"اتشال وسيط الاستعادة",true)}
+    catch(e){toast("فشل الحفظ",true)}
+  },
+  async saveProxyUrl(){
+    if(!S.isAdmin)return;
+    const u=($("#proxyUrlIn")&&$("#proxyUrlIn").value||"").trim().replace(/\/+$/,"");
+    if(u&&!/^https:\/\/[^\s]+\.[^\s]+$/i.test(u)){toast("الرابط لازم يبدأ بـ https://",true);return}
+    try{await setDoc(doc(db,"config","site"),{proxyUrl:u},{merge:true});if(S.site)S.site.proxyUrl=u;toast(u?"اتحفظ وسيط المتصفح ✓":"اتشال وسيط المتصفح",true)}
     catch(e){toast("فشل الحفظ",true)}
   },
   async saveBooksUrl(){
@@ -9893,7 +9904,7 @@ function __restoreNavState(){
       }catch(_e){S.view="home"}
       return;
     }
-    const ok=["home","subject","progress","games","asmList","me","fadaye7","books","ai","chatList","search","groups","life","bag","gallery","focus","notes","profile","tanagha","flash"];
+    const ok=["home","subject","progress","asmList","me","fadaye7","books","ai","chatList","search","groups","life","bag","gallery","focus","notes","profile","tanagha","flash"];
     if(ok.includes(st.view)){S.view=st.view;if(st.subject)S.subject=st.subject;if(st.tab)S.tab=st.tab;if(st.chatTab)S.chatTab=st.chatTab;try{scheduleRender()}catch(_){}}
     else S.view="home";
   }catch(_e){S.view="home"}
@@ -11998,7 +12009,7 @@ function moraNorm(v){
   if(/^(javascript|data|vbscript|file|blob):/i.test(v))return "";
   if(/^https?:\/\//i.test(v))return v;
   if(v.includes(".")&&!/\s/.test(v))return "https://"+v;
-  return "https://www.google.com/search?igu=1&q="+encodeURIComponent(v);
+  return "mora:search?q="+encodeURIComponent(v);
 }
 const moraCur=()=>MORA.tabs.find(t=>t.id===MORA.act)||null;
 const moraTitle=t=>t.title||(t.url?"…":"نافذة جديدة");
@@ -12016,7 +12027,7 @@ function moraFrame(t){
   const f=document.createElement("iframe");f.className="mora-frame";f.title="نافذة";
   f.setAttribute("sandbox","allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-pointer-lock allow-modals");f.setAttribute("allow","fullscreen; autoplay; gamepad; accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; clipboard-write");f.setAttribute("referrerpolicy","no-referrer");f.setAttribute("allowfullscreen","");
   f.style.display="none";
-  f.addEventListener("load",()=>{if(t.fr===f&&f.getAttribute("src")&&f.getAttribute("src")!=="about:blank"){moraProg(false)}});
+  f.addEventListener("load",()=>{if(t.fr===f&&f.getAttribute("src")&&f.getAttribute("src")!=="about:blank"){moraProg(false);try{const h=new URL(t.url).hostname;if(!/wikipedia\.org|khanacademy|ekb\.eg/.test(h)){MORA.hint.classList.add("load");clearTimeout(MORA.tm);MORA.tm=setTimeout(()=>MORA.hint.classList.remove("load"),7000)}}catch(_){}}});
   MORA.stage.appendChild(f);t.fr=f;return f;
 }
 function moraProg(on){
@@ -12040,15 +12051,22 @@ function moraNav(){
 function moraActivate(id){
   const t=MORA.tabs.find(x=>x.id===id);if(!t)return;MORA.act=id;
   MORA.tabs.forEach(x=>{if(x.fr&&x!==t)x.fr.style.display="none"});
-  MORA.home.style.display=t.url?"none":"";
-  if(t.url){if(!t.fr){moraFrame(t);t.fr.src=t.url;moraProg(true)}t.fr.style.display="";moraLive(t)}
-  else moraProg(false);
-  MORA.inp.value=t.url||"";moraTabsRender();moraNav();moraSave();
+  const u=t.url||"",srch=moraIsSearch(u),blk=!srch&&!!u&&moraBlockedNow(t);
+  MORA.home.style.display=u?"none":"";
+  if(MORA.srch)MORA.srch.style.display=srch?"":"none";
+  if(MORA.blk){MORA.blk.style.display=blk?"flex":"none";if(blk){const h=MORA.blk.querySelector(".bh");if(h){try{h.textContent=new URL(u).hostname.replace(/^www\./,"")}catch(_){h.textContent=""}}}}
+  if(srch){if(t.fr)t.fr.style.display="none";moraProg(false);moraSearchRender(t)}
+  else if(u&&!blk){if(!t.fr){moraFrame(t);t.fr.src=moraSrc(t,u);moraProg(true)}t.fr.style.display="";moraLive(t)}
+  else{if(t.fr)t.fr.style.display="none";moraProg(false)}
+  MORA.inp.value=srch?moraQ(u):u;moraTabsRender();moraNav();moraSave();
 }
 function moraSetUrl(t,u){
-  t.url=u;try{t.title=new URL(u).hostname.replace(/^www\./,"")}catch(_){t.title=""}
+  t.url=u;t.force=0;
+  if(moraIsSearch(u))t.title="🔎 "+moraQ(u).slice(0,24);
+  else{try{t.title=new URL(u).hostname.replace(/^www\./,"")}catch(_){t.title=""}}
+  if(moraIsSearch(u)||moraBlockedNow(t)){if(t.fr){try{t.fr.src="about:blank"}catch(_){}}t._sh="";moraActivate(t.id);return}
   if(!t.fr)moraFrame(t);
-  t.fr.src=u;moraProg(true);moraActivate(t.id);
+  t.fr.src=moraSrc(t,u);moraProg(true);moraActivate(t.id);
 }
 function moraGo(v){
   const u=moraNorm(v);if(!u){try{toast("الرابط مش صالح")}catch(_){}return}
@@ -12061,7 +12079,7 @@ function moraStep(n){
   const u=k>=0?t.hist[k]:"";
   if(u)moraSetUrl(t,u);else{t.url="";t.title="";if(t.fr){try{t.fr.src="about:blank"}catch(_){}}moraActivate(t.id)}
 }
-function moraReload(){const t=moraCur();if(t&&t.url&&t.fr){moraProg(true);t.fr.src=t.url}}
+function moraReload(){const t=moraCur();if(!t||!t.url)return;if(moraIsSearch(t.url)){moraSearchRender(t,true);return}if(t.fr){moraProg(true);t.fr.src=moraSrc(t,t.url)}}
 function moraNew(){const t=moraAdd();if(!t)return;moraActivate(t.id);setTimeout(()=>{try{MORA.inp.focus()}catch(_){}},80)}
 function moraCloseTab(id){
   const k=MORA.tabs.findIndex(t=>t.id===id);if(k<0)return;const t=MORA.tabs[k];
@@ -12082,7 +12100,7 @@ function moraCloseOthers(){
 function moraMenu(on){
   const m=MORA.el.querySelector(".mora-menu"),t=moraCur();
   if(on===false||m.classList.contains("on")&&on===undefined){m.classList.remove("on");return}
-  m.innerHTML=`<button type="button" data-m="new">➕ نافذة جديدة</button><button type="button" data-m="pin">${t&&t.pin?"📍 إلغاء تثبيت النافذة":"📌 تثبيت النافذة"}</button><button type="button" data-m="home">🏠 الصفحة الرئيسية</button><button type="button" data-m="ext">↗ فتح في متصفح الجهاز</button><button type="button" data-m="closetab">🗑 إغلاق النافذة</button><button type="button" data-m="closeothers">🧹 إغلاق غير المثبّتة</button>`;
+  m.innerHTML=`<button type="button" data-m="new">➕ نافذة جديدة</button><button type="button" data-m="pin">${t&&t.pin?"📍 إلغاء تثبيت النافذة":"📌 تثبيت النافذة"}</button><button type="button" data-m="home">🏠 الصفحة الرئيسية</button><button type="button" data-m="ext">↗ فتح في متصفح الجهاز</button>${moraProxy()?'<button type="button" data-m="px">🛡 فتح الصفحة عبر الوسيط</button>':""}<button type="button" data-m="closetab">🗑 إغلاق النافذة</button><button type="button" data-m="closeothers">🧹 إغلاق غير المثبّتة</button>`;
   m.classList.add("on");
 }
 function moraApp(pkg){
@@ -12126,7 +12144,7 @@ function moraBuild(){
 <button type="button" class="mora-ib" data-m="menu" aria-label="القائمة">⋯</button>
 <button type="button" class="mora-x" data-m="close" aria-label="تصغير">⌄</button></div>
 <div class="mora-prog"></div><div class="mora-tabs" dir="rtl"></div></div>
-<div class="mora-hint" dir="rtl"><span>الصفحة بطيئة أو الموقع بيمنع الفتح هنا</span><button type="button" data-m="ext">↗ فتح في متصفح الجهاز</button></div>
+<div class="mora-hint" dir="rtl"><span>الصفحة بطيئة أو الموقع بيمنع الفتح هنا</span><button type="button" class="pxb" data-m="px" style="display:none">🛡 عبر الوسيط</button><button type="button" data-m="ext">↗ فتح في متصفح الجهاز</button></div>
 <div class="mora-stage" dir="rtl">
 <div class="mora-home"><div class="mh-hero"><div class="mh-logo">🌐</div><h2>متصفح التفوق</h2><p>ابحث في جوجل أو اكتب رابط موقع</p>
 <div class="mh-search"><input type="text" class="mh-in" inputmode="url" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="ابحث أو اكتب رابط…"><button type="button" class="mh-go" data-m="hgo" aria-label="بحث">🔍</button></div></div>
@@ -12134,11 +12152,16 @@ function moraBuild(){
 <div class="mora-menu" dir="rtl"></div>`;
   document.body.appendChild(d);
   MORA.el=d;MORA.inp=d.querySelector(".mora-url");MORA.hint=d.querySelector(".mora-hint");MORA.stage=d.querySelector(".mora-stage");MORA.home=d.querySelector(".mora-home");MORA.prog=d.querySelector(".mora-prog");
+  if(!document.getElementById("moraCss3")){const st=document.createElement("style");st.id="moraCss3";st.textContent=MORA_CSS3;document.head.appendChild(st)}
+  {const sr=document.createElement("div");sr.className="mora-srch";sr.style.display="none";MORA.stage.appendChild(sr);MORA.srch=sr;
+   const bl=document.createElement("div");bl.className="mora-block";bl.style.display="none";
+   bl.innerHTML='<div class="bi">🚫</div><h3>الموقع ده بيمنع الفتح جوه المنصة</h3><p><b class="bh"></b> بيرفض يتعرض داخل أي تطبيق أو متصفح مدمج. افتحه في متصفح الجهاز، أو اطلب من الأدمن يفعّل «وسيط المتصفح».</p><button type="button" class="b1" data-m="ext">↗ فتح في متصفح الجهاز</button><button type="button" class="b2" data-m="force">جرّب أفتحه هنا برضو</button><button type="button" class="b2" data-m="home">🏠 الصفحة الرئيسية</button>';
+   MORA.stage.appendChild(bl);MORA.blk=bl}
   d.addEventListener("click",e=>{
     const mn=d.querySelector(".mora-menu");if(mn.classList.contains("on")&&!e.target.closest(".mora-menu")&&!e.target.closest('[data-m="menu"]'))mn.classList.remove("on");
     const x=e.target.closest("[data-x]");if(x){e.stopPropagation();moraCloseTab(x.dataset.x);return}
     const tb=e.target.closest("[data-t]");if(tb){moraActivate(tb.dataset.t);return}
-    const b=e.target.closest("[data-m],[data-u],[data-p],[data-s]");if(!b)return;
+    const b=e.target.closest("[data-m],[data-u],[data-p],[data-s],[data-e]");if(!b)return;if(b.dataset.e){try{window.open(b.dataset.e,"_blank","noopener")}catch(_){}return}
     if(b.dataset.u){moraGo(b.dataset.u);return}
     if(b.dataset.p){moraApp(b.dataset.p);return}
     const m=b.dataset.m;mn.classList.remove("on");
@@ -12146,8 +12169,9 @@ function moraBuild(){
     else if(m==="menu"){moraMenu()}
     else if(m==="new")moraNew();else if(m==="pin")moraPin();else if(m==="closetab"){const t=moraCur();if(t)moraCloseTab(t.id)}else if(m==="closeothers")moraCloseOthers();
     else if(m==="home"){const t=moraCur();if(t){t.url="";t.title="";if(t.fr){try{t.fr.src="about:blank"}catch(_){}}moraActivate(t.id)}}
-    else if(m==="ext"){const t=moraCur();if(t&&t.url)window.open(t.url,"_blank","noopener");else try{toast("افتح موقع الأول")}catch(_){}}
+    else if(m==="ext"){const t=moraCur();if(t&&t.url)window.open(moraIsSearch(t.url)?"https://www.google.com/search?q="+encodeURIComponent(moraQ(t.url)):t.url,"_blank","noopener");else try{toast("افتح موقع الأول")}catch(_){}}
     else if(m==="hgo"){const i=d.querySelector(".mh-in");if(i&&i.value.trim()){moraGo(i.value);i.value=""}}
+    else if(m==="px"){moraViaProxy()}else if(m==="force"){const t=moraCur();if(t){t.force=1;moraActivate(t.id)}}
   });
   d.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.classList&&e.target.classList.contains("mh-in")&&e.target.value.trim()){moraGo(e.target.value);e.target.value="";e.target.blur()}});
   MORA.inp.addEventListener("keydown",e=>{if(e.key==="Enter"){moraGo(MORA.inp.value);MORA.inp.blur()}});
@@ -12158,6 +12182,7 @@ function moraBuild(){
   if(!MORA.tabs.some(t=>t.id===MORA.act))MORA.act=MORA.tabs[0].id;
 }
 function moraOpen(panel){
+  try{const pb=MORA.el&&MORA.el.querySelector(".pxb");if(pb)pb.style.display=moraProxy()?"":"none"}catch(_){}
   moraBuild();MORA.el.classList.add("on");document.documentElement.classList.add("mora-lock");
   moraActivate(MORA.act);
 }
@@ -12166,6 +12191,73 @@ function moraClose(){
   MORA.el.classList.remove("on");document.documentElement.classList.remove("mora-lock");
   moraSave();   /* النوافذ بتفضل شغّالة في الخلفية */
 }
+
+/* ===== Mora v2: proxy, search, blocked-site handling, back button ===== */
+const MORA_BLOCK=/(^|\.)(google\.[a-z.]+|youtube\.com|youtu\.be|facebook\.com|fb\.com|instagram\.com|twitter\.com|x\.com|tiktok\.com|poki\.com|crazygames\.com|netflix\.com|whatsapp\.com|telegram\.org|t\.me|github\.com|reddit\.com|linkedin\.com|amazon\.[a-z.]+|bing\.com|duckduckgo\.com|snapchat\.com|twitch\.tv|spotify\.com|discord\.com|roblox\.com|y8\.com|miniclip\.com|friv\.com|coolmathgames\.com)$/i;
+const moraProxy=()=>((S.site&&S.site.proxyUrl)||"").trim().replace(/\/+$/,"");
+const moraIsSearch=u=>/^mora:search\?q=/.test(String(u||""));
+function moraQ(u){try{return decodeURIComponent(String(u||"").replace(/^mora:search\?q=/,""))}catch(_){return String(u||"").replace(/^mora:search\?q=/,"")}}
+function moraBlocked(u){try{return MORA_BLOCK.test(new URL(u).hostname)}catch(_){return false}}
+function moraBlockedNow(t){return !moraProxy()&&!t.force&&moraBlocked(t.url)}
+function moraSrc(t,u){const px=moraProxy();return(px&&(t.px||moraBlocked(u)))?px+"/p?u="+encodeURIComponent(u):u}
+function moraViaProxy(){
+  const t=moraCur();if(!t||!t.url||moraIsSearch(t.url))return;
+  if(!moraProxy()){try{toast("الأدمن لسه مفعّلش وسيط المتصفح")}catch(_){}return}
+  t.px=1;t.force=1;if(!t.fr)moraFrame(t);t.fr.src=moraSrc(t,t.url);moraProg(true);moraActivate(t.id);
+}
+async function moraSearchRender(t,force){
+  const box=MORA.srch;if(!box)return;
+  const q=moraQ(t.url);
+  if(!force&&t._sh&&t._sq0===q){box.innerHTML=t._sh;return}
+  const tok=t._sq=(t._sq||0)+1;
+  const ext='<div class="ms-ext">'+[["🔎 جوجل","https://www.google.com/search?q="],["🦆 DuckDuckGo","https://duckduckgo.com/?q="],["Ⓑ Bing","https://www.bing.com/search?q="],["▶ يوتيوب","https://www.youtube.com/results?search_query="]].map(x=>'<button type="button" data-e="'+x[1]+encodeURIComponent(q)+'">'+x[0]+'</button>').join("")+'</div>';
+  box.innerHTML='<div class="ms-h">🔎 '+esc(q)+'</div>'+ext+'<div class="ms-load">جاري البحث…</div>';
+  const px=moraProxy(),lang=/[\u0600-\u06FF]/.test(q)?"ar":"en";
+  const jw=fetch("https://"+lang+".wikipedia.org/w/api.php?action=query&list=search&srsearch="+encodeURIComponent(q)+"&format=json&origin=*&srlimit=6&utf8=1").then(r=>r.json()).then(j=>((j.query&&j.query.search)||[]).map(x=>({t:x.title,u:"https://"+lang+".m.wikipedia.org/wiki/"+encodeURIComponent(String(x.title).replace(/ /g,"_")),s:String(x.snippet||"").replace(/<[^>]+>/g," ").replace(/&quot;/g,'"').replace(/&amp;/g,"&"),src:lang+".wikipedia.org"}))).catch(()=>[]);
+  const jp=px?fetch(px+"/s?q="+encodeURIComponent(q)).then(r=>r.json()).then(j=>(j.results||[]).slice(0,12).map(x=>{let h="";try{h=new URL(x.url).hostname.replace(/^www\./,"")}catch(_){}return{t:x.title,u:x.url,s:x.snippet,src:h}})).catch(()=>[]):Promise.resolve([]);
+  const [web,wiki]=await Promise.all([jp,jw]);
+  if(t._sq!==tok)return;
+  const card=x=>'<button type="button" class="ms-r" data-u="'+esc(x.u)+'"><b dir="auto">'+esc(x.t)+'</b><small>'+esc(x.src)+'</small><span dir="auto">'+esc(String(x.s||"").slice(0,180))+'</span></button>';
+  let h='<div class="ms-h">🔎 '+esc(q)+'</div>'+ext;
+  if(web.length)h+='<div class="ms-sec">نتائج الويب</div>'+web.map(card).join("");
+  if(wiki.length)h+='<div class="ms-sec">ويكيبيديا</div>'+wiki.map(card).join("");
+  if(!web.length&&!wiki.length)h+='<div class="ms-load">مفيش نتائج هنا — جرّب محرك بحث من فوق</div>';
+  if(!px)h+='<div class="ms-note">للبحث في كل الويب جوه المنصة: الأدمن يفعّل «وسيط المتصفح» من الإعدادات.</div>';
+  t._sh=h;t._sq0=q;
+  if(moraCur()===t&&MORA.srch)box.innerHTML=h;
+}
+const MORA_CSS3=`
+#moraBrowserModal .mora-srch{position:absolute;inset:0;overflow:auto;padding:14px 14px 90px;background:#0b0d17;color:#fff;-webkit-overflow-scrolling:touch}
+.ms-h{font-size:18px;font-weight:700;margin:4px 2px 12px;word-break:break-word}
+.ms-ext{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}.ms-ext::-webkit-scrollbar{display:none}
+.ms-ext button{flex:none;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#fff;border-radius:99px;padding:9px 14px;font:inherit;font-size:13px;cursor:pointer}
+.ms-sec{margin:14px 2px 8px;font-size:12px;color:rgba(255,255,255,.55)}
+.ms-r{display:block;width:100%;text-align:start;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);color:#fff;border-radius:16px;padding:12px 14px;margin-bottom:9px;font:inherit;cursor:pointer;animation:msIn .3s both}
+.ms-r b{display:block;font-size:15.5px;color:#9ec5ff;margin-bottom:2px}.ms-r small{display:block;font-size:11.5px;color:#5fd3a0;margin-bottom:4px;direction:ltr;text-align:start}.ms-r span{display:block;font-size:13px;color:rgba(255,255,255,.72);line-height:1.6}
+.ms-r:active{background:rgba(124,92,255,.25)}
+@keyframes msIn{from{opacity:0;transform:translateY(8px)}}
+.ms-load,.ms-note{text-align:center;color:rgba(255,255,255,.6);font-size:13.5px;padding:22px 10px}
+#moraBrowserModal .mora-block{position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:26px;text-align:center;background:radial-gradient(70% 40% at 50% 0%,rgba(255,176,32,.18),transparent 70%),#0b0d17;color:#fff}
+.mora-block .bi{font-size:56px}.mora-block h3{margin:0;font-size:20px}.mora-block p{margin:0;max-width:340px;font-size:14px;line-height:1.7;color:rgba(255,255,255,.7)}
+.mora-block button{width:100%;max-width:320px;border:0;border-radius:14px;padding:13px;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+.mora-block .b1{background:linear-gradient(135deg,#7c5cff,#14b8a6);color:#fff}.mora-block .b2{background:rgba(255,255,255,.1);color:#fff}
+`;
+window.__modalBack=function(){
+  if(MORA.el&&MORA.el.classList.contains("on")){
+    const mn=MORA.el.querySelector(".mora-menu");
+    if(mn&&mn.classList.contains("on")){mn.classList.remove("on");return true}
+    const t=moraCur();if(t&&t.url&&t.i>=0){moraStep(-1);return true}
+    moraClose();return true;
+  }
+  if(SG.el&&SG.open){
+    const sh=SG.el.querySelector(".sg-sheet");if(sh&&!MUS.upBusy){sh.remove();return true}
+    const mm=SG.el.querySelector(".sg-menu");if(mm){mm.remove();return true}
+    if(SG.pv){SG.pv=false;sgNow();return true}
+    sgClose();return true;
+  }
+  return false;
+};
+
 /* ================= مكتبة الأغاني ================= */
 const MUS={list:[],cur:-1,au:null,tok:0,loading:false,rep:0,shuf:false,panel:false,loaded:0,blobUrl:"",seeking:false,unlocked:false,pf:-1,posT:0};
 const musFmt=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
@@ -12316,13 +12408,13 @@ const sgPlaying=()=>{const a=MUS.au;return !!(a&&!a.paused&&!a.ended)};
 const sgMini=()=>{const s=MUS.list[MUS.cur];if(!s)return"";const pl=sgPlaying();return `<div class="d"></div><div class="t"><b>${esc(s.title||"أغنية")}</b><small>${MUS.loading?"⏳ بيحمّل…":esc(s.artist||"مكتبة التفوق")}</small></div><span class="sg-eq${pl?" go":""}"><i></i><i></i><i></i></span><button type="button" data-g="toggle" aria-label="تشغيل/إيقاف">${pl?"⏸":"▶"}</button><button type="button" data-g="next" aria-label="التالي">⏭</button><button type="button" data-g="stop" aria-label="إيقاف">✕</button>`};
 function sgBuild(){
   if(SG.el)return;
-  if(!document.getElementById("sgCss")){const st=document.createElement("style");st.id="sgCss";st.textContent=SG_CSS;document.head.appendChild(st)}
+  if(!document.getElementById("sgCss")){const st=document.createElement("style");st.id="sgCss";st.textContent=SG_CSS;document.head.appendChild(st)}if(!document.getElementById("sgCss2")){const st2=document.createElement("style");st2.id="sgCss2";st2.textContent=SG_CSS2;document.head.appendChild(st2)}
   const d=document.createElement("div");d.id="sgApp";d.dir="rtl";d.setAttribute("role","dialog");d.setAttribute("aria-label","الأغاني");
   d.innerHTML=`<div class="sg-bg"></div>
 <div class="sg-lib"><div class="sg-top"><button type="button" class="sg-ib" data-g="close" aria-label="إغلاق">⌄</button><div class="sg-h"><b>🎵 الأغاني</b><small id="sgCount"></small></div>${S.isAdmin?'<button type="button" class="sg-ib gold" data-g="add" aria-label="رفع أغنية">＋</button>':'<span class="sg-ib" style="visibility:hidden"></span>'}</div>
 <div class="sg-sw"><i>🔎</i><input type="text" id="sgQ" placeholder="ابحث عن أغنية أو فنان" autocomplete="off"></div>
 <div class="sg-scroll"><div class="sg-list"></div></div><div class="sg-bar" data-g="open" style="display:none"></div></div>
-<div class="sg-pl"><div class="sg-top"><button type="button" class="sg-ib" data-g="list" aria-label="القائمة">‹</button><div class="sg-h"><small>بتشتغل الآن</small></div><button type="button" class="sg-ib" data-g="close" aria-label="تصغير">⌄</button></div><div class="sg-now"></div></div>`;
+<div class="sg-pl"><div class="sg-top2"><button type="button" class="sg-ib2" data-g="list" aria-label="القائمة">${SGI.down}</button><div class="sg-seg"><button type="button" data-g="tab" data-t="lyr">كلمات الأغنية</button><button type="button" class="on" data-g="tab" data-t="art">الغلاف</button></div><button type="button" class="sg-ib2" data-g="more" aria-label="المزيد">${SGI.more}</button></div><div class="sg-now"></div></div>`;
   document.body.appendChild(d);SG.el=d;
   d.addEventListener("click",sgClick);d.addEventListener("input",sgInput);d.addEventListener("change",sgChange);
 }
@@ -12342,14 +12434,11 @@ function sgList(){
 function sgNow(){
   const s=MUS.list[MUS.cur],pl=sgPlaying(),h=s?sgHue(s.title):262;
   if(SG.el){
-    SG.el.classList.toggle("pl",!!(SG.pv&&s));SG.el.style.setProperty("--bh",h);
+    SG.el.classList.toggle("pl",!!(SG.pv&&s));SG.el.style.setProperty("--bh",h);SG.el.querySelectorAll(".sg-seg button").forEach(x=>x.classList.toggle("on",x.dataset.t===(SG.tab||"art")));
     const n=SG.el.querySelector(".sg-now");
     if(n){
       n.style.setProperty("--h",h);
-      n.innerHTML=s?`<div class="sg-art${pl?" spin":""}"><div class="ring"></div><div class="core">♪</div></div><div class="sg-ti">${esc(s.title||"أغنية")}</div><div class="sg-ar">${MUS.loading?"⏳ بيحمّل الأغنية…":esc(s.artist||"مكتبة التفوق")}</div>
-<input type="range" class="sg-seek" id="musSeek" min="0" max="1000" value="0" dir="ltr" aria-label="التقديم"><div class="sg-tm" dir="ltr"><span id="musCur">0:00</span><span id="musDur">0:00</span></div>
-<div class="sg-ctl" dir="ltr"><button type="button" data-g="shuf" class="${MUS.shuf?"on":""}" aria-label="عشوائي">🔀</button><button type="button" data-g="prev" aria-label="السابق">⏮</button><button type="button" class="sg-pp" data-g="toggle" aria-label="تشغيل/إيقاف">${pl?"⏸":"▶"}</button><button type="button" data-g="next" aria-label="التالي">⏭</button><button type="button" data-g="rep" class="${MUS.rep?"on":""}" aria-label="تكرار">${MUS.rep===2?"🔂":"🔁"}</button></div>
-<button type="button" class="sg-stop" data-g="stop">⏹ إيقاف الأغنية</button>`:`<div class="sg-empty">اختار أغنية من القائمة</div>`;
+      n.innerHTML=s?sgNowHtml(s,pl):`<div class="sg-empty">اختار أغنية من القائمة</div>`;
       const a=MUS.au,p=document.getElementById("musSeek");
       if(a&&p&&a.duration&&isFinite(a.duration)){p.value=Math.round(a.currentTime/a.duration*1000);const c=document.getElementById("musCur"),d=document.getElementById("musDur");if(c)c.textContent=musFmt(a.currentTime);if(d)d.textContent=musFmt(a.duration)}
     }
@@ -12361,12 +12450,103 @@ function sgNow(){
   if(!p){p=document.createElement("div");p.className="sg-pill";p.dir="rtl";p.dataset.g="open";p.addEventListener("click",sgClick);document.body.appendChild(p);SG.pill=p}
   p.style.display="flex";p.style.setProperty("--h",h);p.innerHTML=sgMini();
 }
+
+/* ===== Songs v2: native-style player ===== */
+const svgI=(p,o)=>{o=o||{};return '<svg viewBox="0 0 24 24" width="'+(o.s||26)+'" height="'+(o.s||26)+'" '+(o.f?'fill="currentColor"':'fill="none" stroke="currentColor" stroke-width="'+(o.w||2)+'" stroke-linecap="round" stroke-linejoin="round"')+'>'+p+'</svg>'};
+const SGI={
+  down:svgI('<path d="M5 9l7 7 7-7"/>',{s:30,w:2.2}),
+  more:svgI('<circle cx="12" cy="5" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="12" cy="19" r="1.9"/>',{f:1,s:24}),
+  dl:svgI('<path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/>',{s:30,w:1.8}),
+  heart:svgI('<path d="M12 20s-7-4.6-9.2-9A5 5 0 0 1 12 6.5 5 5 0 0 1 21.2 11C19 15.4 12 20 12 20z"/>',{s:32,w:1.7}),
+  heartOn:svgI('<path d="M12 20s-7-4.6-9.2-9A5 5 0 0 1 12 6.5 5 5 0 0 1 21.2 11C19 15.4 12 20 12 20z"/>',{s:32,f:1}),
+  prev:svgI('<path d="M6 5h2.4v14H6zM20 5v14L9.6 12z"/>',{s:34,f:1}),
+  next:svgI('<path d="M15.6 5H18v14h-2.4zM4 5l10.4 7L4 19z"/>',{s:34,f:1}),
+  play:svgI('<path d="M8 5.5v13l11-6.5z"/>',{s:42,f:1}),
+  pause:svgI('<path d="M7 5h3.8v14H7zM13.2 5H17v14h-3.8z"/>',{s:40,f:1}),
+  rep:svgI('<path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/>',{s:28,w:1.8}),
+  rep1:svgI('<path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/><path d="M11 10l1.4-1V15"/>',{s:28,w:1.8}),
+  queue:svgI('<path d="M3 6h13M3 12h13M3 18h8"/><path d="M18 14.5l4 2.5-4 2.5z" fill="currentColor"/>',{s:30,w:1.8})
+};
+const sgFavKey=()=>"sg_fav_"+((S.user&&S.user.uid)||"g");
+function sgFavList(){try{return JSON.parse(localStorage.getItem(sgFavKey())||"[]")}catch(_){return[]}}
+const sgFav=s=>sgFavList().includes(s.id||s.title);
+function sgFavToggle(){const s=MUS.list[MUS.cur];if(!s)return;const k=s.id||s.title,a=sgFavList(),i=a.indexOf(k);if(i>=0)a.splice(i,1);else a.push(k);try{localStorage.setItem(sgFavKey(),JSON.stringify(a))}catch(_){}try{toast(i>=0?"اتشالت من المفضلة":"اتضافت للمفضلة ❤️",true)}catch(_){}}
+async function sgDownload(){
+  const s=MUS.list[MUS.cur];if(!s)return;
+  try{toast("⏳ بجهّز التحميل…")}catch(_){}
+  try{
+    let url=s.url,rev=false;
+    if(!url){const b=await musFetchBlob(s);url=URL.createObjectURL(b);rev=true}
+    const a=document.createElement("a");a.href=url;a.download=String(s.title||"song").replace(/[\\\/:*?"<>|]+/g,"_")+".mp3";if(!rev)a.target="_blank";a.rel="noopener";
+    document.body.appendChild(a);a.click();a.remove();if(rev)setTimeout(()=>URL.revokeObjectURL(url),30000);
+    try{toast("بدأ التحميل ✓",true)}catch(_){}
+  }catch(e){try{toast("مقدرتش أحمّل الأغنية")}catch(_){}}
+}
+function sgMore(){
+  const pl=SG.el&&SG.el.querySelector(".sg-pl");if(!pl)return;
+  const m=document.createElement("div");m.className="sg-menu";
+  m.innerHTML='<button type="button" data-g="dl">⬇ تحميل الأغنية</button><button type="button" data-g="list">☰ قائمة الأغاني</button><button type="button" data-g="stop">⏹ إيقاف الأغنية</button>';
+  pl.appendChild(m);
+}
+function sgNowHtml(s,pl){
+  const fav=sgFav(s),tab=SG.tab==="lyr"?"lyr":"art";
+  const cover='<div class="sg2-art'+(pl?" spin":"")+'"><span class="nt">♪</span><img src="logo.webp" alt="" onerror="this.style.display=\'none\'"></div>';
+  const lyr='<div class="sg2-lyr" dir="auto">'+(s.lyrics?esc(s.lyrics).replace(/\n/g,"<br>"):'<div class="e">🎤<br>مفيش كلمات متاحة للأغنية دي لسه</div>')+'</div>';
+  return (tab==="art"?cover:lyr)
+   +'<div class="sg2-meta"><div class="tx"><b>'+esc(s.title||"أغنية")+'</b><small>'+(MUS.loading?"⏳ بيحمّل…":esc(s.artist||"مكتبة التفوق"))+'</small></div>'
+   +'<button type="button" class="sg2-i" data-g="dl" aria-label="تحميل">'+SGI.dl+'</button>'
+   +'<button type="button" class="sg2-i'+(fav?" on":"")+'" data-g="fav" aria-label="المفضلة">'+(fav?SGI.heartOn:SGI.heart)+'</button></div>'
+   +'<input type="range" class="sg-seek sg2-seek" id="musSeek" min="0" max="1000" value="0" dir="ltr" aria-label="التقديم"><div class="sg-tm" dir="ltr"><span id="musCur">0:00</span><span id="musDur">0:00</span></div>'
+   +'<div class="sg2-ctl" dir="ltr"><button type="button" data-g="rep" class="'+(MUS.rep?"on":"")+'" aria-label="تكرار">'+(MUS.rep===2?SGI.rep1:SGI.rep)+'</button>'
+   +'<button type="button" data-g="prev" aria-label="السابق">'+SGI.prev+'</button>'
+   +'<button type="button" class="sg2-pp" data-g="toggle" aria-label="تشغيل/إيقاف">'+(pl?SGI.pause:SGI.play)+'</button>'
+   +'<button type="button" data-g="next" aria-label="التالي">'+SGI.next+'</button>'
+   +'<button type="button" data-g="list" aria-label="القائمة">'+SGI.queue+'</button></div>';
+}
+const SG_CSS2=`
+#sgApp .sg-pl{background:linear-gradient(180deg,hsl(var(--bh,262) 52% 17%),hsl(var(--bh,262) 58% 8%))}
+#sgApp .sg-bg{opacity:.5}
+.sg-top2{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(12px + env(safe-area-inset-top,0px)) 14px 6px}
+.sg-ib2{width:46px;height:46px;border:0;background:none;color:#fff;display:flex;align-items:center;justify-content:center;border-radius:50%;cursor:pointer;-webkit-tap-highlight-color:transparent}.sg-ib2:active{background:rgba(255,255,255,.14)}
+.sg-seg{display:flex;padding:5px;border-radius:99px;background:rgba(255,255,255,.12);gap:4px}
+.sg-seg button{border:0;background:none;color:rgba(255,255,255,.75);font:inherit;font-size:15px;padding:9px 20px;border-radius:99px;cursor:pointer;transition:background .25s,color .25s}
+.sg-seg button.on{background:#fff;color:#111;font-weight:700}
+#sgApp .sg-now{justify-content:flex-start;align-items:stretch;text-align:start;padding:16px 24px calc(24px + env(safe-area-inset-bottom,0px))}
+.sg2-art{position:relative;flex:none;width:100%;max-width:440px;margin:6px auto 24px;aspect-ratio:1;border-radius:34px;overflow:hidden;background:linear-gradient(160deg,#f6f6f8 0%,#bdbdc4 58%,#7b7b82 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 24px 54px rgba(0,0,0,.5);transition:transform .5s}
+.sg2-art img{width:76%;height:auto;max-height:76%;object-fit:contain;filter:drop-shadow(0 6px 10px rgba(0,0,0,.25))}
+.sg2-art .nt{position:absolute;font-size:150px;color:rgba(0,0,0,.1);line-height:1}
+.sg2-art.spin{animation:sgPulse 3.6s ease-in-out infinite}
+.sg2-lyr{flex:none;width:100%;max-width:440px;margin:6px auto 24px;aspect-ratio:1;overflow:auto;border-radius:30px;background:rgba(255,255,255,.07);padding:22px;font-size:18px;line-height:2;text-align:center}
+.sg2-lyr .e{opacity:.6;padding-top:26%}
+.sg2-meta{display:flex;align-items:center;gap:4px;width:100%;max-width:440px;margin:0 auto}
+.sg2-meta .tx{flex:1;min-width:0;text-align:start}
+.sg2-meta b{display:block;font-size:24px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sg2-meta small{display:block;font-size:16px;color:rgba(255,255,255,.62);margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sg2-i{flex:none;width:48px;height:48px;border:0;background:none;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .15s,color .2s;-webkit-tap-highlight-color:transparent}
+.sg2-i:active{transform:scale(.85)}.sg2-i.on{color:#ff4d6d}.sg2-i.on svg{animation:sgHeart .4s}
+@keyframes sgHeart{40%{transform:scale(1.35)}}
+.sg2-seek{width:100%;max-width:440px;margin:28px auto 6px;height:5px;display:block}
+#sgApp .sg-tm{width:100%;max-width:440px;margin:0 auto 20px}
+.sg2-ctl{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:440px;margin:0 auto}
+.sg2-ctl button{border:0;background:none;color:#fff;width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.92;transition:transform .15s;-webkit-tap-highlight-color:transparent}
+.sg2-ctl button:active{transform:scale(.88)}.sg2-ctl button.on{color:#ffb020}
+.sg2-ctl .sg2-pp{width:86px;height:86px;border:2.5px solid #fff;opacity:1}
+.sg-menu{position:absolute;top:calc(64px + env(safe-area-inset-top,0px));inset-inline-end:14px;z-index:6;min-width:210px;background:rgba(30,30,44,.97);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:6px;box-shadow:0 16px 40px rgba(0,0,0,.5);animation:sgMenu .18s ease-out}
+@keyframes sgMenu{from{opacity:0;transform:translateY(-6px) scale(.96)}}
+.sg-menu button{display:block;width:100%;text-align:start;border:0;background:none;color:#fff;font:inherit;font-size:14.5px;padding:12px;border-radius:11px;cursor:pointer}.sg-menu button:active{background:rgba(255,255,255,.1)}
+`;
+
 function musUi(){try{sgNow()}catch(_){}}
 function musPanelRender(){try{sgList();sgNow()}catch(_){}}
 async function sgClick(e){
   const b=e.target.closest("[data-g]");
   if(!b){const r=e.target.closest(".sg-row");if(r){sgTap(+r.dataset.s)}return}
   const g=b.dataset.g;musUnlock();
+  let hadMenu=false;try{SG.el&&SG.el.querySelectorAll(".sg-menu").forEach(m=>{hadMenu=true;m.remove()})}catch(_){}
+  if(g==="more"){e.stopPropagation();if(!hadMenu)sgMore();return}
+  if(g==="tab"){SG.tab=b.dataset.t;sgNow();return}
+  if(g==="fav"){sgFavToggle();sgNow();return}
+  if(g==="dl"){sgDownload();return}
   if(g==="toggle"){e.stopPropagation();MUS.rs=0;musToggle();return}
   if(g==="next"){e.stopPropagation();musNext(false);return}
   if(g==="stop"){e.stopPropagation();musStop();SG.pv=false;sgNow();return}
@@ -13743,6 +13923,7 @@ window.addEventListener('appinstalled',()=>{
     const {S,pauseExamNow,uiDialog}=window.__elt||{};
     try{history.pushState({a:1},"")}catch(_){}
     if(!S)return;
+    try{if(typeof window.__modalBack==="function"&&window.__modalBack())return}catch(_){}
     const dlg=document.querySelector(".dlg-ov");
     if(dlg){const no=dlg.querySelector('[data-k="no"]');if(no)no.click();return}
     const pk=document.getElementById("reactPicker");if(pk){pk.remove();return}
