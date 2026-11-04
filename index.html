@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v143">
+<meta name="sw-build" content="v144">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v143";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
+<script>window.APP_BUILD="v144";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -1828,7 +1828,7 @@ html.mora-lock #app{visibility:hidden}
 </div>
 <style>html.lite *,html.lite *::before,html.lite *::after{animation:none!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}html.lite canvas#bgfx,html.lite .bgfx{display:none!important}</style>
 <script>(function(){try{var c=navigator.connection||{},weak=(navigator.deviceMemory&&navigator.deviceMemory<=2)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2)||c.saveData;var m=localStorage.getItem("lite_mode");if(m==="1"||(m!=="0"&&weak))document.documentElement.classList.add("lite")}catch(e){}})()</script>
-<div id="app"></div><div id="verBadge">v143</div>
+<div id="app"></div><div id="verBadge">v144</div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
@@ -2837,6 +2837,13 @@ if(configured){
   },()=>{S.site=Object.assign({maintenance:false,message:""},S.site||{},{maintenance:false});render()});
   // جلسة ثابتة: مفيش خروج غير لما الطالب يدوس «تسجيل خروج»
   let __authBoot=true;
+  window.__credAuto=async function(){
+    if(window.__credTried||!window.PasswordCredential||!navigator.credentials||S.registering)return;window.__credTried=1;
+    try{
+      const c=await navigator.credentials.get({password:true,mediation:"silent"});
+      if(c&&c.id&&c.password&&!auth.currentUser){const e=c.id.includes("@");await signInWithEmailAndPassword(auth,e?c.id.toLowerCase():phoneClean(c.id)+DOMAIN,c.password)}
+    }catch(_){}
+  };
   onAuthStateChanged(auth,u=>{
     window.__authUid=u?u.uid:"";
     if(S.registering)return;
@@ -2862,6 +2869,7 @@ if(configured){
           S.view="auth";
           __authBoot=false;
           render(true);
+          try{window.__credAuto&&window.__credAuto()}catch(_){}
         }
       }catch(e){
         console.error("auth run",e);
@@ -3017,9 +3025,14 @@ function render(force){
   }catch(_){}
   let __chatKeepTop=0;
   try{if(S.view==="chatThread"||S.view==="groupThread"){const __ck=chatLogEl();if(__ck)__chatKeepTop=__ck.scrollTop}}catch(_){}
+  /* v144: نفس الشاشة → نحافظ على مكان السكرول (كان الأدمن يترمي لفوق مع كل ضغطة) */
+  const __sy=(!__newView&&S.view!=="chatThread"&&S.view!=="groupThread")?window.scrollY:0;
+  const __navL=((document.querySelector(".adm-nav")||{}).scrollLeft)||0;
   app.innerHTML=h||`<div class="wrap"><div class="card empty"><div class="ei">⏳</div><b>لحظة…</b><div class="mut" style="margin:8px 0 12px">بنجهّز الصفحة</div><button class="btn" data-act="home">الرئيسية</button></div></div>`;
   if(!h&&!window.__emptyFix){window.__emptyFix=1;setTimeout(()=>{window.__emptyFix=0;try{if(!S.user){S.view="auth"}else if(!S.view||S.view==="loading"){S.view="home"}render(true)}catch(_){}},1200)}
   if(__aeId){const el=document.getElementById(__aeId);if(el){if(__aeVal!=null&&"value" in el)el.value=__aeVal;el.focus();if(__aePos!=null)try{el.setSelectionRange(__aePos,__aePos)}catch(_){}}}
+  if(__sy>0){try{window.scrollTo(0,__sy)}catch(_){}}
+  if(__navL){try{const __nn=document.querySelector(".adm-nav");if(__nn)__nn.scrollLeft=__navL}catch(_){}}
 
   try{app.querySelectorAll("img:not([loading])").forEach(function(im){im.loading="lazy";im.decoding="async"})}catch(_){}
   if(S.view==="chatThread"||S.view==="groupThread"){
@@ -5224,6 +5237,14 @@ ${list.map(card).join("")}
 ${modeSharedCard()}`;
 }
 
+function adminSongs(){
+  if(!MUS.loaded&&!MUS._adm){MUS._adm=1;musLoad(true).then(()=>{MUS._adm=0;if(S.isAdmin&&S.tab==="songs")render(true)})}
+  const l=MUS.list||[];
+  return `<div class="card"><h3>🎵 مكتبة الأغاني</h3>
+<p class="mut">ارفع أغاني من جهازك (لحد 25 ميجا للأغنية) أو حط رابط مباشر. الطلاب بيسمعوا بس ومفيش تنزيل. بتظهر لهم في «أنا» ← 🎵 أغاني المنصة.</p>
+<div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn gold" data-act="songUpload">＋ رفع أغنية</button><button class="btn ghost" data-act="openSongs">▶ فتح المشغّل</button><button class="btn ghost" data-act="songsReload">↻ تحديث</button></div></div>
+<div class="card"><b>الأغاني الحالية (${l.length})</b>${l.length?l.map((x,i)=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><div><b>${esc(x.title||"أغنية")}</b><div class="mut">${esc(x.artist||"—")}${x.size?" · "+(x.size/1048576).toFixed(1)+" MB":""}</div></div><button class="btn sm danger" data-act="songDel" data-i="${i}">🗑 حذف</button></div>`).join(""):`<div class="mut" style="text-align:center;padding:14px 0">${MUS.err?"تعذّر التحميل ("+esc(MUS.err)+") — انشر firestore.rules الجديدة":MUS.loaded?"لسه مفيش أغاني — اضغط ＋ رفع أغنية":"⏳ بيحمّل…"}</div>`}</div>`;
+}
 function adminView(){
   const t=S.tab;
   const groups=[
@@ -5232,6 +5253,7 @@ function adminView(){
     {title:"مجتمع", items:[["fadaye7","فضايح 😂"],["tanagha","التناغه 💗"],["tgreq","طلبات التناغه"],["students","طلاب"]]},
     {title:"رقابة", items:[["results","نتايج"],["alerts","تنبيهات"],["suspicious","احتيالي"]]},
     {title:"تشخيص", items:[["review","🔍 مراجعة شاملة"],["errors","🔴 الأخطاء"],["health","📊 صحة المنصة"],["perf","⚡ الأداء"],["devtools","🧰 أدوات المطور"]]},
+    {title:"🎵 أغاني", items:[["songs","🎵 الأغاني"]]},
     {title:"إدارة", items:[["managers","المسؤولين"],["backup","💾 النسخ الاحتياطي"],["security","🛡 الأمان"],["shopadm","🛒 المتجر"],["agent","🤖 الوكيل"],["settings","إعدادات"]]}
   ];
   const bd={tgreq:(Array.isArray(S.students)?S.students:[]).filter(x=>x.tanaghaAccess==="pending").length,results:S.unread,alerts:S.unreadAlerts,live:liveActive().length,suspicious:(S.suspicious||[]).filter(x=>!x.seen).length};
@@ -5242,7 +5264,7 @@ ${S.site.maintenance?`<div class="err" style="margin:0 0 12px">وضع الصيا
   <div class="mut" style="font-size:11px;font-weight:700;margin-bottom:4px;opacity:.75">${g.title}</div>
   <div class="tabs" style="margin-bottom:0">${g.items.map(([k,v])=>`<button class="tab ${t===k?"on":""}" data-act="tab" data-id="${k}">${v}${bd[k]?`<span class="badge">${bd[k]}</span>`:""}</button>`).join("")}</div>
 </div>`).join("")}</nav>
-${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,tanagha:adminTanagha,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,suspicious:adminSuspicious,managers:adminManagers,security:adminSecurity,tgreq:adminTgReq,settings:adminSettings,shopadm:adminShop,agent:adminAgent,modes:adminModes,errors:adminErrors,health:adminHealth,perf:adminPerf,backup:adminBackup,devtools:adminDev,review:adminReview}[t]||adminDash)()}
+${({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,tanagha:adminTanagha,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,suspicious:adminSuspicious,managers:adminManagers,security:adminSecurity,tgreq:adminTgReq,settings:adminSettings,shopadm:adminShop,agent:adminAgent,modes:adminModes,songs:adminSongs,errors:adminErrors,health:adminHealth,perf:adminPerf,backup:adminBackup,devtools:adminDev,review:adminReview}[t]||adminDash)()}
 ${t==="exams"?`<button class="fab" data-act="newExam" aria-label="امتحان جديد">+</button>`:""}
 
 </div>`}
@@ -6178,6 +6200,7 @@ const A={
   async logout(){
     if(!await uiConfirm("تسجيل خروج من التفوق؟\nهتحتاج تسجّل تاني لما ترجع."))return;
     try{
+      try{navigator.credentials&&navigator.credentials.preventSilentAccess&&await navigator.credentials.preventSilentAccess()}catch(_){}
       await signOut(auth);
     }catch(e){toast("فشل الخروج");return}
     stopSubs();S.user=null;S.isAdmin=false;S.profile=null;S._gameDocs={};S.modePrev=null;window.__pendingModeHtml=null;S.view="auth";render(true);
@@ -8396,6 +8419,8 @@ const A={
       /* v134: مهلة 25 ثانية — كان الزرار يفضل متعطل لو النت بطيء */
       await Promise.race([signInWithEmailAndPassword(auth,email,pw),new Promise((_,rj)=>setTimeout(()=>rj({code:"auth/network-timeout"}),25000))]);
       try{localStorage.setItem(isEmail?"last_admin_email":"last_phone",idv)}catch(_){}
+      /* v144: حفظ الحساب في مخزن كلمات السر بتاع المتصفح (دخول تلقائي لو الجلسة اتمسحت) */
+      try{if(window.PasswordCredential&&navigator.credentials)navigator.credentials.store(new PasswordCredential({id:idv,password:pw,name:idv}))}catch(_){}
     }catch(e){S.error=(e&&e.code==="auth/network-timeout")?"الاتصال بطيء — جرّب تاني.":authErr(e);render(true)}
   },
   async doRegister(){
@@ -12010,6 +12035,7 @@ function moraNav(){
 }
 function moraActivate(id){
   const t=MORA.tabs.find(x=>x.id===id);if(!t)return;MORA.act=id;
+  if(t.url&&moraExt(t.url)){t.url="";t.title=""}
   MORA.tabs.forEach(x=>{if(x.fr&&x!==t)x.fr.style.display="none"});
   MORA.home.style.display=t.url?"none":"";
   if(t.url){if(!t.fr){moraFrame(t);t.fr.src=t.url;moraProg(true)}t.fr.style.display="";moraLive(t)}
@@ -12021,8 +12047,12 @@ function moraSetUrl(t,u){
   if(!t.fr)moraFrame(t);
   t.fr.src=u;moraProg(true);moraActivate(t.id);
 }
+/* v144: جوجل/بوكي/يوتيوب وغيرهم بيرفضوا الفتح جوه iframe ("رفض الاتصال") → بنفتحهم في متصفح الجهاز مباشرةً */
+const MORA_EXT=/(^|\.)(google\.[a-z.]+|poki\.com|youtube\.com|youtu\.be|facebook\.com|fb\.com|instagram\.com|tiktok\.com|x\.com|twitter\.com|web\.whatsapp\.com|web\.telegram\.org|netflix\.com|bing\.com|chatgpt\.com|claude\.ai)$/i;
+function moraExt(u){try{return MORA_EXT.test(new URL(u).hostname)}catch(_){return false}}
 function moraGo(v){
   const u=moraNorm(v);if(!u){try{toast("الرابط مش صالح")}catch(_){}return}
+  if(moraExt(u)){try{window.open(u,"_blank","noopener")}catch(_){}try{toast("اتفتح في متصفح الجهاز ↗")}catch(_){}try{MORA.inp.value=""}catch(_){}return}
   let t=moraCur();if(!t){t=moraAdd();if(!t)return}
   t.hist=t.hist.slice(0,t.i+1);t.hist.push(u);t.i=t.hist.length-1;if(t.hist.length>40){t.hist.shift();t.i--}
   moraSetUrl(t,u);
@@ -12065,6 +12095,7 @@ function moraApp(pkg){
 }
 function moraBuild(){
   if(MORA.el)return;
+  if(!document.getElementById("musCss2")){const st=document.createElement("style");st.id="musCss2";st.textContent=".mus-panel:not(.pl) .mus-now{display:none}.mus-panel.pl .mus-q,.mus-panel.pl .mus-list{display:none}.mus-panel.pl .mus-scroll{display:flex;flex-direction:column;justify-content:center;min-height:60%}.mus-panel.pl .mus-now{padding:26px 16px 22px}.mus-panel.pl .mus-disc{width:min(62vw,250px);height:min(62vw,250px)}.mus-panel.pl .mus-ti{font-size:22px}.mus-panel.pl .mus-npbar{display:none!important}.mus-npbar{flex:none;margin:6px 10px calc(10px + env(safe-area-inset-bottom,0px))}.mus-panel:not(.pl) .mus-scroll{padding-top:6px}";document.head.appendChild(st)}
   const d=document.createElement("div");d.id="moraBrowserModal";d.setAttribute("role","dialog");d.setAttribute("aria-label","متصفح Mora");
   d.innerHTML=`<div class="mora-top"><div class="mora-bar" dir="ltr">
 <button type="button" class="mora-ib" data-m="back" aria-label="رجوع">←</button>
@@ -12222,6 +12253,7 @@ function musNowHtml(){
 }
 function musNowRender(){
   const el=MORA.el&&MORA.el.querySelector(".mus-now");if(!el)return;
+  try{const nb=MORA.el.querySelector(".mus-npbar");if(nb){const on=MUS.cur>=0&&!MUS.pv;nb.style.display=on?"flex":"none";if(on)nb.innerHTML=musMiniHtml()}}catch(_){}
   el.innerHTML=musNowHtml();
   MORA.el.querySelectorAll(".mus-row").forEach(r=>r.classList.toggle("on",+r.dataset.s===MUS.cur));
   const a=MUS.au,p=document.getElementById("musSeek");if(a&&p&&a.duration){p.value=Math.round(a.currentTime/a.duration*1000);document.getElementById("musCur").textContent=musFmt(a.currentTime);document.getElementById("musDur").textContent=musFmt(a.duration)}
@@ -12229,20 +12261,22 @@ function musNowRender(){
 function musPanelRender(){
   const pn=MORA.el&&MORA.el.querySelector(".mus-panel");if(!pn||!MUS.panel)return;
   const q=(pn.querySelector("#musQ")||{}).value||"";
-  pn.innerHTML=`<div class="mus-head"><button type="button" class="mus-hb" data-m="mback">‹ رجوع</button><h3>🎵 الأغاني</h3>${S.isAdmin?`<button type="button" class="mus-hb" data-m="madd">＋ رفع</button>`:""}</div>
+  pn.classList.toggle("pl",!!MUS.pv);
+  pn.innerHTML=`<div class="mus-head"><button type="button" class="mus-hb" data-m="mback">‹ ${MUS.pv?"القائمة":"رجوع"}</button><h3>🎵 الأغاني</h3>${S.isAdmin?`<button type="button" class="mus-hb" data-m="madd">＋ رفع</button>`:""}</div>
 <div class="mus-scroll"><div class="mus-now"></div><input type="text" class="mus-q" id="musQ" placeholder="🔎 دوّر على أغنية" value="${esc(q)}" autocomplete="off">
-<div class="mus-list">${MUS.list.length?MUS.list.map((s,i)=>`<div class="mus-row${i===MUS.cur?" on":""}" data-s="${i}" data-q="${esc(((s.title||"")+" "+(s.artist||"")).toLowerCase())}"><div class="ic">🎵</div><div class="tx"><b>${esc(s.title||"أغنية")}</b><small>${esc(s.artist||"مكتبة التفوق")}${s.size?" · "+(s.size/1048576).toFixed(1)+" MB":""}</small></div>${S.isAdmin?`<button type="button" class="rm" data-m="mdel" data-i="${i}" aria-label="حذف">🗑</button>`:""}</div>`).join(""):`<div class="mus-empty">${MUS.err?"مقدرتش أحمّل الأغاني ("+esc(MUS.err)+")":MUS.loaded?"🎶 لسه مفيش أغاني"+(S.isAdmin?" — اضغط ＋ رفع":""):"⏳ بيحمّل المكتبة…"}</div>`}</div></div>`;
+<div class="mus-list">${MUS.list.length?MUS.list.map((s,i)=>`<div class="mus-row${i===MUS.cur?" on":""}" data-s="${i}" data-q="${esc(((s.title||"")+" "+(s.artist||"")).toLowerCase())}"><div class="ic">🎵</div><div class="tx"><b>${esc(s.title||"أغنية")}</b><small>${esc(s.artist||"مكتبة التفوق")}${s.size?" · "+(s.size/1048576).toFixed(1)+" MB":""}</small></div>${S.isAdmin?`<button type="button" class="rm" data-m="mdel" data-i="${i}" aria-label="حذف">🗑</button>`:""}</div>`).join(""):`<div class="mus-empty">${MUS.err?"مقدرتش أحمّل الأغاني ("+esc(MUS.err)+")":MUS.loaded?"🎶 لسه مفيش أغاني"+(S.isAdmin?" — اضغط ＋ رفع":""):"⏳ بيحمّل المكتبة…"}</div>`}</div></div><div class="mus-npbar mus-mini" data-m="mopen" style="display:none"></div>`;
   musNowRender();if(q)musFilter(q);
 }
 function musFilter(q){q=String(q||"").trim().toLowerCase();MORA.el.querySelectorAll(".mus-row").forEach(r=>{r.style.display=(!q||r.dataset.q.includes(q))?"":"none"})}
 function musPanel(on){
-  moraBuild();const pn=MORA.el.querySelector(".mus-panel");MUS.panel=!!on;pn.classList.toggle("on",!!on);
+  moraBuild();const pn=MORA.el.querySelector(".mus-panel");MUS.panel=!!on;MUS.pv=false;pn.classList.toggle("on",!!on);
   if(on){musPanelRender();musLoad(false)}
   musUi();
 }
 function musTap(i,e){
   if(e&&e.target.closest("[data-m]"))return;
-  musUnlock();i=+i;if(i===MUS.cur&&MUS.au&&MUS.au.src){musToggle();return}musPlay(i);
+  musUnlock();i=+i;MUS.pv=true;musPanelRender();
+  if(i===MUS.cur&&MUS.au&&MUS.au.src){musToggle();return}musPlay(i);
 }
 function musInput(e){
   const t=e.target;
@@ -12256,7 +12290,8 @@ function musChange(e){
 }
 async function musClick(m,b,e){
   if(m==="songs"){musPanel(true);return}
-  if(m==="mback"){musPanel(false);return}
+  if(m==="mback"){if(MUS.panel&&MUS.pv){MUS.pv=false;musPanelRender();return}musPanel(false);return}
+  if(m==="mopen"){MUS.pv=true;musPanelRender();return}
   if(m==="mtoggle"){e&&e.stopPropagation();musUnlock();musToggle();return}
   if(m==="mnext"){e&&e.stopPropagation();musUnlock();musNext(false);return}
   if(m==="mprev"){musUnlock();musPrev();return}
@@ -12317,11 +12352,14 @@ async function musDoUpload(){
     MUS.upBusy=false;const sh=MORA.el.querySelector(".mus-sheet");if(sh)sh.remove();await musLoad(true);
   }catch(e){
     MUS.upBusy=false;go.disabled=false;go.textContent="رفع";moraErr("upload","فشل رفع أغنية: "+((e&&(e.code||e.message))||"?"),"mus.upload");
-    try{for(let k=0;k<wrote;k++)await deleteDoc(doc(db,"songParts",id+"_"+k))}catch(_){}
+    try{for(let i0=0;i0<wrote;i0+=20){const wb=writeBatch(db);for(let k=i0;k<Math.min(wrote,i0+20);k++)wb.delete(doc(db,"songParts",id+"_"+k));await wb.commit()}}catch(_){}
     try{toast("فشل الرفع — "+((e&&e.code)||(e&&e.message)||"")+((e&&e.code==="permission-denied")?" (ضيف قواعد songs)":""))}catch(_){}
   }
 }
-Object.assign(A,{openMora(){moraOpen()},closeMora(){moraClose()},openSongs(){moraOpen("songs")}});
+Object.assign(A,{openMora(){moraOpen()},closeMora(){moraClose()},openSongs(){moraOpen("songs")},
+  songUpload(){moraOpen("songs");setTimeout(()=>{try{musSheet()}catch(_){}},200)},
+  songsReload(){musLoad(true).then(()=>{if(S.tab==="songs")render(true)})},
+  async songDel(d){await musClick("mdel",{dataset:{i:d.i}},null);if(S.tab==="songs")render(true)}});
 window.openMoraBrowser=moraOpen;window.closeMoraBrowser=moraClose;
 /* v143 سرعة: لو الجهاز بيرسم أقل من 38 إطار/ثانية نفعّل وضع الأداء تلقائيًا مرة واحدة (والطالب يقدر يلغيه) */
 (function(){try{if(localStorage.getItem("lite_mode")!==null||localStorage.getItem("fps_probe"))return;

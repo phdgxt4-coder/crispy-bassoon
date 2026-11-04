@@ -1,16 +1,11 @@
-/* التفوق SW — v137 — تنزيل كامل أوفلاين + تحديث تلقائي بالخلفية
-   v137: مسار الجذر بيتحسب من نطاق التسجيل (من غير اسم ريبو ثابت — يشتغل على أي ريبو GitHub Pages)،
-   وطلبات Range (صوت/فيديو) بتعدّي على الشبكة بدل ما ترجع ملف كامل من الكاش، وأي طلب مش GET مبيتعترضش. */
+/* التفوق SW — v144 — تنزيل كامل أوفلاين + تحديث تلقائي بالخلفية */
 /* v115-fix: PETS كان ناقص تعريفه من إصدارات → ReferenceError وقت الـ install → الـ SW مش بيتسجل خالص.
    هرّوا دلوقتي (موديلات الرفاق 3D) — Promise.allSettled بيتجاهل أي ملف مش موجود بأمان */
 /* v131-fix: importScripts كان من غير try/catch — لو gstatic مش متاح (أول تحميل أوفلاين) الـ SW كله كان بيفشل
    ومش بيتسجل خالص (لا أوفلاين ولا إشعارات). بقي محمي — التسجيل بيكمل حتى لو مكتبات الإشعارات محملتش */
 const PETS = ["./pets/fox.glb","./pets/corgi.glb","./pets/hare.glb","./pets/sheep.glb","./pets/boar.glb"];
-const CACHE = "eltafawoq-v137";
-const BUILD = "20261103-v137"; /* review:keep — علامة بناء بيقراها فحص اتساق الإصدار */
-
-/* v137: مسار جذر التطبيق (مثلاً /my-repo/ على GitHub Pages أو / على دومين خاص) */
-const SCOPE_PATH = (function () { try { return new URL(self.registration.scope).pathname; } catch (_) { return "/"; } })();
+const CACHE = "eltafawoq-v144";
+const BUILD = "20261104-v144"; /* review:keep — علامة بناء بيقراها فحص اتساق الإصدار */
 
 let __fcmReady = false;
 try {
@@ -141,10 +136,8 @@ self.addEventListener("periodicsync", (e) => {
 });
 
 self.addEventListener("fetch", (e) => {
-  if (e.request.method !== "GET") return; /* v137: POST وغيره يروح للشبكة مباشرة من غير تدخل */
+  if (e.request.method !== "GET") { e.respondWith(fetch(e.request)); return; }
   const url = new URL(e.request.url);
-  /* v137: Range (تشغيل صوت/فيديو/جزء من ملف) لازم يتجاب من الشبكة — الكاش بيخزّن الرد الكامل بس */
-  if (e.request.headers.has("range")) return;
 
   /* cache local GLB pets */
   if (url.origin === self.location.origin && url.pathname.endsWith(".glb")) {
@@ -207,7 +200,7 @@ self.addEventListener("fetch", (e) => {
     (e.request.destination === "document") ||
     (url.origin === self.location.origin &&
       (url.pathname.endsWith(".html") || url.pathname.endsWith("/") ||
-        url.pathname === SCOPE_PATH.replace(/\/$/, "")));
+        /\/crispy-bassoon\/?$/.test(url.pathname)));
 
   if (isNav && url.origin === self.location.origin) {
     const keyUrl = new URL(e.request.url);
@@ -216,7 +209,7 @@ self.addEventListener("fetch", (e) => {
     const cacheKey = new Request(keyUrl.href, { method: "GET" });
     const indexKey = new URL("./index.html", self.registration.scope).href;
     const isAppRoot = url.pathname.endsWith("/") || url.pathname.endsWith("/index.html") ||
-      url.pathname === SCOPE_PATH.replace(/\/$/, "");
+      /\/crispy-bassoon\/?$/.test(url.pathname);
     const updatePromise = fetch(e.request, { cache: "no-store" }).then((res) => {
       if (res.ok && isHtmlResponse(res)) {
         caches.open(CACHE).then((cache) => cache.put(cacheKey, res.clone())).catch(() => {});
@@ -254,5 +247,5 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  /* باقي الطلبات الخارجية: المتصفح يتعامل معاها عادي */
+  e.respondWith(fetch(e.request));
 });
