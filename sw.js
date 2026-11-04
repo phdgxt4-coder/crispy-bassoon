@@ -1,11 +1,11 @@
-/* التفوق SW — v150 — تنزيل كامل أوفلاين + تحديث تلقائي بالخلفية */
+/* التفوق SW — v153 — تنزيل كامل أوفلاين + تحديث تلقائي بالخلفية */
 /* v115-fix: PETS كان ناقص تعريفه من إصدارات → ReferenceError وقت الـ install → الـ SW مش بيتسجل خالص.
    هرّوا دلوقتي (موديلات الرفاق 3D) — Promise.allSettled بيتجاهل أي ملف مش موجود بأمان */
 /* v131-fix: importScripts كان من غير try/catch — لو gstatic مش متاح (أول تحميل أوفلاين) الـ SW كله كان بيفشل
    ومش بيتسجل خالص (لا أوفلاين ولا إشعارات). بقي محمي — التسجيل بيكمل حتى لو مكتبات الإشعارات محملتش */
 const PETS = ["./pets/fox.glb","./pets/corgi.glb","./pets/hare.glb","./pets/sheep.glb","./pets/boar.glb"];
-const CACHE = "eltafawoq-v152";
-const BUILD = "20261104-v152"; /* review:keep — علامة بناء بيقراها فحص اتساق الإصدار */
+const CACHE = "eltafawoq-v153";
+const BUILD = "20261104-v153"; /* review:keep — علامة بناء بيقراها فحص اتساق الإصدار */
 
 let __fcmReady = false;
 try {
