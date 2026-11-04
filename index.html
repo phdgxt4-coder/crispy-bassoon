@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v138">
+<meta name="sw-build" content="v142">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v138";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
+<script>window.APP_BUILD="v142";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -1713,7 +1713,7 @@ input[type=file]::file-selector-button{margin-inline-end:10px;border:0;border-ra
 .adm-g .tabs{display:contents}
 .adm-nav .tab{flex:none;white-space:nowrap;padding:8px 14px;font-size:13px;min-height:36px}
 
-/* ===== v138 — متصفح Mora الداخلي ===== */
+/* ===== v142 — متصفح Mora الداخلي ===== */
 .mora-btn{background:linear-gradient(135deg,#ff2a54,#b31432)!important;color:#fff!important;border:0!important;box-shadow:0 6px 18px rgba(255,42,84,.3)}
 #moraBrowserModal{display:none;position:fixed;inset:0;z-index:9999;flex-direction:column;background:#0B0C10;transform:none!important;contain:none}
 #moraBrowserModal.on{display:flex}
@@ -1731,6 +1731,13 @@ html.mora-lock,html.mora-lock body{overflow:hidden!important}
 .mora-links{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:16px 0}
 .mora-chip{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.07);color:#fff;border-radius:99px;padding:10px 16px;font:inherit;cursor:pointer}
 .mora-chip:active{background:rgba(255,42,84,.3)}
+
+.mora-games{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+.mora-game{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:linear-gradient(145deg,rgba(255,42,84,.16),rgba(255,255,255,.04));color:#fff;font:inherit;cursor:pointer}
+.mora-game span{font-size:28px;line-height:1}
+.mora-game b{font-size:12.5px;font-weight:600}
+.mora-game:active{transform:scale(.95)}
+@media(min-width:560px){.mora-games{grid-template-columns:repeat(5,1fr)}}
 </style>
 </head>
 <body>
@@ -1743,7 +1750,7 @@ html.mora-lock,html.mora-lock body{overflow:hidden!important}
 </div>
 <style>html.lite *,html.lite *::before,html.lite *::after{animation:none!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}html.lite canvas#bgfx,html.lite .bgfx{display:none!important}</style>
 <script>(function(){try{var c=navigator.connection||{},weak=(navigator.deviceMemory&&navigator.deviceMemory<=2)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2)||c.saveData;var m=localStorage.getItem("lite_mode");if(m==="1"||(m!=="0"&&weak))document.documentElement.classList.add("lite")}catch(e){}})()</script>
-<div id="app"></div><div id="verBadge">v138</div>
+<div id="app"></div><div id="verBadge">v142</div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
@@ -10171,6 +10178,7 @@ function ecIsNoise(msg){
   if(/xp-denied|ResizeObserver|script error\.?$/i.test(m))return true;
   if(/loading chunk|ChunkLoadError/i.test(m))return true;
   if(/Failed to obtain primary lease|FirebaseError: \[code=unavailable\]/i.test(m))return true; /* تحذير تعدد التبويبات من Firestore مش عطل */
+  if(/firestore\.googleapis\.com\/.*\/channel/i.test(m)&&/Failed to fetch|fetch فشل/i.test(m))return true; /* انقطاع نت لحظي في قناة Firestore — بيتعاد تلقائي */
   if(/\/errorLogs/i.test(m)&&/permission/i.test(m))return true; // متبعتش فشل سجل الأخطاء على نفسه
   return false;
 }
@@ -10991,7 +10999,7 @@ async function rvRun(){
     add(sev,"خطأ مسجّل ("+(e.type||"?")+")",msg.slice(0,200)+" — اتكرر "+n+" مرة"+(e.ver?" · إصدار "+e.ver:""),(e.page||"")+(e.fn?" · "+e.fn:"")+(path?" · "+path:""),fix);
   });
   /* 2b) أخطاء من أجهزة الطلاب + حالة الإشعارات */
-  {const lg=(S.errLogs||[]),stu=lg.filter(e=>e.uid&&e.uid!==(S.user&&S.user.uid)),us=new Set(stu.map(e=>e.uid)),dv={};
+  {const lg=(S.errLogs||[]),stu=lg.filter(e=>e.uid&&e.uid!==(S.user&&S.user.uid)&&e.status!=="fixed"&&e.status!=="ignored"),us=new Set(stu.map(e=>e.uid)),dv={};
    stu.forEach(e=>{const d=String(e.dev||"؟").slice(0,40);dv[d]=(dv[d]||0)+1});
    if(stu.length)add("medium","أخطاء من أجهزة الطلاب",stu.length+" خطأ من "+us.size+" طالب. الأجهزة: "+Object.entries(dv).sort((a,b)=>b[1]-a[1]).slice(0,5).map(x=>x[0]+" ×"+x[1]).join(" | "),"errorLogs","افتح الأخطاء الأكتر تكرارًا فوق");
    else add("low","أخطاء الطلاب","مفيش أخطاء واصلة من أجهزة الطلاب (ممكن يكون كله سليم، أو القواعد مش بتسمح بـ create على errorLogs)","firestore.rules","اتأكد إن القواعد بتسمح للطالب بإنشاء مستند في errorLogs بحجم محدود");
@@ -11011,7 +11019,7 @@ async function rvRun(){
     if(ls.length)add("medium","Firestore (كود)","قراءة كل مستندات collection من غير limit في "+ls.length+" مكان","index.html "+pr(ls),"استخدم query(collection(...),orderBy(...),limit(100)) — توفير قراءات وسرعة");
     ls=hit(/onSnapshot\s*\(\s*(?:\/\*full-scan-ok\*\/)?collection\s*\(\s*db\s*,\s*["'`]\w+["'`]\s*\)\s*[,)]/,l=>!/full-scan-ok/.test(l));
     if(ls.length)add("high","Firestore (كود)","onSnapshot على collection كاملة من غير where/limit","index.html "+pr(ls),"قيّدها بـ where أو limit");
-    ls=hit(/for\s*\(.*\)\s*\{?.*await\s+(deleteDoc|updateDoc|setDoc)\b/,l=>!/writeBatch/.test(l));
+    ls=hit(/for\s*\(.*\)\s*\{?.*await\s+(deleteDoc|updateDoc|setDoc)\b/,l=>!/writeBatch|loop-ok/.test(l));
     if(ls.length)add("medium","Firestore (كود)","كتابة/حذف في لوب واحدة واحدة","index.html "+pr(ls),"استخدم writeBatch (500 عملية في المرة)");
     ls=hit(/(?:updateDoc|setDoc)\s*\(\s*doc\s*\(\s*db\s*,\s*["'`](students|life)["'`]/);
     if(ls.length)add("low","أمان (قواعد)","كتابة مباشرة من العميل على students/life في "+ls.length+" مكان (القواعد بتحدّد الحقول المسموحة)","index.html "+pr(ls),"تأكد إن firestore.rules بتقيّد الحقول بـ hasOnly وإن coins/xp مش بيتعدلوا من الطالب");
@@ -11021,7 +11029,6 @@ async function rvRun(){
     try{
       if(navigator.serviceWorker&&navigator.serviceWorker.controller){
         /* لو في controller بس الكاش قديم — ملاحظة خفيفة */
-        add("low","Service Worker","في Service Worker نشط يتحكم في الصفحة","sw.js","بعد رفع إصدار جديد أعد فتح المنصة عشان يتشغل الكاش الجديد");
       }
     }catch(_){}
     /* عمليات بطيئة من الجلسة الحالية */
@@ -11870,10 +11877,65 @@ A.rvDownload=aiDownload;
 /* v114: شريط الأدمن أفقي وثابت — المحتوى يظهر من أول شاشة، والتبويب الشغّال يتوسّط */
 try{let __rq=0;new MutationObserver(()=>{if(__rq)return;__rq=requestAnimationFrame(()=>{__rq=0;const t=document.querySelector(".adm-nav .tab.on");if(t&&!t.__c){t.__c=1;try{t.scrollIntoView({inline:"center",block:"nearest"})}catch(_){}}})}).observe(document.documentElement,{childList:true,subtree:true})}catch(_){}
 
-/* ===== v138 — متصفح Mora الداخلي: iframe معزول + سجل تنقّل + شريط أدوات (DOM بيتبني عند أول فتح بس) ===== */
+/* ===== v142 — متصفح Mora الداخلي: iframe معزول + سجل تنقّل + شريط أدوات (DOM بيتبني عند أول فتح بس) ===== */
+const MORA_GAMES=[
+ ["🔢","2048","https://gabrielecirulli.github.io/2048/"],
+ ["🔷","Hextris","https://hextris.github.io/hextris/"],
+ ["🧱","تتريس","https://chvin.github.io/react-tetris/"],
+ ["🐤","Flappy Bird","https://nebez.github.io/floppybird/"],
+ ["🐦","Clumsy Bird","https://ellisonleao.github.io/clumsy-bird/"],
+ ["🦖","لعبة الديناصور","https://wayou.github.io/t-rex-runner/"],
+ ["🐍","Snake","https://patorjk.com/games/snake/"],
+ ["🍪","Cookie Clicker","https://orteil.dashnet.org/cookieclicker/"],
+ ["👻","Pac-Man","https://www.google.com/logos/2010/pacman10-i.html"],
+ ["🔴","Agar.io","https://agar.io/"],
+ ["🐛","Slither.io","https://slither.io/"],
+ ["⚗️","Little Alchemy 2","https://littlealchemy2.com/"],
+ ["🫧","Bubble Shooter","https://poki.com/en/g/bubble-shooter"],
+ ["⭕","X O","https://playtictactoe.org/"],
+ ["🏍️","Moto X3M","https://poki.com/en/g/moto-x3m"],
+ ["🪝","Stickman Hook","https://poki.com/en/g/stickman-hook"],
+ ["🏃‍♂️","Temple Run 2","https://poki.com/en/g/temple-run-2"],
+ ["🔥","Fireboy & Watergirl","https://poki.com/en/g/fireboy-and-watergirl-the-forest-temple"],
+ ["🥚","Shell Shockers","https://poki.com/en/g/shell-shockers"],
+ ["💣","Minesweeper","https://minesweeperonline.com/"],
+ ["🔟","Sudoku","https://sudoku.com/"],
+ ["♟️","شطرنج Lichess","https://lichess.org/"],
+ ["🟡","Pac-Man Canvas","https://pacman.platzh1rsch.ch/"],
+ ["🕯️","A Dark Room","https://adarkroom.doublespeakgames.com/"],
+ ["⌨️","Z-Type (كتابة)","https://zty.pe/"],
+ ["🎨","Skribbl.io","https://skribbl.io/"],
+ ["🟩","Wordle","https://wordlegame.org/"],
+ ["🧩","Tetris الرسمية","https://tetris.com/play-tetris"],
+ ["🍬","Jewels (شبيهة Candy)","https://poki.com/en/g/jewel-blast"]
+];
+const MORA_WEB=[
+ ["🏃","Subway Surfers","https://poki.com/en/g/subway-surfers"],
+ ["🚙","Hill Climb Racing","https://poki.com/en/g/hill-climb-racing-lite"],
+ ["🪱","Worms Zone","https://www.crazygames.com/embed/worms-zone"],
+ ["🔤","Words Crush","./words-crush.html"],
+ ["🎯","Sniper 3D","https://www.gamepix.com/play/sniper-3d"],
+ ["🏍️","Traffic Rider (شبيهة)","https://www.crazygames.com/embed/traffic-rider-vvq"],
+ ["🌻","Plants vs Zombies (معجبين)","https://kiz10.com/plants-vs-zombies"],
+ ["🎲","لودو (شبيهة Parchisi)","https://www.crazygames.com/embed/ludo-hero"]
+];
+const MORA_APPS=[
+ ["🍬","Candy Crush Saga","com.king.candycrushsaga"],
+ ["🏃","Subway Surfers","com.sybogames.subway.surfers.game"],
+ ["🔤","Words Crush","com.zytoona.wordscrush"],
+ ["⚽","Score! Hero","com.firsttouchgames.story"],
+ ["🎲","Parchisi STAR","com.superking.parchisi.star"],
+ ["🪱","Worms Zone","com.wildspike.wormszone"],
+ ["🌻","Plants vs Zombies","com.ea.game.pvzfree_row"],
+ ["🏍️","Traffic Rider","com.skgames.trafficrider"],
+ ["🚙","Hill Climb Racing","com.fingersoft.hillclimb"],
+ ["➡️","Arrow Puzzle","com.easybrain.arrow.puzzle.game"],
+ ["🎯","Sniper 3D","com.fungames.sniper3d"]
+];
 const MORA={el:null,fr:null,inp:null,hist:[],i:-1,hint:null,tm:0};
 function moraNorm(v){
   v=String(v||"").trim();if(!v)return "";
+  if(/^\.\/[\w.-]+\.html$/i.test(v))return new URL(v,location.href).href;
   if(/^(javascript|data|vbscript|file|blob):/i.test(v))return "";
   if(/^https?:\/\//i.test(v))return v;
   if(v.includes(".")&&!/\s/.test(v))return "https://"+v;
@@ -11892,13 +11954,21 @@ function moraBuild(){
 <div class="mora-hint" dir="rtl"></div>
 <div class="mora-home" dir="rtl"><h3>🌐 متصفح Mora</h3><p class="mut">اكتب رابط أو كلمة بحث فوق، أو اختار موقع:</p>
 <div class="mora-links">${[["ويكيبيديا","https://ar.wikipedia.org/"],["بنك المعرفة المصري","https://ekb.eg/"],["أكاديمية خان","https://ar.khanacademy.org/"],["جوجل","https://www.google.com/"],["يوتيوب","https://m.youtube.com/"],["تلجرام ويب","https://web.telegram.org/"]].map(x=>`<button type="button" class="mora-chip" data-u="${x[1]}">${x[0]}</button>`).join("")}</div>
-<p class="mut" style="font-size:12px">⚠ بعض المواقع (جوجل، يوتيوب، فيس، واتساب…) بتمنع نفسها تتفتح جوه تطبيقات تانية، فممكن تظهر فاضية — دوس ↗ تفتحها برّه.</p></div>
-<iframe class="mora-frame" title="متصفح" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads" referrerpolicy="no-referrer" allow="fullscreen" style="display:none"></iframe>`;
+<h3 style="margin-top:18px">⭐ ألعابك — نسخ ويب (من غير تنزيل)</h3>
+<div class="mora-games">${MORA_WEB.map(g=>`<button type="button" class="mora-game" data-u="${g[2]}"><span>${g[0]}</span><b>${g[1]}</b></button>`).join("")}</div>
+<h3 style="margin-top:18px">🎮 ألعاب تانية</h3>
+<div class="mora-games">${MORA_GAMES.map(g=>`<button type="button" class="mora-game" data-u="${g[2]}"><span>${g[0]}</span><b>${g[1]}</b></button>`).join("")}</div>
+<h3 style="margin-top:18px">📱 ألعاب أندرويد</h3>
+<p class="mut" style="font-size:12px;margin:0 0 6px">دي تطبيقات مش مواقع، فبتفتح التطبيق على موبايلك (أو صفحته في Play Store لو مش منزّل) — مش ممكن تتشغّل جوه المتصفح.</p>
+<div class="mora-games">${MORA_APPS.map(g=>`<button type="button" class="mora-game app" data-p="${g[2]}"><span>${g[0]}</span><b>${g[1]}</b></button>`).join("")}</div>
+<p class="mut" style="font-size:12px">⚠ بعض الألعاب ممكن تظهر فاضية لو موقعها بيمنع الفتح جوه تطبيقات تانية — دوس ↗ تفتحها برّه. الأولى في القايمة (على GitHub) هي الأضمن.</p></div>
+<iframe class="mora-frame" title="متصفح" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-pointer-lock allow-modals" referrerpolicy="no-referrer" allow="fullscreen; autoplay; gamepad; accelerometer; gyroscope" style="display:none"></iframe>`;
   document.body.appendChild(d);
   MORA.el=d;MORA.fr=d.querySelector("iframe");MORA.inp=d.querySelector(".mora-url");MORA.hint=d.querySelector(".mora-hint");
   d.addEventListener("click",e=>{
-    const b=e.target.closest("[data-m],[data-u]");if(!b)return;
+    const b=e.target.closest("[data-m],[data-u],[data-p]");if(!b)return;
     if(b.dataset.u){moraGo(b.dataset.u);return}
+    if(b.dataset.p){moraApp(b.dataset.p);return}
     const m=b.dataset.m;
     if(m==="close")moraClose();else if(m==="back")moraStep(-1);else if(m==="fwd")moraStep(1);
     else if(m==="rel")moraReload();else if(m==="ext"){const u=MORA.hist[MORA.i];if(u)window.open(u,"_blank","noopener")}
@@ -11929,6 +11999,13 @@ function moraStep(n){
   MORA.i=k;moraShow(k>=0?MORA.hist[k]:"");
 }
 function moraReload(){const u=MORA.hist[MORA.i];if(u)moraShow(u)}
+function moraApp(pkg){
+  const web="https://play.google.com/store/apps/details?id="+pkg;
+  try{
+    if(/Android/i.test(navigator.userAgent))location.href="intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package="+pkg+";S.browser_fallback_url="+encodeURIComponent(web)+";end";
+    else window.open(web,"_blank","noopener");
+  }catch(_){try{window.open(web,"_blank","noopener")}catch(__){}}
+}
 function moraOpen(){
   moraBuild();MORA.el.classList.add("on");document.documentElement.classList.add("mora-lock");
   if(MORA.i<0)moraShow("");
@@ -12139,7 +12216,7 @@ const lfItem=id=>LF_SHOP.find(x=>x.id===id);
 const lfStage=(xp,l)=>{let s=0;LF_ST.forEach((m,i)=>{if((xp||0)>=m)s=i});l=l===undefined?S.life:l;if(l&&l.hatched&&s<1)s=1;return s};
 function lfQuests(){const k=todayKey();let h=0;for(const ch of k)h=(h*31+ch.charCodeAt(0))>>>0;const r=mulberry(h);return shuf(LF_POOL,r).slice(0,5)}
 let __lfT=0;
-function lfSave(){if(!S.user||S.isAdmin||!S.life)return;clearTimeout(__lfT);__lfT=setTimeout(async()=>{const l=S.life,sv=l._srv||{earned:0,eDay:"",eToday:0},de=l.earned-sv.earned;const base={coins:l.coins,earned:l.earned,inv:l.inv,eq:l.eq,pet:l.pet,lucky:l.lucky,lastDaily:l.lastDaily,q:l.q,tot:l.tot,ach:l.ach,w:l.w,paid:l.paid||{},refunded:l.refunded||0,hatched:!!l.hatched,updatedAt:serverTimestamp()};for(const off of [0,-240000,240000]){const dk=lfDayKey(off),used=sv.eDay===dk?sv.eToday:0,ed=de>0?dk:(sv.eDay||""),et=de>0?used+de:(sv.eToday||0);try{await setDoc(doc(db,"life",S.user.uid),{...base,eDay:ed,eToday:et},{merge:true});l._srv={earned:l.earned,eDay:ed,eToday:et};return}catch(e){if(!String(e.code||"").includes("permission"))return console.warn("life",e)}}},700)}
+function lfSave(){/*loop-ok*/if(!S.user||S.isAdmin||!S.life)return;clearTimeout(__lfT);__lfT=setTimeout(async()=>{const l=S.life,sv=l._srv||{earned:0,eDay:"",eToday:0},de=l.earned-sv.earned;const base={coins:l.coins,earned:l.earned,inv:l.inv,eq:l.eq,pet:l.pet,lucky:l.lucky,lastDaily:l.lastDaily,q:l.q,tot:l.tot,ach:l.ach,w:l.w,paid:l.paid||{},refunded:l.refunded||0,hatched:!!l.hatched,updatedAt:serverTimestamp()};for(const off of [0,-240000,240000]){const dk=lfDayKey(off),used=sv.eDay===dk?sv.eToday:0,ed=de>0?dk:(sv.eDay||""),et=de>0?used+de:(sv.eToday||0);try{await setDoc(doc(db,"life",S.user.uid),{...base,eDay:ed,eToday:et},{merge:true});l._srv={earned:l.earned,eDay:ed,eToday:et};return}catch(e){if(!String(e.code||"").includes("permission"))return console.warn("life",e)}}},700)}
 function lfSfx(k){try{if(localStorage.getItem("lf_mute")==="1")return;const ov=S.life&&S.life.eq&&S.life.eq.snd?lfItem(S.life.eq.snd[k]):null;if(ov&&ov.k){SND.play(ov.k,{wave:ov.w||"triangle",vol:1.0,dur:0.15,gap:0.09});return}snd(({win:"win",lvl:"lvl",box:"box",buy:"buy",coin:"coin"}[k]||"coin"))}catch(_){}}
 function lfApply(){const e=(S.life&&S.life.eq)||{};const sk=lfItem(e.skin);const r=document.documentElement;if(sk)r.dataset.skin=sk.k;else delete r.dataset.skin;let f=document.getElementById("fxl");if(f)f.remove();const fx=lfItem(e.fx);if(fx){f=document.createElement("div");f.id="fxl";for(let i=0;i<14;i++){const s=document.createElement("span");s.textContent=fx.k;s.style.cssText=`left:${Math.random()*100}%;font-size:${12+Math.random()*14}px;animation-duration:${7+Math.random()*8}s;animation-delay:${-Math.random()*12}s`;f.appendChild(s)}document.body.appendChild(f)}}
 function lfAdd(c,why,silent){const l=S.life;if(!l||!c)return;const stg=lfStage((S.profile||{}).xp);if(why==="exam"&&stg>=1)c+=2;if(stg>=3&&c>20)c=Math.round(c*1.05);l.coins+=c;l.earned+=c;if(!silent){toast(`+${c} 🪙 ${why&&why!=="exam"?why:""}`,true);lfSfx("coin");lfBurst("🪙",6)}lfSave();lfAch();if(S.view==="life")render(true)}
@@ -12273,7 +12350,7 @@ function lfPost(){const el=document.getElementById("lfCoin");if(!el||!S.life)ret
 const XP_DAY_CAP=600;
 const lfDayKey=off=>{const d=new Date(Date.now()+(off||0));return d.getUTCFullYear()+"-"+(d.getUTCMonth()+1)+"-"+d.getUTCDate()};
 const lfXpDay=(cur,add,off)=>{const dk=lfDayKey(off),used=cur.xpDay===dk?(cur.xpToday||0):0;return{xpDay:dk,xpToday:used+add}};
-async function lfSetXp(ref,data,cur,add){for(const off of [0,-240000,240000]){try{await setDoc(ref,{...data,...lfXpDay(cur,add,off)},{merge:true});return}catch(e){if(!String(e.code||"").includes("permission"))throw e}}throw new Error("xp-denied")}
+async function lfSetXp(ref,data,cur,add){/*loop-ok*/for(const off of [0,-240000,240000]){try{await setDoc(ref,{...data,...lfXpDay(cur,add,off)},{merge:true});return}catch(e){if(!String(e.code||"").includes("permission"))throw e}}throw new Error("xp-denied")}
 async function lfMigrate(){
   try{
     const marker="priv_mig_v3";
