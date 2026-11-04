@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v153">
+<meta name="sw-build" content="v154">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v153";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
+<script>window.APP_BUILD="v154";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -12308,6 +12308,9 @@ async function musAutoStart(){
   MUS.autoTried=true;musUnlock();
   try{await musPlay(i)}catch(_){}
 }
+/* v154: orderBy("ts") كان بيخفي أي أغنية مالهاش حقل ts (الأغاني القديمة) — دلوقتي بنجيب الكل ونرتّب هنا */
+const musTsMs=x=>{try{const t=x&&x.ts;if(!t)return 0;if(typeof t.toMillis==="function")return t.toMillis();if(typeof t.seconds==="number")return t.seconds*1000;return Number(t)||0}catch(_){return 0}};
+const musSortList=a=>a.sort((p,q)=>musTsMs(q)-musTsMs(p));
 const musFmt=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
 const musCover=s=>String((s&& (s.cover||s.coverUrl||s.artwork))||"./icons/eKXVc.png");
 function musAu(){
@@ -12387,7 +12390,7 @@ async function musFetchBlob(s){
   const sn=await getDocs(query(collection(db,"songParts"),where("sid","==",s.id)));
   const raw=sn.docs.map(d=>d.data()).filter(x=>x&&Number.isInteger(x.k)&&typeof x.d==="string").sort((a,b)=>a.k-b.k);
   const expected=Math.max(0,Number(s.parts)||0);
-  if(!expected||raw.length!==expected||raw.some((x,i)=>x.k!==i||!x.d.length))throw new Error("الأغنية ناقصة — أعد رفعها من لوحة الأدمن");
+  if(!expected||raw.length!==expected||raw.some((x,i)=>x.k!==i||!x.d.length))throw new Error("الأغنية ناقصة ("+raw.length+" من "+expected+" جزء) — أعد رفعها من لوحة الأدمن");
   const chunks=[];
   try{for(const x of raw){const b=atob(x.d),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);chunks.push(u)}}catch(_){throw new Error("بيانات الأغنية تالفة — أعد رفعها")}
   const blob=new Blob(chunks,{type:s.mime||"audio/mpeg"});
@@ -12434,9 +12437,9 @@ function musStop(){
 async function musLoad(force){
   if(!force&&MUS.loaded&&Date.now()-MUS.loaded<180000)return;
   try{
-    const sn=await getDocs(query(collection(db,"songs"),orderBy("ts","desc"),limit(100)));
+    const sn=await getDocs(query(collection(db,"songs"),limit(300)));
     const curId=MUS.list[MUS.cur]&&MUS.list[MUS.cur].id;
-    MUS.list=sn.docs.map(d=>({id:d.id,...d.data()}));MUS.loaded=Date.now();
+    MUS.list=musSortList(sn.docs.map(d=>({id:d.id,...d.data()})).filter(x=>!x.hidden));MUS.loaded=Date.now();
     MUS.cur=curId?MUS.list.findIndex(x=>x.id===curId):-1;
   }catch(e){MUS.err=(e&&e.code)||"error"}
   musPanelRender();musUi();
@@ -12765,9 +12768,9 @@ function musSubStart(){
   if(!db||!S.user)return;
   if(!__musCfgUnsub){try{__musCfgUnsub=onSnapshot(doc(db,"config","music"),d=>{MUS.globalVol=Math.max(100,Math.min(1000,Number(d.exists()&&d.data().globalVol)||100));const ge=document.getElementById("musicGlobal"),gv=document.getElementById("musicGlobalVal");if(ge)ge.value=MUS.globalVol;if(gv)gv.textContent=MUS.globalVol;if(MUS.cur>=0)musApplyVol(MUS.list[MUS.cur])},()=>{})}catch(_){} }
   if(__musUnsub)return;
-  try{__musUnsub=onSnapshot(query(collection(db,"songs"),orderBy("ts","desc"),limit(100)),sn=>{
+  try{__musUnsub=onSnapshot(query(collection(db,"songs"),limit(300)),sn=>{
     const previous=MUS.list[MUS.cur],curId=previous&&previous.id,previousVol=previous&&Number(previous.vol||100);
-    MUS.list=sn.docs.map(d=>({id:d.id,...d.data()})).filter(x=>!x.hidden);MUS.loaded=Date.now();MUS.err="";
+    MUS.list=musSortList(sn.docs.map(d=>({id:d.id,...d.data()})).filter(x=>!x.hidden));MUS.loaded=Date.now();MUS.err="";
     MUS.cur=curId?MUS.list.findIndex(x=>x.id===curId):-1;
     const current=MUS.list[MUS.cur];if(current&&Number(current.vol||100)!==previousVol)musApplyVol(current);
     if(curId&&MUS.cur<0)musStop();
