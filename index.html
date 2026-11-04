@@ -12212,6 +12212,8 @@ function moraBuild(){
   if(!MORA.tabs.some(t=>t.id===MORA.act))MORA.act=MORA.tabs[0].id;
 }
 function moraOpen(panel){
+  musRememberAuto();
+  try{if(MUS.cur>=0&&!sgPlaying())musAutoStart()}catch(_){}
   try{const pb=MORA.el&&MORA.el.querySelector(".pxb");if(pb)pb.style.display=moraProxy()?"":"none"}catch(_){}
   moraBuild();MORA.el.classList.add("on");document.documentElement.classList.add("mora-lock");
   moraActivate(MORA.act);
@@ -12289,7 +12291,15 @@ window.__modalBack=function(){
 };
 
 /* ================= مكتبة الأغاني ================= */
-const MUS={ctx:null,gain:null,graph:false,list:[],cur:-1,au:null,tok:0,loading:false,rep:0,shuf:false,panel:false,loaded:0,blobUrl:"",seeking:false,unlocked:false,pf:-1,posT:0};
+const MUS={ctx:null,gain:null,graph:false,list:[],cur:-1,au:null,tok:0,loading:false,rep:0,shuf:false,panel:false,loaded:0,blobUrl:"",seeking:false,unlocked:false,pf:-1,posT:0,auto:true,autoTried:false};
+function musAutoAllowed(){try{return localStorage.getItem("mus_autoplay")!=="0"}catch(_){return true}}
+function musRememberAuto(){try{localStorage.setItem("mus_autoplay","1")}catch(_){}MUS.auto=true}
+async function musAutoStart(){
+  if(!MUS.auto||!musAutoAllowed()||MUS.loading)return;
+  const i=MUS.cur>=0?MUS.cur:(MUS.list.length?0:-1);if(i<0)return;
+  MUS.autoTried=true;musUnlock();
+  try{await musPlay(i)}catch(_){}
+}
 const musFmt=s=>{s=Math.max(0,Math.floor(s||0));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
 function musAu(){
   if(MUS.au)return MUS.au;
@@ -12472,7 +12482,7 @@ function sgBuild(){
   if(!document.getElementById("sgCss")){const st=document.createElement("style");st.id="sgCss";st.textContent=SG_CSS;document.head.appendChild(st)}if(!document.getElementById("sgCss2")){const st2=document.createElement("style");st2.id="sgCss2";st2.textContent=SG_CSS2;document.head.appendChild(st2)}
   const d=document.createElement("div");d.id="sgApp";d.dir="rtl";d.setAttribute("role","dialog");d.setAttribute("aria-label","الأغاني");
   d.innerHTML=`<div class="sg-bg"></div>
-<div class="sg-lib"><div class="sg-top"><button type="button" class="sg-ib" data-g="close" aria-label="إغلاق">⌄</button><div class="sg-h"><b>🎵 الأغاني</b><small id="sgCount"></small></div>${S.isAdmin?'<button type="button" class="sg-ib gold" data-g="add" aria-label="رفع أغنية">＋</button>':'<span class="sg-ib" style="visibility:hidden"></span>'}</div>
+<div class="sg-lib"><div class="sg-top"><button type="button" class="sg-ib" data-g="close" aria-label="إغلاق">⌄</button><div class="sg-h"><b>🎵 الأغاني</b><small id="sgCount"></small><small id="sgAuto" style="display:block;color:#ffcf72">▶ تشغيل تلقائي داخل المنصة</small></div>${S.isAdmin?'<button type="button" class="sg-ib gold" data-g="add" aria-label="رفع أغنية">＋</button>':'<span class="sg-ib" style="visibility:hidden"></span>'}</div>
 <div class="sg-sw"><i>🔎</i><input type="text" id="sgQ" placeholder="ابحث عن أغنية أو فنان" autocomplete="off"></div>
 <div class="sg-scroll"><div class="sg-list"></div></div><div class="sg-bar" data-g="open" style="display:none"></div></div>
 <div class="sg-pl"><div class="sg-top2"><button type="button" class="sg-ib2" data-g="list" aria-label="القائمة">${SGI.down}</button><div class="sg-seg"><button type="button" data-g="tab" data-t="lyr">كلمات الأغنية</button><button type="button" class="on" data-g="tab" data-t="art">الغلاف</button></div><button type="button" class="sg-ib2" data-g="more" aria-label="المزيد">${SGI.more}</button></div><div class="sg-now"></div></div>`;
@@ -12480,9 +12490,10 @@ function sgBuild(){
   d.addEventListener("click",sgClick);d.addEventListener("input",sgInput);d.addEventListener("change",sgChange);
 }
 function sgOpen(pv){
+  musRememberAuto();musUnlock();
   sgBuild();SG.open=true;SG.pv=!!pv&&MUS.cur>=0;
   SG.el.classList.add("on");document.documentElement.classList.add("sg-lock");
-  musSubStart();sgList();sgNow();musLoad(false);
+  musSubStart();sgList();sgNow();musLoad(false).then(()=>{if(MUS.cur<0&&MUS.list.length)musAutoStart()});
 }
 function sgClose(){if(!SG.el)return;SG.open=false;SG.el.classList.remove("on","pl");document.documentElement.classList.remove("sg-lock");sgNow()}
 function sgList(){
@@ -12624,9 +12635,10 @@ async function sgClick(e){
   if(g==="del"){e.stopPropagation();sgDel(+b.dataset.i)}
 }
 function sgTap(i){
-  musUnlock();const s=MUS.list[i];if(!s)return;
+  musRememberAuto();musUnlock();const s=MUS.list[i];if(!s)return;
   SG.pv=true;
-  if(i!==MUS.cur||!MUS.au||!MUS.au.getAttribute("src")||MUS.au.getAttribute("src").indexOf("data:audio")===0)musPlay(i);   /* نفس الأغنية: بنفتح المشغّل بس من غير ما نوقفها */
+  /* الضغط على صف الأغنية نفسه = تشغيل فوري، بدون زر تشغيل منفصل وبدون تنزيل يدوي */
+  musPlay(i);
   sgNow();
 }
 function sgInput(e){
@@ -12705,6 +12717,7 @@ function musSubStart(){
     MUS.cur=curId?MUS.list.findIndex(x=>x.id===curId):-1;
     if(curId&&MUS.cur<0)musStop();
     try{sgList();sgNow()}catch(_){}
+    if(MUS.auto&&MUS.cur<0&&MUS.list.length&&SG.open)musAutoStart();
     musWarm();
   },e=>{MUS.err=(e&&e.code)||"error";__musUnsub=null;try{moraErr(MUS.err==="permission-denied"?"firebase":"network","قايمة الأغاني: "+MUS.err+(MUS.err==="permission-denied"?" (قواعد songs/songParts ناقصة)":""),"mus.list")}catch(_){}try{sgList()}catch(_){}})}catch(_){}
 }
