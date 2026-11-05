@@ -1,7 +1,7 @@
 name: Build APK
 
-# شغّله من تبويب Actions ← Build APK ← Run workflow
-# الناتج: ملف APK جاهز في Artifacts (اسمه Eltafawoq-APK)
+# بيشتغل لوحده أول ما تضيف الملف ده للريبو (وممكن تشغّله يدوي من تبويب Actions)
+# الناتج: رابط ثابت لتحميل التطبيق في Releases (apk-latest) — المنصة فيها زرار بيفتحه
 on:
   workflow_dispatch:
     inputs:
@@ -9,6 +9,12 @@ on:
         description: "رابط المنصة (سيبه فاضي ليتحسب تلقائيًا: https://اسم-حسابك.github.io/اسم-الريبو/)"
         required: false
         default: ""
+  push:
+    paths:
+      - ".github/workflows/build-apk.yml"
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -307,14 +313,24 @@ jobs:
           PY
           fi
 
+      - name: Restore signing key (نفس المفتاح في كل بناء عشان التحديث يركب فوق القديم)
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: eltafawoq-signing-key-v1
+
       - name: Build APK
         working-directory: android-app
         run: gradle assembleDebug --no-daemon --stacktrace
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Rename APK
+        run: cp android-app/app/build/outputs/apk/debug/app-debug.apk Eltafawoq.apk
+
+      - name: Publish release (apk-latest)
+        uses: softprops/action-gh-release@v2
         with:
-          name: Eltafawoq-APK
-          path: android-app/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
-          
+          tag_name: apk-latest
+          name: تطبيق التفوق (APK)
+          body: "آخر نسخة من تطبيق التفوق. حمّل Eltafawoq.apk وثبّته. التحديثات بتوصل تلقائي من المنصة."
+          files: Eltafawoq.apk
+          make_latest: true
