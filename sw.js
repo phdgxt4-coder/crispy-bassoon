@@ -4,8 +4,8 @@
 /* v131-fix: importScripts كان من غير try/catch — لو gstatic مش متاح (أول تحميل أوفلاين) الـ SW كله كان بيفشل
    ومش بيتسجل خالص (لا أوفلاين ولا إشعارات). بقي محمي — التسجيل بيكمل حتى لو مكتبات الإشعارات محملتش */
 const PETS = ["./pets/fox.glb","./pets/corgi.glb","./pets/hare.glb","./pets/sheep.glb","./pets/boar.glb"];
-const CACHE = "eltafawoq-v156";
-const BUILD = "20261104-v156"; /* review:keep — علامة بناء بيقراها فحص اتساق الإصدار */
+const CACHE = "eltafawoq-v157";
+const BUILD = "20261104-v157"; /* review:keep — علامة بناء بيقراها فحص اتساق الإصدار */
 
 let __fcmReady = false;
 try {

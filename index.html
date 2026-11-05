@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v156">
+<meta name="sw-build" content="v157">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v156";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
+<script>window.APP_BUILD="v157";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -3728,40 +3728,59 @@ function checklistView(){
 /* ========== Stage 12 Anti-lag ========== */
 const PRELOAD_URLS=["./","./index.html","./manifest.json","./sw.js","./icons/eKXVc.png","./icons/QG30M.png","./icons/icon-192.png"];
 const PRELOAD_SCOPE=()=>"student:"+((S.user&&S.user.uid)||"guest");
+function preloadRunHtml(p){
+  p=p||{};const mb=n=>((n||0)/1048576).toFixed(1);
+  return `<div class="mut">${esc(p.note||"جاري التجهيز…")} · <b>${p.pct||0}%</b></div><div class="preload-bar"><i style="width:${p.pct||0}%"></i></div><div class="mut" style="font-size:12px">اتحمّل ${p.doneFiles||0} من ${p.totalFiles||0} ملف · الباقي ${Math.max(0,(p.totalFiles||0)-(p.doneFiles||0))} · ${mb(p.doneBytes)} / ${mb(p.totalBytes)} MB${p.speed?" · "+p.speed+" KB/s":""}${p.fail?` · <span style="color:#ef4444">فشل ${p.fail}</span>`:""}</div>`;
+}
+function preloadDoneHtml(p){
+  p=p||{};
+  const errs=(p.errs||[]).slice(0,6).map(e=>`<div class="mut" style="font-size:12px">• ${esc(e.name)}: ${esc(e.msg)}</div>`).join("");
+  return `<div class="preload-card"><b>آخر تجهيز:</b> ${p.ok||0}/${p.total||0} ✓${p.fresh?` · جديد ${p.fresh}`:""}${p.already?` · محفوظ من قبل ${p.already}`:""}${p.fail?` · <span style="color:#ef4444">فشل ${p.fail}</span>`:""}<div class="mut" style="font-size:12px;margin-top:4px">${p.persisted?"🔒 التخزين دائم — الملفات محفوظة على جهازك":"⚠ المتصفح لسه ما ثبّتش التخزين الدائم (ممكن يطلب إذن أو يحتاج تثبيت المنصة على الشاشة الرئيسية)"}${p.local!=null?" · ملفات الأغاني على الجهاز: "+p.local:""}</div>${errs}</div>`;
+}
 async function preloadCritical(onProg){
-  const urls=PRELOAD_URLS.slice();
-  let done=0,ok=0,fail=0;
-  const total=urls.length;
-  const report=()=>{if(onProg)onProg({done,total,ok,fail,pct:Math.round(done/total*100)})};
-  report();
-  /* لو في SW cache نعبّيه؛ وإلا fetch عادي */
+  const t0=performance.now();
+  const urls=PRELOAD_URLS.slice(),errs=[];
+  let persisted=false;try{if(navigator.storage&&navigator.storage.persist)persisted=(await navigator.storage.persisted?.())||await navigator.storage.persist()}catch(_){}
+  try{if(typeof musLoad==="function"&&!MUS.list.length)await musLoad(false)}catch(_){}
+  const songs=(MUS.list||[]).filter(x=>x&&!x.url&&x.parts);
+  const need=[];let already=0;
+  for(const sg of songs){if(await musHasLocal(sg.id))already++;else need.push(sg)}
+  const URL_W=60*1024,sb=sg=>Number(sg.size)||(Number(sg.parts)||1)*675000;
+  const totalBytes=urls.length*URL_W+need.reduce((a,sg)=>a+sb(sg),0),totalFiles=urls.length+need.length;
+  let doneBytes=0,doneFiles=0,ok=0,fail=0,fresh=0,note="";
+  const emit=()=>{
+    const sec=Math.max(.3,(performance.now()-t0)/1000);
+    const pct=totalBytes?Math.min(99,Math.floor(doneBytes/totalBytes*100)):99;
+    if(onProg)onProg({pct,doneFiles,totalFiles,doneBytes,totalBytes,ok:ok+already,fail,note,speed:Math.round(doneBytes/1024/sec),done:false});
+  };
+  emit();
+  /* 1) ملفات المنصة */
   let cache=null;
-  try{
-    if(window.caches){
-      const keys=await caches.keys();
-      const hit=keys.find(k=>/^eltafawoq-v/i.test(k));
-      cache=await caches.open(hit||("eltafawoq-"+(window.APP_BUILD||"preload")));
-    }
-  }catch(_){}
+  try{if(window.caches){const keys=await caches.keys();const hit=keys.find(k=>/^eltafawoq-v/i.test(k));cache=await caches.open(hit||("eltafawoq-"+(window.APP_BUILD||"preload")))}}catch(_){}
   for(const u of urls){
-    try{
-      const res=await fetch(u,{cache:"reload",credentials:"same-origin"});
-      if(res&&res.ok){
-        ok++;
-        if(cache)try{await cache.put(u,res.clone())}catch(_){}
-      }else fail++;
-    }catch(_){fail++}
-    done++;
-    report();
+    note="ملفات المنصة";
+    try{const res=await fetch(u,{cache:"reload",credentials:"same-origin"});if(res&&res.ok){ok++;if(cache)try{await cache.put(u,res.clone())}catch(_){}}else{fail++;errs.push({name:u,msg:"HTTP "+(res&&res.status)})}}
+    catch(e){fail++;errs.push({name:u,msg:(e&&e.message)||"فشل الاتصال"})}
+    doneBytes+=URL_W;doneFiles++;emit();
   }
-  /* الأغاني المرفوعة: تتخزن في الجهاز عشان تشتغل بدون نت */
-  let songsOk=0,songsFail=0;
-  try{
-    if(typeof musLoad==="function"&&!MUS.list.length)await musLoad(false);
-    const up=(MUS.list||[]).filter(x=>x&&!x.url&&x.parts);
-    let finished=0;await Promise.all(up.map(async song=>{try{await musFetchBlob(song);songsOk++}catch(_){songsFail++}finally{finished++;if(onProg)onProg({done:total,total:total,ok:ok+songsOk,fail:fail+songsFail,pct:100,note:"تجهيز الأغاني "+finished+"/"+up.length})}}));
-  }catch(_){}
-  return {ok:ok+songsOk,fail:fail+songsFail,total:total+songsOk+songsFail};
+  /* 2) الأغاني: الجديدة بس — واحدة واحدة، كل واحدة ملف مستقل على الجهاز */
+  const added=[];
+  for(const sg of need){
+    note="أغنية: "+(sg.title||"؟");let acc=0;
+    try{
+      await musFetchBlob(sg,n=>{acc+=n;doneBytes+=n;emit()});
+      ok++;fresh++;added.push(sg.id);
+    }catch(e){
+      fail++;errs.push({name:sg.title||sg.id,msg:((e&&e.code)?e.code+" — ":"")+((e&&e.message)||"فشل")});
+      try{__EC&&__EC.report&&__EC.report("preload",e,{fn:"preloadCritical:song",id:sg.id})}catch(_){}
+      doneBytes-=acc;doneBytes+=sb(sg);
+    }
+    doneFiles++;emit();
+  }
+  /* 3) فهرس حزمة جديدة (ملف مستقل) للي نزل في الجلسة دي بس */
+  if(added.length){try{await mfsPut("pack",new Blob([JSON.stringify({ts:Date.now(),build:window.APP_BUILD||"",ids:added})],{type:"application/json"}),"pack-"+Date.now()+".json")}catch(_){}}
+  const local=await mfsCount();
+  return {ok:ok+already,fail,total:urls.length+songs.length,already,fresh,errs,persisted,local};
 }
 async function applySwUpdate(){
   try{
@@ -4295,8 +4314,8 @@ ${(p.badges||[]).length?`<div style="margin-top:10px;display:flex;flex-wrap:wrap
 </div>
 <div class="card"><b>استقرار المنصة ⚡</b>
 <p class="mut" style="margin:6px 0 8px">تجهيز الملفات مسبقًا يقلل التقطيع · التحديث مش بيفرض ريلود عليك</p>
-${S._preload&&S._preload.running?`<div class="preload-card"><div class="mut">جاري التجهيز… ${S._preload.pct||0}%</div><div class="preload-bar"><i style="width:${S._preload.pct||0}%"></i></div><div class="mut" style="font-size:12px">${S._preload.ok||0} جاهز · ${S._preload.fail||0} فشل</div></div>`:S._preload&&S._preload.done?`<div class="mut" style="margin-bottom:8px">آخر تجهيز: ${S._preload.ok||0}/${S._preload.total||0} ✓</div>`:""}
-<button class="btn block" data-act="preloadCritical" ${S._preload&&S._preload.running?"disabled":""}>📦 تجهيز للعب بدون تقطيع</button>
+${S._preload&&S._preload.running?`<div class="preload-card" id="preloadBox">${preloadRunHtml(S._preload)}</div>`:S._preload&&S._preload.done?preloadDoneHtml(S._preload):""}
+<button class="btn block" data-act="preloadCritical" ${S._preload&&S._preload.running?"disabled":""}>${S._preload&&S._preload.done&&S._preload.fail?"🔁 إعادة محاولة الملفات الفاشلة":"📦 تجهيز للعب بدون تقطيع"}</button>
 ${S._swWaiting?`<div class="preload-card" style="margin-top:10px;border-color:var(--pri)"><b>تحديث جديد جاهز</b><p class="mut" style="margin:6px 0">اضغط للتفعيل (هتعمل تحديث خفيف)</p><button class="btn gold block" data-act="applySwUpdate">تفعيل التحديث ✓</button></div>`:`<button class="btn ghost block" style="margin-top:8px" data-act="applySwUpdate">🔄 فحص / تفعيل تحديث المنصة</button>`}
 <button class="btn block" style="margin-top:8px" data-act="openChecklist">🏁 قائمة القبول (مرحلة 13)</button>
 </div>
@@ -6166,14 +6185,14 @@ const A={
     S._preload={running:true,pct:0,ok:0,fail:0,total:0,done:false};
     render(true);
     try{
-      const res=await preloadCritical(({done,total,ok,fail,pct})=>{
-        S._preload={running:true,pct,ok,fail,total,done:false};
-        const bar=document.querySelector(".preload-bar>i");
-        if(bar)bar.style.width=pct+"%";
+      const res=await preloadCritical(p=>{
+        S._preload=Object.assign({running:true},p);
+        const box=document.getElementById("preloadBox");
+        if(box)box.innerHTML=preloadRunHtml(p);
         else try{render()}catch(_){}
       });
-      S._preload={running:false,pct:100,ok:res.ok,fail:res.fail,total:res.total,done:true};
-      toast("التجهيز خلص: "+res.ok+" ملف جاهز"+(res.fail?" · "+res.fail+" فشل":""),true);
+      S._preload=Object.assign({running:false,pct:100,done:true},res);
+      toast("التجهيز خلص: "+res.ok+"/"+res.total+" ملف جاهز"+(res.fresh?" · جديد "+res.fresh:"")+(res.fail?" · "+res.fail+" فشل":""),true);
     }catch(e){
       S._preload={running:false,pct:0,ok:0,fail:0,total:0,done:false};
       toast("فشل التجهيز");
@@ -12381,29 +12400,81 @@ function musMeta(){
 function musIdb(){return new Promise((res,rej)=>{try{const r=indexedDB.open("mora-media",1);r.onupgradeneeded=()=>r.result.createObjectStore("songs");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}})}
 async function idbGet(id){try{const d=await musIdb();return await new Promise(res=>{const q=d.transaction("songs").objectStore("songs").get(id);q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)})}catch(_){return null}}
 async function idbPut(id,blob){
-  try{const d=await musIdb();await new Promise(res=>{const tx=d.transaction("songs","readwrite"),st=tx.objectStore("songs");st.put({blob,ts:Date.now()},id);
-    const all=[];st.openCursor().onsuccess=e=>{const c=e.target.result;if(c){all.push({k:c.key,ts:c.value&&c.value.ts||0});c.continue()}else{all.sort((a,b)=>b.ts-a.ts);all.slice(25).forEach(x=>st.delete(x.k))}};tx.oncomplete=()=>res();tx.onerror=()=>res()})}catch(_){}
+  /* v157: اتشال حذف "أقدم من 25 أغنية" — الملفات المحفوظة ما بتتمسحش تلقائيًا */
+  try{const d=await musIdb();return await new Promise(res=>{const tx=d.transaction("songs","readwrite");tx.objectStore("songs").put({blob,ts:Date.now()},id);tx.oncomplete=()=>res(true);tx.onerror=()=>res(false);tx.onabort=()=>res(false)})}catch(_){return false}
 }
 async function idbDel(id){try{const d=await musIdb();d.transaction("songs","readwrite").objectStore("songs").delete(id)}catch(_){}}
-async function musFetchBlob(s){
-  const c=await idbGet(s.id);if(c&&c.blob)return c.blob;
+/* ===== v157: تخزين دائم على الجهاز (OPFS) — ملفات حقيقية مخفية عن المعرض ومحمية من المسح التلقائي (persist) =====
+   كل أغنية = ملف مستقل. التنزيلات الجديدة بتضيف ملفات جديدة بس، والقديم بيفضل زي ما هو ويتقرأ أول ما المنصة تفتح. */
+const MFS={dir:null,tried:false};
+async function mfsDir(){
+  if(MFS.dir||MFS.tried)return MFS.dir;MFS.tried=true;
+  try{if(navigator.storage&&navigator.storage.getDirectory){const r=await navigator.storage.getDirectory();MFS.dir=await r.getDirectoryHandle("tafawoq-pack",{create:true})}}catch(_){MFS.dir=null}
+  return MFS.dir;
+}
+const mfsName=id=>"s_"+String(id).replace(/[^\w-]/g,"_")+".bin";
+async function mfsGet(id,mime){
+  try{const d=await mfsDir();if(!d)return null;const f=await(await d.getFileHandle(mfsName(id))).getFile();return f.size?f.slice(0,f.size,mime||"audio/mpeg"):null}catch(_){return null}
+}
+async function mfsPut(id,blob,asName){
+  const d=await mfsDir();if(!d)return false;const nm=asName||mfsName(id);
+  try{
+    const fh=await d.getFileHandle(nm,{create:true});if(typeof fh.createWritable!=="function")return false;
+    const w=await fh.createWritable();await w.write(blob);await w.close();
+    const f=await fh.getFile();if(f.size!==blob.size){try{await d.removeEntry(nm)}catch(_){}return false}
+    return true;
+  }catch(_){try{await d.removeEntry(nm)}catch(__){}return false}
+}
+async function mfsDel(id){try{const d=await mfsDir();if(d)await d.removeEntry(mfsName(id))}catch(_){}}
+async function mfsCount(){let n=0;try{const d=await mfsDir();if(d)for await(const [k] of d.entries())if(/^s_.*\.bin$/.test(k))n++}catch(_){}return n}
+async function musHasLocal(id){if(await mfsGet(id))return true;const c=await idbGet(id);return !!(c&&c.blob)}
+async function musFetchBlob(s,onBytes){
   if(!s||!s.id)throw new Error("معرّف الأغنية ناقص");
-  const sn=await getDocs(query(collection(db,"songParts"),where("sid","==",s.id)));
-  const raw=sn.docs.map(d=>d.data()).filter(x=>x&&Number.isInteger(x.k)&&typeof x.d==="string").sort((a,b)=>a.k-b.k);
+  const m=await mfsGet(s.id,s.mime);if(m)return m;
+  const c=await idbGet(s.id);
+  if(c&&c.blob){try{mfsPut(s.id,c.blob)}catch(_){}return c.blob}
   const expected=Math.max(0,Number(s.parts)||0);
-  if(!expected||raw.length!==expected||raw.some((x,i)=>x.k!==i||!x.d.length))throw new Error("الأغنية ناقصة ("+raw.length+" من "+expected+" جزء) — أعد رفعها من لوحة الأدمن");
-  const chunks=[];
-  try{for(const x of raw){const b=atob(x.d),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);chunks.push(u)}}catch(_){throw new Error("بيانات الأغنية تالفة — أعد رفعها")}
+  if(!expected)throw new Error("الأغنية ملهاش أجزاء — أعد رفعها من لوحة الأدمن");
+  const dec=x=>{const b=atob(x),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u};
+  const chunks=new Array(expected);
+  const first=await getDoc(doc(db,"songParts",s.id+"_0"));
+  if(first.exists()){
+    /* مسار سريع: الأجزاء بالمعرّف (id_k) → تقدّم حقيقي جزء بجزء */
+    let next=0,failed=null;
+    const one=async k=>{
+      let last;
+      for(let a=0;a<3;a++){
+        try{
+          const d=k===0&&a===0?first:await getDoc(doc(db,"songParts",s.id+"_"+k));
+          const x=d.exists()&&d.data();
+          if(!x||typeof x.d!=="string"||!x.d.length)throw new Error("جزء "+(k+1)+" من "+expected+" ناقص");
+          const u=dec(x.d);chunks[k]=u;if(onBytes)onBytes(u.length);return;
+        }catch(e){last=e;await new Promise(r=>setTimeout(r,500*(a+1)))}
+      }
+      throw last||new Error("فشل جزء "+(k+1));
+    };
+    const run=async()=>{while(next<expected&&!failed){const k=next++;try{await one(k)}catch(e){failed=e;return}}};
+    await Promise.all(Array.from({length:Math.min(4,expected)},run));
+    if(failed)throw failed;
+  }else{
+    /* أغاني قديمة بمعرّفات مختلفة → استعلام بـ sid */
+    const sn=await getDocs(query(collection(db,"songParts"),where("sid","==",s.id)));
+    const raw=sn.docs.map(d=>d.data()).filter(x=>x&&Number.isInteger(x.k)&&typeof x.d==="string").sort((a,b)=>a.k-b.k);
+    if(raw.length!==expected||raw.some((x,i)=>x.k!==i||!x.d.length))throw new Error("الأغنية ناقصة ("+raw.length+" من "+expected+" جزء) — أعد رفعها من لوحة الأدمن");
+    try{raw.forEach((x,i)=>{const u=dec(x.d);chunks[i]=u;if(onBytes)onBytes(u.length)})}catch(_){throw new Error("بيانات الأغنية تالفة — أعد رفعها")}
+  }
   const blob=new Blob(chunks,{type:s.mime||"audio/mpeg"});
   if(!blob.size)throw new Error("ملف الأغنية فارغ");
-  await idbPut(s.id,blob);return blob;
+  const saved=await mfsPut(s.id,blob);
+  if(!saved){const ok2=await idbPut(s.id,blob);if(!ok2)throw new Error("الجهاز رفض التخزين (مساحة ممتلئة؟)")}
+  return blob;
 }
 async function musSrc(s){
   if(s.url){try{const u=new URL(s.url);if(!/^https?:$/.test(u.protocol))throw new Error("رابط الأغنية غير صالح");return u.href}catch(_){throw new Error("رابط الأغنية غير صالح")}}
   const b=await musFetchBlob(s);return URL.createObjectURL(b);
 }
 async function musPrefetch(){
-  try{const n=MUS.list.length;if(n<2||MUS.shuf)return;const s=MUS.list[(MUS.cur+1)%n];if(!s||s.url)return;if(await idbGet(s.id))return;await musFetchBlob(s)}catch(_){}
+  try{const n=MUS.list.length;if(n<2||MUS.shuf)return;const s=MUS.list[(MUS.cur+1)%n];if(!s||s.url)return;if(await musHasLocal(s.id))return;await musFetchBlob(s)}catch(_){}
 }
 async function musPlay(i){
   const s=MUS.list[i];if(!s)return;
@@ -12709,7 +12780,7 @@ async function sgDel(i){
   try{
     const sn=await getDocs(query(collection(db,"songParts"),where("sid","==",s.id)));
     for(let k=0;k<sn.docs.length;k+=400){const w=writeBatch(db);sn.docs.slice(k,k+400).forEach(d=>w.delete(d.ref));await w.commit()}
-    await deleteDoc(doc(db,"songs",s.id));idbDel(s.id);
+    await deleteDoc(doc(db,"songs",s.id));idbDel(s.id);mfsDel(s.id);
     if(MUS.list[MUS.cur]&&MUS.list[MUS.cur].id===s.id)musStop();
     try{toast("اتحذفت ✓",true)}catch(_){}
   }catch(err){try{toast("فشل الحذف — "+((err&&err.code)||""))}catch(_){}}
@@ -12785,7 +12856,7 @@ async function musWarm(){
   if(__warmBusy||S.isAdmin)return;
   try{const c=navigator.connection;if(c&&(c.saveData||/2g/.test(c.effectiveType||"")))return}catch(_){}
   __warmBusy=1;
-  try{await Promise.all(MUS.list.slice(0,8).map(async s=>{try{if(s.url||!s.parts)return;if(await idbGet(s.id))return;await musFetchBlob(s)}catch(_){/* ملف واحد تالف لا يعطّل تجهيز باقي الأغاني */}}))}catch(_){}
+  try{for(const s of MUS.list.slice(0,8)){try{if(s.url||!s.parts)continue;if(await musHasLocal(s.id))continue;await musFetchBlob(s)}catch(_){/* ملف واحد تالف لا يعطّل تجهيز باقي الأغاني */}}}catch(_){}
   __warmBusy=0;
 }
 
