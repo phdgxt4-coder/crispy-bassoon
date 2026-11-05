@@ -1,1 +1,320 @@
+name: Build APK
 
+# شغّله من تبويب Actions ← Build APK ← Run workflow
+# الناتج: ملف APK جاهز في Artifacts (اسمه Eltafawoq-APK)
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "رابط المنصة (سيبه فاضي ليتحسب تلقائيًا: https://اسم-حسابك.github.io/اسم-الريبو/)"
+        required: false
+        default: ""
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+
+      - name: Generate Android project
+        env:
+          INPUT_URL: ${{ github.event.inputs.url }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+          RUN_NO: ${{ github.run_number }}
+        run: |
+          set -e
+          OWNER_LC=$(echo "$OWNER" | tr '[:upper:]' '[:lower:]')
+          HOME_URL="$INPUT_URL"
+          if [ -z "$HOME_URL" ]; then HOME_URL="https://${OWNER_LC}.github.io/${REPO}/"; fi
+          echo "Platform URL: $HOME_URL"
+          HOME_HOST=$(echo "$HOME_URL" | sed -E 's#^https?://([^/]+).*#\1#')
+
+          P=android-app
+          J=$P/app/src/main/java/com/eltafawoq/app
+          R=$P/app/src/main/res
+          mkdir -p $J $R/values $R/mipmap-xxxhdpi
+
+          cat > $P/settings.gradle <<'EOF'
+          pluginManagement {
+            repositories { google(); mavenCentral(); gradlePluginPortal() }
+          }
+          dependencyResolutionManagement {
+            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+            repositories { google(); mavenCentral() }
+          }
+          rootProject.name = "Eltafawoq"
+          include(":app")
+          EOF
+
+          cat > $P/build.gradle <<'EOF'
+          plugins {
+            id 'com.android.application' version '8.5.2' apply false
+          }
+          EOF
+
+          cat > $P/gradle.properties <<'EOF'
+          org.gradle.jvmargs=-Xmx2g -Dfile.encoding=UTF-8
+          android.nonTransitiveRClass=true
+          EOF
+
+          cat > $P/app/build.gradle <<EOF
+          plugins {
+            id 'com.android.application'
+          }
+          android {
+            namespace 'com.eltafawoq.app'
+            compileSdk 34
+            defaultConfig {
+              applicationId 'com.eltafawoq.app'
+              minSdk 24
+              targetSdk 34
+              versionCode ${RUN_NO}
+              versionName '1.0.${RUN_NO}'
+            }
+            buildTypes {
+              release { minifyEnabled false }
+            }
+            compileOptions {
+              sourceCompatibility JavaVersion.VERSION_17
+              targetCompatibility JavaVersion.VERSION_17
+            }
+          }
+          EOF
+
+          cat > $P/app/src/main/AndroidManifest.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+            <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+            <uses-permission android:name="android.permission.CAMERA" />
+            <uses-permission android:name="android.permission.RECORD_AUDIO" />
+            <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+            <uses-permission android:name="android.permission.WAKE_LOCK" />
+            <uses-permission android:name="android.permission.VIBRATE" />
+            <uses-feature android:name="android.hardware.camera" android:required="false" />
+            <uses-feature android:name="android.hardware.microphone" android:required="false" />
+            <application
+              android:label="@string/app_name"
+              android:icon="@mipmap/ic_launcher"
+              android:theme="@style/AppTheme"
+              android:usesCleartextTraffic="false"
+              android:hardwareAccelerated="true"
+              android:allowBackup="false">
+              <activity
+                android:name=".MainActivity"
+                android:exported="true"
+                android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout|uiMode|keyboard|navigation"
+                android:windowSoftInputMode="adjustResize">
+                <intent-filter>
+                  <action android:name="android.intent.action.MAIN" />
+                  <category android:name="android.intent.category.LAUNCHER" />
+                </intent-filter>
+              </activity>
+            </application>
+          </manifest>
+          EOF
+
+          cat > $R/values/strings.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+            <string name="app_name">التفوق</string>
+          </resources>
+          EOF
+
+          cat > $R/values/styles.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+            <style name="AppTheme" parent="android:Theme.DeviceDefault.NoActionBar">
+              <item name="android:windowBackground">#07051A</item>
+              <item name="android:statusBarColor">#07051A</item>
+              <item name="android:navigationBarColor">#07051A</item>
+            </style>
+          </resources>
+          EOF
+
+          cat > $J/MainActivity.java <<'EOF'
+          package com.eltafawoq.app;
+
+          import android.Manifest;
+          import android.annotation.SuppressLint;
+          import android.app.Activity;
+          import android.content.Intent;
+          import android.content.pm.PackageManager;
+          import android.graphics.Color;
+          import android.net.Uri;
+          import android.os.Bundle;
+          import android.webkit.CookieManager;
+          import android.webkit.PermissionRequest;
+          import android.webkit.ValueCallback;
+          import android.webkit.WebChromeClient;
+          import android.webkit.WebResourceRequest;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          import java.util.ArrayList;
+
+          public class MainActivity extends Activity {
+            private static final String HOME = "__HOME_URL__";
+            private static final String HOME_HOST = "__HOME_HOST__";
+            private static final int REQ_FILE = 1;
+            private static final int REQ_PERM = 2;
+            private WebView web;
+            private ValueCallback<Uri[]> fileCb;
+            private PermissionRequest pendingPerm;
+
+            @SuppressLint("SetJavaScriptEnabled")
+            @Override
+            protected void onCreate(Bundle b) {
+              super.onCreate(b);
+              web = new WebView(this);
+              web.setBackgroundColor(Color.parseColor("#07051A"));
+              setContentView(web);
+
+              WebSettings s = web.getSettings();
+              s.setJavaScriptEnabled(true);
+              s.setDomStorageEnabled(true);
+              s.setDatabaseEnabled(true);
+              s.setMediaPlaybackRequiresUserGesture(false);
+              s.setAllowFileAccess(false);
+              s.setAllowContentAccess(true);
+              s.setLoadWithOverviewMode(true);
+              s.setUseWideViewPort(true);
+              s.setJavaScriptCanOpenWindowsAutomatically(true);
+              s.setCacheMode(WebSettings.LOAD_DEFAULT);
+              s.setUserAgentString(s.getUserAgentString() + " EltafawoqApp/1.0");
+
+              CookieManager cm = CookieManager.getInstance();
+              cm.setAcceptCookie(true);
+              cm.setAcceptThirdPartyCookies(web, true);
+
+              web.setWebViewClient(new WebViewClient() {
+                @Override
+                public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {
+                  if (!r.isForMainFrame()) return false;
+                  Uri u = r.getUrl();
+                  String sc = u.getScheme() == null ? "" : u.getScheme();
+                  if (sc.equals("about") || sc.equals("blob") || sc.equals("data") || sc.equals("javascript")) return false;
+                  if (sc.equals("http") || sc.equals("https")) {
+                    String host = u.getHost() == null ? "" : u.getHost();
+                    if (host.equals(HOME_HOST)) return false;
+                  }
+                  try { startActivity(new Intent(Intent.ACTION_VIEW, u)); } catch (Exception e) { }
+                  return true;
+                }
+              });
+
+              web.setWebChromeClient(new WebChromeClient() {
+                @Override
+                public void onPermissionRequest(final PermissionRequest r) {
+                  runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                      String host = r.getOrigin() == null ? "" : String.valueOf(r.getOrigin().getHost());
+                      if (!host.equals(HOME_HOST)) { r.deny(); return; }
+                      ArrayList<String> need = new ArrayList<String>();
+                      for (String x : r.getResources()) {
+                        if (x.equals(PermissionRequest.RESOURCE_VIDEO_CAPTURE)
+                            && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
+                          need.add(Manifest.permission.CAMERA);
+                        if (x.equals(PermissionRequest.RESOURCE_AUDIO_CAPTURE)
+                            && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
+                          need.add(Manifest.permission.RECORD_AUDIO);
+                      }
+                      if (need.isEmpty()) { r.grant(r.getResources()); return; }
+                      pendingPerm = r;
+                      requestPermissions(need.toArray(new String[0]), REQ_PERM);
+                    }
+                  });
+                }
+
+                @Override
+                public boolean onShowFileChooser(WebView v, ValueCallback<Uri[]> cb, FileChooserParams p) {
+                  if (fileCb != null) fileCb.onReceiveValue(null);
+                  fileCb = cb;
+                  try {
+                    startActivityForResult(p.createIntent(), REQ_FILE);
+                  } catch (Exception e) {
+                    fileCb = null;
+                    return false;
+                  }
+                  return true;
+                }
+              });
+
+              if (b != null) web.restoreState(b); else web.loadUrl(HOME);
+            }
+
+            @Override
+            protected void onActivityResult(int req, int res, Intent data) {
+              super.onActivityResult(req, res, data);
+              if (req == REQ_FILE && fileCb != null) {
+                fileCb.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(res, data));
+                fileCb = null;
+              }
+            }
+
+            @Override
+            public void onRequestPermissionsResult(int code, String[] perms, int[] grants) {
+              super.onRequestPermissionsResult(code, perms, grants);
+              if (code == REQ_PERM && pendingPerm != null) {
+                boolean ok = true;
+                for (int g : grants) if (g != PackageManager.PERMISSION_GRANTED) ok = false;
+                if (ok) pendingPerm.grant(pendingPerm.getResources()); else pendingPerm.deny();
+                pendingPerm = null;
+              }
+            }
+
+            @Override
+            protected void onSaveInstanceState(Bundle out) {
+              super.onSaveInstanceState(out);
+              web.saveState(out);
+            }
+
+            @Override
+            public void onBackPressed() {
+              if (web.canGoBack()) web.goBack(); else moveTaskToBack(true);
+            }
+          }
+          EOF
+
+          sed -i "s#__HOME_URL__#${HOME_URL}#; s#__HOME_HOST__#${HOME_HOST}#" $J/MainActivity.java
+
+          # أيقونة التطبيق من أيقونة المنصة (أو أيقونة بديلة لو مش موجودة)
+          if [ -f icons/eKXVc.png ]; then
+            cp icons/eKXVc.png $R/mipmap-xxxhdpi/ic_launcher.png
+          else
+            python3 - <<'PY'
+          import zlib,struct
+          w=h=192
+          raw=b''.join(b'\x00'+bytes([7,5,26,255])*w for _ in range(h))
+          def ch(t,d):
+              c=struct.pack('>I',len(d))+t+d
+              return c+struct.pack('>I',zlib.crc32(t+d)&0xffffffff)
+          png=b'\x89PNG\r\n\x1a\n'+ch(b'IHDR',struct.pack('>IIBBBBB',w,h,8,6,0,0,0))+ch(b'IDAT',zlib.compress(raw))+ch(b'IEND',b'')
+          open('android-app/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png','wb').write(png)
+          PY
+          fi
+
+      - name: Build APK
+        working-directory: android-app
+        run: gradle assembleDebug --no-daemon --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Eltafawoq-APK
+          path: android-app/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          
