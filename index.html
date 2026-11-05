@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v154">
+<meta name="sw-build" content="v156">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v154";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
+<script>window.APP_BUILD="v156";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -5256,8 +5256,8 @@ function adminSongs(){
   return `<div class="card"><h3>🎵 مكتبة الأغاني</h3>
 <p class="mut">ارفع أغاني من جهازك (لحد 25 ميجا للأغنية) أو حط رابط مباشر. الطلاب بيسمعوا بس ومفيش تنزيل. بتظهر لهم في «أنا» ← 🎵 أغاني المنصة.</p>
 <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn gold" data-act="songUpload">＋ رفع أغنية</button><button class="btn ghost" data-act="openSongs">▶ فتح المشغّل</button><button class="btn ghost" data-act="songsReload">↻ تحديث</button></div>
-<div class="card" style="margin:12px 0 0;background:rgba(255,176,32,.08);border-color:rgba(255,176,32,.3)"><b>🔊 الصوت العام لكل الأغاني</b><div class="mut" style="font-size:12px;margin:4px 0 8px">يتطبق لحظيًا على أي أغنية شغالة عند الطلاب. مستوى الأغنية المنفصل يفضل محفوظًا.</div><div class="row" style="gap:10px;align-items:center"><span>100</span><input id="musicGlobal" class="adm-vol" data-change="musicGlobal" type="range" min="100" max="1000" step="10" value="${MUS.globalVol||100}"><span id="musicGlobalVal">${MUS.globalVol||100}</span><span>%</span></div><div class="mut" style="font-size:12px">المعادلة الفعلية: (مستوى الأغنية × الصوت العام) ÷ 100، بحد أقصى 4000%.</div></div></div>
-<div class="card"><b>الأغاني الحالية (${l.length})</b>${l.length?l.map((x,i)=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><div><b>${esc(x.title||"أغنية")}</b><div class="mut">${esc(x.artist||"—")}${x.size?" · "+(x.size/1048576).toFixed(1)+" MB":""}</div></div><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${x.url?'<span class="mut">🔗 رابط خارجي (بدون تضخيم)</span>':`<span class="mut">🔊</span><input type="range" min="100" max="1000" step="10" value="${x.vol||100}" id="sv${i}" class="adm-vol" title="مستوى الأغنية"> <span class="mut">${x.vol||100}%</span><span class="mut">%</span><button class="btn sm ghost" data-act="songVol" data-i="${i}">حفظ</button>`}<button class="btn sm danger" data-act="songDel" data-i="${i}">🗑 حذف</button></div></div>`).join(""):`<div class="mut" style="text-align:center;padding:14px 0">${MUS.err?"تعذّر التحميل ("+esc(MUS.err)+") — انشر firestore.rules الجديدة":MUS.loaded?"لسه مفيش أغاني — اضغط ＋ رفع أغنية":"جاري التجهيز…"}</div>`}</div>`;
+<div class="card" style="margin:12px 0 0;background:rgba(255,176,32,.08);border-color:rgba(255,176,32,.3)"><b>🔊 الصوت العام لكل الأغاني</b><div class="mut" style="font-size:12px;margin:4px 0 8px">يتطبق لحظيًا على أي أغنية شغالة عند الطلاب. مستوى الأغنية المنفصل يفضل محفوظًا.</div><div class="row" style="gap:10px;align-items:center"><span>100</span><input id="musicGlobal" class="adm-vol" data-change="musicGlobal" type="range" min="100" max="150" step="5" value="${Math.min(150,MUS.globalVol||100)}"><span id="musicGlobalVal">${MUS.globalVol||100}</span><span>%</span></div><div class="mut" style="font-size:12px">المعادلة الفعلية: (مستوى الأغنية × الصوت العام) ÷ 100، بحد أقصى آمن 150% (أي قيمة أعلى بتتقصّ تلقائيًا).</div></div></div>
+<div class="card"><b>الأغاني الحالية (${l.length})</b>${l.length?l.map((x,i)=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><div><b>${esc(x.title||"أغنية")}</b><div class="mut">${esc(x.artist||"—")}${x.size?" · "+(x.size/1048576).toFixed(1)+" MB":""}</div></div><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${x.url?'<span class="mut">🔗 رابط خارجي (بدون تضخيم)</span>':`<span class="mut">🔊</span><input type="range" min="100" max="150" step="5" value="${Math.min(150,x.vol||100)}" id="sv${i}" class="adm-vol" title="مستوى الأغنية"> <span class="mut">${x.vol||100}%</span><span class="mut">%</span><button class="btn sm ghost" data-act="songVol" data-i="${i}">حفظ</button>`}<button class="btn sm danger" data-act="songDel" data-i="${i}">🗑 حذف</button></div></div>`).join(""):`<div class="mut" style="text-align:center;padding:14px 0">${MUS.err?"تعذّر التحميل ("+esc(MUS.err)+") — انشر firestore.rules الجديدة":MUS.loaded?"لسه مفيش أغاني — اضغط ＋ رفع أغنية":"جاري التجهيز…"}</div>`}</div>`;
 }
 function adminView(){
   const t=S.tab;
@@ -12336,9 +12336,10 @@ function musCtx(){
 /* تضخيم الصوت: 100% = الأصلي، لحد 10000% فعليًا (للملفات المرفوعة؛ مستوى الجهاز نفسه قد يضع حدًا أعلى) مع ليميتر يمنع التقطيع */
 /* v153: كانت ناقصة → ReferenceError عند تشغيل أي أغنية. = صوت الأغنية × الصوت العام (100 = الأصلي) */
 function musEffectiveVol(s){
-  const base=Math.max(100,Math.min(10000,Number(s&&s.vol)||100));
-  const g=Math.max(100,Math.min(1000,Number(MUS.globalVol)||100));
-  return Math.max(100,Math.min(10000,Math.round(base*g/100)));
+  /* v155: سقف أمان 150% — أي قيمة أعلى (حتى المتخزّنة قديمًا) بتتقصّ هنا عشان ما يحصلش تشويه/ضرب في السماعة */
+  const base=Math.max(100,Math.min(150,Number(s&&s.vol)||100));
+  const g=Math.max(100,Math.min(150,Number(MUS.globalVol)||100));
+  return Math.max(100,Math.min(150,Math.round(base*g/100)));
 }
 function musApplyVol(s){
   if(!s||MUS.cur<0||!MUS.au)return;
@@ -12357,8 +12358,8 @@ function musGain(a,s){
     const c=musCtx();if(!c)return a;
     if(!MUS.graph){
       const src=c.createMediaElementSource(a),g=c.createGain(),lim=c.createDynamicsCompressor();
-      lim.threshold.value=-1;lim.knee.value=8;lim.ratio.value=6;lim.attack.value=.001;lim.release.value=.18;
-      src.connect(g);g.connect(lim);lim.connect(c.destination);MUS.gain=g;MUS.graph=true;
+      lim.threshold.value=-6;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.002;lim.release.value=.12;
+      const trim=c.createGain();trim.gain.value=.9;src.connect(g);g.connect(lim);lim.connect(trim);trim.connect(c.destination);MUS.gain=g;MUS.graph=true;
     }
     MUS.gain.gain.value=v/100;
   }catch(e){try{moraErr("js","تعذّر تضخيم الصوت: "+((e&&e.message)||"?"),"mus.gain")}catch(_){}}
@@ -12723,7 +12724,7 @@ function sgSheet(){
 <input type="file" id="musCover" accept="image/*">
 <input type="url" id="musCoverUrl" placeholder="أو رابط صورة الغلاف https://…" dir="ltr">
 <input type="url" id="musUrl" placeholder="أو رابط مباشر لملف صوت https://…" dir="ltr">
-<label class="sg-st" style="display:block;margin:6px 0 2px">🔊 مستوى الصوت % (100 = الأصلي · لحد 10000) — تضخيم رقمي فعلي للملفات المرفوعة</label><select id="musVol"><option value="100" selected>🎚 طبيعي — 100% (الصوت الأصلي)</option><option value="150">🔊 رفع 150%</option><option value="200">🔊 رفع 200%</option><option value="300">🔊 رفع 300%</option><option value="500">📢 رفع 500%</option><option value="700">📢 رفع 700%</option><option value="1000">🚀 رفع 1000%</option><option value="2500">🚀 رفع 2500%</option><option value="5000">🚀 رفع 5000%</option><option value="10000">🚀 أقصى رفع 10000%</option></select>
+<label class="sg-st" style="display:block;margin:6px 0 2px">🔊 مستوى الصوت % (100 = الأصلي · أقصى حد آمن 150)</label><select id="musVol"><option value="100" selected>🎚 طبيعي — 100% (الصوت الأصلي)</option><option value="125">🔊 رفع 125% (عالي ومريح)</option><option value="150">🔊 رفع 150% (أقصى حد آمن)</option></select>
 <div class="sg-st">الرفع من الجهاز لحد 25 ميجا. الرفع أسرع لو الملف أصغر (128kbps كافي). الطلاب بيسمعوا بس.</div>
 <div class="sg-pbar"><i id="musBar"></i></div><div class="sg-st" id="musSt"></div>
 <div class="r2"><button type="button" data-g="cancel">إلغاء</button><button type="button" class="go" data-g="up" id="musGo">رفع</button></div></div>`;
@@ -12732,7 +12733,7 @@ function sgSheet(){
 async function musDoUpload(){
   if(!S.isAdmin||MUS.upBusy)return;
   const f=(document.getElementById("musFile").files||[])[0],url=document.getElementById("musUrl").value.trim(),
-    title=document.getElementById("musTitle").value.trim()||(f?f.name.replace(/\.[^.]+$/,""): ""),artist=document.getElementById("musArtist").value.trim(),coverUrl=(document.getElementById("musCoverUrl")||{}).value.trim(),vol=Math.max(100,Math.min(10000,parseInt((document.getElementById("musVol")||{}).value,10)||100));
+    title=document.getElementById("musTitle").value.trim()||(f?f.name.replace(/\.[^.]+$/,""): ""),artist=document.getElementById("musArtist").value.trim(),coverUrl=(document.getElementById("musCoverUrl")||{}).value.trim(),vol=Math.max(100,Math.min(150,parseInt((document.getElementById("musVol")||{}).value,10)||100));
   const coverFile=(document.getElementById("musCover")||{}).files&&document.getElementById("musCover").files[0];let cover=coverUrl;
   const bar=document.getElementById("musBar"),go=document.getElementById("musGo"),st=document.getElementById("musSt");
   if(!f&&!/^https?:\/\//i.test(url)){try{toast("اختار ملف صوت أو حط رابط")}catch(_){}return}
@@ -12766,7 +12767,7 @@ async function musDoUpload(){
 let __musUnsub=null,__musCfgUnsub=null,__warmBusy=0;
 function musSubStart(){
   if(!db||!S.user)return;
-  if(!__musCfgUnsub){try{__musCfgUnsub=onSnapshot(doc(db,"config","music"),d=>{MUS.globalVol=Math.max(100,Math.min(1000,Number(d.exists()&&d.data().globalVol)||100));const ge=document.getElementById("musicGlobal"),gv=document.getElementById("musicGlobalVal");if(ge)ge.value=MUS.globalVol;if(gv)gv.textContent=MUS.globalVol;if(MUS.cur>=0)musApplyVol(MUS.list[MUS.cur])},()=>{})}catch(_){} }
+  if(!__musCfgUnsub){try{__musCfgUnsub=onSnapshot(doc(db,"config","music"),d=>{MUS.globalVol=Math.max(100,Math.min(150,Number(d.exists()&&d.data().globalVol)||100));const ge=document.getElementById("musicGlobal"),gv=document.getElementById("musicGlobalVal");if(ge)ge.value=MUS.globalVol;if(gv)gv.textContent=MUS.globalVol;if(MUS.cur>=0)musApplyVol(MUS.list[MUS.cur])},()=>{})}catch(_){} }
   if(__musUnsub)return;
   try{__musUnsub=onSnapshot(query(collection(db,"songs"),limit(300)),sn=>{
     const previous=MUS.list[MUS.cur],curId=previous&&previous.id,previousVol=previous&&Number(previous.vol||100);
@@ -12790,8 +12791,8 @@ async function musWarm(){
 
 Object.assign(A,{openMora(){moraOpen()},closeMora(){moraClose()},openSongs(){sgOpen(false)},
   songUpload(){sgOpen(false);setTimeout(()=>{try{sgSheet()}catch(_){}},150)},
-  async songVol(d){const x=MUS.list[+d.i];if(!x||!S.isAdmin)return;const el=document.getElementById("sv"+d.i),v=Math.max(100,Math.min(10000,parseInt(el&&el.value,10)||100));try{await updateDoc(doc(db,"songs",x.id),{vol:v});x.vol=v;if(MUS.list[MUS.cur]&&MUS.list[MUS.cur].id===x.id)musApplyVol(x);try{toast("اتحفظ مستوى الصوت "+v+"% ✓",true)}catch(_){}}catch(e){const code=(e&&e.code)||"unknown";try{toast(code==="permission-denied"?"مفيش صلاحية — انشر firestore.rules v152 من Firebase Console":"فشل الحفظ — "+code)}catch(_){}try{moraErr("firebase","فشل حفظ مستوى الصوت: "+code,"admin.songs.volume")}catch(_){}}},
-  async musicGlobal(d,el){if(!S.isAdmin||!el)return;const v=Math.max(100,Math.min(1000,parseInt(el.value,10)||100));MUS.globalVol=v;const out=document.getElementById("musicGlobalVal");if(out)out.textContent=v;try{await setDoc(doc(db,"config","music"),{globalVol:v,updatedAt:serverTimestamp()},{merge:true});if(MUS.cur>=0)musApplyVol(MUS.list[MUS.cur]);toast("الصوت العام اتحفظ وبيتطبق لحظيًا ✓",true)}catch(e){toast("مقدرتش أحفظ الصوت العام",true)}},
+  async songVol(d){const x=MUS.list[+d.i];if(!x||!S.isAdmin)return;const el=document.getElementById("sv"+d.i),v=Math.max(100,Math.min(150,parseInt(el&&el.value,10)||100));try{await updateDoc(doc(db,"songs",x.id),{vol:v});x.vol=v;if(MUS.list[MUS.cur]&&MUS.list[MUS.cur].id===x.id)musApplyVol(x);try{toast("اتحفظ مستوى الصوت "+v+"% ✓",true)}catch(_){}}catch(e){const code=(e&&e.code)||"unknown";try{toast(code==="permission-denied"?"مفيش صلاحية — انشر firestore.rules v152 من Firebase Console":"فشل الحفظ — "+code)}catch(_){}try{moraErr("firebase","فشل حفظ مستوى الصوت: "+code,"admin.songs.volume")}catch(_){}}},
+  async musicGlobal(d,el){if(!S.isAdmin||!el)return;const v=Math.max(100,Math.min(150,parseInt(el.value,10)||100));MUS.globalVol=v;const out=document.getElementById("musicGlobalVal");if(out)out.textContent=v;try{await setDoc(doc(db,"config","music"),{globalVol:v,updatedAt:serverTimestamp()},{merge:true});if(MUS.cur>=0)musApplyVol(MUS.list[MUS.cur]);toast("الصوت العام اتحفظ وبيتطبق لحظيًا ✓",true)}catch(e){toast("مقدرتش أحفظ الصوت العام",true)}},
   songsReload(){musLoad(true).then(()=>{if(S.tab==="songs")render(true)})},
   async songDel(d){await sgDel(+d.i);if(S.tab==="songs")render(true)}});
 document.addEventListener("click",function(ev){
