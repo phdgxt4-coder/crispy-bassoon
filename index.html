@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v160">
+<meta name="sw-build" content="v162">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v160";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
+<script>window.APP_BUILD="v162";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -1833,7 +1833,7 @@ html.mora-lock #app{visibility:hidden}
 </div>
 <style>html.lite *,html.lite *::before,html.lite *::after{animation:none!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}html.lite canvas#bgfx,html.lite .bgfx{display:none!important}</style>
 <script>(function(){try{var c=navigator.connection||{},weak=(navigator.deviceMemory&&navigator.deviceMemory<=2)||(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=2)||c.saveData;var m=localStorage.getItem("lite_mode");if(m==="1"||(m!=="0"&&weak))document.documentElement.classList.add("lite")}catch(e){}})()</script>
-<div id="app"></div><div id="verBadge">v145</div>
+<div id="app"></div><div id="verBadge"></div><script>try{document.getElementById("verBadge").textContent=window.APP_BUILD||""}catch(_){}</script>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script type="module">
@@ -3735,7 +3735,7 @@ function preloadRunHtml(p){
 function preloadDoneHtml(p){
   p=p||{};
   const errs=(p.errs||[]).slice(0,6).map(e=>`<div class="mut" style="font-size:12px">• ${esc(e.name)}: ${esc(e.msg)}</div>`).join("");
-  return `<div class="preload-card"><b>آخر تجهيز:</b> ${p.ok||0}/${p.total||0} ✓${p.fresh?` · جديد ${p.fresh}`:""}${p.already?` · محفوظ من قبل ${p.already}`:""}${p.fail?` · <span style="color:#ef4444">فشل ${p.fail}</span>`:""}<div class="mut" style="font-size:12px;margin-top:4px">${p.persisted?"🔒 التخزين دائم — الملفات محفوظة على جهازك":"⚠ المتصفح لسه ما ثبّتش التخزين الدائم (ممكن يطلب إذن أو يحتاج تثبيت المنصة على الشاشة الرئيسية)"}${p.local!=null?" · ملفات الأغاني على الجهاز: "+p.local:""}</div>${errs}</div>`;
+  return `<div class="preload-card"><b>آخر تجهيز:</b> ${p.ok||0}/${p.total||0} ✓${p.fresh?` · جديد ${p.fresh}`:""}${p.already?` · محفوظ من قبل ${p.already}`:""}${p.fail?` · <span style="color:#ef4444">فشل ${p.fail}</span>`:""}<div class="mut" style="font-size:12px;margin-top:4px">${p.persisted?"🔒 التخزين دائم — الملفات محفوظة على جهازك":"⚠ المتصفح لسه ما ثبّتش التخزين الدائم (ممكن يطلب إذن أو يحتاج تثبيت المنصة على الشاشة الرئيسية)"}${p.songsTotal!=null?" · أغاني محفوظة وسليمة: "+p.songsSaved+" من "+p.songsTotal:""}</div>${errs}</div>`;
 }
 async function preloadCritical(onProg){
   /* v158: الشاشة بتفضل منوّرة أثناء التنزيل — لما الشاشة تفصل المتصفح بيوقّف الشبكة */
@@ -3752,10 +3752,14 @@ async function _preloadRun(onProg){
   try{if(typeof musLoad==="function"&&!MUS.list.length)await musLoad(false)}catch(_){}
   const songs=(MUS.list||[]).filter(x=>x&&!x.url&&x.parts);
   const need=[];let already=0;
+  const sizeOk=(sg,n)=>!Number(sg.size)||n>=Number(sg.size)*0.98;
   for(const sg of songs){
-    if(await mfsGet(sg.id)){already++;continue}
+    const f=await mfsGet(sg.id,sg.mime);
+    if(f&&sizeOk(sg,f.size)){already++;continue}
+    if(f){await mfsDel(sg.id)} /* ملف ناقص/تالف → يتنزّل من جديد */
     const c=await idbGet(sg.id);
-    if(c&&c.blob){try{await mfsPut(sg.id,c.blob)}catch(_){}already++}else need.push(sg)
+    if(c&&c.blob&&sizeOk(sg,c.blob.size)){try{await mfsPut(sg.id,c.blob)}catch(_){}already++}
+    else{if(c&&c.blob)await idbDel(sg.id);need.push(sg)}
   }
   const URL_W=60*1024,sb=sg=>Number(sg.size)||(Number(sg.parts)||1)*675000;
   const totalBytes=urls.length*URL_W+need.reduce((a,sg)=>a+sb(sg),0),totalFiles=urls.length+need.length;
@@ -3807,7 +3811,7 @@ async function _preloadRun(onProg){
   /* 3) فهرس حزمة جديدة (ملف مستقل) للي نزل في الجلسة دي بس */
   if(added.length){try{await mfsPut("pack",new Blob([JSON.stringify({ts:Date.now(),build:window.APP_BUILD||"",ids:added})],{type:"application/json"}),"pack-"+Date.now()+".json")}catch(_){}}
   const local=await mfsCount();
-  return {ok:ok+already,fail,total:urls.length+songs.length,already,fresh,errs,persisted,local};
+  return {ok:ok+already,fail,total:urls.length+songs.length,already,fresh,errs,persisted,local,songsTotal:songs.length,songsSaved:already+fresh};
 }
 async function applySwUpdate(){
   try{
@@ -12436,7 +12440,7 @@ function musMeta(){
   }catch(_){}
 }
 /* تخزين محلي للأغاني على الجهاز (أول تشغيل بيحمّل، وبعدها فورًا ومن غير قراءات) */
-function musIdb(){return new Promise((res,rej)=>{try{const r=indexedDB.open("mora-media",3);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains("songs"))d.createObjectStore("songs");if(!d.objectStoreNames.contains("parts"))d.createObjectStore("parts");if(!d.objectStoreNames.contains("meta"))d.createObjectStore("meta")};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}})}
+function musIdb(){return new Promise((res,rej)=>{try{const r=indexedDB.open("mora-media",3);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains("songs"))d.createObjectStore("songs");if(!d.objectStoreNames.contains("parts"))d.createObjectStore("parts");if(!d.objectStoreNames.contains("meta"))d.createObjectStore("meta")};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);r.onblocked=()=>rej(new Error("idb-blocked"));setTimeout(()=>rej(new Error("idb-timeout")),6000)}catch(e){rej(e)}})}
 async function idbGet(id){try{const d=await musIdb();return await new Promise(res=>{const q=d.transaction("songs").objectStore("songs").get(id);q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)})}catch(_){return null}}
 async function idbPut(id,blob){
   /* v157: اتشال حذف "أقدم من 25 أغنية" — الملفات المحفوظة ما بتتمسحش تلقائيًا */
@@ -12470,10 +12474,41 @@ async function musHasLocal(id){if(await mfsGet(id))return true;const c=await idb
 /* v160: نسخة محلية من قايمة الأغاني — بتظهر فورًا حتى لو التطبيق اتقفل وفتحته من غير نت */
 async function metaPut(k,v){try{const d=await musIdb();await new Promise(res=>{const tx=d.transaction("meta","readwrite");tx.objectStore("meta").put(v,k);tx.oncomplete=()=>res();tx.onerror=()=>res();tx.onabort=()=>res()})}catch(_){}}
 async function metaGet(k){try{const d=await musIdb();return await new Promise(res=>{const q=d.transaction("meta").objectStore("meta").get(k);q.onsuccess=()=>res(q.result||null);q.onerror=()=>res(null)})}catch(_){return null}}
+/* v162: الأغاني المنزّلة هي المرجع — القايمة بتتبني من الجهاز نفسه حتى لو Firestore/النت/الكاش مفيش */
+async function musRefreshLocal(){
+  const set=new Set();
+  try{const d=await mfsDir();if(d)for await(const [k] of d.entries()){const m=/^s_(.+)\.bin$/.exec(k);if(m)set.add(m[1])}}catch(_){}
+  try{const d=await musIdb();const keys=await new Promise(res=>{const q=d.transaction("songs").objectStore("songs").getAllKeys();q.onsuccess=()=>res(q.result||[]);q.onerror=()=>res([])});keys.forEach(k=>set.add(String(k)))}catch(_){}
+  MUS.localIds=set;return set;
+}
+function musPersistList(){
+  try{
+    if(!MUS.list.length)return;
+    metaPut("songs",MUS.list);
+    mfsPut(null,new Blob([JSON.stringify(MUS.list)],{type:"application/json"}),"songs-list.json");
+  }catch(_){}
+}
 async function musRestoreList(){
-  try{const l=await metaGet("songs");if(Array.isArray(l)&&l.length&&!MUS.list.length){MUS.list=l;try{sgList()}catch(_){}try{musPanelRender()}catch(_){}try{musUi()}catch(_){}return true}}catch(_){}
+  if(MUS.list.length)return false;
+  try{
+    await musRefreshLocal();
+    let l=await metaGet("songs");
+    if(!Array.isArray(l)||!l.length){
+      try{const d=await mfsDir();if(d){const f=await(await d.getFileHandle("songs-list.json")).getFile();l=JSON.parse(await f.text())}}catch(_){l=null}
+    }
+    if(!Array.isArray(l)||!l.length){
+      l=[...MUS.localIds].map(id=>({id,title:"أغنية محفوظة على الجهاز",artist:"مكتبة التفوق",mime:"audio/mpeg",parts:1}));
+    }
+    if(l&&l.length&&!MUS.list.length){
+      MUS.list=musSortList(l.filter(x=>x&&x.id&&!x.hidden));
+      try{sgList()}catch(_){}try{musPanelRender()}catch(_){}try{musUi()}catch(_){}
+      return true;
+    }
+  }catch(_){}
   return false;
 }
+setTimeout(async()=>{try{await musRefreshLocal();await musRestoreList();try{sgList()}catch(_){}}catch(_){}},400);
+try{window.addEventListener("offline",()=>{musRefreshLocal().then(()=>{try{sgList()}catch(_){}})});window.addEventListener("online",()=>{try{musLoad(true)}catch(_){}})}catch(_){}
 async function pcGet(keys){
   const out={};
   try{const d=await musIdb();await new Promise(res=>{const st=d.transaction("parts").objectStore("parts");let n=keys.length;if(!n)return res();keys.forEach(k=>{const q=st.get(k);q.onsuccess=()=>{if(q.result)out[k]=q.result;if(--n===0)res()};q.onerror=()=>{if(--n===0)res()}})})}catch(_){}
@@ -12565,6 +12600,7 @@ async function musFetchBlob(s,onBytes){
   const saved=await mfsPut(s.id,blob);
   if(!saved){const ok2=await idbPut(s.id,blob);if(!ok2)throw new Error("الجهاز رفض التخزين (مساحة ممتلئة؟)")}
   pcClear(s.id,expected);
+  try{MUS.localIds&&MUS.localIds.add(s.id)}catch(_){}
   return blob;
 }
 async function musSrc(s){
@@ -12612,7 +12648,7 @@ async function musLoad(force){
     const sn=await getDocs(query(collection(db,"songs"),limit(300)));
     const curId=MUS.list[MUS.cur]&&MUS.list[MUS.cur].id;
     const fresh=musSortList(sn.docs.map(d=>({id:d.id,...d.data()})).filter(x=>!x.hidden));
-    if(!(sn.metadata&&sn.metadata.fromCache&&!fresh.length&&MUS.list.length)){MUS.list=fresh;MUS.loaded=Date.now();metaPut("songs",MUS.list)}
+    if(!(sn.metadata&&sn.metadata.fromCache&&!fresh.length&&MUS.list.length)){MUS.list=fresh;MUS.loaded=Date.now();musPersistList()}
     MUS.cur=curId?MUS.list.findIndex(x=>x.id===curId):-1;
   }catch(e){MUS.err=(e&&e.code)||"error";await musRestoreList()}
   musPanelRender();musUi();
@@ -12698,15 +12734,17 @@ function sgOpen(pv){
   musRememberAuto();musUnlock();
   sgBuild();SG.open=true;SG.pv=!!pv&&MUS.cur>=0;
   SG.el.classList.add("on");document.documentElement.classList.add("sg-lock");
-  musSubStart();sgList();sgNow();musLoad(false).then(()=>{if(MUS.cur<0&&MUS.list.length)musAutoStart()});
+  musRefreshLocal().then(()=>{try{sgList()}catch(_){}});musRestoreList();musSubStart();sgList();sgNow();musLoad(false).then(()=>{if(MUS.cur<0&&MUS.list.length)musAutoStart()});
 }
 function sgClose(){if(!SG.el)return;SG.open=false;SG.el.classList.remove("on","pl");document.documentElement.classList.remove("sg-lock");sgNow()}
 function sgList(){
   if(!SG.el)return;
   const q=String(SG.q||"").trim().toLowerCase(),list=SG.el.querySelector(".sg-list");if(!list)return;
-  const rows=MUS.list.map((s,i)=>({s,i})).filter(x=>!q||((x.s.title||"")+" "+(x.s.artist||"")).toLowerCase().includes(q));
+  const offl=navigator.onLine===false,lid=MUS.localIds||new Set();
+  const rows=MUS.list.map((s,i)=>({s,i})).filter(x=>(!offl||lid.has(x.s.id))&&(!q||((x.s.title||"")+" "+(x.s.artist||"")).toLowerCase().includes(q)));
+  if(!MUS.list.length&&!sgList._r){sgList._r=1;musRestoreList()}
   list.innerHTML=rows.length?rows.map(({s,i})=>{const on=i===MUS.cur;return `<div class="sg-row${on?" on":""}" data-s="${i}" style="--h:${sgHue(s.title)}"><div class="sg-cv">${on&&sgPlaying()?'<span class="sg-eq go"><i></i><i></i><i></i></span>':`<img src="${esc(musCover(s))}" alt="" onerror="this.onerror=null;this.src='./icons/eKXVc.png'">`}</div><div class="tx"><b>${esc(s.title||"أغنية")}</b><small>${esc(s.artist||"مكتبة التفوق")}${s.size?" · "+(s.size/1048576).toFixed(1)+" MB":""}</small></div>${S.isAdmin?`<button type="button" class="rm" data-g="del" data-i="${i}" aria-label="حذف">🗑</button>`:""}</div>`}).join(""):`<div class="sg-empty">${MUS.err?(MUS.err==="permission-denied"?"الأغاني لسه مش متاحة — بلّغ الأدمن ينشر قواعد Firebase":"مقدرتش أحمّل الأغاني ("+esc(MUS.err)+")"):MUS.loaded?(q?"مفيش نتيجة للبحث":"🎶 لسه مفيش أغاني"+(S.isAdmin?" — اضغط ＋ لرفع أول أغنية":"")):"⏳ بيحمّل المكتبة…"}</div>`;
-  const c=SG.el.querySelector("#sgCount");if(c)c.textContent=MUS.list.length?MUS.list.length+" أغنية":"";
+  const c=SG.el.querySelector("#sgCount");if(c)c.textContent=rows.length?rows.length+" أغنية"+(offl?" · على الجهاز":""):"";
 }
 function sgNow(){
   const s=MUS.list[MUS.cur],pl=sgPlaying(),h=s?sgHue(s.title):262;
@@ -12947,7 +12985,7 @@ function musSubStart(){
     const fresh=musSortList(sn.docs.map(d=>({id:d.id,...d.data()})).filter(x=>!x.hidden));
     if(sn.metadata&&sn.metadata.fromCache&&!fresh.length&&MUS.list.length)return; /* كاش فاضي مؤقتًا — ما نمسحش القايمة المحلية */
     MUS.list=fresh;MUS.loaded=Date.now();MUS.err="";
-    if(!(sn.metadata&&sn.metadata.fromCache))metaPut("songs",MUS.list);
+    if(!(sn.metadata&&sn.metadata.fromCache))musPersistList();
     MUS.cur=curId?MUS.list.findIndex(x=>x.id===curId):-1;
     const current=MUS.list[MUS.cur];if(current&&Number(current.vol||100)!==previousVol)musApplyVol(current);
     if(curId&&MUS.cur<0)musStop();
