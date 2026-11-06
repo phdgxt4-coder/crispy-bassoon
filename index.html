@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v162">
+<meta name="sw-build" content="v164">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v162";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
+<script>window.APP_BUILD="v164";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -1904,6 +1904,7 @@ let __cmtUnsub=null;
 let __fadUnsub=null,__galUnsub=null;
 function ensureFadaye7Listen(){
   if(__fadUnsub||!db)return;
+  if(secBlocked("fadaye7")){S.fadaye7=[];S.fadaye7All=[];return}
   __fadUnsub=onSnapshot(query(collection(db,"fadaye7"),orderBy("createdAt","desc"),limit(S.fadLimit||20)),s=>{
     S.fadOffline=s.metadata.fromCache&&!s.docs.length;
     /* ترتيب: الدفعة الأجدد فوق خالص · جوّه الدفعة الأقدم الأول (seq) */
@@ -2716,11 +2717,12 @@ async function startSession(u){
         if(s.exists()){
           const __np=s.data(),__op=S.profile;
           S.profile=__np;
+          try{secKick()}catch(_){}
           if(__np.theme&&!window.__thSync){window.__thSync=1;try{if(THEME_MODES.includes(__np.theme)&&__np.theme!==getThemeMode()){setThemeMode(__np.theme,true);scheduleRender()}else if(THEME_MODES.includes(__np.theme)){try{localStorage.setItem("theme_chosen","1")}catch(_){}}}catch(_){}}
           if(!window.__avMig&&__np.avatar&&String(__np.avatar).length>30000){window.__avMig=1;setTimeout(()=>{migrateAvatar(S.user.uid,__np.avatar).catch(()=>{})},3000)}
-          const __keys=["tanaghaAccess","theme","name","xp","streak","level","title","badges","avatar","blocked","blockedUntil","blockReason","roles","chatName","note"];
+          const __keys=["hiddenSections","tanaghaAccess","theme","name","xp","streak","level","title","badges","avatar","blocked","blockedUntil","blockReason","roles","chatName","note"];
           const __chg=!__op||__keys.some(k=>JSON.stringify(__op[k])!==JSON.stringify(__np[k]));
-          if(__chg&&["home","me","profile","progress"].includes(S.view))
+          if(__chg&&["home","me","profile","progress","fadaye7","gallery","tanagha"].includes(S.view))
             scheduleRender();
         }
       }));
@@ -2991,6 +2993,7 @@ function render(force){
     let fn=m[S.view];
     {const __ft=featOfView(S.view);if(__ft&&!featOn(__ft))fn=featOffView}
     if(S.view==="tanaghaLock"||(isTgView(S.view)&&tanaghaState(S.profile)!=="approved"))fn=tanaghaLockedView;
+  if(S.view==="fadaye7"&&secBlocked("fadaye7"))fn=fadBlockedView;
     if(typeof fn!=="function"){
       if(S.view&&S.view!=="home")console.warn("Unknown view",S.view);
       S.view="home";
@@ -3144,7 +3147,7 @@ function homeView(){ /* stage1 polish */
 ${homeHero()}${inst||""}${skel}${an}${resume}${v76HomeExtras()}
 <div class="sec-h"><b>📚 موادك</b><span class="mut">اختار المادة اللي عايز تمتحن فيها</span></div>
 <div class="grid">${S.examsLoaded?(featOn("subjects")?SUBJECTS.map(s=>{const l=ex.filter(e=>e.subject===s.id),done=l.filter(e=>(S.attempts[e.id]||[]).length).length,p=l.length?Math.round(done/l.length*100):0;
-  return `<button class="subj" style="background:linear-gradient(135deg,${s.c},${s.c2})" data-act="openSubject" data-id="${s.id}"><span class="g">${s.g}</span><b>${s.name}</b><small>${l.length?l.length+" امتحان · خلصت "+done:"مفيش امتحانات لسه"}</small><div class="sp"><i style="--w:${p}%"></i></div></button>`}).join(""):"")+(featOn("asms")?`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#0B5D57)" data-act="openAsms"><span class="g">A+</span><div><b>التقييمات</b><br><small>${S.asms.length?S.asms.length+" تقييم · حلول ونماذج":"مفيش تقييمات لسه"}</small></div></button>`:"")+(featOn("games")?`<button class="subj wide" style="background:linear-gradient(135deg,#166534,#B45309)" data-act="openGames"><span class="g">🎮</span><div><b>الألعاب</b><br><small>العب ضد الروبوت أو ضد صاحبك</small></div></button>`:"")+(featOn("fadaye7")?`<button class="subj wide" style="background:linear-gradient(135deg,#9D174D,#BE185D)" data-act="openFadaye7"><span class="g">😂</span><div><b>فضايح</b><br><small>${(S.fadaye7||[]).length?((Array.isArray(S.fadaye7)?S.fadaye7:[]).length)+" لقطة":"صور وفيديوهات"}</small></div></button>`:"")+(featOn("books")?`<button class="subj wide" style="background:linear-gradient(135deg,#1e3a5f,#0B5D57)" data-act="openBooks"><span class="g">📚</span><div><b>الكتب</b><br><small>PDF وملفات للتحميل</small></div></button>`:"")+(typeof isAsmManager==="function"&&isAsmManager()&&!S.isAdmin&&featOn("asms")?`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#6366F1)" data-act="openAsmAdmin"><span class="g">📝</span><div><b>إدارة التقييمات</b><br><small>مسؤول تقييمات</small></div></button>`:"")+(featOn("tanagha")?`<button class="subj wide" style="background:linear-gradient(135deg,#BE185D,#F472B6)" data-act="openTanagha"><span class="g">💗</span><div><b>خاص لأولاد التناغه</b><br><small>أجمل شلة · صورنا</small></div></button>`:""):SUBJECTS.map(()=>`<div class="sk"></div>`).join("")}</div>
+  return `<button class="subj" style="background:linear-gradient(135deg,${s.c},${s.c2})" data-act="openSubject" data-id="${s.id}"><span class="g">${s.g}</span><b>${s.name}</b><small>${l.length?l.length+" امتحان · خلصت "+done:"مفيش امتحانات لسه"}</small><div class="sp"><i style="--w:${p}%"></i></div></button>`}).join(""):"")+(featOn("asms")?`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#0B5D57)" data-act="openAsms"><span class="g">A+</span><div><b>التقييمات</b><br><small>${S.asms.length?S.asms.length+" تقييم · حلول ونماذج":"مفيش تقييمات لسه"}</small></div></button>`:"")+(featOn("games")?`<button class="subj wide" style="background:linear-gradient(135deg,#166534,#B45309)" data-act="openGames"><span class="g">🎮</span><div><b>الألعاب</b><br><small>العب ضد الروبوت أو ضد صاحبك</small></div></button>`:"")+((featOn("fadaye7")&&!secBlocked("fadaye7"))?`<button class="subj wide" style="background:linear-gradient(135deg,#9D174D,#BE185D)" data-act="openFadaye7"><span class="g">😂</span><div><b>فضايح</b><br><small>${(S.fadaye7||[]).length?((Array.isArray(S.fadaye7)?S.fadaye7:[]).length)+" لقطة":"صور وفيديوهات"}</small></div></button>`:"")+(featOn("books")?`<button class="subj wide" style="background:linear-gradient(135deg,#1e3a5f,#0B5D57)" data-act="openBooks"><span class="g">📚</span><div><b>الكتب</b><br><small>PDF وملفات للتحميل</small></div></button>`:"")+(typeof isAsmManager==="function"&&isAsmManager()&&!S.isAdmin&&featOn("asms")?`<button class="subj wide" style="background:linear-gradient(135deg,#4338CA,#6366F1)" data-act="openAsmAdmin"><span class="g">📝</span><div><b>إدارة التقييمات</b><br><small>مسؤول تقييمات</small></div></button>`:"")+(featOn("tanagha")?`<button class="subj wide" style="background:linear-gradient(135deg,#BE185D,#F472B6)" data-act="openTanagha"><span class="g">💗</span><div><b>خاص لأولاد التناغه</b><br><small>أجمل شلة · صورنا</small></div></button>`:""):SUBJECTS.map(()=>`<div class="sk"></div>`).join("")}</div>
 </div>${studentNav()}${onboardHtml()}`}
 function subjectView(){
   const s=SUBJECTS.find(x=>x.id===S.subject),ex=(Array.isArray(S.exams)?S.exams:[]).filter(e=>e&&e.subject===s.id&&vis(e));
@@ -4189,13 +4192,23 @@ function runGlobalSearch(q){
   return out;
 }
 
+function apkHelp(){
+  try{
+    const old=document.getElementById("apkHelp");if(old)old.remove();
+    const d=document.createElement("div");d.id="apkHelp";
+    d.style.cssText="position:fixed;inset:0;z-index:99999;background:rgba(5,3,20,.82);display:flex;align-items:center;justify-content:center;padding:18px";
+    d.innerHTML='<div style="max-width:420px;width:100%;background:#17122e;border:1px solid rgba(255,200,80,.35);border-radius:18px;padding:18px;color:#fff;line-height:1.7;direction:rtl"><b style="font-size:17px">📲 بدأ تحميل التطبيق</b><ol style="margin:10px 18px 12px 0;padding:0;font-size:14px"><li>لما التحميل يخلص اضغط <b>«فتح»</b> من إشعار التحميل (أو افتح <b>Eltafawoq.apk</b> من «التنزيلات»).</li><li>لو ظهر «لأمان جهازك…» اضغط <b>«الإعدادات»</b> وفعّل <b>«السماح من هذا المصدر»</b> لكروم — مرة واحدة بس، وأندرويد هو اللي بيطلبها.</li><li>ارجع واضغط <b>«تثبيت»</b>.</li></ol><div style="font-size:12px;opacity:.75;margin-bottom:12px">لو كروم قال «الملف ممكن يضر» اضغط «تنزيل على أي حال». وأسهل من كده: من قايمة كروم ⋮ اختار «تثبيت التطبيق» وهيتثبت من غير أي إذن.</div><button type="button" id="apkHelpX" style="width:100%;padding:11px;border:0;border-radius:12px;background:#f6c945;color:#1b1230;font-weight:800;font-size:15px">تمام</button></div>';
+    document.body.appendChild(d);
+    document.getElementById("apkHelpX").onclick=()=>d.remove();
+  }catch(_){}
+}
 function installBanner(){
   const standalone=window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone;
   if(standalone)return `<div class="install-banner"><span>✓</span><div style="flex:1"><b>تطبيق التفوق</b><div class="mut">شغّال كتطبيق — تحديثاتك توصل تلقائي</div></div></div>`;
   return `<div class="install-banner">
     <span style="font-size:28px">📲</span>
-    <div style="flex:1"><b>حمّل تطبيق التفوق</b><div class="mut">أندرويد — ملف APK للتثبيت المباشر</div></div>
-    <button class="btn sm gold" data-act="installApp">⬇ تحميل APK</button>
+    <div style="flex:1"><b>حمّل تطبيق التفوق</b><div class="mut">تثبيت مباشر من كروم أو ملف APK</div></div>
+    <button class="btn sm gold" data-act="installApp">⬇ تثبيت التطبيق</button>
   </div>`;
 }
 
@@ -6038,6 +6051,24 @@ function syncFeatureAvailability(){
   if(!featState("games")||modeCur().kind==="platform")S._gameDocs={};
   syncCallAvailability();
 }
+/* ===== قفل الأقسام على مستوى الطالب (إخفاء قسم / موافقة التناغه) — بيتطبّق على كل المداخل ===== */
+function secBlocked(k){
+  if(S.isAdmin||!S.user)return false;
+  const p=S.profile||{};
+  if(Array.isArray(p.hiddenSections)&&p.hiddenSections.includes(k))return true;
+  if((k==="fadaye7"||k==="tanagha"||k==="gallery")&&tanaghaState(p)!=="approved")return true;
+  return false;
+}
+function secKick(){
+  /* أول ما القسم يتقفل على الطالب: يقفل الـ listener ويمسح البيانات ويرجّعه للرئيسية فورًا */
+  if(S.isAdmin||!S.user)return;
+  if(secBlocked("fadaye7")){
+    try{if(typeof __fadUnsub==="function")__fadUnsub()}catch(_){}
+    __fadUnsub=null;S.fadaye7=[];S.fadaye7All=[];S.fadShow=10;
+    if(S.view==="fadaye7"){S.view="home";scheduleRender()}
+  }
+}
+function fadBlockedView(){return `<div class="wrap screen">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}<div class="card empty"><div class="ei">⛔</div><b>القسم ده مش متاح ليك دلوقتي</b></div></div>${studentNav()}`}
 function featOfView(v){
   v=String(v||"");
   if(v==="chatList"||v==="chatThread"||v==="groupThread")return "chat";
@@ -6990,45 +7021,43 @@ const A={
       toast("التطبيق شغال بالفعل ✓");return;
     }
     const ua=navigator.userAgent||"";
+    /* 1) تثبيت كروم الرسمي (WebAPK): نافذة «تثبيت» واحدة — من غير «مصادر غير معروفة» خالص */
     if(window.__deferredPrompt){
       try{
         window.__deferredPrompt.prompt();
         const r=await window.__deferredPrompt.userChoice;
         window.__deferredPrompt=null;
-        if(r&&r.outcome==="accepted"){toast("تم تثبيت التطبيق ✓",true);return}
+        if(r&&r.outcome==="accepted"){toast("اتثبّت التطبيق ✓ هتلاقيه في الشاشة الرئيسية",true);return}
       }catch(_){}
     }
     if(/iPad|iPhone|iPod/.test(ua)){
       toast("آيفون: شارك ⬆ ثم «إضافة إلى الشاشة الرئيسية»",true);return;
     }
-    // روابط مباشرة مؤكدة (raw GitHub + صفحات الموقع)
+    /* 2) ملف APK بيتحمّل من نفس موقع المنصة (مش من صفحة GitHub) */
+    const base=new URL("./",location.href).href;
     const candidates=[
-      "https://raw.githubusercontent.com/phdgxt4-coder/crispy-bassoon/main/"+encodeURIComponent("التفوق.apk"),
-      "https://github.com/phdgxt4-coder/crispy-bassoon/raw/main/"+encodeURIComponent("التفوق.apk"),
-      location.origin+"/crispy-bassoon/"+encodeURIComponent("التفوق.apk"),
-      location.origin+"/crispy-bassoon/eltafawoq.apk",
-      location.origin+"/crispy-bassoon/app/eltafawoq.apk"
+      base+"Eltafawoq.apk",
+      base+encodeURIComponent("التفوق.apk"),
+      base+"eltafawoq.apk",
+      base+"app/eltafawoq.apk",
+      "https://raw.githubusercontent.com/phdgxt4-coder/crispy-bassoon/main/"+encodeURIComponent("التفوق.apk")
     ];
     toast("جاري تحضير التحميل…");
     for(const apkUrl of candidates){
       try{
         const head=await fetch(apkUrl,{method:"HEAD",cache:"no-store"});
         const len=Number(head.headers.get("content-length")||0);
-        if(head.ok && (len>10000 || head.status===200)){
+        const ct=String(head.headers.get("content-type")||"");
+        if(head.ok&&!/text\/html/i.test(ct)&&(len>100000||len===0)){
           const a=document.createElement("a");
-          a.href=apkUrl;
-          a.download="التفوق.apk";
-          a.target="_blank";
-          a.rel="noopener";
+          a.href=apkUrl;a.download="Eltafawoq.apk";a.rel="noopener";
           document.body.appendChild(a);a.click();a.remove();
-          toast("بدأ التحميل ✓ افتح الملف من التنزيلات وثبّته",true);
+          try{apkHelp()}catch(_){}
           return;
         }
       }catch(_){}
     }
-    // فتح مباشر كحل أخير
-    window.open("https://raw.githubusercontent.com/phdgxt4-coder/crispy-bassoon/main/"+encodeURIComponent("التفوق.apk"),"_blank","noopener");
-    toast("اتفتح رابط التحميل — لو مالحملش احفظ الصفحة كملف APK",true);
+    toast("ملف الـ APK لسه مش مرفوع على الموقع — ثبّت من قايمة كروم ⋮ ← «تثبيت التطبيق»",true);
   },
   async startChat(d){
     const uid=d.uid;if(!uid||uid===S.user.uid){toast("مش هتكلم نفسك");return}
@@ -7638,7 +7667,7 @@ const A={
     try{await deleteDoc(doc(db,"comments",d.cid));toast("اتحذف")}catch(e){toast("فشل")}
   },
 
-  openFadaye7(){S.fadShow=10;ensureFadaye7Listen();ensureCommentsListen();S.view="fadaye7";render(true)},
+  openFadaye7(){if(secBlocked("fadaye7")){toast("القسم ده مش متاح ليك");return}S.fadShow=10;ensureFadaye7Listen();ensureCommentsListen();S.view="fadaye7";render(true)},
   async addFadaye7(){
     if(!S.isAdmin)return;
     const title=($("#fadTitle")?.value||"").trim()||"فضيحة";
@@ -7789,6 +7818,9 @@ const A={
     if(!S.isAdmin||!d.uid||!d.sec)return;
     try{
       await updateDoc(doc(db,"students",d.uid),{hiddenSections:d.on==="1"?arrayUnion(d.sec):arrayRemove(d.sec)});
+      /* تحقّق إن الحفظ اتسجّل فعلًا (لو القواعد رفضته ما نقولش «اتخفى») */
+      try{const chk=await getDoc(doc(db,"students",d.uid));const has=((chk.data()||{}).hiddenSections||[]).includes(d.sec);if(has!==(d.on==="1")){toast("⚠️ الحفظ ماتأكدش — راجع قواعد Firestore");return}}catch(_){}
+      try{const stu=(S.students||[]).find(x=>x.id===d.uid);if(stu){const a=new Set(stu.hiddenSections||[]);d.on==="1"?a.add(d.sec):a.delete(d.sec);stu.hiddenSections=[...a];render()}}catch(_){}
       toast(d.on==="1"?"اتخفى عنه ✓":"اترجع له ✓",true);
     }catch(e){console.error(e);toast("فشل — انشر firestore.rules")}
   },
@@ -9981,6 +10013,7 @@ function __restoreNavState(){
       return;
     }
     const ok=["home","subject","progress","asmList","me","fadaye7","books","ai","chatList","search","groups","life","bag","gallery","focus","notes","profile","tanagha","flash"];
+    if(st.view==="fadaye7"&&secBlocked("fadaye7"))st.view="home";
     if(ok.includes(st.view)){S.view=st.view;if(st.subject)S.subject=st.subject;if(st.tab)S.tab=st.tab;if(st.chatTab)S.chatTab=st.chatTab;try{scheduleRender()}catch(_){}}
     else S.view="home";
   }catch(_e){S.view="home"}
@@ -13036,6 +13069,7 @@ document.addEventListener("click",e=>{
   if(typeof fn!=="function"){console.warn("Unknown act",act);return}
   e.preventDefault();
   if(!S.isAdmin&&FEAT_ACT[act]&&!featOn(FEAT_ACT[act])){toast("القسم ده متوقف مؤقتاً");return}
+  if(!S.isAdmin&&FEAT_ACT[act]==="fadaye7"&&secBlocked("fadaye7")){toast("القسم ده مش متاح ليك");try{secKick()}catch(_){}return}
   if(!S.isAdmin&&(act==="openFadaye7"||act==="openTanagha"||act==="openGallery")&&tanaghaState(S.profile)!=="approved"){S.view="tanaghaLock";render(true);return}
   try{
     window.__cancel=false;
