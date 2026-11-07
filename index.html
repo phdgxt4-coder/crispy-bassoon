@@ -3027,7 +3027,7 @@ function render(force,soft){
   else if(modeOn()&&modeCur().kind!=="games"){h=modeView()}
   else{
     if(modeOn()&&!MODE_GAMEVIEWS.has(S.view))S.view="games";
-    const m={games:gamesView,checklist:checklistView,mathg:mathView,xo:xoView,hang:hangView,spin:spinView,react:reactView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,weakQuiz:weakQuizView,flash:flashView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView,life:lifeView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View,staff:staffView,tanagha:tanaghaView,gallery:galleryView,groups:groupsView,groupThread:groupThreadView,ai:aiView,books:booksView,bag:bagView,focus:focusView,notes:notesView,cert:certView,board:boardView};
+    const m={games:gamesView,checklist:checklistView,mathg:mathView,xo:xoView,hang:hangView,spin:spinView,react:reactView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,weakQuiz:weakQuizView,flash:flashView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,me:meView,life:lifeView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View,staff:staffView,tanagha:tanaghaView,gallery:galleryView,groups:groupsView,groupThread:groupThreadView,ai:aiView,books:booksView,bag:bagView,focus:focusView,notes:notesView,cert:certView,board:boardView,dgOpen:dgOpenView,dgLobby:dgLobbyView,dgPlay:dgPlayView};
     let fn=m[S.view];
     {const __ft=featOfView(S.view);if(__ft&&!featOn(__ft))fn=featOffView}
     if(S.view==="tanaghaLock"||(isTgView(S.view)&&tanaghaState(S.profile)!=="approved"))fn=tanaghaLockedView;
@@ -3064,6 +3064,7 @@ function render(force,soft){
   try{if(typeof fadSentinel==="function")fadSentinel()}catch(_){}
   try{if(S.view==="cert")setTimeout(function(){try{certDraw()}catch(e){}},40)}catch(_){}
   try{if(S.view==="board")setTimeout(function(){try{wbInit()}catch(e){}},40)}catch(_){}
+  try{if(S.view==="dgPlay")setTimeout(function(){try{dgInitCanvas();dgRedraw()}catch(e){}},40)}catch(_){}
   try{app.classList.toggle("noanim",!__newView)}catch(_){}
   try{
     let cr=document.getElementById("credit");
@@ -3919,8 +3920,169 @@ ${S._swWaiting?`<div class="preload-card" style="border-color:var(--pri)"><b>ت�
 ${gc("👑","linear-gradient(135deg,#E3A81C,#B45309)","تحدي الأوائل","أسئلة من الامتحانات · ترتيب حي · ستريك",`<button class="btn sm gold" data-act="openGameFriends" data-game="qb">👥 غرفة</button><button class="btn sm ghost" data-act="qbBot">🤖 روبوت</button>`)}
 ${gc("⚡","linear-gradient(135deg,#EF4444,#F97316)","Speed Duel","سؤال واحد للكل · الأسرع صح يكسب النقطة",`<button class="btn sm gold" data-act="openGameFriends" data-game="speed">👥 غرفة</button>`)}
 ${gc("🧍","linear-gradient(135deg,#475569,#94a3b8)","آخر واحد واقف","مواجهة · المنطقة بتضيق",`<a class="btn sm" href="push.html" style="text-decoration:none">🤖 العب</a>`)}
+${gc("🎨","linear-gradient(135deg,#a855f7,#ec4899)","ارسم وخمّن","ارسم والصحابي يخمنوا · غرف وكود",`<button class="btn sm gold" data-act="dgOpen">👥 غرفة</button>`)}
 
-</div>${studentNav()}`}
+</div>${studentNav()}`}`
+
+
+
+/* ===== v178: ارسم وخمّن (Draw & Guess) ===== */
+const DG_WORDS=["مدرسة","كتاب","قلم","معلم","طالب","امتحان","كرة","شمس","قمر","نجمة","بيت","شجرة","وردة","قطة","كلب","سمكة","طائر","سيارة","دراجة","طائرة","سفينة","جبل","بحر","نهر","سماء","سحابة","مطر","ثلج","نار","باب","نافذة","كرسي","طاولة","سرير","تفاحة","موزة","برتقالة","عنب","خبز","جبن","ماء","عصير","ساعة","هاتف","حاسوب","حقيبة","نظارة","قبعة","حذاء","قميص","زهرة","فراشة","نحلة","أسد","فيل","زرافة","قرد","أرنب","دجاجة","خروف","حصان","جمل","مسجد","كنيسة","مستشفى","حديقة","ملعب","سوق","مطبخ","حمام","سلم","مصباح","مرآة","وسادة","بطانية","مفتاح","قفل","سلم","جسر","برج","علم","خريطة","بوصلة","كاميرا","ميكروفون","سماعة","بطارية","شاحن"];
+function dgPickWord(){return DG_WORDS[Math.floor(Math.random()*DG_WORDS.length)]}
+function dgCode(){const c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<5;i++)s+=c[Math.floor(Math.random()*c.length)];return s}
+function dgOpenView(){
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openGames">رجوع</button>`)}
+<h2>🎨 ارسم وخمّن</h2>
+<p class="mut">ارسم كلمة والباقي يخمنوا · أول واحد يخمن صح يكسب</p>
+<div class="card">
+  <button class="btn block gold" data-act="dgCreate">إنشاء غرفة</button>
+  <div style="margin:14px 0 8px;text-align:center" class="mut">أو انضم بكود</div>
+  <input id="dgJoinCode" class="ltr" type="text" maxlength="5" placeholder="A3K7P" style="text-transform:uppercase;letter-spacing:.15em;font-size:20px;text-align:center">
+  <button class="btn block" style="margin-top:10px" data-act="dgJoin">انضم للغرفة</button>
+</div>
+</div>${studentNav()}`;
+}
+function dgLobbyView(){
+  const r=S.dg&&S.dg.room;if(!r)return dgOpenView();
+  const uid=S.user&&S.user.uid;
+  const players=Object.entries(r.players||{});
+  const isHost=r.host===uid;
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="dgLeave">خروج</button>`)}
+<h2>غرفة ${esc(r.code)}</h2>
+<p class="mut">ابعت الكود لصحابك · ${players.length} لاعب</p>
+<div class="card"><b>اللاعبون</b>
+${players.map(([id,p])=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><span>${esc(p.name||"لاعب")}${id===r.host?" 👑":""}${id===uid?" (أنت)":""}</span></div>`).join("")||`<div class="mut">استنى الصحاب…</div>`}
+</div>
+${isHost?`<button class="btn block gold" data-act="dgStart">ابدأ اللعب</button>`:`<div class="card mut" style="text-align:center">استنى المضيف يبدأ…</div>`}
+<button class="btn block ghost" style="margin-top:8px" data-act="dgCopy">نسخ الكود ${esc(r.code)}</button>
+</div>${studentNav()}`;
+}
+function dgPlayView(){
+  const r=S.dg&&S.dg.room;if(!r)return dgOpenView();
+  const uid=S.user&&S.user.uid;
+  const isDrawer=r.drawer===uid;
+  const word=r.word||"";
+  const scores=r.scores||{};
+  const players=r.players||{};
+  const msgs=S.dg.msgs||[];
+  const hint=isDrawer?word:(r.hint||("_ ".repeat((word||"").length).trim()));
+  return `<div class="wrap chat-wrap" style="padding-bottom:120px">${header(`<button class="btn ghost sm" data-act="dgLeave">خروج</button>`)}
+<div class="card" style="padding:10px;margin-bottom:8px">
+  <div class="row"><b>🎨 ارسم وخمّن</b><span class="mut">جولة ${(r.round||1)}</span></div>
+  <div style="text-align:center;margin:6px 0;font-size:18px;font-weight:800">${isDrawer?"كلمة: "+esc(word):"خمّن: "+esc(hint)}</div>
+  <div class="mut" style="text-align:center">${isDrawer?"أنت بترسم — الصحاب بيخمّنوا":"الرسام: "+esc((players[r.drawer]||{}).name||"?")}</div>
+</div>
+${isDrawer?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">
+  <button type="button" class="btn sm" data-act="dgColor" data-c="#111">أسود</button>
+  <button type="button" class="btn sm" data-act="dgColor" data-c="#e11d48" style="background:#e11d48;color:#fff">أحمر</button>
+  <button type="button" class="btn sm" data-act="dgColor" data-c="#2563eb" style="background:#2563eb;color:#fff">أزرق</button>
+  <button type="button" class="btn sm" data-act="dgColor" data-c="#16a34a" style="background:#16a34a;color:#fff">أخضر</button>
+  <button type="button" class="btn sm ghost" data-act="dgColor" data-c="#ffffff">ممحاة</button>
+  <button type="button" class="btn sm ghost" data-act="dgClearCanvas">مسح</button>
+</div>`:""}
+<canvas id="dgCanvas" width="900" height="500" style="width:100%;touch-action:none;border-radius:12px;background:#fff;border:1px solid var(--line);cursor:crosshair;display:block;margin-bottom:8px"></canvas>
+<div class="card" style="padding:8px;max-height:160px;overflow:auto" id="dgMsgBox">
+${msgs.slice(-30).map(m=>`<div style="margin:4px 0"><b>${esc(m.name||"?")}:</b> ${esc(m.text||"")}</div>`).join("")||`<div class="mut">التخمينات هنا…</div>`}
+</div>
+${!isDrawer?`<form class="tk-compose" data-submit="dgGuess" style="position:fixed;bottom:64px;left:0;right:0;z-index:40">
+  <input id="dgGuessIn" type="text" maxlength="40" placeholder="اكتب تخمينك…" autocomplete="off">
+  <button class="btn sm" type="submit">➤</button>
+</form>`:""}
+<div class="card" style="margin-top:8px"><b>النقاط</b>
+${Object.entries(players).map(([id,p])=>`<div class="row"><span>${esc(p.name||"?")}</span><b>${scores[id]||0}</b></div>`).join("")}
+</div>
+</div>${studentNav()}`;
+}
+function dgRedraw(){
+  const c=document.getElementById("dgCanvas");
+  if(!c)return;
+  const ctx=c.getContext("2d");
+  ctx.fillStyle="#ffffff";ctx.fillRect(0,0,c.width,c.height);
+  const strokes=(S.dg&&S.dg.room&&S.dg.room.strokes)||[];
+  strokes.forEach(s=>{
+    if(!s||!s.p||s.p.length<2)return;
+    ctx.strokeStyle=s.c||"#111";
+    ctx.lineWidth=s.w||4;
+    ctx.lineCap="round";ctx.lineJoin="round";
+    ctx.beginPath();
+    ctx.moveTo(s.p[0][0]*c.width,s.p[0][1]*c.height);
+    for(let i=1;i<s.p.length;i++)ctx.lineTo(s.p[i][0]*c.width,s.p[i][1]*c.height);
+    ctx.stroke();
+  });
+}
+function dgInitCanvas(){
+  const c=document.getElementById("dgCanvas");
+  if(!c||c.__dg)return;
+  c.__dg=1;
+  dgRedraw();
+  const r=S.dg&&S.dg.room;
+  const uid=S.user&&S.user.uid;
+  if(!r||r.drawer!==uid)return;
+  const ctx=c.getContext("2d");
+  let drawing=false,pts=[];
+  function color(){return window.__dgColor||"#111111"}
+  function pos(e){
+    const rect=c.getBoundingClientRect();
+    const t=e.touches?e.touches[0]:e;
+    return [(t.clientX-rect.left)/rect.width,(t.clientY-rect.top)/rect.height];
+  }
+  c.addEventListener("pointerdown",function(e){e.preventDefault();drawing=true;pts=[pos(e)]});
+  c.addEventListener("pointermove",function(e){
+    if(!drawing)return;e.preventDefault();
+    const p=pos(e);pts.push(p);
+    ctx.strokeStyle=color();ctx.lineWidth=color()==="#ffffff"?14:4;
+    ctx.lineCap="round";ctx.lineJoin="round";
+    const a=pts[pts.length-2],b=pts[pts.length-1];
+    ctx.beginPath();
+    ctx.moveTo(a[0]*c.width,a[1]*c.height);
+    ctx.lineTo(b[0]*c.width,b[1]*c.height);
+    ctx.stroke();
+  });
+  async function endStroke(){
+    if(!drawing)return;drawing=false;
+    if(pts.length<2){pts=[];return}
+    const seg={c:color(),w:color()==="#ffffff"?14:4,p:pts.slice(0,80)};
+    pts=[];
+    try{
+      const ref=doc(db,"dgRooms",S.dg.room.code);
+      await updateDoc(ref,{strokes:arrayUnion(seg)});
+    }catch(e){console.error(e)}
+  }
+  c.addEventListener("pointerup",endStroke);
+  c.addEventListener("pointerleave",endStroke);
+  c.addEventListener("pointercancel",endStroke);
+}
+let __dgUnsub=null,__dgMsgUnsub=null;
+function dgStopListen(){
+  try{if(__dgUnsub)__dgUnsub()}catch(_){}
+  try{if(__dgMsgUnsub)__dgMsgUnsub()}catch(_){}
+  __dgUnsub=__dgMsgUnsub=null;
+}
+function dgListen(code){
+  dgStopListen();
+  __dgUnsub=onSnapshot(doc(db,"dgRooms",code),snap=>{
+    if(!snap.exists()){S.dg=null;S.view="games";render(true);return}
+    const data={code:snap.id,...snap.data()};
+    if(!S.dg)S.dg={};
+    const prevStrokes=((S.dg.room||{}).strokes||[]).length;
+    S.dg.room=data;
+    if(data.status==="lobby")S.view="dgLobby";
+    else if(data.status==="playing")S.view="dgPlay";
+    render(true);
+    if(data.status==="playing")setTimeout(function(){try{dgInitCanvas();if(((data.strokes||[]).length)!==prevStrokes||prevStrokes===0)dgRedraw()}catch(e){}},50);
+  });
+  __dgMsgUnsub=onSnapshot(query(collection(db,"dgRooms",code,"msgs"),orderBy("ts","asc"),limit(40)),snap=>{
+    if(!S.dg)S.dg={};
+    S.dg.msgs=snap.docs.map(d=>({id:d.id,...d.data()}));
+    if(S.view==="dgPlay"){
+      const box=document.getElementById("dgMsgBox");
+      if(box){
+        box.innerHTML=(S.dg.msgs||[]).slice(-30).map(m=>`<div style="margin:4px 0"><b>${esc(m.name||"?")}:</b> ${esc(m.text||"")}</div>`).join("")||`<div class="mut">التخمينات هنا…</div>`;
+        box.scrollTop=box.scrollHeight;
+      }else render(true);
+    }
+  });
+}
 
 
 /* ===== Platform mini-games (robot mode) ===== */
@@ -14286,7 +14448,84 @@ Object.assign(A,{
   openBoard(){S.view="board";render(true);setTimeout(function(){try{wbInit()}catch(e){}},60)},
   wbColor(d,el){window.__wbColor=(el&&el.getAttribute("data-c"))||(d&&d.c)||"#111111"},
   wbClear(){try{wbDoClear()}catch(e){}},
-  wbDl(){try{wbDownload()}catch(e){}}
+  wbDl(){try{wbDownload()}catch(e){}},
+  dgOpen(){S.view="dgOpen";render(true)},
+  async dgCreate(){
+    try{
+      if(!S.user)return;
+      const code=dgCode();
+      const name=(S.profile&&S.profile.name)||"لاعب";
+      const room={host:S.user.uid,status:"lobby",players:{[S.user.uid]:{name}},scores:{},strokes:[],round:0,createdAt:serverTimestamp()};
+      await setDoc(doc(db,"dgRooms",code),room);
+      S.dg={room:{code,...room}};
+      dgListen(code);
+      S.view="dgLobby";render(true);
+      toast("تم إنشاء الغرفة "+code);
+    }catch(e){toast("فشل الإنشاء: "+((e&&e.message)||e),true)}
+  },
+  async dgJoin(){
+    try{
+      const code=(($("#dgJoinCode")&&$("#dgJoinCode").value)||"").trim().toUpperCase();
+      if(!code){toast("اكتب الكود");return}
+      const ref=doc(db,"dgRooms",code);
+      const snap=await getDoc(ref);
+      if(!snap.exists()){toast("الغرفة مش موجودة",true);return}
+      const data=snap.data();
+      if(data.status==="ended"){toast("الغرفة خلصت",true);return}
+      const name=(S.profile&&S.profile.name)||"لاعب";
+      await updateDoc(ref,{["players."+S.user.uid]:{name}});
+      S.dg={room:{code,...data}};
+      dgListen(code);
+      S.view=data.status==="playing"?"dgPlay":"dgLobby";render(true);
+    }catch(e){toast("فشل الانضمام",true)}
+  },
+  async dgStart(){
+    try{
+      const r=S.dg&&S.dg.room;if(!r||r.host!==S.user.uid)return;
+      const word=dgPickWord();
+      await updateDoc(doc(db,"dgRooms",r.code),{status:"playing",drawer:r.host,word,hint:"_ ".repeat(word.length).trim(),strokes:[],round:1,scores:r.scores||{}});
+    }catch(e){toast("فشل البدء",true)}
+  },
+  async dgLeave(){
+    try{
+      const r=S.dg&&S.dg.room;
+      dgStopListen();
+      if(r&&S.user){try{await updateDoc(doc(db,"dgRooms",r.code),{["players."+S.user.uid]:deleteField()})}catch(_){}}
+      S.dg=null;S.view="games";render(true);
+    }catch(e){S.dg=null;S.view="games";render(true)}
+  },
+  dgCopy(){try{const c=S.dg&&S.dg.room&&S.dg.room.code;if(c){navigator.clipboard.writeText(c);toast("تم نسخ "+c)}}catch(e){toast((S.dg&&S.dg.room&&S.dg.room.code)||"")} },
+  dgColor(d,el){window.__dgColor=(el&&el.getAttribute("data-c"))||(d&&d.c)||"#111"},
+  async dgClearCanvas(){
+    try{
+      const r=S.dg&&S.dg.room;if(!r||r.drawer!==S.user.uid)return;
+      await updateDoc(doc(db,"dgRooms",r.code),{strokes:[]});
+    }catch(e){}
+  },
+  async dgGuess(){
+    try{
+      const r=S.dg&&S.dg.room;if(!r||r.drawer===S.user.uid)return;
+      const el=document.getElementById("dgGuessIn");
+      const text=(el&&el.value||"").trim();
+      if(!text)return;
+      if(el)el.value="";
+      const norm=s=>String(s||"").normalize("NFKC").replace(/[\u064B-\u065F\u0670\u0640]/g,"").replace(/[أإآ]/g,"ا").replace(/ى/g,"ي").replace(/\s+/g,"").toLowerCase();
+      if(norm(text)!==norm(r.word)){toast("إجابة غير صحيحة");return}
+      const name=(S.profile&&S.profile.name)||"لاعب";
+      // لا نحفظ نص التخمين؛ نسجل حدث نجاح فقط حتى لا تنكشف محاولات الآخرين.
+      await addDoc(collection(db,"dgRooms",r.code,"msgs"),{uid:S.user.uid,name,text:`✔ ${name} خمن الكلمة`,kind:"correct",ts:serverTimestamp()});
+      const scores=Object.assign({},r.scores||{});
+      scores[S.user.uid]=(scores[S.user.uid]||0)+10;
+      scores[r.drawer]=(scores[r.drawer]||0)+5;
+      const players=r.players||{};
+      const ids=Object.keys(players);
+      if(ids.length<2){toast("يلزم وجود لاعبين على الأقل",true);return}
+      let next=ids[(ids.indexOf(r.drawer)+1+ids.length)%ids.length];
+      const word=dgPickWord();
+      await updateDoc(doc(db,"dgRooms",r.code),{scores,drawer:next,word,hint:"_ ".repeat(word.length).trim(),strokes:[],round:(r.round||1)+1});
+      toast("صح! +10 🎉");
+    }catch(e){toast("فشل الإرسال",true)}
+  }
 });
 /* v115: تحميل تلقائي بالسكرول (Observer على السنتينل) — الزرار فضل احتياطي بس مش هو الأساس */
 let __fadSent=null;
