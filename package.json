@@ -1,0 +1,12 @@
+{
+  "name": "functions",
+  "description": "Trusted backend for Draw & Guess in Eltafawoq",
+  "engines": { "node": "22" },
+  "main": "index.js",
+  "scripts": { "serve": "firebase emulators:start --only functions,firestore,storage", "deploy": "firebase deploy --only functions" },
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.3.2"
+  },
+  "private": true
+}
