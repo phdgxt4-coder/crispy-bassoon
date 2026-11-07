@@ -4410,7 +4410,7 @@ function wbInit(){
   // fill white bg once
   ctx.fillStyle="#fafafa";ctx.fillRect(0,0,c.width,c.height);
 }
-function wbClear(){
+function wbDoClear(){
   const c=document.getElementById("wbCanvas");
   if(!c)return;
   const ctx=c.getContext("2d");
@@ -4542,7 +4542,7 @@ function certDownload(){
     toast("تم تحميل الشهادة ✓");
   }catch(e){toast("فشل التحميل",true)}
 }
-function certPrint(){
+function certPrintPage(){
   const c=document.getElementById("certCanvas");
   if(!c)return;
   certDraw();
@@ -14357,16 +14357,15 @@ function fadGrow(){
   if((S.fadaye7All||[]).length>=lim&&lim<1500&&!S.fadBusy){S.fadBusy=1;S.fadLimit=Math.min(1500,lim+30);if(__fadUnsub){try{__fadUnsub()}catch(_){}__fadUnsub=null}ensureFadaye7Listen()}
 }
 Object.assign(A,{fadMore(){fadGrow()},
-  async fadDl(el){
+  async fadDl(d,el){
     try{
-      const url=el&&el.getAttribute("data-url");
-      const title=(el&&el.getAttribute("data-title")||"fadiha").replace(/[^\w\u0600-\u06FF\- ]+/g,"_").slice(0,40)||"fadiha";
+      const url=(el&&el.getAttribute("data-url"))||(d&&d.url)||"";
+      const rawTitle=(el&&el.getAttribute("data-title"))||(d&&d.title)||"fadiha";
+      const title=String(rawTitle).replace(/[^\w\u0600-\u06FF\- ]+/g,"_").slice(0,40)||"fadiha";
       if(!url){toast("مفيش صورة",true);return}
-      // data URL أو نفس الأصل
       if(url.startsWith("data:")||url.startsWith("blob:")){
         const a=document.createElement("a");a.href=url;a.download=title+".jpg";a.click();return;
       }
-      // محاولة fetch + blob (Firebase Storage عادة يسمح)
       toast("جاري التحميل…");
       const r=await fetch(url,{mode:"cors",credentials:"omit"});
       if(!r.ok)throw new Error("HTTP "+r.status);
@@ -14376,18 +14375,17 @@ Object.assign(A,{fadMore(){fadGrow()},
       setTimeout(()=>URL.revokeObjectURL(obj),4000);
       toast("تم التحميل ✓");
     }catch(e){
-      // fallback: افتح في تاب جديد
-      try{window.open(el.getAttribute("data-url"),"_blank","noopener")}catch(_){}
+      try{window.open((el&&el.getAttribute("data-url"))||(d&&d.url)||"","_blank","noopener")}catch(_){}
       toast("افتح الصورة واعمل حفظ يدوي",true);
     }
   },
-  openCert(){S.view="cert";scheduleRender();setTimeout(certDraw,80)},
-  certDl(){certDownload()},
-  certPrint(){certPrint()},
-  openBoard(){S.view="board";scheduleRender();setTimeout(wbInit,60)},
-  wbColor(el){window.__wbColor=el&&el.getAttribute("data-c")||"#111";toast(window.__wbColor==="#ffffff"?"الممحاة":"اللون جاهز")},
-  wbClear(){wbClear()},
-  wbDl(){wbDownload()}
+  openCert(){S.view="cert";render(true);setTimeout(function(){try{certDraw()}catch(e){console.error(e)}},80)},
+  certDl(){try{certDownload()}catch(e){console.error(e)}},
+  certPrint(){try{certPrintPage()}catch(e){console.error(e)}},
+  openBoard(){S.view="board";render(true);setTimeout(function(){try{wbInit()}catch(e){console.error(e)}},60)},
+  wbColor(d,el){window.__wbColor=(el&&el.getAttribute("data-c"))||(d&&d.c)||"#111";},
+  wbClear(){try{wbDoClear()}catch(e){console.error(e)}},
+  wbDl(){try{wbDownload()}catch(e){console.error(e)}}
 }});
 /* v115: تحميل تلقائي بالسكرول (Observer على السنتينل) — الزرار فضل احتياطي بس مش هو الأساس */
 let __fadSent=null;
