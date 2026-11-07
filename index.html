@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v179">
+<meta name="sw-build" content="v180">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v179";/* v177: فصل مركزي لواجهة الطالب عن مسارات الأدمن */</script>
+<script>window.APP_BUILD="v180";/* v180: إصلاحات تقرير الأخطاء 2026-11-07 — إنشاء الغرفة من غير Cloud Function + بديل الصور الناقصة + تنقية سجل الأخطاء. v177: فصل واجهة الطالب عن الأدمن */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -65,9 +65,11 @@
     EC.log.push(e);if(EC.log.length>EC.MAX)EC.log.shift();save();
     if(EC.buf.length<50)EC.buf.push(e);
     EC._in=0}catch(x){EC._in=0}};
+  var __rSeen={};
   addEventListener("error",function(ev){try{
     var t=ev.target;
-    if(t&&t!==window&&t.nodeType===1){var u=t.src||t.href||"";if(u)EC.report("network",{message:"فشل تحميل "+t.tagName.toLowerCase()+": "+u},{fn:"resource"});return}
+    /* v180: منع تكرار تسجيل نفس الملف الفاشل أكتر من مرة في الجلسة */
+    if(t&&t!==window&&t.nodeType===1){var u=t.src||t.href||"";if(u&&!__rSeen[u]){__rSeen[u]=1;EC.report("network",{message:"فشل تحميل "+t.tagName.toLowerCase()+": "+u},{fn:"resource"})}return}
     EC.report("js",ev.error&&ev.error.message?ev.error:{message:(ev.message||"error")+" @"+String(ev.filename||"").split("/").pop()+":"+ev.lineno})}catch(x){}},true);
   addEventListener("unhandledrejection",function(ev){try{
     var r=ev.reason,c=r&&typeof r==="object"?String(r.code||""):"";
@@ -1855,8 +1857,6 @@ html.mora-lock #app{visibility:hidden}
 
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getFunctions,httpsCallable} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
-import {getStorage,ref as storageRef,uploadBytes,getBlob} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,updatePassword,setPersistence,browserLocalPersistence,indexedDBLocalPersistence} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager,persistentSingleTabManager,doc,getDoc as _fbGetDoc,setDoc as _fbSetDoc,addDoc as _fbAddDoc,updateDoc as _fbUpdateDoc,deleteDoc as _fbDeleteDoc,deleteField,collection,onSnapshot,query,where,orderBy,limit,getDocs as _fbGetDocs,Timestamp,terminate,clearIndexedDbPersistence,writeBatch,serverTimestamp,arrayUnion,arrayRemove,FieldPath,startAfter,documentId} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -2104,7 +2104,7 @@ const configured = !firebaseConfig.apiKey.startsWith("PASTE");
 let messaging=null, __msgMod=null;
 if(configured){
   const app=initializeApp(firebaseConfig);
-  auth=getAuth(app);window.__fbApp=app;window.__drawFns=getFunctions(app,"us-central1");try{window.__drawStorage=getStorage(app)}catch(e){window.__drawStorage=null;console.warn("Draw media disabled until storageBucket is configured",e)}try{db=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})}) /* v160: كاش دائم متعدد التبويبات (من غير lease errors) — بيانات المنصة بتفضل بعد قفل التطبيق وتشتغل أوفلاين */}catch(e){db=initializeFirestore(app,{})}
+  auth=getAuth(app);window.__fbApp=app;try{db=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})}) /* v160: كاش دائم متعدد التبويبات (من غير lease errors) — بيانات المنصة بتفضل بعد قفل التطبيق وتشتغل أوفلاين */}catch(e){db=initializeFirestore(app,{})}
   try{setPersistence(auth,indexedDBLocalPersistence).catch(function(){try{setPersistence(auth,browserLocalPersistence).catch(function(){})}catch(_){}});try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(_){}}catch(_){}getIp();
   // FCM اختياري — لو فشل ميمنعش تشغيل المنصة
   (async()=>{
@@ -2282,7 +2282,7 @@ const SAMPLE=`عاصمة مصر هي؟
 
 /* ---------- ترتيب عشوائي ثابت لكل محاولة ---------- */
 function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-function shuf(arr,rnd){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function shuf(arr,rnd){const a=arr.slice();const R=typeof rnd==="function"?rnd:Math.random;for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function buildOrder(e,seed){
   const rnd=mulberry(seed),on=e.shuffle!==false;
   const idx=e.questions.map((_,i)=>i);
@@ -3924,15 +3924,13 @@ ${gc("⚡","linear-gradient(135deg,#EF4444,#F97316)","Speed Duel","سؤال وا
 ${gc("🧍","linear-gradient(135deg,#475569,#94a3b8)","آخر واحد واقف","مواجهة · المنطقة بتضيق",`<a class="btn sm" href="push.html" style="text-decoration:none">🤖 العب</a>`)}
 ${gc("🎨","linear-gradient(135deg,#a855f7,#ec4899)","ارسم وخمّن","ارسم والصحابي يخمنوا · غرف وكود",`<button class="btn sm gold" data-act="dgOpen">👥 غرفة</button>`)}
 
-</div>${studentNav()}`}
-
+</div>${studentNav()}`;
+}
 
 
 /* ===== v178: ارسم وخمّن (Draw & Guess) ===== */
-const DG_WORDS=["مدرسة","كتاب","قلم","معلم","طالب","امتحان","كرة","شمس","قمر","نجمة","بيت","شجرة","وردة","قطة","كلب","سمكة","طائر","سيارة","دراجة","طائرة","سفينة","جبل","بحر","نهر","سماء","سحابة","مطر","ثلج","نار","باب","نافذة","كرسي","طاولة","سرير","تفاحة","موزة","برتقالة","عنب","خبز","جبن","ماء","عصير","ساعة","هاتف","حاسوب","حقيبة","نظارة","قبعة","حذاء","قميص","زهرة","فراشة","نحلة","أسد","فيل","زرافة","قرد","أرنب","دجاجة","خروف","حصان","جمل","مسجد","كنيسة","مستشفى","حديقة","ملعب","سوق","مطبخ","حمام","سلم","مصباح","مرآة","وسادة","بطانية","مفتاح","قفل","سلم","جسر","برج","علم","خريطة","بوصلة","كاميرا","ميكروفون","سماعة","بطارية","شاحن"];
+const DG_WORDS=["مدرسة","كتاب","قلم","معلم","طالب","امتحان","كرة","شمس","قمر","نجمة","بيت","شجرة","وردة","قطة","كلب","سمكة","طائر","سيارة","دراجة","طائرة","سفينة","جبل","بحر","نهر","سماء","سحابة","مطر","ثلج","نار","باب","نافذة","كرسي","طاولة","سرير","تفاحة","موزة","برتقالة","عنب","خبز","جبن","ماء","عصير","ساعة","هاتف","حاسوب","حقيبة","نظارة","قبعة","حذاء","قميص","زهرة","فراشة","نحلة","أسد","فيل","زرافة","قرد","أرنب","دجاجة","خروف","حصان","جمل","مسجد","كنيسة","مستشفى","حديقة","ملعب","سوق","مطبخ","حمام","سلم","مصباح","مرآة","وسادة","بطانية","مفتاح","قفل","جسر","برج","علم","خريطة","بوصلة","كاميرا","ميكروفون","سماعة","بطارية","شاحن","فراولة","بطيخ","ليمون","مانجو","كرز","خوخ","تين","خيار","طماطم","بطاطس","جزر","باذنجان","فلفل","بصل","ثوم","ذرة","رمان","تمر","توت","مشمش","إجاص","جوافة","كيوي","أناناس","شمام","يوسفي","فستق","بندق","لوز","كاجو","فول سوداني","سنبلة","فطر","أرز","مكرونة","طعمية","كشري","بيتزا","برجر","شاورما","كيك","بسكوت","شوكولاتة","عسل","زبادي","فشار","شاي","قهوة","آيس كريم","دونات","كريب","وافل","جمبري","بيض","زيتون","عدس","شوربة","سندوتش","ملوخية","كابوريا","بلطي","حبار","نجمة بحر","قنديل بحر","نمر","ذئب","ثعلب","دب","حوت","دلفين","قرش","أخطبوط","سلحفاة","ضفدع","تمساح","ثعبان","عنكبوت","نملة","ذبابة","بعوضة","خنفساء","سنجاب","قنفذ","خفاش","ببغاء","حمامة","بطريق","بطة","ديك","صقر","بومة","عصفور","غزال","حمار","باندا","كنجو","لاما","كنغر","شبل","جرو","كنار","سمان","نورس","سرطان","فقمة","وحيد قرن","بجعة","طاووس","كتكوت","هدهد","جرادة","دعسوقة","دودة","دبور","يراعة","خلية","عش","فهد","بقرة","ثور","عجل","جاموسة","ماعز","مهر","إوزة","كروان","كوالا","حرباء","سحلية","عقرب","تنين","وادي","صحراء","جزيرة","شاطئ","صخرة","بركان","قوس قزح","برق","شلال","غابة","عشب","ورقة","صبار","بحيرة","كهف","نخلة","قمح","قطن","ياسمين","ضباب","رياح","اعصار","خليج","قناة","سد","مرجان","واحة","شاحنة","أتوبيس","دراجة نارية","تاكسي","قطر","قارب","زورق","صاروخ","بالون","هليكوبتر","غواصة","سكوتر","عربة","قمر صناعي","توك توك","ميكروباص","إسعاف","رافعة","جرار","بلدوزر","دبابة","فصل","مكتبة","سينما","مسرح","صيدلية","بنك","فندق","مطعم","كافيه","محطة","مطار","نادي","شارع","نفق","قصر","معبد","هرم","متحف","مسبح","ساحة","بلكونة","سطح","ميناء","دكان","ورشة","معمل","جامعة","بوابة","مصعد","عمارة","كوخ","مكنسة","ثلاجة","بوتاجاز","غسالة","مروحة","دفاية","إبريق","كوب","فنجان","ملعقة","شوكة","سكينة","طبق","قدر","صحن","مفك","مطرقة","منشار","مسمار","مقص","دبوس","إبرة","خيط","شمعة","قداحة","منبه","سجادة","ستارة","دولاب","سلة","صندوق","مكواة","كنبة","حنفية","خرطوم","ممحاة","براد","خلاطة","سخان","مظلة","خاتم","أسورة","قلادة","سلسلة","علبة","صينية","بنطلون","جيبة","فستان","جاكيت","طاقية","شراب","شبشب","حزام","ربطة عنق","قفاز","وشاح","طرحة","ايد","راس","ودن","عين","دماغ","ضرس","لسان","شعر","قلب","كتف","رقبة","قدم","ظهر","صباع","بطن","وجه","سن","دكتور","مهندس","شرطي","جندي","مطفأة","طيار","صياد","مزارع","خباز","نجار","حداد","رسام","مصور","طاهي","حلاق","ممرضة","مغني","ممثل","سائق","صيدلي","محامي","صحفي","رائد فضاء","غطاس","حكم","مضرب","تنس","سباحة","جري","قفز","ملاكمة","مصارعة","تزلج","هدف","مرمى","ميدالية","كأس","صافرة","كرة سلة","شطرنج","نرد","دومينو","بازل","كاراتيه","جمباز","كرة طائرة","بلياردو","تلفزيون","راديو","ريموت","لابتوب","تابلت","ماوس","شاشة","روبوت","واي فاي","سيلفي","رسالة","درون","مجهر","قارورة","ترمومتر","حقنة","طابعة","ساعة رملية","جيتار","بيانو","كمان","طبلة","ناي","ساكسفون","عود","بوق","رق","سبورة","مسطرة","براية","مقومة","دفتر","جرس","مكعب","دمية","طائرة ورقية","مرجوحة","زحليقة","خيمة","فانوس","تلسكوب","منظار","مغناطيس","ميزان","زجاجة","كيس","جريدة","مظروف","هدية","شراع","ترس","برغي","صامولة","زنبرك","سيف","درع","عجلة","كوكب","سنارة","شبكة","مجداف","مرساة","لوحة","ألوان","فرشاة","طباشير","دباسة","صمغ","مكتب","أريكة","مطبعة","مصنع","قفص","خزانة","جراج"];
 function dgPickWord(){return DG_WORDS[Math.floor(Math.random()*DG_WORDS.length)]}
-async function dgCall(name,data){if(!window.__drawFns)throw new Error("خدمات اللعبة غير مفعلة");return (await httpsCallable(window.__drawFns,name)(data||{})).data}
-function dgCodeOf(){return S.dg&&S.dg.room&&S.dg.room.code}
 function dgCode(){const c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<5;i++)s+=c[Math.floor(Math.random()*c.length)];return s}
 function dgOpenView(){
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openGames">رجوع</button>`)}
@@ -3957,7 +3955,7 @@ function dgLobbyView(){
 <div class="card"><b>اللاعبون</b>
 ${players.map(([id,p])=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><span>${esc(p.name||"لاعب")}${id===r.host?" 👑":""}${id===uid?" (أنت)":""}</span></div>`).join("")||`<div class="mut">استنى الصحاب…</div>`}
 </div>
-${isHost?`<div class="card"><div class="row" style="flex-wrap:wrap"><label>نهاية المباراة <select id="dgEndMode" class="input" style="width:auto"><option value="rounds" ${r.endMode!=="points"?"selected":""}>بعد عدد دورات</option><option value="points" ${r.endMode==="points"?"selected":""}>عند نقاط الفوز</option></select></label><label>الدورات <select id="dgRounds" class="input" style="width:auto"><option value="1" ${r.rounds===1?"selected":""}>1</option><option value="3" ${!r.rounds||r.rounds===3?"selected":""}>3</option><option value="5" ${r.rounds===5?"selected":""}>5</option><option value="10" ${r.rounds===10?"selected":""}>10</option></select></label><label>هدف النقاط <select id="dgPoints" class="input" style="width:auto"><option value="50" ${r.pointsToWin===50?"selected":""}>50</option><option value="100" ${!r.pointsToWin||r.pointsToWin===100?"selected":""}>100</option><option value="200" ${r.pointsToWin===200?"selected":""}>200</option></select></label><label>وقت الدور <select id="dgTurnSecs" class="input" style="width:auto"><option value="45" ${r.turnSeconds===45?"selected":""}>45 ثانية</option><option value="60" ${!r.turnSeconds||r.turnSeconds===60?"selected":""}>60 ثانية</option><option value="90" ${r.turnSeconds===90?"selected":""}>90 ثانية</option></select></label><button class="btn sm" data-act="dgSaveSettings">حفظ</button></div></div><button class="btn block gold" data-act="dgStart">ابدأ اللعب</button>`:`<div class="card mut" style="text-align:center">استنى المضيف يبدأ…</div>`}
+${isHost?`<button class="btn block gold" data-act="dgStart">ابدأ اللعب</button>`:`<div class="card mut" style="text-align:center">استنى المضيف يبدأ…</div>`}
 <button class="btn block ghost" style="margin-top:8px" data-act="dgCopy">نسخ الكود ${esc(r.code)}</button>
 </div>${studentNav()}`;
 }
@@ -3965,70 +3963,37 @@ function dgPlayView(){
   const r=S.dg&&S.dg.room;if(!r)return dgOpenView();
   const uid=S.user&&S.user.uid;
   const isDrawer=r.drawer===uid;
-  const word=(S.dg&&S.dg.privateWord)||"";
+  const word=r.word||"";
   const scores=r.scores||{};
   const players=r.players||{};
   const msgs=S.dg.msgs||[];
-  const hint=isDrawer?word:(r.answerHint||"＿ ＿ ＿ ＿");
-  if(r.status==="ended"){const ranks=Object.entries(players).sort((a,b)=>(scores[b[0]]||0)-(scores[a[0]]||0));return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="dgLeave">خروج</button>`)}<div class="card" style="text-align:center;padding:24px"><h2>انتهت المباراة</h2><div style="font-size:30px">🏆</div><b>${ranks[0]?esc((players[ranks[0][0]]||{}).name||"لاعب"):"لا فائز"}</b><div class="mut">${ranks[0]?scores[ranks[0][0]]||0:0} نقطة</div></div><div class="card"><b>الترتيب النهائي</b>${ranks.map(([id,p],i)=>`<div class="row"><span>${i<3?["🥇","🥈","🥉"][i]:""} ${esc(p.name||"لاعب")}</span><b>${scores[id]||0}</b></div>`).join("")}</div><div class="card"><b>إعادة مشاهدة الرسم</b>${(S.dg.history||[]).length?(S.dg.history||[]).map((t,i)=>`<div class="row"><span>${esc((players[t.drawer]||{}).name||"رسام")} · ${esc(t.answer||"")}</span><button class="btn sm" data-act="dgPlayReplay" data-index="${i}">▶ إعادة</button></div>`).join(""):`<div class="mut">سجل الجولات قيد التحميل أو غير متاح.</div>`}${S.dg.replayTurn?`<canvas id="dgReplayCanvas" width="900" height="500" style="width:100%;max-height:340px;background:#fff;border-radius:12px;margin-top:8px"></canvas>`:""}</div>${S.dg.stats?`<div class="card"><b>إحصائياتك الدائمة</b><div class="row"><span>المستوى ${S.dg.stats.level||1} · XP</span><b>${S.dg.stats.xp||0}</b></div><div class="row"><span>المباريات / الانتصارات</span><b>${S.dg.stats.gamesPlayed||0} / ${S.dg.stats.wins||0}</b></div><div class="mut">الإنجازات: ${(S.dg.stats.achievements||[]).map(esc).join("، ")||"—"}</div></div>`:""}${r.host===uid?`<button class="btn block gold" data-act="dgRestart">العبوا مرة أخرى</button>`:""}</div>${studentNav()}`}
-  if(r.status==="choosing")return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="dgLeave">خروج</button>`)}<h2>اختر كلمة ترسمها</h2>${isDrawer?`<p class="mut">هذه الخيارات تظهر لك وحدك. اختر كلمة واحدة.</p><div style="display:grid;gap:10px">${(S.dg.choices||[]).map((w,i)=>`<button class="btn gold block" data-act="dgChooseWord" data-choice="${esc(w)}">${esc(w)}</button>`).join("")||`<div class="card mut">جاري تحميل الخيارات…</div>`}</div>`:`<div class="card mut" style="text-align:center">${esc((players[r.drawer]||{}).name||"الرسام")} يختار كلمة سرية…</div>`}</div>${studentNav()}`;
+  const hint=isDrawer?word:(r.hint||("_ ".repeat((word||"").length).trim()));
   return `<div class="wrap chat-wrap" style="padding-bottom:120px">${header(`<button class="btn ghost sm" data-act="dgLeave">خروج</button>`)}
 <div class="card" style="padding:10px;margin-bottom:8px">
-  <div class="row"><b>🎨 ارسم وخمّن</b><span class="mut">جولة ${(r.round||1)} · ${r.rounds||3}</span><span class="pill">باقي <b id="dgTime">—</b> ث</span></div>
+  <div class="row"><b>🎨 ارسم وخمّن</b><span class="mut">جولة ${(r.round||1)}</span></div>
   <div style="text-align:center;margin:6px 0;font-size:18px;font-weight:800">${isDrawer?"كلمة: "+esc(word):"خمّن: "+esc(hint)}</div>
   <div class="mut" style="text-align:center">${isDrawer?"أنت بترسم — الصحاب بيخمّنوا":"الرسام: "+esc((players[r.drawer]||{}).name||"?")}</div>
 </div>
-${isDrawer?`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px" aria-label="أدوات الرسم">
-  <button type="button" class="btn sm" data-act="dgColor" data-c="#111111" aria-label="أسود">أسود</button>
+${isDrawer?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">
+  <button type="button" class="btn sm" data-act="dgColor" data-c="#111">أسود</button>
   <button type="button" class="btn sm" data-act="dgColor" data-c="#e11d48" style="background:#e11d48;color:#fff">أحمر</button>
   <button type="button" class="btn sm" data-act="dgColor" data-c="#2563eb" style="background:#2563eb;color:#fff">أزرق</button>
   <button type="button" class="btn sm" data-act="dgColor" data-c="#16a34a" style="background:#16a34a;color:#fff">أخضر</button>
-  <button type="button" class="btn sm" data-act="dgColor" data-c="#f59e0b" style="background:#f59e0b;color:#111">أصفر</button>
-  <button type="button" class="btn sm" data-act="dgColor" data-c="#9333ea" style="background:#9333ea;color:#fff">بنفسجي</button>
   <button type="button" class="btn sm ghost" data-act="dgColor" data-c="#ffffff">ممحاة</button>
-  <button type="button" class="btn sm ghost" data-act="dgSize" data-size="3">رفيعة</button>
-  <button type="button" class="btn sm ghost" data-act="dgSize" data-size="7">متوسطة</button>
-  <button type="button" class="btn sm ghost" data-act="dgSize" data-size="12">عريضة</button>
-  <button type="button" class="btn sm ghost" data-act="dgUndo">↶ تراجع</button>
-  <button type="button" class="btn sm ghost" data-act="dgRedo">↷ إعادة</button>
-  <button type="button" class="btn sm ghost" data-act="dgClearCanvas">مسح اللوحة</button>
+  <button type="button" class="btn sm ghost" data-act="dgClearCanvas">مسح</button>
 </div>`:""}
 <canvas id="dgCanvas" width="900" height="500" style="width:100%;touch-action:none;border-radius:12px;background:#fff;border:1px solid var(--line);cursor:crosshair;display:block;margin-bottom:8px"></canvas>
 <div class="card" style="padding:8px;max-height:160px;overflow:auto" id="dgMsgBox">
-${msgs.slice(-30).map(dgMessageHtml).join("")||`<div class="mut">الشات والتخمينات…</div>`}
+${msgs.slice(-30).map(m=>`<div style="margin:4px 0"><b>${esc(m.name||"?")}:</b> ${esc(m.text||"")}</div>`).join("")||`<div class="mut">التخمينات هنا…</div>`}
 </div>
-${!isDrawer?`<div style="display:flex;justify-content:center;gap:6px;margin:5px"><button class="btn sm ${S.dg.chatMode!=="chat"?"gold":"ghost"}" data-act="dgMode" data-mode="guess">تخمين</button><button class="btn sm ${S.dg.chatMode==="chat"?"gold":"ghost"}" data-act="dgMode" data-mode="chat">دردشة</button></div>`:""}
-<form class="tk-compose" data-submit="${isDrawer||S.dg.chatMode==="chat"?"dgChat":"dgGuess"}" style="position:fixed;bottom:64px;left:0;right:0;z-index:40">
-  <input id="dgGuessIn" type="text" maxlength="${isDrawer||S.dg.chatMode==="chat"?"500":"80"}" placeholder="${isDrawer||S.dg.chatMode==="chat"?"اكتب رسالة في الشات…":"اكتب تخمينك…"}" autocomplete="off">
+${!isDrawer?`<form class="tk-compose" data-submit="dgGuess" style="position:fixed;bottom:64px;left:0;right:0;z-index:40">
+  <input id="dgGuessIn" type="text" maxlength="40" placeholder="اكتب تخمينك…" autocomplete="off">
   <button class="btn sm" type="submit">➤</button>
-  <button class="btn sm ghost" type="button" data-act="dgPickFile" aria-label="إرسال صورة أو صوت">＋</button>
-  <button class="btn sm ghost" type="button" data-act="dgRecord" aria-label="تسجيل رسالة صوتية">🎙</button>
-  <input id="dgMediaFile" type="file" accept="image/jpeg,image/png,image/webp,image/gif,audio/webm,audio/ogg,audio/mpeg,audio/mp4,audio/aac,audio/wav" style="display:none">
-</form>
+</form>`:""}
 <div class="card" style="margin-top:8px"><b>النقاط</b>
 ${Object.entries(players).map(([id,p])=>`<div class="row"><span>${esc(p.name||"?")}</span><b>${scores[id]||0}</b></div>`).join("")}
 </div>
 </div>${studentNav()}`;
-}
-function dgReplayAnimate(){
-  const c=document.getElementById("dgReplayCanvas"),t=S.dg&&S.dg.replayTurn;if(!c||!t)return;
-  if(window.__dgReplayRAF)cancelAnimationFrame(window.__dgReplayRAF);
-  const ctx=c.getContext("2d"),strokes=t.strokes||[];ctx.fillStyle="#fff";ctx.fillRect(0,0,c.width,c.height);
-  let si=0,pi=1;
-  function step(){if(si>=strokes.length)return;const s=strokes[si],pts=s&&s.p;if(!pts||pts.length<2){si++;pi=1;window.__dgReplayRAF=requestAnimationFrame(step);return}
-    ctx.strokeStyle=s.c||"#111";ctx.lineWidth=s.w||4;ctx.lineCap="round";ctx.lineJoin="round";ctx.beginPath();ctx.moveTo(pts[0][0]*c.width,pts[0][1]*c.height);
-    for(let j=1;j<Math.min(pi+1,pts.length);j++)ctx.lineTo(pts[j][0]*c.width,pts[j][1]*c.height);ctx.stroke();pi++;
-    if(pi>=pts.length){si++;pi=1}window.__dgReplayRAF=requestAnimationFrame(step);
-  }step();
-}
-function dgMessageHtml(m){
-  const who=`<b>${esc(m.name||"?")}:</b> `;
-  if(m.kind==="media"){
-    const url=S.dg&&S.dg.mediaUrls&&S.dg.mediaUrls[m.id];
-    if(!url)return `<div style="margin:4px 0">${who}<span class="mut">جارٍ تحميل المرفق…</span></div>`;
-    return m.type==="image"?`<div style="margin:4px 0">${who}<br><img src="${esc(url)}" alt="صورة مرسلة" loading="lazy" style="max-width:220px;max-height:220px;border-radius:12px"></div>`:`<div style="margin:4px 0">${who}<br><audio controls preload="none" src="${esc(url)}" style="max-width:250px"></audio></div>`;
-  }
-  return `<div style="margin:4px 0">${who}${esc(m.text||"")}</div>`;
 }
 function dgRedraw(){
   const c=document.getElementById("dgCanvas");
@@ -4048,7 +4013,6 @@ function dgRedraw(){
   });
 }
 function dgInitCanvas(){
-  const fi=document.getElementById("dgMediaFile");if(fi&&!fi.__dg){fi.__dg=1;fi.addEventListener("change",()=>{const f=fi.files&&fi.files[0];if(f)dgUploadMedia(f);fi.value=""})}
   const c=document.getElementById("dgCanvas");
   if(!c||c.__dg)return;
   c.__dg=1;
@@ -4057,48 +4021,44 @@ function dgInitCanvas(){
   const uid=S.user&&S.user.uid;
   if(!r||r.drawer!==uid)return;
   const ctx=c.getContext("2d");
-  let drawing=false,pts=[],strokeId="",syncQueue=Promise.resolve(),lastSync=0;
+  let drawing=false,pts=[];
   function color(){return window.__dgColor||"#111111"}
-  function strokePoints(){if(pts.length<=120)return pts.slice();const out=[];for(let i=0;i<120;i++)out.push(pts[Math.round(i*(pts.length-1)/119)]);return out}
-  function syncStroke(force){const now=Date.now();if(pts.length<2||(!force&&(pts.length%12!==0||now-lastSync<950)))return;lastSync=now;const seg={id:strokeId,c:color(),w:color()==="#ffffff"?Math.max(14,window.__dgWidth||4):(window.__dgWidth||4),p:strokePoints()};syncQueue=syncQueue.then(()=>dgCall("addDrawStroke",{code:S.dg.room.code,stroke:seg})).catch(e=>console.warn("stroke sync",e))}
   function pos(e){
     const rect=c.getBoundingClientRect();
     const t=e.touches?e.touches[0]:e;
     return [(t.clientX-rect.left)/rect.width,(t.clientY-rect.top)/rect.height];
   }
-  c.addEventListener("pointerdown",function(e){e.preventDefault();drawing=true;pts=[pos(e)];strokeId=(uid||"p")+":"+Date.now()+":"+Math.random().toString(36).slice(2,7);lastSync=0;try{c.setPointerCapture(e.pointerId)}catch(_){}});
+  c.addEventListener("pointerdown",function(e){e.preventDefault();drawing=true;pts=[pos(e)]});
   c.addEventListener("pointermove",function(e){
     if(!drawing)return;e.preventDefault();
     const p=pos(e);pts.push(p);
-    ctx.strokeStyle=color();ctx.lineWidth=color()==="#ffffff"?Math.max(14,window.__dgWidth||4):(window.__dgWidth||4);
+    ctx.strokeStyle=color();ctx.lineWidth=color()==="#ffffff"?14:4;
     ctx.lineCap="round";ctx.lineJoin="round";
     const a=pts[pts.length-2],b=pts[pts.length-1];
     ctx.beginPath();
     ctx.moveTo(a[0]*c.width,a[1]*c.height);
     ctx.lineTo(b[0]*c.width,b[1]*c.height);
-    ctx.stroke();syncStroke(false);
+    ctx.stroke();
   });
   async function endStroke(){
     if(!drawing)return;drawing=false;
     if(pts.length<2){pts=[];return}
-    syncStroke(true);pts=[];
-    try{await syncQueue}catch(e){console.error(e)}
+    const seg={c:color(),w:color()==="#ffffff"?14:4,p:pts.slice(0,80)};
+    pts=[];
+    try{
+      const ref=doc(db,"dgRooms",S.dg.room.code);
+      await updateDoc(ref,{strokes:arrayUnion(seg)});
+    }catch(e){console.error(e)}
   }
   c.addEventListener("pointerup",endStroke);
   c.addEventListener("pointerleave",endStroke);
   c.addEventListener("pointercancel",endStroke);
 }
-let __dgUnsub=null,__dgMsgUnsub=null,__dgHistUnsub=null,__dgStrokeUnsub=null,__dgTick=null,__dgLastPrivate="";
-let __dgRecorder=null,__dgAudioParts=[];
+let __dgUnsub=null,__dgMsgUnsub=null;
 function dgStopListen(){
   try{if(__dgUnsub)__dgUnsub()}catch(_){}
   try{if(__dgMsgUnsub)__dgMsgUnsub()}catch(_){}
-  try{if(__dgHistUnsub)__dgHistUnsub()}catch(_){}
-  try{if(__dgStrokeUnsub)__dgStrokeUnsub()}catch(_){}
-  try{Object.values((S.dg&&S.dg.mediaUrls)||{}).forEach(u=>{if(String(u).startsWith("blob:"))URL.revokeObjectURL(u)})}catch(_){}
-  __dgUnsub=__dgMsgUnsub=__dgHistUnsub=__dgStrokeUnsub=null;
-  if(__dgTick){clearInterval(__dgTick);__dgTick=null}
-  __dgLastPrivate="";
+  __dgUnsub=__dgMsgUnsub=null;
 }
 function dgListen(code){
   dgStopListen();
@@ -4106,56 +4066,26 @@ function dgListen(code){
     if(!snap.exists()){S.dg=null;S.view="games";render(true);return}
     const data={code:snap.id,...snap.data()};
     if(!S.dg)S.dg={};
-    const prevRoom=S.dg.room;data.strokes=prevRoom&&prevRoom.code===snap.id?(prevRoom.strokes||[]):[];const prevStrokes=data.strokes.length;
-    const ms=v=>v&&typeof v.toMillis==="function"?v.toMillis():0;
-    const onlyStrokeUpdate=!!prevRoom&&prevRoom.status==="playing"&&data.status==="playing"&&prevRoom.drawer===data.drawer&&prevRoom.round===data.round&&ms(prevRoom.deadline)===ms(data.deadline)&&prevRoom.answerHint===data.answerHint&&JSON.stringify(prevRoom.scores||{})===JSON.stringify(data.scores||{});
+    const prevStrokes=((S.dg.room||{}).strokes||[]).length;
     S.dg.room=data;
-    if(onlyStrokeUpdate&&document.getElementById("dgCanvas")){dgRedraw();return}
-    if(data.status==="lobby")S.view="dgLobby";else if(["playing","choosing","ended"].includes(data.status))S.view="dgPlay";
-    const privateKey=data.status+":"+data.drawer;
-    if(data.drawer===S.user.uid&&["choosing","playing"].includes(data.status)&&__dgLastPrivate!==privateKey){
-      __dgLastPrivate=privateKey;
-      dgCall("getMyDrawState",{code}).then(v=>{if(!S.dg||!S.dg.room||S.dg.room.drawer!==S.user.uid)return;S.dg.privateWord=v.answer||"";S.dg.choices=v.choices||[];render(true)}).catch(e=>console.warn("draw private state",e));
-    } else if(data.drawer!==S.user.uid){S.dg.privateWord="";S.dg.choices=[]}
-    if(data.status==="ended")S.dg.privateWord="";
+    if(data.status==="lobby")S.view="dgLobby";
+    else if(data.status==="playing")S.view="dgPlay";
     render(true);
-    if(data.status!=="ended"&&__dgHistUnsub){try{__dgHistUnsub()}catch(_){}__dgHistUnsub=null;S.dg.history=[];S.dg.replayTurn=null}
-    if(data.status==="ended"&&!__dgHistUnsub){
-      __dgHistUnsub=onSnapshot(query(collection(db,"dgRooms",code,"history"),orderBy("createdAt","asc")),hs=>{if(!S.dg)return;S.dg.history=hs.docs.map(d=>({id:d.id,...d.data()}));if(S.view==="dgPlay")render(true)},()=>{});
-      getDoc(doc(db,"dgStats",S.user.uid)).then(st=>{if(S.dg&&st.exists()){S.dg.stats=st.data();if(S.view==="dgPlay")render(true)}}).catch(()=>{});
-    }
     if(data.status==="playing")setTimeout(function(){try{dgInitCanvas();if(((data.strokes||[]).length)!==prevStrokes||prevStrokes===0)dgRedraw()}catch(e){}},50);
-  });
-  __dgStrokeUnsub=onSnapshot(query(collection(db,"dgRooms",code,"strokes"),orderBy("createdAt","asc")),snap=>{
-    if(!S.dg||!S.dg.room)return;S.dg.room.strokes=snap.docs.map(d=>({id:d.id,...d.data()}));
-    if(S.view==="dgPlay"&&document.getElementById("dgCanvas"))dgRedraw();
-  },e=>console.warn("draw strokes",e));
+  },err=>{console.warn("dgListen",err);/* v180: منع أخطاء استماع صامتة */});
   __dgMsgUnsub=onSnapshot(query(collection(db,"dgRooms",code,"msgs"),orderBy("ts","asc"),limit(40)),snap=>{
     if(!S.dg)S.dg={};
-    S.dg.msgs=snap.docs.map(d=>({id:d.id,...d.data()}));S.dg.mediaUrls=S.dg.mediaUrls||{};S.dg.mediaLoading=S.dg.mediaLoading||{};
-    (S.dg.msgs||[]).filter(m=>m.kind==="media"&&m.path&&!S.dg.mediaUrls[m.id]&&!S.dg.mediaLoading[m.id]).forEach(m=>{if(!window.__drawStorage)return;S.dg.mediaLoading[m.id]=1;getBlob(storageRef(window.__drawStorage,m.path),12*1024*1024).then(blob=>{if(!S.dg)return;const url=URL.createObjectURL(blob);S.dg.mediaUrls[m.id]=url;if(S.view==="dgPlay"){const b=document.getElementById("dgMsgBox");if(b){b.innerHTML=(S.dg.msgs||[]).slice(-30).map(dgMessageHtml).join("");b.scrollTop=b.scrollHeight}}}).catch(()=>{}).finally(()=>delete S.dg.mediaLoading[m.id])});
+    S.dg.msgs=snap.docs.map(d=>({id:d.id,...d.data()}));
     if(S.view==="dgPlay"){
       const box=document.getElementById("dgMsgBox");
-      if(box){box.innerHTML=(S.dg.msgs||[]).slice(-30).map(dgMessageHtml).join("")||`<div class="mut">الشات والتخمينات…</div>`;box.scrollTop=box.scrollHeight}
-      else render(true);
+      if(box){
+        box.innerHTML=(S.dg.msgs||[]).slice(-30).map(m=>`<div style="margin:4px 0"><b>${esc(m.name||"?")}:</b> ${esc(m.text||"")}</div>`).join("")||`<div class="mut">التخمينات هنا…</div>`;
+        box.scrollTop=box.scrollHeight;
+      }else render(true);
     }
-  });
-  __dgTick=setInterval(()=>{
-    const r=S.dg&&S.dg.room;if(!r||!r.deadline)return;
-    const ms=typeof r.deadline.toMillis==="function"?r.deadline.toMillis():new Date(r.deadline).getTime();
-    const left=Math.max(0,Math.ceil((ms-Date.now())/1000));const el=document.getElementById("dgTime");if(el)el.textContent=String(left);
-    const elapsed=(Number(r.turnSeconds)||60)-left,needHint=r.status==="playing"&&(elapsed>=40&&Number(r.hintLevel||0)<2||elapsed>=22&&Number(r.hintLevel||0)<1);
-    if((left===0||needHint)&&(S.user.uid===r.host||S.user.uid===r.drawer)&&!window.__dgTickSent){window.__dgTickSent=1;dgCall("tickDrawRoom",{code}).catch(()=>{}).finally(()=>{setTimeout(()=>window.__dgTickSent=0,1800)})}
-  },1000);
+  },err=>{console.warn("dgMsgListen",err)});
 }
-async function dgUploadMedia(file){
-  const r=S.dg&&S.dg.room;if(!r||!file||!window.__drawStorage)return;
-  if(file.size>12*1024*1024){toast("الملف أكبر من 12 ميجابايت",true);return}
-  const type=file.type.startsWith("image/")?"image":file.type.startsWith("audio/")?"audio":null;if(!type){toast("نوع الملف غير مسموح",true);return}
-  const path=`dgRooms/${r.code}/media/${S.user.uid}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,"_").slice(-60)}`;
-  try{const ref=storageRef(window.__drawStorage,path);await uploadBytes(ref,file,{contentType:file.type});await dgCall("sendDrawMedia",{code:r.code,path,type});toast(type==="image"?"تم إرسال الصورة":"تم إرسال الرسالة الصوتية")}
-  catch(e){toast("تعذر رفع المرفق: "+(e.message||""),true)}
-}
+
 
 /* ===== Platform mini-games (robot mode) ===== */
 function mathMake(){const ops=["+","-","×"],op=ops[Math.floor(Math.random()*3)];let a,b,ans;if(op==="+"){a=5+Math.floor(Math.random()*40);b=5+Math.floor(Math.random()*40);ans=a+b}else if(op==="-"){a=15+Math.floor(Math.random()*45);b=1+Math.floor(Math.random()*Math.min(a-1,30));ans=a-b}else{a=2+Math.floor(Math.random()*12);b=2+Math.floor(Math.random()*12);ans=a*b}const opts=new Set([ans]);while(opts.size<4)opts.add(ans+(Math.floor(Math.random()*11)-5)||ans+1);return{q:`${a} ${op} ${b}`,ans,opts:[...opts].sort(()=>Math.random()-.5)}}
@@ -10841,6 +10771,8 @@ function ecTypeNorm(t){
 function ecIsNoise(msg){
   const m=String(msg||"");
   if(/xp-denied|ResizeObserver|script error\.?$/i.test(m))return true;
+  /* v180: رسائل قدرات المتصفح (تسجيل صامت اختياري) — مش أعطال حقيقية */
+  if(/public key credentials|PasswordCredential|preventSilentAccess|user agent does not support/i.test(m))return true;
   if(/loading chunk|ChunkLoadError/i.test(m))return true;
   if(/Failed to obtain primary lease|FirebaseError: \[code=unavailable\]/i.test(m))return true; /* تحذير تعدد التبويبات من Firestore مش عطل */
   if(/firestore\.googleapis\.com\/.*\/channel/i.test(m)&&/Failed to fetch|fetch فشل/i.test(m))return true; /* انقطاع نت لحظي في قناة Firestore — بيتعاد تلقائي */
@@ -12573,7 +12505,7 @@ const MORA_SITES=[["Microsoft Edge · Bing","https://www.bing.com/"],["ويكي�
 const MORA_ENGINES=[["bing","Microsoft Edge · Bing","https://www.bing.com/search?q="],["google","Google","https://www.google.com/search?q="],["duckduckgo","DuckDuckGo","https://duckduckgo.com/?q="]];
 const moraKey=()=>"mora_sess_v2_"+((S.user&&S.user.uid)||"g");
 const moraSeen=new Set();
-(function(){const seen={};window.addEventListener("error",function(e){try{const t=e&&e.target;if(!t||t===window||!t.tagName)return;const tg=String(t.tagName).toLowerCase();if(!/^(img|audio|video|script|link|source|iframe)$/.test(tg))return;const u=String(t.currentSrc||t.src||t.href||"").replace(/[?#].*$/,"").slice(0,160);if(!u||/^(data|blob):/.test(u)||seen[u])return;seen[u]=1;window.__EC&&window.__EC.report("network",{message:"المتصفح: فشل تحميل "+tg+" — "+u},{fn:"resource."+tg})}catch(_){}},true)})();
+(function(){const seen={};/* v180: بديل رسم موحّد لأي صورة ناقصة (logo/mark…) بدل أيقونة مكسورة */const NOIMG="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Crect width='64' height='64' rx='14' fill='%23E3A81C'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%23ffffff' font-family='sans-serif'%3E%D8%AA%3C/text%3E%3C/svg%3E";window.addEventListener("error",function(e){try{const t=e&&e.target;if(!t||t===window||!t.tagName)return;const tg=String(t.tagName).toLowerCase();if(!/^(img|audio|video|script|link|source|iframe)$/.test(tg))return;const u=String(t.currentSrc||t.src||t.href||"").replace(/[?#].*$/,"").slice(0,160);if(!u||/^(data|blob):/.test(u)||seen[u])return;seen[u]=1;window.__EC&&window.__EC.report("network",{message:"المتصفح: فشل تحميل "+tg+" — "+u},{fn:"resource."+tg});if(tg==="img"&&!t.getAttribute("onerror")&&!t.dataset.dgNoimg){t.dataset.dgNoimg="1";t.src=NOIMG}}catch(_){}},true)})();
 function moraErr(type,msg,fn){try{window.__EC&&window.__EC.report(type,{message:String(msg).slice(0,280)},{fn:fn||"mora"})}catch(_){}}
 function moraNorm(v){
   v=String(v||"").trim();if(!v)return "";
@@ -14522,25 +14454,87 @@ Object.assign(A,{
   wbClear(){try{wbDoClear()}catch(e){}},
   wbDl(){try{wbDownload()}catch(e){}},
   dgOpen(){S.view="dgOpen";render(true)},
-  async dgCreate(){try{if(!S.user)return;const v=await dgCall("createDrawRoom",{name:(S.profile&&S.profile.name)||"لاعب"});const code=v.code;S.dg={room:{code}};dgListen(code);S.view="dgLobby";render(true);toast("تم إنشاء الغرفة "+code)}catch(e){toast("فشل الإنشاء: "+(e.message||""),true)}},
-  async dgJoin(){try{const code=(($("#dgJoinCode")&&$("#dgJoinCode").value)||"").trim().toUpperCase();if(!code){toast("اكتب الكود");return}await dgCall("joinDrawRoom",{code,name:(S.profile&&S.profile.name)||"لاعب"});S.dg={room:{code}};dgListen(code);S.view="dgLobby";render(true)}catch(e){toast("فشل الانضمام: "+(e.message||""),true)}},
-  async dgStart(){try{const r=S.dg&&S.dg.room;if(!r)return;const v=await dgCall("startDrawGame",{code:r.code});if(v.choices&&v.choices.length)S.dg.choices=v.choices;toast("بدأت اللعبة") }catch(e){toast(e.message||"فشل البدء",true)}},
-  async dgLeave(){try{const r=S.dg&&S.dg.room;dgStopListen();if(r)await dgCall("leaveDrawRoom",{code:r.code});S.dg=null;S.view="games";render(true)}catch(e){S.dg=null;S.view="games";render(true)}},
+  async dgCreate(){
+    try{
+      if(!S.user){toast("سجّل الدخول الأول",true);return}
+      const code=dgCode();
+      const name=(S.profile&&S.profile.name)||"لاعب";
+      const room={host:S.user.uid,status:"lobby",players:{[S.user.uid]:{name}},scores:{},strokes:[],round:0,createdAt:serverTimestamp()};
+      await setDoc(doc(db,"dgRooms",code),room);
+      S.dg={room:{code,...room}};
+      dgListen(code);
+      S.view="dgLobby";render(true);
+      toast("تم إنشاء الغرفة "+code);
+    }catch(e){
+      /* v180: رسالة واضحة بدل أكواد غريبة زي internal */
+      const c=String((e&&e.code)||(e&&e.message)||e||"");
+      toast(c.includes("permission-denied")?"فشل الإنشاء: نزّل ملف قواعد Firestore الجديد (firestore.rules)":("فشل الإنشاء: "+c),true);
+    }
+  },
+  async dgJoin(){
+    try{
+      const code=(($("#dgJoinCode")&&$("#dgJoinCode").value)||"").trim().toUpperCase();
+      if(!code){toast("اكتب الكود");return}
+      const ref=doc(db,"dgRooms",code);
+      const snap=await getDoc(ref);
+      if(!snap.exists()){toast("الغرفة مش موجودة",true);return}
+      const data=snap.data();
+      if(data.status==="ended"){toast("الغرفة خلصت",true);return}
+      const name=(S.profile&&S.profile.name)||"لاعب";
+      await updateDoc(ref,{["players."+S.user.uid]:{name}});
+      S.dg={room:{code,...data}};
+      dgListen(code);
+      S.view=data.status==="playing"?"dgPlay":"dgLobby";render(true);
+    }catch(e){toast("فشل الانضمام",true)}
+  },
+  async dgStart(){
+    try{
+      const r=S.dg&&S.dg.room;if(!r||r.host!==S.user.uid)return;
+      const word=dgPickWord();
+      await updateDoc(doc(db,"dgRooms",r.code),{status:"playing",drawer:r.host,word,hint:"_ ".repeat(word.length).trim(),strokes:[],round:1,scores:r.scores||{}});
+    }catch(e){toast("فشل البدء",true)}
+  },
+  async dgLeave(){
+    try{
+      const r=S.dg&&S.dg.room;
+      dgStopListen();
+      if(r&&S.user){try{await updateDoc(doc(db,"dgRooms",r.code),{["players."+S.user.uid]:deleteField()})}catch(_){}}
+      S.dg=null;S.view="games";render(true);
+    }catch(e){S.dg=null;S.view="games";render(true)}
+  },
   dgCopy(){try{const c=S.dg&&S.dg.room&&S.dg.room.code;if(c){navigator.clipboard.writeText(c);toast("تم نسخ "+c)}}catch(e){toast((S.dg&&S.dg.room&&S.dg.room.code)||"")} },
-  dgPlayReplay(d,el){const idx=Number((el&&el.getAttribute("data-index"))||(d&&d.index));const t=S.dg&&S.dg.history&&S.dg.history[idx];if(!t)return;S.dg.replayTurn=t;render(true);setTimeout(dgReplayAnimate,80)},
-  dgMode(d,el){if(!S.dg)return;S.dg.chatMode=(el&&el.getAttribute("data-mode"))||(d&&d.mode)||"guess";render(true)},
-  async dgRestart(){try{const r=S.dg&&S.dg.room;if(!r)return;await dgCall("restartDrawGame",{code:r.code});S.dg.privateWord="";S.dg.choices=[];toast("بدأت مباراة جديدة")}catch(e){toast(e.message||"تعذرت إعادة المباراة",true)}},
-  async dgChooseWord(d,el){try{const r=S.dg&&S.dg.room,choice=(el&&el.getAttribute("data-choice"))||(d&&d.choice);if(!r||!choice)return;await dgCall("chooseDrawWord",{code:r.code,choice});S.dg.privateWord=choice;S.dg.choices=[]}catch(e){toast(e.message||"تعذر اختيار الكلمة",true)}},
-  async dgSaveSettings(){try{const r=S.dg&&S.dg.room;if(!r)return;await dgCall("setDrawSettings",{code:r.code,rounds:Number(document.getElementById("dgRounds")?.value)||3,endMode:document.getElementById("dgEndMode")?.value||"rounds",pointsToWin:Number(document.getElementById("dgPoints")?.value)||100,turnSeconds:Number(document.getElementById("dgTurnSecs")?.value)||60});toast("تم حفظ إعدادات اللعب")}catch(e){toast(e.message||"تعذر حفظ الإعدادات",true)}},
-  async dgChat(){try{const r=S.dg&&S.dg.room,el=document.getElementById("dgGuessIn"),text=(el&&el.value||"").trim();if(!r||!text)return;if(el)el.value="";await dgCall("sendDrawChat",{code:r.code,text})}catch(e){toast(e.message||"تعذر إرسال الرسالة",true)}},
-  dgPickFile(){document.getElementById("dgMediaFile")?.click()},
-  async dgRecord(){try{if(__dgRecorder&&__dgRecorder.state==="recording"){__dgRecorder.stop();return}if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){toast("تسجيل الصوت غير مدعوم في هذا المتصفح",true);return}const stream=await navigator.mediaDevices.getUserMedia({audio:true});__dgAudioParts=[];__dgRecorder=new MediaRecorder(stream);__dgRecorder.ondataavailable=e=>{if(e.data.size)__dgAudioParts.push(e.data)};__dgRecorder.onstop=async()=>{stream.getTracks().forEach(t=>t.stop());const blob=new Blob(__dgAudioParts,{type:__dgRecorder.mimeType||"audio/webm"});await dgUploadMedia(new File([blob],"voice.webm",{type:blob.type}))};__dgRecorder.start();toast("جاري التسجيل… اضغط 🎙 للإيقاف")}catch(e){toast("تعذر بدء التسجيل الصوتي",true)}},
   dgColor(d,el){window.__dgColor=(el&&el.getAttribute("data-c"))||(d&&d.c)||"#111"},
-  dgSize(d,el){const n=Number((el&&el.getAttribute("data-size"))||(d&&d.size)||4);window.__dgWidth=Math.max(2,Math.min(18,n))},
-  async dgUndo(){try{const r=S.dg&&S.dg.room;if(!r||r.drawer!==S.user.uid)return;const a=(r.strokes||[]).slice();if(!a.length)return;window.__dgRedoStack=window.__dgRedoStack||[];window.__dgRedoStack.push(a.pop());await dgCall("replaceDrawStrokes",{code:r.code,strokes:a})}catch(e){toast("تعذر التراجع",true)}},
-  async dgRedo(){try{const r=S.dg&&S.dg.room;if(!r||r.drawer!==S.user.uid)return;const stack=window.__dgRedoStack||[];if(!stack.length)return;const item=stack.pop();await dgCall("replaceDrawStrokes",{code:r.code,strokes:[...(r.strokes||[]),item]})}catch(e){toast("تعذرت إعادة الرسم",true)}},
-  async dgClearCanvas(){try{const r=S.dg&&S.dg.room;if(!r||r.drawer!==S.user.uid)return;window.__dgRedoStack=[];await dgCall("replaceDrawStrokes",{code:r.code,strokes:[]})}catch(e){toast("تعذر مسح اللوحة",true)}},
-  async dgGuess(){try{const r=S.dg&&S.dg.room;if(!r||r.drawer===S.user.uid)return;const el=document.getElementById("dgGuessIn"),guess=(el&&el.value||"").trim();if(!guess)return;if(el)el.value="";const v=await dgCall("submitDrawGuess",{code:r.code,guess});if(v.correct)toast("إجابة صحيحة! +10 🎉");else toast("إجابة غير صحيحة")}catch(e){toast(e.message||"تعذر إرسال التخمين",true)}},
+  async dgClearCanvas(){
+    try{
+      const r=S.dg&&S.dg.room;if(!r||r.drawer!==S.user.uid)return;
+      await updateDoc(doc(db,"dgRooms",r.code),{strokes:[]});
+    }catch(e){}
+  },
+  async dgGuess(){
+    try{
+      const r=S.dg&&S.dg.room;if(!r||r.drawer===S.user.uid)return;
+      const el=document.getElementById("dgGuessIn");
+      const text=(el&&el.value||"").trim();
+      if(!text)return;
+      if(el)el.value="";
+      const norm=s=>String(s||"").normalize("NFKC").replace(/[\u064B-\u065F\u0670\u0640]/g,"").replace(/[أإآ]/g,"ا").replace(/ى/g,"ي").replace(/ة/g,"ه").replace(/ؤ/g,"و").replace(/ئ/g,"ي").replace(/\s+/g,"").toLowerCase();
+      if(norm(text)!==norm(r.word)){toast("إجابة غير صحيحة");return}
+      const name=(S.profile&&S.profile.name)||"لاعب";
+      // لا نحفظ نص التخمين؛ نسجل حدث نجاح فقط حتى لا تنكشف محاولات الآخرين.
+      /* v180: قصّ الاسم والنص لحدود قواعد Firestore (name≤60 / text≤80) عشان التخمين ميقعش مع الأسامي الطويلة */
+      await addDoc(collection(db,"dgRooms",r.code,"msgs"),{uid:S.user.uid,name:String(name).slice(0,60),text:("✔ "+name+" خمن الكلمة").slice(0,80),kind:"correct",ts:serverTimestamp()});
+      const scores=Object.assign({},r.scores||{});
+      scores[S.user.uid]=(scores[S.user.uid]||0)+10;
+      scores[r.drawer]=(scores[r.drawer]||0)+5;
+      const players=r.players||{};
+      const ids=Object.keys(players);
+      if(ids.length<2){toast("يلزم وجود لاعبين على الأقل",true);return}
+      let next=ids[(ids.indexOf(r.drawer)+1+ids.length)%ids.length];
+      const word=dgPickWord();
+      await updateDoc(doc(db,"dgRooms",r.code),{scores,drawer:next,word,hint:"_ ".repeat(word.length).trim(),strokes:[],round:(r.round||1)+1});
+      toast("صح! +10 🎉");
+    }catch(e){toast("فشل الإرسال",true)}
+  }
 });
 /* v115: تحميل تلقائي بالسكرول (Observer على السنتينل) — الزرار فضل احتياطي بس مش هو الأساس */
 let __fadSent=null;

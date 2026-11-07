@@ -22,6 +22,7 @@ function normAns(s) {
   return String(s || "").normalize("NFKC")
     .replace(/[\u064B-\u065F\u0670\u0640]/g, "")
     .replace(/[أإآ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه")
+    .replace(/ؤ/g, "و").replace(/ئ/g, "ي")
     .replace(/\s+/g, "").toLowerCase();
 }
 function lev1(a, b) {
