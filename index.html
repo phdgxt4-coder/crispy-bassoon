@@ -8,7 +8,7 @@
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v178";/* v178: شهادات + سبورة + إصلاح تحميل/عرض المزيد في الفضائح + استعادة البوستات القديمة */</script>
+<script>window.APP_BUILD="v178";/* v177: فصل مركزي لواجهة الطالب عن مسارات الأدمن */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -1924,8 +1924,8 @@ function ensureFadaye7Listen(){
   if(__fadUnsub||!db)return;
   if(secBlocked("fadaye7")){S.fadaye7=[];S.fadaye7All=[];return}
   __fadUnsub=onSnapshot(/* v170: الطلاب بيشوفوا المنشور المعروض بس — مطابق لقواعد v138 (الأدمن يشوف الكل للمراجعة) */
-    (S.isAdmin?query(collection(db,"fadaye7"),orderBy("createdAt","desc"),limit(S.fadLimit||30))
-             :query(collection(db,"fadaye7"),where("published","==",true),orderBy("createdAt","desc"),limit(S.fadLimit||30))),s=>{
+    (S.isAdmin?query(collection(db,"fadaye7"),orderBy("createdAt","desc"),limit(S.fadLimit||20))
+             :query(collection(db,"fadaye7"),where("published","==",true),orderBy("createdAt","desc"),limit(S.fadLimit||20))),s=>{
     S.fadOffline=s.metadata.fromCache&&!s.docs.length;
     /* ترتيب: الدفعة الأجدد فوق خالص · جوّه الدفعة الأقدم الأول (seq) */
     const arr=s.docs.map(d=>({id:d.id,...d.data()}));
@@ -3062,8 +3062,8 @@ function render(force,soft){
   const __vk=S.view+"|"+(S.view==="admin"?S.tab:"");
   const __newView=window.__lastViewKey!==__vk;window.__lastViewKey=__vk;if(__newView){try{__EC.mark&&__EC.mark("view:"+__vk)}catch(_){}}try{document.documentElement.dataset.v=S.view}catch(_){}
   try{if(typeof fadSentinel==="function")fadSentinel()}catch(_){}
-  try{if(S.view==="cert"&&typeof certDraw==="function")setTimeout(certDraw,40)}catch(_){}
-  try{if(S.view==="board"&&typeof wbInit==="function")setTimeout(wbInit,50)}catch(_){}
+  try{if(S.view==="cert")setTimeout(function(){try{certDraw()}catch(e){}},40)}catch(_){}
+  try{if(S.view==="board")setTimeout(function(){try{wbInit()}catch(e){}},40)}catch(_){}
   try{app.classList.toggle("noanim",!__newView)}catch(_){}
   try{
     let cr=document.getElementById("credit");
@@ -4356,205 +4356,129 @@ ${replyBar}
 
 
 
-
-/* ===== v178: سبورة تفاعلية ===== */
+/* v178 cert+board */
 function boardView(){
-  return `<div class="wrap screen" style="padding-bottom:8px">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
-<h2 style="margin-bottom:6px">🖊 السبورة</h2>
-<p class="mut" style="margin:0 0 8px">ارسم بحرية — تقدر تحمّل الرسمة كصورة</p>
-<div class="card" style="padding:8px">
-  <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
-    <button type="button" class="btn sm" data-act="wbColor" data-c="#111111" style="background:#111;color:#fff;min-width:36px">●</button>
-    <button type="button" class="btn sm" data-act="wbColor" data-c="#e11d48" style="background:#e11d48;color:#fff;min-width:36px">●</button>
-    <button type="button" class="btn sm" data-act="wbColor" data-c="#2563eb" style="background:#2563eb;color:#fff;min-width:36px">●</button>
-    <button type="button" class="btn sm" data-act="wbColor" data-c="#16a34a" style="background:#16a34a;color:#fff;min-width:36px">●</button>
-    <button type="button" class="btn sm" data-act="wbColor" data-c="#f59e0b" style="background:#f59e0b;color:#fff;min-width:36px">●</button>
-    <button type="button" class="btn sm ghost" data-act="wbColor" data-c="#ffffff">ممحاة</button>
-    <label class="mut" style="font-size:12px">سمك <input id="wbSize" type="range" min="2" max="28" value="4" style="width:80px;vertical-align:middle"></label>
-    <button type="button" class="btn sm ghost" data-act="wbClear">🗑 مسح</button>
-    <button type="button" class="btn sm gold" data-act="wbDl">⬇ تحميل</button>
-  </div>
-  <canvas id="wbCanvas" width="900" height="560" style="width:100%;height:auto;touch-action:none;border-radius:12px;background:#fafafa;border:1px solid var(--line);cursor:crosshair;display:block"></canvas>
-</div>
-</div>${studentNav()}`;
+  return '<div class="wrap screen">'+header('<button class="btn ghost sm" data-act="home">رجوع</button>')+
+    '<h2>السبورة</h2><p class="mut">ارسم وحمّل الرسمة</p><div class="card" style="padding:8px">'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">'+
+    '<button type="button" class="btn sm" data-act="wbColor" data-c="#111111" style="background:#111;color:#fff">اسود</button>'+
+    '<button type="button" class="btn sm" data-act="wbColor" data-c="#e11d48" style="background:#e11d48;color:#fff">احمر</button>'+
+    '<button type="button" class="btn sm" data-act="wbColor" data-c="#2563eb" style="background:#2563eb;color:#fff">ازرق</button>'+
+    '<button type="button" class="btn sm" data-act="wbColor" data-c="#16a34a" style="background:#16a34a;color:#fff">اخضر</button>'+
+    '<button type="button" class="btn sm ghost" data-act="wbColor" data-c="#ffffff">ممحاة</button>'+
+    '<button type="button" class="btn sm ghost" data-act="wbClear">مسح</button>'+
+    '<button type="button" class="btn sm gold" data-act="wbDl">تحميل</button></div>'+
+    '<canvas id="wbCanvas" width="900" height="560" style="width:100%;touch-action:none;border-radius:12px;background:#fafafa;border:1px solid var(--line);cursor:crosshair"></canvas>'+
+    '</div></div>'+studentNav();
 }
 function wbInit(){
-  const c=document.getElementById("wbCanvas");
+  var c=document.getElementById("wbCanvas");
   if(!c||c.__wb)return;
   c.__wb=1;
-  const ctx=c.getContext("2d");
+  var ctx=c.getContext("2d");
   ctx.lineCap="round";ctx.lineJoin="round";
-  let drawing=false, last=null;
-  const color=()=>(window.__wbColor||"#111111");
-  const size=()=>{const el=document.getElementById("wbSize");return el?+el.value||4:4};
-  const pos=e=>{
-    const r=c.getBoundingClientRect();
-    const t=e.touches?e.touches[0]:e;
-    return {x:(t.clientX-r.left)*(c.width/r.width), y:(t.clientY-r.top)*(c.height/r.height)};
-  };
-  const start=e=>{e.preventDefault();drawing=true;last=pos(e)};
-  const move=e=>{
+  ctx.fillStyle="#fafafa";ctx.fillRect(0,0,c.width,c.height);
+  var drawing=false,last=null;
+  function color(){return window.__wbColor||"#111111"}
+  function pos(e){
+    var r=c.getBoundingClientRect();
+    var t=e.touches?e.touches[0]:e;
+    return {x:(t.clientX-r.left)*(c.width/r.width),y:(t.clientY-r.top)*(c.height/r.height)};
+  }
+  c.addEventListener("pointerdown",function(e){e.preventDefault();drawing=true;last=pos(e)});
+  c.addEventListener("pointermove",function(e){
     if(!drawing)return;e.preventDefault();
-    const p=pos(e);
+    var p=pos(e);
     ctx.strokeStyle=color();
-    ctx.lineWidth=size()*(color()==="#ffffff"?3:1);
+    ctx.lineWidth=color()==="#ffffff"?12:4;
     ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();
     last=p;
-  };
-  const end=()=>{drawing=false;last=null};
-  c.addEventListener("pointerdown",start);
-  c.addEventListener("pointermove",move);
-  c.addEventListener("pointerup",end);
-  c.addEventListener("pointerleave",end);
-  c.addEventListener("pointercancel",end);
-  // fill white bg once
-  ctx.fillStyle="#fafafa";ctx.fillRect(0,0,c.width,c.height);
+  });
+  c.addEventListener("pointerup",function(){drawing=false;last=null});
+  c.addEventListener("pointerleave",function(){drawing=false;last=null});
 }
 function wbDoClear(){
-  const c=document.getElementById("wbCanvas");
+  var c=document.getElementById("wbCanvas");
   if(!c)return;
-  const ctx=c.getContext("2d");
+  var ctx=c.getContext("2d");
   ctx.fillStyle="#fafafa";ctx.fillRect(0,0,c.width,c.height);
 }
 function wbDownload(){
-  const c=document.getElementById("wbCanvas");
+  var c=document.getElementById("wbCanvas");
   if(!c)return;
   try{
-    const a=document.createElement("a");
+    var a=document.createElement("a");
     a.href=c.toDataURL("image/png");
-    a.download="سبورة_التفوق_"+Date.now()+".png";
+    a.download="board.png";
     a.click();
-    toast("تم تحميل الرسمة ✓");
+    toast("تم التحميل");
   }catch(e){toast("فشل التحميل",true)}
 }
-
-
-/* ===== v178: شهادات إنجاز ===== */
 function certView(){
-  const p=S.profile||{};
-  const xp=p.xp||0;
-  const title=(typeof xpTitle==="function"?xpTitle(xp):{emoji:"🌱",name:"المبتدئ"});
-  const lvl=typeof xpLevel==="function"?xpLevel(xp):1;
-  const examsDone=(S.attempts&&Object.keys(S.attempts).length)||0;
-  const streak=p.streak||0;
-  return `<div class="wrap screen">${header(`<button class="btn ghost sm" data-act="openMe">رجوع</button>`)}
-<h2>📜 شهادتي</h2>
-<p class="mut">شهادة إنجاز رسمية من منصة التفوق — حمّلها كصورة أو اطبعها PDF</p>
-<div class="card" style="text-align:center;padding:16px">
-  <canvas id="certCanvas" width="900" height="640" style="max-width:100%;height:auto;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.25);background:#fff"></canvas>
-  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px">
-    <button class="btn gold" data-act="certDl">⬇ تحميل صورة</button>
-    <button class="btn" data-act="certPrint">🖨 طباعة / حفظ PDF</button>
-  </div>
-  <p class="mut" style="margin-top:10px;font-size:12px">المستوى ${lvl} · ${xp} XP · ${examsDone} امتحان · ستريك ${streak} يوم</p>
-</div>
-</div>${studentNav()}`;
+  var p=S.profile||{};
+  var xp=p.xp||0;
+  var title=(typeof xpTitle==="function"?xpTitle(xp):{emoji:"",name:"المبتدئ"});
+  var lvl=typeof xpLevel==="function"?xpLevel(xp):1;
+  return '<div class="wrap screen">'+header('<button class="btn ghost sm" data-act="openMe">رجوع</button>')+
+    '<h2>شهادتي</h2><p class="mut">شهادة إنجاز — حمّلها كصورة أو اطبع PDF</p>'+
+    '<div class="card" style="text-align:center;padding:16px">'+
+    '<canvas id="certCanvas" width="900" height="640" style="max-width:100%;height:auto;border-radius:12px;background:#fff"></canvas>'+
+    '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px">'+
+    '<button class="btn gold" data-act="certDl">تحميل صورة</button>'+
+    '<button class="btn" data-act="certPrint">طباعة / PDF</button></div>'+
+    '<p class="mut" style="margin-top:10px;font-size:12px">المستوى '+lvl+' · '+xp+' XP</p></div></div>'+studentNav();
 }
 function certDraw(){
-  const c=document.getElementById("certCanvas");
+  var c=document.getElementById("certCanvas");
   if(!c)return;
-  const ctx=c.getContext("2d");
-  const W=c.width,H=c.height;
-  const p=S.profile||{};
-  const xp=p.xp||0;
-  const title=(typeof xpTitle==="function"?xpTitle(xp):{emoji:"🌱",name:"المبتدئ"});
-  const lvl=typeof xpLevel==="function"?xpLevel(xp):1;
-  const name=p.name||"طالب التفوق";
-  const streak=p.streak||0;
-  const dateStr=new Date().toLocaleDateString("ar-EG",{year:"numeric",month:"long",day:"numeric"});
-
-  // Background
-  const g=ctx.createLinearGradient(0,0,W,H);
-  g.addColorStop(0,"#0a1628");g.addColorStop(.5,"#0B5D57");g.addColorStop(1,"#1a0a3e");
+  var ctx=c.getContext("2d");
+  var W=c.width,H=c.height;
+  var p=S.profile||{};
+  var xp=p.xp||0;
+  var title=(typeof xpTitle==="function"?xpTitle(xp):{emoji:"",name:"المبتدئ"});
+  var lvl=typeof xpLevel==="function"?xpLevel(xp):1;
+  var name=p.name||"طالب التفوق";
+  var streak=p.streak||0;
+  var dateStr=new Date().toLocaleDateString("ar-EG",{year:"numeric",month:"long",day:"numeric"});
+  var g=ctx.createLinearGradient(0,0,W,H);
+  g.addColorStop(0,"#0a1628");g.addColorStop(0.5,"#0B5D57");g.addColorStop(1,"#1a0a3e");
   ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-
-  // Decorative border
-  ctx.strokeStyle="rgba(255,215,120,.55)";
-  ctx.lineWidth=10;
-  ctx.strokeRect(28,28,W-56,H-56);
-  ctx.strokeStyle="rgba(255,255,255,.18)";
-  ctx.lineWidth=2;
-  ctx.strokeRect(42,42,W-84,H-84);
-
-  // Corner ornaments
-  ctx.fillStyle="rgba(255,215,120,.7)";
-  [[50,50],[W-50,50],[50,H-50],[W-50,H-50]].forEach(([x,y],i)=>{
-    ctx.beginPath();
-    ctx.arc(x,y,8,0,Math.PI*2);ctx.fill();
-  });
-
-  // Title
+  ctx.strokeStyle="rgba(255,215,120,0.55)";ctx.lineWidth=10;ctx.strokeRect(28,28,W-56,H-56);
+  ctx.strokeStyle="rgba(255,255,255,0.18)";ctx.lineWidth=2;ctx.strokeRect(42,42,W-84,H-84);
   ctx.textAlign="center";
-  ctx.fillStyle="#ffe9a8";
-  ctx.font="bold 42px 'Segoe UI',Tahoma,Arial,sans-serif";
-  ctx.fillText("شهادة إنجاز",W/2,110);
-  ctx.font="22px 'Segoe UI',Tahoma,Arial,sans-serif";
-  ctx.fillStyle="rgba(255,255,255,.75)";
-  ctx.fillText("منصة التفوق التعليمية",W/2,150);
-
-  // Name
-  ctx.fillStyle="#fff";
-  ctx.font="bold 48px 'Segoe UI',Tahoma,Arial,sans-serif";
-  ctx.fillText(name,W/2,250);
-
-  // Body
-  ctx.font="24px 'Segoe UI',Tahoma,Arial,sans-serif";
-  ctx.fillStyle="rgba(255,255,255,.88)";
-  ctx.fillText("قد أتمّ بنجاح رحلته التعليمية ووصل إلى",W/2,320);
-  ctx.font="bold 36px 'Segoe UI',Tahoma,Arial,sans-serif";
-  ctx.fillStyle="#ffe9a8";
-  ctx.fillText((title.emoji||"🏅")+" "+(title.name||"المتميز")+"  ·  المستوى "+lvl,W/2,375);
-
-  // Stats row
-  ctx.font="20px 'Segoe UI',Tahoma,Arial,sans-serif";
-  ctx.fillStyle="rgba(255,255,255,.7)";
+  ctx.fillStyle="#ffe9a8";ctx.font="bold 42px Tahoma,Arial,sans-serif";ctx.fillText("شهادة إنجاز",W/2,110);
+  ctx.font="22px Tahoma,Arial,sans-serif";ctx.fillStyle="rgba(255,255,255,0.75)";ctx.fillText("منصة التفوق التعليمية",W/2,150);
+  ctx.fillStyle="#fff";ctx.font="bold 44px Tahoma,Arial,sans-serif";ctx.fillText(name,W/2,250);
+  ctx.font="24px Tahoma,Arial,sans-serif";ctx.fillStyle="rgba(255,255,255,0.88)";ctx.fillText("قد أتم بنجاح رحلته التعليمية",W/2,320);
+  ctx.font="bold 32px Tahoma,Arial,sans-serif";ctx.fillStyle="#ffe9a8";
+  ctx.fillText((title.emoji||"")+" "+(title.name||"المتميز")+"  ·  المستوى "+lvl,W/2,375);
+  ctx.font="20px Tahoma,Arial,sans-serif";ctx.fillStyle="rgba(255,255,255,0.7)";
   ctx.fillText(xp+" نقطة خبرة   ·   ستريك "+streak+" يوم",W/2,430);
-
-  // Date + seal
-  ctx.font="18px 'Segoe UI',Tahoma,Arial,sans-serif";
-  ctx.fillStyle="rgba(255,255,255,.55)";
-  ctx.fillText(dateStr,W/2,520);
-  ctx.font="16px 'Segoe UI',Tahoma,Arial,sans-serif";
-  ctx.fillText("منصة التفوق  ·  شهادة رقم "+(String(xp||0).slice(-4)+(lvl*7)).padStart(6,"0"),W/2,555);
-
-  // Small gold seal
-  ctx.beginPath();
-  ctx.arc(W/2,H-70,28,0,Math.PI*2);
-  ctx.fillStyle="rgba(255,200,80,.25)";
-  ctx.fill();
-  ctx.strokeStyle="#ffd878";
-  ctx.lineWidth=3;
-  ctx.stroke();
-  ctx.fillStyle="#ffd878";
-  ctx.font="bold 20px serif";
-  ctx.fillText("★",W/2,H-63);
+  ctx.font="18px Tahoma,Arial,sans-serif";ctx.fillStyle="rgba(255,255,255,0.55)";ctx.fillText(dateStr,W/2,520);
+  ctx.font="16px Tahoma,Arial,sans-serif";ctx.fillText("منصة التفوق",W/2,555);
 }
 function certDownload(){
-  const c=document.getElementById("certCanvas");
-  if(!c){toast("ارسم الشهادة أولاً",true);return}
+  var c=document.getElementById("certCanvas");
+  if(!c){toast("ارسم الشهادة اولا",true);return}
   try{
     certDraw();
-    const name=((S.profile&&S.profile.name)||"talib").replace(/[^\w\u0600-\u06FF\- ]+/g,"_").slice(0,30);
-    const a=document.createElement("a");
+    var a=document.createElement("a");
     a.href=c.toDataURL("image/png");
-    a.download="شهادة_التفوق_"+name+".png";
+    a.download="cert.png";
     a.click();
-    toast("تم تحميل الشهادة ✓");
+    toast("تم التحميل");
   }catch(e){toast("فشل التحميل",true)}
 }
 function certPrintPage(){
-  const c=document.getElementById("certCanvas");
+  var c=document.getElementById("certCanvas");
   if(!c)return;
   certDraw();
-  const w=window.open("","_blank");
+  var w=window.open("","_blank");
   if(!w){toast("اسمح بالنوافذ المنبثقة",true);return}
-  w.document.write(`<!DOCTYPE html><html dir="rtl"><head><title>شهادة التفوق</title>
-<style>@page{size:A4 landscape;margin:12mm}body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#111}
-img{max-width:100%;max-height:100vh;box-shadow:0 0 0 1px #333}</style></head>
-<body><img src="${c.toDataURL("image/png")}" onload="setTimeout(()=>{print();},300)"></body></html>`);
+  var img=c.toDataURL("image/png");
+  w.document.write('<!DOCTYPE html><html dir="rtl"><head><title>شهادة</title><style>@page{size:A4 landscape;margin:12mm}body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#111}img{max-width:100%;max-height:100vh}</style></head><body><img src="'+img+'" onload="setTimeout(function(){print()},300)"></body></html>');
   w.document.close();
 }
-
 
 function meView(){
   if(!S.profile)S.profile={name:"طالب",phone:""};
@@ -4587,8 +4511,8 @@ ${(p.badges||[]).length?`<div style="margin-top:10px;display:flex;flex-wrap:wrap
 </div>
 <div class="card"><button class="btn block mora-btn" data-act="openMora">🌐 المتصفح</button><p class="mut" style="margin:8px 0 0;text-align:center">تصفّح المواقع والألعاب جوه المنصة</p></div>
 <div class="card"><button class="btn block gold" data-act="openSongs">🎵 الأغاني</button><p class="mut" style="margin:8px 0 0;text-align:center">مشغّل مستقل — بيكمّل في الخلفية</p></div>
-<div class="card"><button class="btn block" data-act="openCert" style="background:linear-gradient(135deg,#1a0a3e,#0B5D57);color:#fff;border:0">📜 شهادتي</button><p class="mut" style="margin:8px 0 0;text-align:center">شهادة إنجاز قابلة للتحميل PDF / صورة</p></div>
-<div class="card"><button class="btn block" data-act="openBoard">🖊 السبورة</button><p class="mut" style="margin:8px 0 0;text-align:center">ارسم وحلّ وحمّل الرسمة</p></div>
+<div class="card"><button class="btn block" data-act="openCert" style="background:linear-gradient(135deg,#1a0a3e,#0B5D57);color:#fff;border:0">شهادتي</button><p class="mut" style="margin:8px 0 0;text-align:center">شهادة إنجاز PDF / صورة</p></div>
+<div class="card"><button class="btn block" data-act="openBoard">السبورة</button><p class="mut" style="margin:8px 0 0;text-align:center">ارسم وحمّل الرسمة</p></div>
 <div class="card"><b>الإشعارات</b>
 <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sm ghost" data-act="enablePush">🔔 تفعيل الإشعارات</button></div>
 <p class="mut" style="font-size:12px;margin:8px 0 0">${pushStateText()}</p></div>
@@ -5086,8 +5010,7 @@ function fadaye7View(){
     const by=f.fromAdmin?("من الأدمن"):(f.authorName?("من "+f.authorName):"");
     const imgs=(f.images&&f.images.length)?f.images:(f.url?[f.url]:[]);
     const media=fadLazy(imgs.map(u=>mediaEmbed(u,f.kind||"image")).join("")||(f.url?mediaEmbed(f.url,f.kind):""));
-    const dl=imgs[0]
-      ?`<button type="button" class="btn ghost sm" data-act="fadDl" data-url="${esc(imgs[0])}" data-title="${esc((f.title||"fadiha").slice(0,40))}">⬇ تحميل</button>`:"";
+    const dl=imgs[0]?`<a class="btn ghost sm" href="${esc(imgs[0])}" download="fadiha.jpg" target="_blank" rel="noopener">⬇ تحميل</a>`:"";
     return `<div class="card fadc">
   <div class="row"><b>${esc(f.title||"فضيحة")}</b>${by?pill(by,f.fromAdmin?"i":"g"):""}</div>
   <div class="mut" style="margin:4px 0 8px">${fmt(f.createdAt)}</div>
@@ -10837,7 +10760,7 @@ function adminErrors(){
   <div class="tabs" style="margin-bottom:10px">${fb.map(([k,v])=>`<button class="tab ${f===k?"on":""}" data-act="errFilter" data-id="${k}">${v}${k!=="all"?` (${cnt(k)})`:""}</button>`).join("")}</div>
   <div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn ghost sm" data-act="errRefresh">🔄 تحديث</button><button class="btn ghost sm" data-act="errExport" data-id="txt">🤖 ملف للـ AI ⬇</button><button class="btn ghost sm" data-act="errExport" data-id="json">JSON ⬇</button><button class="btn ghost sm" data-act="errExport" data-id="csv">CSV ⬇</button><button class="btn ghost sm" data-act="errPurge">مسح المحلول والمتجاهل</button>
 <button class="btn sm gold" data-act="errMarkAllFixed">✓ علّم الكل Fixed</button>
-<button class="btn sm" data-act="migrateFadaye7">🔄 استعادة الفضائح (Migration)</button><button class="btn sm gold" data-act="errClearAll">✅ تم تصحيح الكل (حذف)</button></div></div>
+<button class="btn sm" data-act="migrateFadaye7">🔄 استعادة الفضائح</button><button class="btn sm gold" data-act="errClearAll">✅ تم تصحيح الكل (حذف)</button></div></div>
   ${list.length?list.map(row).join(""):`<div class="card"><div class="mut">مفيش أخطاء في الفلتر ده ✅</div></div>`}`;
 }
 
@@ -10954,7 +10877,7 @@ Object.assign(A,{
   async migrateFadaye7(){
     try{
       if(!S.isAdmin)return;
-      const ok=await uiDialog({title:"Migration فضائح",msg:"هيضيف الحقول الناقصة + يستعيد البوستات القديمة اللي اختفت (published=true). مرة واحدة. تكمل؟",ok:"نفّذ"});
+      const ok=await uiDialog({title:"Migration فضائح",msg:"هيضيف الحقول الناقصة ويستعيد البوستات القديمة (published). مرة واحدة. تكمل؟",ok:"نفّذ"});
       if(!ok)return;
       const snap=await getDocs(/*full-scan-ok*/collection(db,"fadaye7"));
       let n=0;
@@ -10967,10 +10890,9 @@ Object.assign(A,{
           if(!data.reactions||typeof data.reactions!=="object")patch.reactions={};
           if(!Array.isArray(data.savedBy))patch.savedBy=[];
           if(!Array.isArray(data.hiddenBy))patch.hiddenBy=[];
-          /* v178: استعادة البوستات القديمة اللي اختفت بسبب شرط published==true */
-          if(data.published!==true && data.published!==false){
+          if(data.published!==true&&data.published!==false){
             if(data.status==="rejected")patch.published=false;
-            else {patch.published=true; if(!data.status||data.status==="pending")patch.status="approved";}
+            else{patch.published=true;if(!data.status||data.status==="pending")patch.status="approved"}
           }
           if(Object.keys(patch).length){b.update(d.ref,patch);batchN++;n++}
         });
@@ -14337,12 +14259,12 @@ function c3dLoop(now){
 function fadLazy(h){return String(h||"").replace(/<img /g,'<img loading="lazy" decoding="async" ').replace(/<video /g,'<video preload="none" ')}
 function fadMoreBtn(total){
   S.fadTotal=total;
-  const show=S.fadShow||12,lim=S.fadLimit||30;
+  const show=S.fadShow||10,lim=S.fadLimit||20;
   const hasMoreLocal=show<total;
   const hasMoreServer=(S.fadaye7All||[]).length>=lim&&lim<1500;
   if(!hasMoreLocal&&!hasMoreServer)return "";
-  const left=hasMoreLocal?(total-show):"المزيد من السيرفر";
-  return `<div style="text-align:center;margin:18px 0 12px">
+  const left=hasMoreLocal?(total-show):"المزيد";
+  return `<div style="text-align:center;margin:14px 0 8px">
     <button type="button" class="btn" data-act="fadMore" style="min-width:200px;font-weight:800">
       ${S.fadBusy?"جاري التجهيز…":("عرض المزيد ("+left+")")}
     </button>
@@ -14356,37 +14278,16 @@ function fadGrow(){
   const lim=S.fadLimit||20;
   if((S.fadaye7All||[]).length>=lim&&lim<1500&&!S.fadBusy){S.fadBusy=1;S.fadLimit=Math.min(1500,lim+30);if(__fadUnsub){try{__fadUnsub()}catch(_){}__fadUnsub=null}ensureFadaye7Listen()}
 }
-Object.assign(A,{fadMore(){fadGrow()},
-  async fadDl(d,el){
-    try{
-      const url=(el&&el.getAttribute("data-url"))||(d&&d.url)||"";
-      const rawTitle=(el&&el.getAttribute("data-title"))||(d&&d.title)||"fadiha";
-      const title=String(rawTitle).replace(/[^\w\u0600-\u06FF\- ]+/g,"_").slice(0,40)||"fadiha";
-      if(!url){toast("مفيش صورة",true);return}
-      if(url.startsWith("data:")||url.startsWith("blob:")){
-        const a=document.createElement("a");a.href=url;a.download=title+".jpg";a.click();return;
-      }
-      toast("جاري التحميل…");
-      const r=await fetch(url,{mode:"cors",credentials:"omit"});
-      if(!r.ok)throw new Error("HTTP "+r.status);
-      const blob=await r.blob();
-      const obj=URL.createObjectURL(blob);
-      const a=document.createElement("a");a.href=obj;a.download=title+".jpg";a.click();
-      setTimeout(()=>URL.revokeObjectURL(obj),4000);
-      toast("تم التحميل ✓");
-    }catch(e){
-      try{window.open((el&&el.getAttribute("data-url"))||(d&&d.url)||"","_blank","noopener")}catch(_){}
-      toast("افتح الصورة واعمل حفظ يدوي",true);
-    }
-  },
-  openCert(){S.view="cert";render(true);setTimeout(function(){try{certDraw()}catch(e){console.error(e)}},80)},
-  certDl(){try{certDownload()}catch(e){console.error(e)}},
-  certPrint(){try{certPrintPage()}catch(e){console.error(e)}},
-  openBoard(){S.view="board";render(true);setTimeout(function(){try{wbInit()}catch(e){console.error(e)}},60)},
-  wbColor(d,el){window.__wbColor=(el&&el.getAttribute("data-c"))||(d&&d.c)||"#111";},
-  wbClear(){try{wbDoClear()}catch(e){console.error(e)}},
-  wbDl(){try{wbDownload()}catch(e){console.error(e)}}
-}});
+Object.assign(A,{
+  fadMore(){fadGrow()},
+  openCert(){S.view="cert";render(true);setTimeout(function(){try{certDraw()}catch(e){}},60)},
+  certDl(){try{certDownload()}catch(e){}},
+  certPrint(){try{certPrintPage()}catch(e){}},
+  openBoard(){S.view="board";render(true);setTimeout(function(){try{wbInit()}catch(e){}},60)},
+  wbColor(d,el){window.__wbColor=(el&&el.getAttribute("data-c"))||(d&&d.c)||"#111111"},
+  wbClear(){try{wbDoClear()}catch(e){}},
+  wbDl(){try{wbDownload()}catch(e){}}
+});
 /* v115: تحميل تلقائي بالسكرول (Observer على السنتينل) — الزرار فضل احتياطي بس مش هو الأساس */
 let __fadSent=null;
 function fadSentinel(){
