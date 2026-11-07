@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v164">
+<meta name="sw-build" content="v177">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v164";/* v132: صوت ثابت + مكالمات (إنهاء من الطرفين) + أسماء الشات + حفظ الصفحة + إخفاء الأدمن + تنزيل المنصة أوفلاين */</script>
+<script>window.APP_BUILD="v177";/* v177: فصل مركزي لواجهة الطالب عن مسارات الأدمن */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -24,9 +24,21 @@
   function fnOf(st){if(!st)return"";var l=String(st).split("\n");for(var i=0;i<l.length;i++){var m=l[i].match(/at\s+(?:async\s+)?([^\s(]+)\s+\(/)||l[i].match(/^\s*([^\s@(]+)@/);if(m&&m[1]&&!/^(Object\.)?(anonymous|<anonymous>)$/.test(m[1]))return m[1].slice(0,60)}return""}
   function clean(s,n){return String(s==null?"":s).replace(/https?:\/\/[^\s)'"]+/g,function(u){return u.split("?")[0].split("#")[0]}).replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g,"[email]").replace(/(?:\+?20|0)?1[0125]\d{8}\b/g,"[phone]").replace(/\b(Bearer|Basic)\s+[\w.~+\/=-]{8,}/gi,"$1 [hidden]").replace(/\b(key|token|secret|password|pass|pwd|apikey|api_key)(["']?\s*[:=]\s*["']?)[^\s"'&,;)]{3,}/gi,"$1$2[hidden]").replace(/\bAIza[\w-]{20,}|\bsk-[\w-]{16,}|\beyJ[\w-]{10,}\.[\w-]{10,}\.[\w-]{5,}/g,"[hidden]").replace(/\b(?=[A-Za-z0-9]*\d)(?=[A-Za-z0-9]*[A-Za-z])[A-Za-z0-9]{24,}\b/g,"[id]").slice(0,n)}
   EC.page=function(){return""};
+  /* v171: breadcrumbs — آخر حركات المستخدم قبل الخطأ (ضغطات/تنقّل/نت/تبويب) + سياق الجهاز، بتتبعت مع كل خطأ */
+  EC.trail=[];
+  EC.mark=function(s){try{EC.trail.push(Math.round(performance.now()/1000)+"s "+clean(s,60));if(EC.trail.length>14)EC.trail.shift()}catch(x){}};
+  EC.ctx=function(){try{
+    var m=performance&&performance.memory?Math.round(performance.memory.usedJSHeapSize/1048576)+"MB":"";
+    var c=navigator.connection||{};
+    return ("on="+(navigator.onLine?1:0)+"|vis="+(document.hidden?0:1)+"|sw="+(navigator.serviceWorker&&navigator.serviceWorker.controller?1:0)+"|net="+(c.effectiveType||"?")+(c.saveData?"+save":"")+"|mem="+m+"|up="+Math.round(performance.now()/1000)+"s|ra="+(window.__renderSkipped||0)).slice(0,200)}catch(x){return""}};
+  try{
+    document.addEventListener("click",function(ev){try{var b=ev.target&&ev.target.closest&&ev.target.closest("[data-act]");if(b)EC.mark("act:"+b.getAttribute("data-act")+(b.getAttribute("data-id")?"#"+String(b.getAttribute("data-id")).slice(0,10):"")+"@"+EC.page())}catch(x){}},true);
+    addEventListener("online",function(){EC.mark("online")});addEventListener("offline",function(){EC.mark("offline")});
+    document.addEventListener("visibilitychange",function(){EC.mark(document.hidden?"hidden":"visible")});
+  }catch(x){}
   EC.impact=function(type,msg){
     var m=String(msg||"").toLowerCase();
-    if(type==="firebase"&&/permission-denied|unauthenticated/.test(m))return 90;
+    if(type==="firebase"&&/permission-denied|unauthenticated/.test(m))return 55; /* v166: خفضت الأولوية لأن أغلبها قواعد متعمدة */
     if(type==="firebase"&&/unavailable|failed-precondition|resource-exhausted/.test(m))return 80;
     if(type==="js"&&/is not defined|cannot read|undefined is not/.test(m))return 75;
     if(type==="network"&&/HTTP 5|fetch فشل/.test(m))return 70;
@@ -39,6 +51,8 @@
     if(EC._in)return;EC._in=1;extra=extra||{};
     var msg=clean(err&&typeof err==="object"?((err.code?err.code+": ":"")+(err.message||"")):err,300),st=clean(err&&err.stack,800);
     if(!msg||/ResizeObserver loop|^Script error|AbortError|chrome-extension:|moz-extension:|Non-Error promise rejection|lease.*expired|Failed to obtain|INTERNAL ASSERTION/i.test(msg+" "+st)){EC._in=0;return}
+    /* v166: تجاهل permission-denied المتوقع على presence لما القواعد بتمنع القراءة (مش bug حقيقي) */
+    if(/permission-denied|insufficient permissions/i.test(msg)&&( /presence\//i.test(msg+st) || /getDoc presence/i.test(msg+st) || (extra.fn&&/presence/i.test(extra.fn)) )){EC._in=0;return}
     var fn=extra.fn||fnOf(st),imp=EC.impact(type,msg);
     var hint="";
     try{
@@ -47,7 +61,7 @@
       else if(/workers\.dev|Failed to fetch/i.test(msg))hint="network-worker";
       else if(/is not defined|ReferenceError|Cannot read/i.test(msg))hint="js";
     }catch(x){}
-    var e={t:Date.now(),type:type,msg:msg,stack:st,fn:String(fn).slice(0,80),page:clean(EC.page(),60),dev:dev(),ver:window.APP_BUILD||"",sig:h(type+"|"+msg.slice(0,120)+"|"+fn),impact:imp,hint:hint};
+    var e={t:Date.now(),type:type,msg:msg,stack:st,fn:String(fn).slice(0,80),page:clean(EC.page(),60),dev:dev(),ver:window.APP_BUILD||"",sig:h(type+"|"+msg.slice(0,120)+"|"+fn),impact:imp,hint:hint,trail:EC.trail.slice(-10).join(" > ").slice(0,600),ctx:EC.ctx()};
     EC.log.push(e);if(EC.log.length>EC.MAX)EC.log.shift();save();
     if(EC.buf.length<50)EC.buf.push(e);
     EC._in=0}catch(x){EC._in=0}};
@@ -82,7 +96,7 @@
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#07051A">
-<script>(function(){try{var m=localStorage.getItem("theme_mode");if(m==="auto"||m==="nightread")m="dark";var c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#0E0B05",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
+<script>(function(){try{var m=localStorage.getItem("theme_mode");if(m==="auto"||m==="nightread")m="dark";var c=localStorage.getItem("theme_chosen")==="1";var mode=(c||(m&&m!=="auto"))?(m||"golden"):"golden";var r=document.documentElement;if(mode==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",mode==="light"?"light":mode);var tc={golden:"#07051A",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71",light:"#0B5D57"}[mode]||"#0B5D57";var el=document.querySelector('meta[name="theme-color"]');if(el)el.setAttribute("content",tc)}catch(e){}})();</script>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="التفوق">
@@ -91,7 +105,7 @@
 <title>التفوق</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Reem+Kufi:wght@600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'"><noscript><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Reem+Kufi:wght@600;700&display=swap" rel="stylesheet"></noscript>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&amp;family=Reem+Kufi:wght@600;700&amp;display=swap" onload="this.onload=null;this.rel='stylesheet'"><noscript><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&amp;family=Reem+Kufi:wght@600;700&amp;display=swap" rel="stylesheet"></noscript>
 <style>
 :root{--bg:#EEF3F2;--card:#fff;--ink:#12302D;--mut:#5B726F;--pri:#0B5D57;--pri2:#084a45;--onpri:#fff;--gold:#E3A81C;--ind:#4F46E5;--line:#D5E0DE;--sel:#e3efed;--ok:#157F3B;--bad:#B42318;--gbg:#dcf3e3;--rbg:#fde8e6;--ybg:#fff3cf;--yfg:#7a5700;--sh:0 1px 2px rgba(16,48,45,.06),0 10px 28px rgba(16,48,45,.08)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0C1716;--card:#142624;--ink:#E6F1EF;--mut:#8FA9A5;--pri:#2FB5A8;--pri2:#4cc7ba;--onpri:#04201D;--gold:#F0B93A;--ind:#8B93FF;--line:#244240;--sel:#1b3836;--ok:#4cd081;--bad:#ff8a80;--gbg:#183d2a;--rbg:#4a1f1b;--ybg:#3f3210;--yfg:#f0d27a;--sh:0 10px 28px rgba(0,0,0,.4)}}
@@ -1820,7 +1834,10 @@ html.mora-lock,html.mora-lock body{overflow:hidden!important}
 #musPill{margin:0}
 html.mora-lock .bgfx{display:none!important}
 html.mora-lock #app{visibility:hidden}
-@media (prefers-reduced-motion:reduce){.bgfx i,.mus-disc.spin{animation:none!important}}
+:focus-visible{outline:2px solid var(--gold)!important;outline-offset:3px!important}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
 </style>
 </head>
 <body>
@@ -1902,10 +1919,13 @@ const tms = r => Math.floor(tsMs(r&&(r.createdAt||r.updatedAt||r.lastAt||r))/100
 
 let __cmtUnsub=null;
 let __fadUnsub=null,__galUnsub=null;
+let __themeSyncState="";
 function ensureFadaye7Listen(){
   if(__fadUnsub||!db)return;
   if(secBlocked("fadaye7")){S.fadaye7=[];S.fadaye7All=[];return}
-  __fadUnsub=onSnapshot(query(collection(db,"fadaye7"),orderBy("createdAt","desc"),limit(S.fadLimit||20)),s=>{
+  __fadUnsub=onSnapshot(/* v170: الطلاب بيشوفوا المنشور المعروض بس — مطابق لقواعد v138 (الأدمن يشوف الكل للمراجعة) */
+    (S.isAdmin?query(collection(db,"fadaye7"),orderBy("createdAt","desc"),limit(S.fadLimit||20))
+             :query(collection(db,"fadaye7"),where("published","==",true),orderBy("createdAt","desc"),limit(S.fadLimit||20))),s=>{
     S.fadOffline=s.metadata.fromCache&&!s.docs.length;
     /* ترتيب: الدفعة الأجدد فوق خالص · جوّه الدفعة الأقدم الأول (seq) */
     const arr=s.docs.map(d=>({id:d.id,...d.data()}));
@@ -1944,10 +1964,11 @@ function ensureAsmsListen(){
 
 function ensureGalleriesListen(){
   if(__galUnsub||!db)return;
+  if(secBlocked("tanagha")){S.galleries=[];return}
   const gRef=collection(db,"galleries");
   const gQuery=S.isAdmin?query(gRef,limit(1500)):query(gRef,where("status","==","approved"),limit(1500));
   __galUnsub=onSnapshot(gQuery,s=>{
-    S.galleries=s.docs.map(d=>({id:d.id,...d.data()}));
+    S.galleries=s.docs.map(d=>({id:d.id,...d.data()})).filter(g=>S.isAdmin||!secBlocked("gal_"+(g.kind||"")));
     if((S.view==="admin"&&S.tab==="tanagha")||S.view==="gallery"||S.view==="tanagha")scheduleRender();
   },err=>console.warn("gal",err));
 }
@@ -2025,7 +2046,7 @@ function setThemeMode(mode,chosen){if(mode==="auto"||mode==="nightread")mode="da
   }else{
     root.setAttribute("data-theme",mode==="light"?"light":mode);
   }
-  try{document.querySelector('meta[name="theme-color"]').content={golden:"#0E0B05",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71"}[mode]||"#0B5D57"}catch(_){}
+  try{document.querySelector('meta[name="theme-color"]').content={golden:"#07051A",dark:"#0C1716",nightread:"#12151A",morning:"#2563EB",comfort:"#6B8F71"}[mode]||"#0B5D57"}catch(_){}
 }
 function cycleTheme(){
   const cur=getThemeMode();
@@ -2115,8 +2136,10 @@ function authErr(e){
 function stopSubs(){
   subs.forEach(u=>{try{u()}catch(_){}});
   subs=[];
+  [__fadUnsub,__galUnsub,__cmtUnsub].forEach(u=>{try{if(typeof u==="function")u()}catch(_){}});
+  __fadUnsub=__galUnsub=__cmtUnsub=null;
   // قفل أي listener خاص بشاشة + أقسام lazy
-  ["__dmUnsub","__dmMetaUnsub","__grpUnsub","__grpListUnsub","__chatsUnsub","__openRoomsUnsub","__callListen","__fadUnsub","__galUnsub","__cmtUnsub","__bookUnsub","__asmUnsub"].forEach(k=>{
+  ["__dmUnsub","__dmMetaUnsub","__grpUnsub","__grpListUnsub","__chatsUnsub","__openRoomsUnsub","__callListen","__bookUnsub","__asmUnsub"].forEach(k=>{
     try{if(window[k]){window[k]();window[k]=null}}catch(_){}
   });
   try{if(S.qbSub){S.qbSub();S.qbSub=null}}catch(_){}
@@ -2572,7 +2595,13 @@ if(!window.__dmTypingDelegated){
   },true);
 }
 async function startSession(u){
+  const previousUid=S.user&&S.user.uid;
   stopSubs();
+  if(previousUid!==u.uid){
+    S.profile=null;S.myList=[];S.attempts={};S.results=[];S._resultsReady=false;
+    __themeSyncState="";
+  }
+  S._resultsReady=false;
   S.user=u;
   // ضمانات — أي listener فشل مش هيخلي البيانات undefined
   if(!Array.isArray(S.exams))S.exams=[];
@@ -2718,7 +2747,8 @@ async function startSession(u){
           const __np=s.data(),__op=S.profile;
           S.profile=__np;
           try{secKick()}catch(_){}
-          if(__np.theme&&!window.__thSync){window.__thSync=1;try{if(THEME_MODES.includes(__np.theme)&&__np.theme!==getThemeMode()){setThemeMode(__np.theme,true);scheduleRender()}else if(THEME_MODES.includes(__np.theme)){try{localStorage.setItem("theme_chosen","1")}catch(_){}}}catch(_){}}
+          const __themeSyncKey=u.uid+":"+__np.theme;
+          if(__np.theme&&__themeSyncState!==__themeSyncKey){__themeSyncState=__themeSyncKey;try{if(THEME_MODES.includes(__np.theme)&&__np.theme!==getThemeMode()){setThemeMode(__np.theme,true);scheduleRender()}else if(THEME_MODES.includes(__np.theme)){try{localStorage.setItem("theme_chosen","1")}catch(_){}}}catch(_){}}
           if(!window.__avMig&&__np.avatar&&String(__np.avatar).length>30000){window.__avMig=1;setTimeout(()=>{migrateAvatar(S.user.uid,__np.avatar).catch(()=>{})},3000)}
           const __keys=["hiddenSections","tanaghaAccess","theme","name","xp","streak","level","title","badges","avatar","blocked","blockedUntil","blockReason","roles","chatName","note"];
           const __chg=!__op||__keys.some(k=>JSON.stringify(__op[k])!==JSON.stringify(__np[k]));
@@ -2910,7 +2940,7 @@ setTimeout(function(){try{
     if(S.view==="loading"||!S.view){S.view=S.user?"home":"auth"}
     try{S._siteDocs=S._siteDocs||{};var m=modeCur&&modeCur();if(m&&m.kind==="site"&&!(m.id in S._siteDocs))S._siteDocs[m.id]=""}catch(_){}
     render(true);
-    setTimeout(function(){var t2=(a.innerText||"");if(/جاري التحميل/.test(t2)&&t2.length<80){a.insertAdjacentHTML("beforeend",'<div class="wrap"><div class="card empty"><b>التحميل واقف؟</b><div class="mut" style="margin:8px 0">اضغط لتحديث المنصة</div><button class="btn" onclick="try{caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}).finally(function(){location.reload()})}catch(e){location.reload()}">تحديث ✓</button></div></div>')}},3000);
+    setTimeout(function(){var t2=(a.innerText||"");if(/جاري التحميل/.test(t2)&&t2.length<80){a.insertAdjacentHTML("beforeend",'<div class="wrap"><div class="card empty"><b>التحميل واقف؟</b><div class="mut" style="margin:8px 0">اضغط لتحديث المنصة</div><button class="btn" onclick="try{caches.keys().then(function(k){return Promise.all(k.filter(function(x){return /^eltafawoq-v[0-9]+$/.test(x)}).map(function(x){return caches.delete(x)}))}).finally(function(){location.reload()})}catch(e){location.reload()}">تحديث ✓</button></div></div>')}},3000);
   }
 }catch(e){}},7000);
 /* ---------- العرض ---------- */
@@ -2920,7 +2950,8 @@ try{/* لا نضع نص تحميل — الرندر الحقيقي بيجي من
 let __renderT=0;
 function scheduleRender(force){
   clearTimeout(__renderT);
-  __renderT=setTimeout(()=>render(!!force), force?0:120);
+  /* v171: التحديثات اللي جاية من listeners (شات/بروفايل/حضور...) بتتعلّم soft — لو الـ HTML نفسه ما اتغيّرش ما بنعيدش رسم الشاشة (بيمنع الوميض وضياع الكتابة والسكرول) */
+  __renderT=setTimeout(()=>{window.__softNext=!force;try{render(!!force)}finally{window.__softNext=false}}, force?0:120);
 }
 
 let __rendPend=false,__rendT=0;
@@ -2946,7 +2977,7 @@ async function clearLocalSpeedCache(reason){
   try{
     if(window.caches&&caches.keys){
       const ks=await caches.keys();
-      await Promise.all(ks.filter(k=>/^eltafawoq-v/i.test(k)).map(k=>caches.delete(k)));
+      await Promise.all(ks.filter(k=>/^eltafawoq-v[0-9]+$/i.test(k)).map(k=>caches.delete(k)));
     }
   }catch(_){}
   try{
@@ -2960,12 +2991,14 @@ async function clearLocalSpeedCache(reason){
   try{localStorage.setItem("cache_bust_done",String(S.site&&S.site.cacheBust||Date.now()))}catch(_){}
   return true;
 }
-function render(force){
+const ADMIN_ONLY_VIEWS=new Set(["admin","modePreview","editExam","editAsm","studentDetail","asmAdmin","staff"]);
+function render(force,soft){
   if(!force&&(S.view==="exam"||S.view==="editExam"||S.view==="editAsm"||S.view==="chatThread"||S.view==="groupThread"))return;
   if(!force){
     if(__rendPend)return;
     __rendPend=true;
-    __rendT=requestAnimationFrame(function(){__rendPend=false;render(true)});
+    const __sf=!!window.__softNext;
+    __rendT=requestAnimationFrame(function(){__rendPend=false;render(true,__sf)});
     return;
   }
 
@@ -2976,6 +3009,11 @@ function render(force){
     window.__lastView=S.view;
   }catch(_){}
   try{saveNavState()}catch(_){}
+  try{
+    const privileged=!!S.isAdmin||!!S.role||(typeof isAsmManager==="function"&&isAsmManager());
+    if(!privileged&&ADMIN_ONLY_VIEWS.has(S.view)){S.view=S.user?"home":"auth";S.tab="dash";S.adminLogin=false}
+    if(S.user&&!S.isAdmin)S.adminLogin=false;
+  }catch(_){if(S.user&&!S.isAdmin){S.view="home";S.adminLogin=false}}
   let h;
   try{
   if(S.view==="loading")h=splash();
@@ -3022,7 +3060,7 @@ function render(force){
   const __ae=document.activeElement;const __aeId=__ae&&__ae.id;const __aePos=(__ae&&(__ae.id==="dmIn"||__ae.id==="grpIn"||__ae.id==="qbChatIn"||__ae.id==="aiIn")&&typeof __ae.selectionStart==="number")?__ae.selectionStart:null;const __aeVal=__aeId&&(__aeId==="dmIn"||__aeId==="grpIn"||__aeId==="aiIn")?__ae.value:null;
   try{const __w=presenceWhere();if(S.user&&!S.isAdmin&&__w!==window.__lastWhere){window.__lastWhere=__w;clearTimeout(window.__whT);window.__whT=setTimeout(()=>pingClientPresence(true),3000)}}catch(_){}
   const __vk=S.view+"|"+(S.view==="admin"?S.tab:"");
-  const __newView=window.__lastViewKey!==__vk;window.__lastViewKey=__vk;try{document.documentElement.dataset.v=S.view}catch(_){}
+  const __newView=window.__lastViewKey!==__vk;window.__lastViewKey=__vk;if(__newView){try{__EC.mark&&__EC.mark("view:"+__vk)}catch(_){}}try{document.documentElement.dataset.v=S.view}catch(_){}
   try{if(typeof fadSentinel==="function")fadSentinel()}catch(_){}
   try{app.classList.toggle("noanim",!__newView)}catch(_){}
   try{
@@ -3038,6 +3076,8 @@ function render(force){
   const __sy=(!__newView&&S.view!=="chatThread"&&S.view!=="groupThread")?window.scrollY:0;
   const __navL=((document.querySelector(".adm-nav")||{}).scrollLeft)||0;
   const __inner=[];if(!__newView){try{app.querySelectorAll("div,section,ul,table,pre").forEach((el,i)=>{if(el.scrollTop>0&&el.scrollHeight>el.clientHeight+4)__inner.push([i,el.scrollTop])})}catch(_){}}
+  if(soft&&!__newView&&typeof h==="string"&&h&&window.__lastHtml===h&&app.firstChild){window.__renderSkipped=(window.__renderSkipped||0)+1;return}
+  window.__lastHtml=(typeof h==="string")?h:"";
   app.innerHTML=h||`<div class="wrap"><div class="card empty"><div class="ei">⏳</div><b>لحظة…</b><div class="mut" style="margin:8px 0 12px">بنجهّز الصفحة</div><button class="btn" data-act="home">الرئيسية</button></div></div>`;
   if(!h&&!window.__emptyFix){window.__emptyFix=1;setTimeout(()=>{window.__emptyFix=0;try{if(!S.user){S.view="auth"}else if(!S.view||S.view==="loading"){S.view="home"}render(true)}catch(_){}},1200)}
   if(__aeId){const el=document.getElementById(__aeId);if(el){if(__aeVal!=null&&"value" in el)el.value=__aeVal;el.focus();if(__aePos!=null)try{el.setSelectionRange(__aePos,__aePos)}catch(_){}}}
@@ -3255,7 +3295,13 @@ function reviewBody(r,e,showAns){
       </div>`
     }
     const ok=a===q.a;
-    return head+`<div class="q"><p dir="auto"><span class="n">${i+1}</span>${esc(q.q)} ${a===-1||a==null?pill("لم تُجب","y"):q.fun?"":ok?pill("صح","g"):pill("غلط","r")}</p>${q.o.map((t,j)=>`<div class="opt ${j===q.a?"right":j===a?"wrong":""}"><span dir="auto">${esc(t)}${j===q.a?` <b class="tk">✓</b>`:j===a?` <b class="tk x">✗</b>`:""}${j===a?` <small>(إجابة ${S.isAdmin?"الطالب":"تك"})</small>`:""}</span></div>`).join("")}</div>`}).join("");
+    const status=a===-1||a==null?pill("لم تُجب","y"):!showAns?pill("تمت الإجابة","i"):q.fun?"":ok?pill("صح","g"):pill("غلط","r");
+    const options=q.o.map((t,j)=>{
+      const right=!!showAns&&j===q.a,chosen=j===a,cls=right?"right":showAns&&chosen?"wrong":"";
+      const mark=showAns?(right?` <b class="tk">✓</b>`:chosen?` <b class="tk x">✗</b>`:""):chosen?` <small>(إجابتك)</small>`:"";
+      return `<div class="opt ${cls}"><span dir="auto">${esc(t)}${mark}</span></div>`;
+    }).join("");
+    return head+`<div class="q"><p dir="auto"><span class="n">${i+1}</span>${esc(q.q)} ${status}</p>${options}</div>`}).join("");
 }
 function reviewView(){
   const {r,back}=S.review,e=S.exams.find(x=>x.id===r.examId);
@@ -3265,7 +3311,7 @@ function reviewView(){
 <div class="card"><h2>${esc(r.examTitle)} · محاولة ${r.attempt||1}</h2>${adminBar}
 <div style="margin-top:6px"><b style="font-size:22px;color:var(--pri)">${r.score}/${r.total}</b> ${pill(pctOf(r)+"%")} ${passPill(r)}</div>
 <div class="mut" style="margin-top:4px">${r.secs!=null?"الوقت: "+dur(r.secs)+" · ":""}${r.tabs?`<span style="color:var(--bad)">خرج من الامتحان ${r.tabs} مرة</span> · `:""}${fmt(r.createdAt)}</div></div>
-${!e?`<div class="card mut">الامتحان ده اتمسح أو اتخفى، فمش هقدر أعرض الأسئلة.</div>`:!r.ans?`<div class="card mut">مفيش حل محفوظ للمحاولة دي.</div>`:!showAns?`<div class="card mut">المدرس مقفل عرض الإجابات الصحيحة للامتحان ده.</div>`:reviewBody(r,e)}
+${!e?`<div class="card mut">الامتحان ده اتمسح أو اتخفى، فمش هقدر أعرض الأسئلة.</div>`:!r.ans?`<div class="card mut">مفيش حل محفوظ للمحاولة دي.</div>`:reviewBody(r,e,showAns)}
 </div>`}
 
 
@@ -4013,9 +4059,9 @@ async function fadToggleReaction(postId, rid){
     if(!snap.exists()){toast("البوست مش موجود",true);return}
     const data=snap.data()||{};
     const reactions=Object.assign({},data.reactions||{});
-    if(reactions[uid]===rid)delete reactions[uid];
-    else reactions[uid]=rid;
-    await updateDoc(ref,{reactions});
+    /* v171: تحديث ذرّي لمفتاح المستخدم بس (field path) — كان بيكتب الـ map كله فبيتعارض/يترفض لو حد تاني تفاعل في نفس اللحظة */
+    if(reactions[uid]===rid){delete reactions[uid];await updateDoc(ref,{["reactions."+uid]:deleteField()})}
+    else{reactions[uid]=rid;await updateDoc(ref,{["reactions."+uid]:rid})}
     // local update
     const i=(S.fadaye7||[]).findIndex(x=>x.id===postId);
     if(i>=0){S.fadaye7[i]={...S.fadaye7[i],reactions};render(true)}
@@ -6067,6 +6113,17 @@ function secKick(){
     __fadUnsub=null;S.fadaye7=[];S.fadaye7All=[];S.fadShow=10;
     if(S.view==="fadaye7"){S.view="home";scheduleRender()}
   }
+  /* v171: نفس القفل لمعرض التناغة (أجمل شلة / صورنا) — كان الـ listener بيفضل شغّال والصور في الذاكرة */
+  try{
+    if(secBlocked("tanagha")){
+      try{if(typeof __galUnsub==="function")__galUnsub()}catch(_){}
+      __galUnsub=null;S.galleries=[];
+      if(S.view==="gallery"||S.view==="tanagha"){S.view="home";scheduleRender()}
+    }else if(Array.isArray(S.galleries)&&S.galleries.length){
+      const keep=S.galleries.filter(g=>!secBlocked("gal_"+(g.kind||"")));
+      if(keep.length!==S.galleries.length){S.galleries=keep;if(S.view==="gallery")scheduleRender()}
+    }
+  }catch(_){}
 }
 function fadBlockedView(){return `<div class="wrap screen">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}<div class="card empty"><div class="ei">⛔</div><b>القسم ده مش متاح ليك دلوقتي</b></div></div>${studentNav()}`}
 function featOfView(v){
@@ -6304,7 +6361,7 @@ const A={
   },
   theme(d,el){document.querySelectorAll('.tg[data-act="theme"]').forEach(b=>{b.classList.add("spin");setTimeout(()=>b.classList.remove("spin"),500)});cycleTheme();},
   mode(){S.mode=S.mode==="login"?"register":"login";S.error="";render(true)},
-  logoTap(){const n=Date.now();S.taps=S.taps.filter(t=>n-t<2500);S.taps.push(n);if(S.taps.length>=3){S.taps=[];S.adminLogin=true;S.error="";render(true)}},
+  logoTap(){const n=Date.now();S.taps=S.taps.filter(t=>n-t<2500);S.taps.push(n);if(S.taps.length>=3){S.taps=[];if(S.user&&!S.isAdmin){S.adminLogin=false;return}S.adminLogin=true;S.error="";render(true)}},
   studentLink(){S.adminLogin=false;S.error="";render(true)},
   async logout(){
     if(!await uiConfirm("تسجيل خروج من التفوق؟\nهتحتاج تسجّل تاني لما ترجع."))return;
@@ -6363,10 +6420,10 @@ const A={
   startFlash(){
     const cards=flashBuild();
     if(!cards.length){toast("مفيش بطاقات بعد");return}
-    S.flash={cards,idx:0,show:false};S.view="flash";render(true);
+    S.flash={cards,idx:0,show:false,counted:false};S.view="flash";render(true);
   },
   flashFlip(){if(!S.flash)return;S.flash.show=!S.flash.show;render(true)},
-  flashNext(){if(!S.flash)return;S.flash.idx=Math.min(S.flash.cards.length-1,(S.flash.idx||0)+1);S.flash.show=false;try{if(S.flash.idx===S.flash.cards.length-1)studyBump()}catch(_){}render(true)},
+  flashNext(){if(!S.flash)return;S.flash.idx=Math.min(S.flash.cards.length-1,(S.flash.idx||0)+1);S.flash.show=false;try{if(S.flash.idx===S.flash.cards.length-1&&!S.flash.counted){S.flash.counted=true;studyBump()}}catch(_){}render(true)},
   flashPrev(){if(!S.flash)return;S.flash.idx=Math.max(0,(S.flash.idx||0)-1);S.flash.show=false;render(true)},
   startWeakQuiz(){
     const items=weakQuizBuild();
@@ -6675,11 +6732,16 @@ const A={
       try{
         if(a.act==="broadcast"){
           const txt=String(a.text||"").slice(0,300);
-          await addDoc(collection(db,"notifications"),{uid:"__all__",broadcast:true,text:txt,createdAt:serverTimestamp(),fromAdmin:true});
-          const st=(S.students||[]).slice(0,80);
-          await Promise.all(st.map(s=>addDoc(collection(db,"notifications"),{uid:s.id,text:txt,createdAt:serverTimestamp(),fromAdmin:true,read:false})));
+          /* v170: كان بيتكتب مستند __all__ الطلاب مش بيقدروا يقروه (قاعدة uid==auth) + بيبعت لأول 80 بس →
+             نسخة لكل طالب (يقدر يعلمها مقروء بنفسه) بدفعات 400 */
+          const __st=(S.students||[]);
+          for(let __i=0;__i<__st.length;__i+=400){
+            const wb=writeBatch(db);const __ts=Date.now();
+            __st.slice(__i,__i+400).forEach(s=>wb.set(doc(db,"notifications",s.id+"_"+__ts),{uid:s.id,text:txt,createdAt:serverTimestamp(),fromAdmin:true,read:false}));
+            await wb.commit();
+          }
           sendPush({type:"broadcast",title:"📢 التفوق",body:txt});
-          log.push("✓ اتبعت الإشعار لكل الطلاب");
+          log.push("✓ اتبعت الإشعار لكل الطلاب ("+__st.length+")");
         }else if(a.act==="maintenance"){
           await updateDoc(doc(db,"config","site"),{maintenance:!!a.on});
           log.push("✓ وضع الصيانة: "+(a.on?"اتشغّل":"اتقف"));
@@ -6717,16 +6779,13 @@ const A={
     if(!msg||!msg.trim())return;
     try{
       const st=S.students||[];
-      // إشعار جماعي كمستند واحد + نسخة activity
-      await addDoc(collection(db,"notifications"),{
-        uid:"__all__", broadcast:true, text:msg.trim(),
-        createdAt:serverTimestamp(), fromAdmin:true
-      });
-      // لكل طالب (حد أقصى 50 مرة واحدة لتفادي الضغط)
-      const batch=st.slice(0,80);
-      await Promise.all(batch.map(s=>addDoc(collection(db,"notifications"),{
-        uid:s.id, text:msg.trim(), createdAt:serverTimestamp(), fromAdmin:true, read:false
-      })));
+      /* v170: كان بيتكتب مستند __all__ الطلاب مش بيقدروا يقروه (قاعدة uid==auth) + بيبعت لأول 80 طالب بس.
+         دلوقتي: نسخة لكل طالب بدفعات 400 عشان الضغط */
+      for(let __i=0;__i<st.length;__i+=400){
+        const wb=writeBatch(db);const __ts=Date.now();
+        st.slice(__i,__i+400).forEach(s=>wb.set(doc(db,"notifications",s.id+"_"+__ts),{uid:s.id,text:msg.trim(),createdAt:serverTimestamp(),fromAdmin:true,read:false}));
+        await wb.commit();
+      }
       sendPush({type:"broadcast",title:"📢 التفوق",body:msg.trim()});
       toast(pushBase()?"اتبعت الإشعار ✓ (داخل المنصة + إشعار للأجهزة)":"اتبعت داخل المنصة ✓ — لتوصيله كإشعار للأجهزة اربط وسيط الإشعارات من الإعدادات",true);
     }catch(e){toast("فشل الإرسال")}
@@ -7042,6 +7101,8 @@ const A={
       base+"app/eltafawoq.apk",
       "https://raw.githubusercontent.com/phdgxt4-coder/crispy-bassoon/main/"+encodeURIComponent("التفوق.apk")
     ];
+    const ok=window.confirm("تنزيل ملف APK؟\n\nسيتم تنزيل الملف فقط بعد موافقتك. لن يتم تثبيته بصمت؛ أندرويد سيعرض نافذة التثبيت الرسمية، ويمكنك الرفض أو الإلغاء في أي وقت.\n\nنزّل ملفات APK من مصدر تثق به فقط.");
+    if(!ok){toast("تم إلغاء تنزيل APK");return}
     toast("جاري تحضير التحميل…");
     for(const apkUrl of candidates){
       try{
@@ -7071,12 +7132,14 @@ const A={
     const t=S.chatThread;if(!t||!S.user)return;
     const inp=$("#dmIn");const text=(inp&&inp.value||"").trim();
     if(!text)return;
+    /* v171: منع الإرسال المزدوج + مسح الخانة فورًا (كانت بتفضل مليانة لحد رد السيرفر فالطالب يدوس تاني والرسالة تتكرر) */
+    if(window.__dmBusy&&Date.now()-window.__dmBusy<600)return;window.__dmBusy=Date.now();
+    if(inp)inp.value="";
+    try{clearDmTyping()}catch(_){}
     try{
       await sendDm(t.uid,text,null);
-      if(inp)inp.value="";
       S.replyTo=null;
-      clearDmTyping();
-    }catch(e){toast("مقدرتش أبعت")}
+    }catch(e){const i2=$("#dmIn");if(i2&&!i2.value)i2.value=text}
   },
   dmReply(d){
     S.replyTo={id:d.id,text:d.text||"",name:d.name||""};
@@ -8362,15 +8425,27 @@ const A={
     }catch(e){
       console.warn("xlsx",e);
       toast("تعذّر تجهيز Excel — هنزّل CSV بدله");
-      try{A.csv()}catch(_){}
+      try{await A.csv()}catch(_){}
     }
   },
-  csv(){
-    const rows=(Array.isArray(S.results)?S.results:[]).filter(r=>!S.filter||r.examId===S.filter);
+  async csv(){
+    if(!S.isAdmin)return;
+    let rows=[],complete=true;
+    try{
+      const sn=await getDocs(S.filter?query(collection(db,"results"),where("examId","==",S.filter)):collection(db,"results"));
+      rows=sn.docs.map(d=>({id:d.id,...d.data()}));
+    }catch(e){
+      console.warn("csv",e);complete=false;
+      rows=(Array.isArray(S.results)?S.results:[]).filter(r=>!S.filter||r.examId===S.filter);
+    }
+    rows.sort((a,b)=>tms(b)-tms(a));
     const q=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
     const csv="\ufeff"+["الاسم,التليفون,المادة,الامتحان,المحاولة,الدرجة,من,النتيجة,الوقت بالثواني,مرات الخروج,التاريخ",
       ...rows.map(r=>[r.name,r.phone,subName(r.subject),r.examTitle,r.attempt||1,r.score,r.total,r.passMark>0?(r.passed?"ناجح":"راسب"):"",r.secs??"",r.tabs||0,fmt(r.createdAt)].map(q).join(","))].join("\n");
-    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="results.csv";a.click();
+    const url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");
+    a.href=url;a.download="results.csv";document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},4000);
+    toast(complete?"اتنزّل ملف CSV ✓ ("+rows.length+" نتيجة)":"اتنزّل CSV احتياطي بالنتائج المحمّلة فقط؛ قد لا يكون كاملًا",complete);
   },
     async setMode(d){
     const id=d.id,m=modesAll().find(x=>x.id===id);if(!m)return;
@@ -10434,11 +10509,13 @@ function ecFlush(){
         status:"open",
         impact:typeof e.impact==="number"?Math.min(100,Math.max(0,e.impact|0)):30,
         count:1,
+        trail:String(e.trail||"").slice(0,600),
+        ctx:String(e.ctx||"").slice(0,200),
         createdAt:serverTimestamp()
       };
       _fbSetDoc(doc(db,"errorLogs",id),payload).catch(err=>{
         // إعادة بدون impact لو القواعد القديمة
-        const soft={...payload};delete soft.impact;delete soft.count;
+        const soft={...payload};delete soft.impact;delete soft.count;delete soft.trail;delete soft.ctx;
         _fbSetDoc(doc(db,"errorLogs",id),soft).catch(e2=>{
           /* v131: لو المستند موجود مسبقاً (نفس اليوم/البصمة من جهاز تاني) الـ setDoc بيتحول update ومرفوض —
              نحاول مرة واحدة بمعرّف فريد عشان الخطأ يوصل للأدمن برضه، من غير أي retry لانهائي */
@@ -10500,7 +10577,7 @@ function errReportTxt(){
     out.push("#"+(i+1)+" — "+(TY[r.type]||r.type||"غير مصنّف"),
       "الوقت: "+dt(tm(r)),"حصل عند: "+who(r),"الصفحة/الشاشة: "+(r.page||"غير معروف"),
       "الدالة: "+(r.fn||"-"),"الإصدار: "+(r.ver||"-"),"الجهاز: "+JSON.stringify(r.dev||"-"),
-      "الرسالة: "+(r.msg||"-"),"التفاصيل التقنية:",String(r.stack||"-").slice(0,700),
+      "الرسالة: "+(r.msg||"-"),"التفاصيل التقنية:",String(r.stack||"-").slice(0,700),"قبل الخطأ: "+String(r.trail||"-").slice(0,600),"سياق: "+String(r.ctx||"-"),
       Object.keys(extra).length?"بيانات إضافية: "+JSON.stringify(extra).slice(0,400):"","-".repeat(40),"");
   });
   const b=new Blob(["\ufeff"+out.join("\n")],{type:"text/plain;charset=utf-8"}),a=document.createElement("a");
@@ -10542,6 +10619,7 @@ function adminErrors(){
     ${sm.hint?`<div class="mut" style="font-size:12px;margin-top:4px">${esc(sm.hint)}</div>`:""}
     <div style="margin:6px 0;font-weight:700;word-break:break-word" dir="auto">${esc(x.msg)}${x._n>1?` <span class="pill r">×${x._n}</span>`:""}</div>
     <div class="mut" style="font-size:12px;word-break:break-word">الدالة: <b dir="ltr">${esc(x.fn||"—")}</b> · الصفحة: <b dir="ltr">${esc(x.page||"—")}</b> · ${esc(x.dev||"")} · ${esc(x.ver||"")} · UID: <span dir="ltr">${esc(String(x.uid||"").slice(0,8))}</span>${x.impact!=null?` · أثر ${x.impact}`:""}</div>
+    ${x.trail?`<details style="margin-top:6px" open><summary class="mut" style="cursor:pointer;font-size:12px">🧭 اللي حصل قبل الخطأ</summary><div dir="ltr" style="font-size:11px;margin:6px 0 0;line-height:1.7;word-break:break-all">${esc(x.trail).split(" &gt; ").join("<br>↳ ")}</div>${x.ctx?`<div class="mut" dir="ltr" style="font-size:11px;margin-top:4px">${esc(x.ctx)}</div>`:""}</details>`:""}
     ${x.stack?`<details style="margin-top:6px"><summary class="mut" style="cursor:pointer;font-size:12px">Stack Trace</summary><pre dir="ltr" style="white-space:pre-wrap;word-break:break-all;max-height:180px;overflow:auto;font-size:11px;margin:6px 0 0">${esc(x.stack)}</pre></details>`:""}
     <div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap">
       ${st(x)!=="fixed"?`<button class="btn sm" data-act="errFix" data-id="${esc(x.id)}">✔ تم الإصلاح</button>`:""}
@@ -10752,7 +10830,7 @@ Object.assign(A,{
 const UP_TYPES=/^image\/(jpeg|png|webp|gif)$/;
 const UP_MAX_BYTES=4*1024*1048576;
 const UP_IDS={fad:"fadProg",stu:"stuFadProg",gal:"galProg"};
-const UP={cancel:false,jobs:{},urls:[]};
+const UP={cancel:false,jobs:{},urls:{fad:[],stu:[],gal:[]}};
 function upValidate(files,max){
   const good=[],bad=[];
   for(const f of files){
@@ -10809,9 +10887,10 @@ document.addEventListener("input",e=>{
 document.addEventListener("change",e=>{
   const t=e.target;if(!t||!/^(fadFile|stuFadFile|galFiles)$/.test(t.id))return;
   const host=document.getElementById(t.id==="galFiles"?"galPrev":t.id==="fadFile"?"fadPrev":"stuFadPrev");if(!host)return;
-  UP.urls.forEach(u=>URL.revokeObjectURL(u));UP.urls=[];
+  const previewKey=t.id==="galFiles"?"gal":t.id==="fadFile"?"fad":"stu";
+  (UP.urls[previewKey]||[]).forEach(u=>URL.revokeObjectURL(u));UP.urls[previewKey]=[];
   const v=upValidate([...(t.files||[])],t.id==="galFiles"?1500:10);
-  host.innerHTML=v.good.slice(0,12).map(f=>{const u=URL.createObjectURL(f);UP.urls.push(u);return `<img src="${u}" alt="" class="upth">`}).join("")
+  host.innerHTML=v.good.slice(0,12).map(f=>{const u=URL.createObjectURL(f);UP.urls[previewKey].push(u);return `<img src="${u}" alt="" class="upth">`}).join("")
     +(v.good.length>12?`<span class="mut">+${v.good.length-12}</span>`:"")
     +(v.bad.length?`<div class="err" style="margin-top:6px;font-size:12px;flex-basis:100%">${v.bad.slice(0,3).map(esc).join("<br>")}${v.bad.length>3?"<br>…":""}</div>`:"");
 });
@@ -11636,11 +11715,11 @@ const CACHE_LS=/^(exams_cache|books_cache|dmcache_|ec_log|ec_sent|pf_agg|lg_|__d
 function cacheCard(){
   const dt=(S._dt||{}).cache;
   return `<div class="card"><h3 style="margin-top:0">🧹 الكاش والبيانات المحلية (الجهاز ده بس)</h3>
-  <p class="mut" style="font-size:12px;margin:0 0 8px">مابتمسحش أي حاجة من Firebase ولا بتعمل تسجيل خروج.</p>
+  <p class="mut" style="font-size:12px;margin:0 0 8px">مابتمسحش أي حاجة من Firebase ولا بتعمل تسجيل خروج. ملفات الأوفلاين الدائمة لا تُحذف بهذه الأدوات.</p>
   <div class="row" style="gap:6px;flex-wrap:wrap"><button class="btn ghost sm" data-act="cacheClear" data-id="files">مسح كاش الملفات</button><button class="btn ghost sm" data-act="cacheClear" data-id="local">مسح البيانات المحلية</button><button class="btn ghost sm" data-act="cacheClear" data-id="sw">إعادة تسجيل Service Worker</button><button class="btn danger sm" data-act="cacheClear" data-id="full">إعادة بناء كاملة</button></div>
   ${dt?`<pre dir="auto" style="white-space:pre-wrap;font-size:12px;margin:8px 0 0">${esc(dt)}</pre>`:""}</div>`;
 }
-async function cacheFiles(){let n=0;try{const ks=(await caches.keys()).filter(k=>/^eltafawoq-/i.test(k));await Promise.all(ks.map(k=>caches.delete(k)));n=ks.length}catch(_){}return n}
+async function cacheFiles(){let n=0;try{const ks=(await caches.keys()).filter(k=>/^eltafawoq-v[0-9]+$/i.test(k));await Promise.all(ks.map(k=>caches.delete(k)));n=ks.length}catch(_){}return n}
 function cacheLocal(){let n=0;try{const ks=[];for(let i=0;i<localStorage.length;i++)ks.push(localStorage.key(i));ks.forEach(k=>{if(k&&CACHE_LS.test(k)){localStorage.removeItem(k);n++}})}catch(_){}return n}
 async function cacheSw(){let n=0;try{const rs=await navigator.serviceWorker.getRegistrations();for(const r of rs){await r.unregister();n++}}catch(_){}return n}
 Object.assign(A,{
@@ -12118,10 +12197,14 @@ A.rvDownload=aiDownload;
 /* v114: شريط الأدمن أفقي وثابت — المحتوى يظهر من أول شاشة، والتبويب الشغّال يتوسّط */
 try{let __rq=0;new MutationObserver(()=>{if(__rq)return;__rq=requestAnimationFrame(()=>{__rq=0;const t=document.querySelector(".adm-nav .tab.on");if(t&&!t.__c){t.__c=1;try{t.scrollIntoView({inline:"center",block:"nearest"})}catch(_){}}})}).observe(document.documentElement,{childList:true,subtree:true})}catch(_){}
 
-/* ===== v143 — متصفح Mora: نوافذ متعددة (تثبيت/إغلاق) + جلسة محفوظة + بوكي + مكتبة أغاني بمشغّل فخم بيكمل في الخلفية ===== */
+/* ===== v173 — متصفح Mora: نوافذ متعددة + اعتراض الروابط الخارجية + DuckDuckGo داخل المنصة =====
+   ملاحظة منصة: المواقع التي ترسل X-Frame-Options أو CSP frame-ancestors لا يمكن للويب تجاوزها
+   بأمان؛ مورا يعرض لها fallback واضحًا بدل فتح Chrome بصمت أو كسر الصفحة. تطبيقات Android
+   الأصلية وملفات APK/ZIP تظل خارجية بطبيعتها ولا يمكن تشغيلها داخل iframe. */
 const MORA_MAX=10,MORA_LIVE=4;
 const MORA={el:null,tabs:[],act:null,seq:0,live:[],tm:0,inp:null,hint:null,stage:null,home:null,prog:null};
-const MORA_SITES=[["ويكيبيديا","https://ar.wikipedia.org/"],["بنك المعرفة المصري","https://ekb.eg/"],["أكاديمية خان","https://ar.khanacademy.org/"],["جوجل","https://www.google.com/"],["يوتيوب","https://m.youtube.com/"],["تلجرام ويب","https://web.telegram.org/"]];
+const MORA_SITES=[["Microsoft Edge · Bing","https://www.bing.com/"],["ويكيبيديا","https://ar.wikipedia.org/"],["بنك المعرفة المصري","https://ekb.eg/"],["أكاديمية خان","https://ar.khanacademy.org/"],["جوجل","https://www.google.com/"],["DuckDuckGo","https://duckduckgo.com/"],["يوتيوب","https://m.youtube.com/"],["تلجرام ويب","https://web.telegram.org/"],["فيسبوك","https://www.facebook.com/"],["واتساب ويب","https://web.whatsapp.com/"],["تيك توك","https://www.tiktok.com/"],["ماسنجر","https://www.messenger.com/"]];
+const MORA_ENGINES=[["bing","Microsoft Edge · Bing","https://www.bing.com/search?q="],["google","Google","https://www.google.com/search?q="],["duckduckgo","DuckDuckGo","https://duckduckgo.com/?q="]];
 const moraKey=()=>"mora_sess_v2_"+((S.user&&S.user.uid)||"g");
 const moraSeen=new Set();
 (function(){const seen={};window.addEventListener("error",function(e){try{const t=e&&e.target;if(!t||t===window||!t.tagName)return;const tg=String(t.tagName).toLowerCase();if(!/^(img|audio|video|script|link|source|iframe)$/.test(tg))return;const u=String(t.currentSrc||t.src||t.href||"").replace(/[?#].*$/,"").slice(0,160);if(!u||/^(data|blob):/.test(u)||seen[u])return;seen[u]=1;window.__EC&&window.__EC.report("network",{message:"المتصفح: فشل تحميل "+tg+" — "+u},{fn:"resource."+tg})}catch(_){}},true)})();
@@ -12137,6 +12220,14 @@ function moraNorm(v){
 const moraCur=()=>MORA.tabs.find(t=>t.id===MORA.act)||null;
 const moraTitle=t=>t.title||(t.url?"…":"نافذة جديدة");
 function moraSave(){try{localStorage.setItem(moraKey(),JSON.stringify({act:MORA.act,tabs:MORA.tabs.map(t=>({id:t.id,url:t.url,title:t.title,pin:t.pin?1:0,hist:t.hist.slice(-30),i:t.i}))}))}catch(_){}}
+function moraSavedKey(kind){return "mora_"+kind+"_v1_"+((S.user&&S.user.uid)||"g")}
+function moraSavedGet(kind){try{const a=JSON.parse(localStorage.getItem(moraSavedKey(kind))||"[]");return Array.isArray(a)?a:[]}catch(_){return[]}}
+function moraSavedPut(kind,a){try{localStorage.setItem(moraSavedKey(kind),JSON.stringify(a.slice(0,60)))}catch(_){}
+}
+function moraBookmarkToggle(){const t=moraCur();if(!t||!/^https?:/i.test(t.url||"")){try{toast("افتح صفحة أولًا لإضافتها للمفضلة")}catch(_){}return}const a=moraSavedGet("bookmarks"),i=a.findIndex(x=>x.url===t.url);if(i>=0){a.splice(i,1);try{toast("اتشالت من المفضلة")}catch(_){} }else{a.unshift({url:t.url,title:moraTitle(t),at:Date.now()});try{toast("اتضافت للمفضلة ✓",true)}catch(_){} }moraSavedPut("bookmarks",a)}
+function moraHistoryAdd(u){if(!/^https?:/i.test(u||""))return;const a=moraSavedGet("history").filter(x=>x.url!==u);a.unshift({url:u,at:Date.now()});moraSavedPut("history",a)}
+function moraOpenSaved(kind){const a=moraSavedGet(kind);if(!a.length){try{toast(kind==="bookmarks"?"المفضلة فاضية":"السجل فاضي")}catch(_){}return}const title=kind==="bookmarks"?"المفضلة":"آخر الصفحات",list=a.slice(0,20).map((x,i)=>(i+1)+") "+(x.title||x.url)).join("\n"),ans=window.prompt(title+" — اكتب رقم الصفحة لفتحها:\n"+list,"1");if(ans==null)return;const x=a[Number(ans)-1];if(x)moraGo(x.url);else try{toast("اختيار غير صالح")}catch(_){}
+}
 function moraLoad(){
   try{const s=JSON.parse(localStorage.getItem(moraKey())||"null");if(!s||!Array.isArray(s.tabs)||!s.tabs.length)return false;
     MORA.tabs=s.tabs.slice(0,MORA_MAX).map(t=>({id:String(t.id),url:String(t.url||""),title:String(t.title||""),pin:!!t.pin,hist:Array.isArray(t.hist)?t.hist.map(String):[],i:typeof t.i==="number"?t.i:-1,fr:null}));
@@ -12148,7 +12239,9 @@ function moraAdd(){
 }
 function moraFrame(t){
   const f=document.createElement("iframe");f.className="mora-frame";f.title="نافذة";
-  f.setAttribute("sandbox","allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-pointer-lock allow-modals");f.setAttribute("allow","fullscreen; autoplay; gamepad; accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; clipboard-write");f.setAttribute("referrerpolicy","no-referrer");f.setAttribute("allowfullscreen","");
+  f.setAttribute("sandbox","allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-pointer-lock allow-modals");
+  f.setAttribute("allow","fullscreen; autoplay; gamepad; accelerometer; gyroscope; encrypted-media; picture-in-picture; clipboard-read; clipboard-write");
+  f.setAttribute("referrerpolicy","no-referrer");f.setAttribute("allowfullscreen","");f.setAttribute("loading","eager");
   f.style.display="none";
   f.addEventListener("load",()=>{if(t.fr===f&&f.getAttribute("src")&&f.getAttribute("src")!=="about:blank"){moraProg(false);try{const h=new URL(t.url).hostname;if(!/wikipedia\.org|khanacademy|ekb\.eg/.test(h)){MORA.hint.classList.add("load");clearTimeout(MORA.tm);MORA.tm=setTimeout(()=>MORA.hint.classList.remove("load"),7000)}}catch(_){}}});
   MORA.stage.appendChild(f);t.fr=f;return f;
@@ -12184,7 +12277,7 @@ function moraActivate(id){
   MORA.inp.value=srch?moraQ(u):u;moraTabsRender();moraNav();moraSave();
 }
 function moraSetUrl(t,u){
-  t.url=u;t.force=0;
+  t.url=u;
   if(moraIsSearch(u))t.title="🔎 "+moraQ(u).slice(0,24);
   else{try{t.title=new URL(u).hostname.replace(/^www\./,"")}catch(_){t.title=""}}
   if(moraIsSearch(u)||moraBlockedNow(t)){if(t.fr){try{t.fr.src="about:blank"}catch(_){}}t._sh="";moraActivate(t.id);return}
@@ -12194,6 +12287,9 @@ function moraSetUrl(t,u){
 function moraGo(v){
   const u=moraNorm(v);if(!u){try{toast("الرابط مش صالح")}catch(_){}return}
   let t=moraCur();if(!t){t=moraAdd();if(!t)return}
+  /* محاولة العرض داخل مورا أولًا؛ سيظل قرار المواقع التي تمنع iframe بيد سياساتها الأمنية. */
+  t.force=1;
+  moraHistoryAdd(u);
   t.hist=t.hist.slice(0,t.i+1);t.hist.push(u);t.i=t.hist.length-1;if(t.hist.length>40){t.hist.shift();t.i--}
   moraSetUrl(t,u);
 }
@@ -12223,7 +12319,7 @@ function moraCloseOthers(){
 function moraMenu(on){
   const m=MORA.el.querySelector(".mora-menu"),t=moraCur();
   if(on===false||m.classList.contains("on")&&on===undefined){m.classList.remove("on");return}
-  m.innerHTML=`<button type="button" data-m="new">➕ نافذة جديدة</button><button type="button" data-m="pin">${t&&t.pin?"📍 إلغاء تثبيت النافذة":"📌 تثبيت النافذة"}</button><button type="button" data-m="home">🏠 الصفحة الرئيسية</button><button type="button" data-m="ext">↗ فتح في متصفح الجهاز</button>${moraProxy()?'<button type="button" data-m="px">🛡 فتح الصفحة عبر الوسيط</button>':""}<button type="button" data-m="closetab">🗑 إغلاق النافذة</button><button type="button" data-m="closeothers">🧹 إغلاق غير المثبّتة</button>`;
+  m.innerHTML=`<button type="button" data-m="new">➕ نافذة جديدة</button><button type="button" data-m="pin">${t&&t.pin?"📍 إلغاء تثبيت النافذة":"📌 تثبيت النافذة"}</button><button type="button" data-m="bookmark">⭐ إضافة/إزالة من المفضلة</button><button type="button" data-m="bookmarks">📚 المفضلة</button><button type="button" data-m="history">🕘 السجل</button><button type="button" data-m="engine">⚙ محرك البحث: ${esc(MORA_ENGINES.find(x=>x[0]===moraEngineGet())[1])}</button><button type="button" data-m="home">🏠 الصفحة الرئيسية</button><button type="button" data-m="ext">↗ فتح في متصفح الجهاز</button>${moraProxy()?'<button type="button" data-m="px">🛡 فتح الصفحة عبر الوسيط</button>':""}<button type="button" data-m="closetab">🗑 إغلاق النافذة</button><button type="button" data-m="closeothers">🧹 إغلاق غير المثبّتة</button>`;
   m.classList.add("on");
 }
 function moraApp(pkg){
@@ -12276,7 +12372,7 @@ function moraBuild(){
 <button type="button" class="mora-ib" data-m="ext" aria-label="فتح بره">↗</button>
 <button type="button" class="mora-ib" data-m="menu" aria-label="القائمة">⋯</button>
 <button type="button" class="mora-x" data-m="close" aria-label="تصغير">⌄</button></div>
-<div class="mora-prog"></div><div class="mora-quick" dir="rtl"><button type="button" class="active" data-u="https://poki.com/">🎮 الألعاب · Poki</button><button type="button" data-m="home">⌂ الرئيسية</button><button type="button" data-m="new">＋ نافذة جديدة</button></div><div class="mora-tabs" dir="rtl"></div></div>
+<div class="mora-prog"></div><div class="mora-quick" dir="rtl"><button type="button" class="active" data-u="https://www.bing.com/">Ⓜ Microsoft Edge · Bing</button><button type="button" data-m="home">⌂ الرئيسية</button><button type="button" data-m="new">＋ نافذة جديدة</button></div><div class="mora-tabs" dir="rtl"></div></div>
 <div class="mora-hint" dir="rtl"><span>الصفحة بطيئة أو الموقع بيمنع الفتح هنا</span><button type="button" class="pxb" data-m="px" style="display:none">🛡 عبر الوسيط</button><button type="button" data-m="ext">↗ فتح في متصفح الجهاز</button></div>
 <div class="mora-stage" dir="rtl">
 <div class="mora-home"><div class="mh-hero"><div class="mh-logo">🌐</div><h2>متصفح التفوق</h2><p>تجربة ويب فاخرة داخل المنصة — من غير ما تخرج منها</p>
@@ -12294,13 +12390,13 @@ function moraBuild(){
     const mn=d.querySelector(".mora-menu");if(mn.classList.contains("on")&&!e.target.closest(".mora-menu")&&!e.target.closest('[data-m="menu"]'))mn.classList.remove("on");
     const x=e.target.closest("[data-x]");if(x){e.stopPropagation();moraCloseTab(x.dataset.x);return}
     const tb=e.target.closest("[data-t]");if(tb){moraActivate(tb.dataset.t);return}
-    const b=e.target.closest("[data-m],[data-u],[data-p],[data-s],[data-e]");if(!b)return;if(b.dataset.e){try{window.open(b.dataset.e,"_blank","noopener")}catch(_){}return}
+    const b=e.target.closest("[data-m],[data-u],[data-p],[data-s],[data-e]");if(!b)return;if(b.dataset.e){try{moraGo(b.dataset.e)}catch(_){}return}
     if(b.dataset.u){moraGo(b.dataset.u);return}
     if(b.dataset.p){moraApp(b.dataset.p);return}
     const m=b.dataset.m;mn.classList.remove("on");
     if(m==="close")moraClose();else if(m==="back")moraStep(-1);else if(m==="fwd")moraStep(1);else if(m==="rel")moraReload();
     else if(m==="menu"){moraMenu()}
-    else if(m==="new")moraNew();else if(m==="pin")moraPin();else if(m==="closetab"){const t=moraCur();if(t)moraCloseTab(t.id)}else if(m==="closeothers")moraCloseOthers();
+    else if(m==="new")moraNew();else if(m==="pin")moraPin();else if(m==="bookmark"){moraBookmarkToggle();moraMenu(false)}else if(m==="bookmarks"){moraOpenSaved("bookmarks");moraMenu(false)}else if(m==="history"){moraOpenSaved("history");moraMenu(false)}else if(m==="engine"){moraChooseEngine();moraMenu(false)}else if(m==="closetab"){const t=moraCur();if(t)moraCloseTab(t.id)}else if(m==="closeothers")moraCloseOthers();
     else if(m==="home"){const t=moraCur();if(t){t.url="";t.title="";if(t.fr){try{t.fr.src="about:blank"}catch(_){}}moraActivate(t.id)}}
     else if(m==="ext"){const t=moraCur();if(t&&t.url)window.open(moraIsSearch(t.url)?"https://www.google.com/search?q="+encodeURIComponent(moraQ(t.url)):t.url,"_blank","noopener");else try{toast("افتح موقع الأول")}catch(_){}}
     else if(m==="hgo"){const i=d.querySelector(".mh-in");if(i&&i.value.trim()){moraGo(i.value);i.value=""}}
@@ -12319,6 +12415,7 @@ function moraOpen(panel){
   try{if(MUS.cur>=0&&!sgPlaying())musAutoStart()}catch(_){}
   try{const pb=MORA.el&&MORA.el.querySelector(".pxb");if(pb)pb.style.display=moraProxy()?"":"none"}catch(_){}
   moraBuild();MORA.el.classList.add("on");document.documentElement.classList.add("mora-lock");
+  try{const mt=moraCur();if(mt&&!mt.url&&!localStorage.getItem("mora_home_seed")){localStorage.setItem("mora_home_seed","bing");moraGo("https://www.bing.com/");return}}catch(_){ }
   moraActivate(MORA.act);
 }
 function moraClose(){
@@ -12332,6 +12429,11 @@ const MORA_BLOCK=/(^|\.)(google\.[a-z.]+|youtube\.com|youtu\.be|facebook\.com|fb
 const moraProxy=()=>((S.site&&S.site.proxyUrl)||"").trim().replace(/\/+$/,"");
 const moraIsSearch=u=>/^mora:search\?q=/.test(String(u||""));
 function moraQ(u){try{return decodeURIComponent(String(u||"").replace(/^mora:search\?q=/,""))}catch(_){return String(u||"").replace(/^mora:search\?q=/,"")}}
+function moraEngineGet(){try{const k=localStorage.getItem("mora_engine");return MORA_ENGINES.some(x=>x[0]===k)?k:"bing"}catch(_){return "bing"}}
+function moraEngineSet(k){if(!MORA_ENGINES.some(x=>x[0]===k))return;try{localStorage.setItem("mora_engine",k)}catch(_){}try{toast("محرك البحث الافتراضي: "+MORA_ENGINES.find(x=>x[0]===k)[1],true)}catch(_){}
+}
+function moraChooseEngine(){const list=MORA_ENGINES.map((x,i)=>(i+1)+") "+x[1]).join("\n");const ans=window.prompt("اختار محرك البحث الافتراضي بكتابة الرقم:\n"+list,"1");if(ans==null)return;const x=MORA_ENGINES[Number(ans)-1];if(x)moraEngineSet(x[0]);else try{toast("اختيار غير صالح")}catch(_){}
+}
 function moraBlocked(u){try{return MORA_BLOCK.test(new URL(u).hostname)}catch(_){return false}}
 function moraBlockedNow(t){return !moraProxy()&&!t.force&&moraBlocked(t.url)}
 function moraSrc(t,u){const px=moraProxy();return(px&&(t.px||moraBlocked(u)))?px+"/p?u="+encodeURIComponent(u):u}
@@ -12345,7 +12447,8 @@ async function moraSearchRender(t,force){
   const q=moraQ(t.url);
   if(!force&&t._sh&&t._sq0===q){box.innerHTML=t._sh;return}
   const tok=t._sq=(t._sq||0)+1;
-  const ext='<div class="ms-ext">'+[["🔎 جوجل","https://www.google.com/search?q="],["🦆 DuckDuckGo","https://duckduckgo.com/?q="],["Ⓑ Bing","https://www.bing.com/search?q="],["▶ يوتيوب","https://www.youtube.com/results?search_query="]].map(x=>'<button type="button" data-e="'+x[1]+encodeURIComponent(q)+'">'+x[0]+'</button>').join("")+'</div>';
+  const chosen=moraEngineGet(),engineButtons=MORA_ENGINES.slice().sort((a,b)=>(a[0]===chosen?-1:0)-(b[0]===chosen?-1:0)).map(x=>[x[1],x[2]]);engineButtons.push(["▶ يوتيوب","https://www.youtube.com/results?search_query="]);
+  const ext='<div class="ms-ext">'+engineButtons.map(x=>'<button type="button" data-e="'+x[1]+encodeURIComponent(q)+'">'+x[0]+'</button>').join("")+'</div>';
   box.innerHTML='<div class="ms-h">🔎 '+esc(q)+'</div>'+ext+'<div class="ms-load">جاري البحث…</div>';
   const px=moraProxy(),lang=/[\u0600-\u06FF]/.test(q)?"ar":"en";
   const jw=fetch("https://"+lang+".wikipedia.org/w/api.php?action=query&list=search&srsearch="+encodeURIComponent(q)+"&format=json&origin=*&srlimit=6&utf8=1").then(r=>r.json()).then(j=>((j.query&&j.query.search)||[]).map(x=>({t:x.title,u:"https://"+lang+".m.wikipedia.org/wiki/"+encodeURIComponent(String(x.title).replace(/ /g,"_")),s:String(x.snippet||"").replace(/<[^>]+>/g," ").replace(/&quot;/g,'"').replace(/&amp;/g,"&"),src:lang+".wikipedia.org"}))).catch(()=>[]);
@@ -13025,7 +13128,9 @@ function musSubStart(){
     try{sgList();sgNow()}catch(_){}
     if(MUS.auto&&MUS.cur<0&&MUS.list.length&&SG.open)musAutoStart();
     musWarm();
-  },e=>{MUS.err=(e&&e.code)||"error";__musUnsub=null;musRestoreList();try{moraErr(MUS.err==="permission-denied"?"firebase":"network","قايمة الأغاني: "+MUS.err+(MUS.err==="permission-denied"?" (قواعد songs/songParts ناقصة)":""),"mus.list")}catch(_){}try{sgList()}catch(_){}})}catch(_){}
+  },e=>{MUS.err=(e&&e.code)||"error";__musUnsub=null;musRestoreList();try{moraErr(MUS.err==="permission-denied"?"firebase":"network","قايمة الأغاني: "+MUS.err+(MUS.err==="permission-denied"?" (قواعد songs/songParts ناقصة)":""),"mus.list")}catch(_){}try{sgList()}catch(_){}
+    /* v171: إعادة اشتراك تلقائية بعد 20 ثانية لو الخطأ مؤقت (شبكة/unavailable) — كان بيفضل بلا تحديث لحد ما الطالب يقفل ويفتح */
+    if(MUS.err!=="permission-denied"&&!window.__musRetryT){window.__musRetryT=setTimeout(()=>{window.__musRetryT=0;try{if(!__musUnsub&&S.user&&navigator.onLine!==false)musSubStart()}catch(_){}},20000)}})}catch(_){}
 }
 function musSubStop(){try{__musUnsub&&__musUnsub()}catch(_){}try{__musCfgUnsub&&__musCfgUnsub()}catch(_){}__musUnsub=null;__musCfgUnsub=null}
 async function musWarm(){
@@ -13048,7 +13153,8 @@ document.addEventListener("click",function(ev){
     if(ev.defaultPrevented||a.hasAttribute("download")||a.dataset.ext==="1")return;
     const u=new URL(a.href,location.href);
     if(!/^https?:$/.test(u.protocol)||u.origin===location.origin)return;
-    if(MORA_BLOCK.test(u.hostname)||/\.(apk|zip|pdf)(\?|$)/i.test(u.pathname))return;
+    /* PDF يمكن عرضه داخل iframe في المتصفحات الحديثة؛ APK/ZIP تنزيلات لا تُضمّن بأمان. */
+    if(/\.(apk|zip)(\?|$)/i.test(u.pathname))return;
     if(!(S.user||S.isAdmin))return;
     ev.preventDefault();moraOpen();moraGo(u.href);
   }catch(_){}
@@ -14240,7 +14346,7 @@ Object.assign(A,{
   var iv=setInterval(function(){
     var elapsed=Date.now()-t0;
     if(elapsed<minMs)return;
-    if(appReady()||elapsed>minMs+8000){clearInterval(iv);hideSplash();return}
+    if(appReady()){clearInterval(iv);hideSplash();return}
     if(elapsed>12000){clearInterval(iv);showFail()}
   },40);
   function showFail(){
@@ -14255,7 +14361,7 @@ Object.assign(A,{
     document.getElementById("spRetry").onclick=function(){location.reload()};
     document.getElementById("spClear").onclick=function(){
       var jobs=[];
-      try{if(window.caches)jobs.push(caches.keys().then(function(k){return Promise.all(k.filter(function(x){return /^eltafawoq-v/i.test(x)}).map(function(x){return caches.delete(x)}))}))}catch(e){}
+      try{if(window.caches)jobs.push(caches.keys().then(function(k){return Promise.all(k.filter(function(x){return /^eltafawoq-v[0-9]+$/.test(x)}).map(function(x){return caches.delete(x)}))}))}catch(e){}
       try{if(navigator.serviceWorker)jobs.push(navigator.serviceWorker.getRegistrations().then(function(r){var scope=new URL("./",location.href).href;return Promise.all(r.filter(function(x){return x.scope===scope}).map(function(x){return x.unregister()}))}))}catch(e){}
       Promise.all(jobs).catch(function(){}).then(function(){location.reload()});
     };
