@@ -1,4 +1,4 @@
-/* التفوق SW — v183 — كاش أوفلاين دائم منفصل + فصل واجهة الطالب عن الأدمن */
+/* التفوق SW — v184 — CACHE=eltafawoq-v180 + توافق مع أي eltafawoq-v* (حتى v مليون) + أوفلاين دائم */
 /* v115-fix: PETS كان ناقص تعريفه من إصدارات → ReferenceError وقت الـ install → الـ SW مش بيتسجل خالص.
    هرّوا دلوقتي (موديلات الرفاق 3D) — Promise.allSettled بيتجاهل أي ملف مش موجود بأمان */
 /* v131-fix: importScripts كان من غير try/catch — لو gstatic مش متاح (أول تحميل أوفلاين) الـ SW كله كان بيفشل
@@ -7,10 +7,23 @@
 /* v170: أيقونات الإشعارات متطابقة مع manifest (QG30M) — كانت icon-192 القديمة (404 في الإشعارات) */
 
 const PETS = ["./pets/fox.glb","./pets/corgi.glb","./pets/hare.glb","./pets/sheep.glb","./pets/boar.glb"];
-const CACHE = "eltafawoq-v183";
-/* لا يُحذف هذا الكاش عند التحديث أو «مسح كاش الملفات»؛ تحديثه يتم بإضافة الملفات الجديدة فقط. */
+/* اسم الكاش الحالي — ثابت على v180 للتوافق مع الأجهزة اللي عندها الكاش ده */
+const CACHE = "eltafawoq-v180";
+/* لا يُحذف كاش الأوفلاين عند التحديث؛ الإصدارات القديمة (v1…v مليون) بتترحّل هنا قبل المسح */
 const OFFLINE_CACHE = "eltafawoq-offline-v1";
-const BUILD = "20261108-v183";
+const BUILD = "20261108-v180";
+
+/* أي كاش إصدار واجهة: eltafawoq-v180 / v183 / v1000000 / v1.2-beta … */
+function isVersionCache(name) {
+  return typeof name === "string" && /^eltafawoq-v(?!offline)/i.test(name);
+}
+/* كاش أوفلاين دائم أو scoped: eltafawoq-offline-v1 أو eltafawoq-offline-v1-student:xyz */
+function isOfflineCache(name) {
+  return typeof name === "string" && (/^eltafawoq-offline/i.test(name) || name === OFFLINE_CACHE);
+}
+function isProtectedCache(name) {
+  return name === CACHE || isOfflineCache(name);
+}
 
 let __fcmReady = false;
 try {
@@ -103,24 +116,30 @@ self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys().then(async (keys) => {
       const offline = await caches.open(OFFLINE_CACHE);
-      const legacy = keys.filter((k) => /^eltafawoq-v\d+/.test(k));
-      /* ترحيل الملفات التي نزلها المستخدم في الإصدارات السابقة قبل تنظيفها. */
-      await Promise.allSettled(legacy.map(async (name) => {
-        const old = await caches.open(name);
-        const reqs = await old.keys();
-        await Promise.allSettled(reqs.map(async (req) => {
-          if (await offline.match(req)) return;
-          const res = await old.match(req);
-          if (res) await offline.put(req, res);
-        }));
+      /* كل كاش إصدار قديم أو جديد (v1 … v مليون) — نرحّل محتواه للأوفلاين قبل المسح */
+      const versionCaches = keys.filter((k) => isVersionCache(k));
+      await Promise.allSettled(versionCaches.map(async (name) => {
+        try {
+          const old = await caches.open(name);
+          const reqs = await old.keys();
+          await Promise.allSettled(reqs.map(async (req) => {
+            try {
+              if (await offline.match(req)) return;
+              const res = await old.match(req);
+              if (res) await offline.put(req, res);
+            } catch (_) {}
+          }));
+        } catch (_) {}
       }));
-      await Promise.all(
-        legacy.filter((k) => k !== CACHE).map((k) => caches.delete(k))
+      /* امسح كاشات الإصدار القديمة فقط — متلمسش CACHE الحالي ولا أي offline */
+      await Promise.allSettled(
+        keys
+          .filter((k) => isVersionCache(k) && k !== CACHE)
+          .map((k) => caches.delete(k))
       );
     })
     .then(() => self.clients.claim())
     .then(() => {
-      /* إشعار الصفحات إن التحديث اتفعّل */
       return self.clients.matchAll({ type: "window" }).then((list) => {
         list.forEach((c) => {
           try { c.postMessage({ type: "SW_ACTIVATED", cache: CACHE, build: BUILD }); } catch (_) {}
@@ -147,9 +166,12 @@ self.addEventListener("message", (e) => {
     );
   }
   if (d.type === "CLEAR_CACHE") {
+    /* امسح كاشات الواجهة فقط — متلمسش الأوفلاين الدائم ولا الـ scoped */
     e.waitUntil(
       caches.keys().then((keys) =>
-        Promise.all(keys.filter((k) => /^eltafawoq-v[0-9]+$/.test(k)).map((k) => caches.delete(k)))
+        Promise.allSettled(
+          keys.filter((k) => isVersionCache(k)).map((k) => caches.delete(k))
+        )
       )
     );
   }
@@ -210,9 +232,31 @@ async function navMarkFresh() {
 
 async function offlineMatch(request) {
   try {
-    const c = await caches.open(OFFLINE_CACHE);
-    return await c.match(request);
-  } catch (_) { return null; }
+    /* 1) الأوفلاين الدائم */
+    const main = await caches.open(OFFLINE_CACHE);
+    let hit = await main.match(request);
+    if (hit) return hit;
+    /* 2) أي offline scoped */
+    const keys = await caches.keys();
+    for (const name of keys) {
+      if (!isOfflineCache(name) || name === OFFLINE_CACHE) continue;
+      try {
+        hit = await (await caches.open(name)).match(request);
+        if (hit) return hit;
+      } catch (_) {}
+    }
+    /* 3) أي كاش إصدار لسه موجود (توافق مع v180 / قديم / حتى لو مش اتمسح) */
+    for (const name of keys) {
+      if (!isVersionCache(name)) continue;
+      try {
+        hit = await (await caches.open(name)).match(request);
+        if (hit) return hit;
+      } catch (_) {}
+    }
+    return null;
+  } catch (_) {
+    return null;
+  }
 }
 
 self.addEventListener("fetch", (e) => {
