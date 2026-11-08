@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v180">
+<meta name="sw-build" content="v181">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v180";/* v180: إصلاحات تقرير الأخطاء 2026-11-07 — إنشاء الغرفة من غير Cloud Function + بديل الصور الناقصة + تنقية سجل الأخطاء. v177: فصل واجهة الطالب عن الأدمن */</script>
+<script>window.APP_BUILD="v181";/* v181: واجهة ارسم وخمّن محسّنة (ديزاين كامل + أدوات رسم + تايمر بصري). v180: إصلاحات تقرير الأخطاء + إنشاء غرفة بدون CF */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -1840,6 +1840,49 @@ html.mora-lock #app{visibility:hidden}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+/* ===== v181 Draw & Guess UI ===== */
+.dg-wrap{max-width:560px;margin:0 auto}
+.dg-hero{text-align:center;padding:8px 0 14px}
+.dg-logo{width:72px;height:72px;margin:0 auto 10px;border-radius:22px;display:grid;place-items:center;font-size:34px;background:linear-gradient(145deg,color-mix(in srgb,var(--pri) 35%,transparent),color-mix(in srgb,var(--gold) 25%,transparent));border:1px solid var(--line);box-shadow:var(--sh)}
+.dg-card{padding:16px}
+.dg-or{text-align:center;margin:14px 0 10px;color:var(--mut);font-size:13px}
+.dg-join-row{display:flex;gap:8px}
+.dg-code-in{flex:1;text-align:center;letter-spacing:.18em;font-size:20px;font-weight:800;text-transform:uppercase;padding:12px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.dg-code{font-size:2rem;font-weight:900;letter-spacing:.2em;color:var(--gold);margin:4px 0}
+.dg-seats{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:14px 0}
+.dg-seat{width:72px;text-align:center}
+.dg-av{width:52px;height:52px;border-radius:50%;margin:0 auto 6px;display:grid;place-items:center;font-weight:800;font-size:18px;background:linear-gradient(135deg,color-mix(in srgb,var(--pri) 40%,#334),color-mix(in srgb,var(--pri2) 30%,#111));color:#fff;border:2px solid transparent}
+.dg-av.host{box-shadow:0 0 0 2px var(--gold)}
+.dg-av.empty{background:transparent;border:2px dashed var(--line);color:var(--mut);font-weight:400}
+.dg-seat-name{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dg-badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:999px;background:color-mix(in srgb,var(--gold) 18%,transparent);color:var(--gold);border:1px solid color-mix(in srgb,var(--gold) 35%,transparent);margin-top:2px}
+.dg-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.dg-title{font-weight:800;font-size:15px}
+.dg-pill{font-size:12px;padding:5px 10px;border-radius:999px;background:color-mix(in srgb,var(--pri) 16%,transparent);border:1px solid var(--line);font-weight:700}
+.dg-pill.soft{opacity:.85;font-weight:600}
+.dg-word{text-align:center;padding:12px 14px;margin-bottom:8px}
+.dg-word-main{font-size:18px;font-weight:800}
+.dg-hint{letter-spacing:3px;font-variant-numeric:tabular-nums}
+.dg-word-sub{margin-top:4px;font-size:13px}
+.dg-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 8px}
+.dg-swatch{width:30px;height:30px;border-radius:50%;border:2px solid color-mix(in srgb,#fff 25%,transparent);background:var(--sw);box-shadow:0 0 0 1px var(--line);padding:0;cursor:pointer}
+.dg-swatch.eraser{background:repeating-conic-gradient(#ccc 0 25%,#fff 0 50%) 0 0/12px 12px}
+.dg-swatch:active{transform:scale(.92)}
+.dg-canvas-wrap{border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#fff;box-shadow:var(--sh);margin-bottom:10px;aspect-ratio:9/5;touch-action:none}
+.dg-canvas-wrap canvas{width:100%!important;height:100%!important;display:block;touch-action:none;cursor:crosshair;background:#fff}
+.dg-chat{padding:10px 12px;max-height:140px;overflow:auto;font-size:14px}
+.dg-msg{margin:4px 0;line-height:1.45}
+.dg-msg.sys{color:var(--ok);font-weight:600}
+.dg-guess{position:fixed;bottom:64px;left:0;right:0;z-index:40;max-width:560px;margin:0 auto;padding:8px 12px;background:color-mix(in srgb,var(--card) 92%,transparent);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;gap:8px}
+.dg-guess input{flex:1}
+.dg-scores{margin-top:10px;padding:12px}
+.dg-scores-h{font-weight:800;margin-bottom:8px}
+.dg-scores-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+.dg-sc{min-width:70px;padding:8px 10px;border-radius:12px;background:color-mix(in srgb,var(--pri) 8%,transparent);border:1px solid var(--line);text-align:center}
+.dg-sc.me{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 12%,transparent)}
+.dg-sc-n{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dg-sc-s{color:var(--gold);font-weight:800;font-size:16px;margin-top:2px}
 </style>
 </head>
 <body>
@@ -3933,15 +3976,21 @@ const DG_WORDS=["مدرسة","كتاب","قلم","معلم","طالب","امتح
 function dgPickWord(){return DG_WORDS[Math.floor(Math.random()*DG_WORDS.length)]}
 function dgCode(){const c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<5;i++)s+=c[Math.floor(Math.random()*c.length)];return s}
 function dgOpenView(){
-  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openGames">رجوع</button>`)}
-<h2>🎨 ارسم وخمّن</h2>
-<p class="mut">ارسم كلمة والباقي يخمنوا · أول واحد يخمن صح يكسب</p>
-<div class="card">
-  <button class="btn block gold" data-act="dgCreate">إنشاء غرفة</button>
-  <div style="margin:14px 0 8px;text-align:center" class="mut">أو انضم بكود</div>
-  <input id="dgJoinCode" class="ltr" type="text" maxlength="5" placeholder="A3K7P" style="text-transform:uppercase;letter-spacing:.15em;font-size:20px;text-align:center">
-  <button class="btn block" style="margin-top:10px" data-act="dgJoin">انضم للغرفة</button>
+  return `<div class="wrap dg-wrap">${header(`<button class="btn ghost sm" data-act="openGames">رجوع</button>`)}
+<div class="dg-hero">
+  <div class="dg-logo">🎨</div>
+  <h2 style="margin:0 0 4px">ارسم وخمّن</h2>
+  <p class="mut" style="margin:0">ارسم · خمّن · اجمع نقاط مع أصحابك</p>
 </div>
+<div class="card dg-card">
+  <button class="btn block gold" data-act="dgCreate" style="font-size:16px;padding:14px">✨ إنشاء غرفة جديدة</button>
+  <div class="dg-or">أو انضم بكود</div>
+  <div class="dg-join-row">
+    <input id="dgJoinCode" class="ltr dg-code-in" type="text" maxlength="5" placeholder="A3K7P" autocomplete="off" inputmode="text">
+    <button class="btn gold" data-act="dgJoin">انضم</button>
+  </div>
+</div>
+<div class="card mut" style="text-align:center;font-size:13px">الكود من 5 حروف · شاركوه مع أصحابك وابدأوا فورًا</div>
 </div>${studentNav()}`;
 }
 function dgLobbyView(){
@@ -3949,14 +3998,26 @@ function dgLobbyView(){
   const uid=S.user&&S.user.uid;
   const players=Object.entries(r.players||{});
   const isHost=r.host===uid;
-  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="dgLeave">خروج</button>`)}
-<h2>غرفة ${esc(r.code)}</h2>
-<p class="mut">ابعت الكود لصحابك · ${players.length} لاعب</p>
-<div class="card"><b>اللاعبون</b>
-${players.map(([id,p])=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><span>${esc(p.name||"لاعب")}${id===r.host?" 👑":""}${id===uid?" (أنت)":""}</span></div>`).join("")||`<div class="mut">استنى الصحاب…</div>`}
+  const seats=players.map(([id,p])=>{
+    const letter=esc(String(p.name||"؟").trim().slice(0,1)||"؟");
+    return `<div class="dg-seat">
+      <div class="dg-av ${id===r.host?"host":""}">${letter}</div>
+      <div class="dg-seat-name">${esc(p.name||"لاعب")}${id===uid?" · أنت":""}</div>
+      ${id===r.host?'<span class="dg-badge">مضيف</span>':""}
+    </div>`;
+  }).join("") + (players.length<6?`<div class="dg-seat"><div class="dg-av empty">+</div><div class="dg-seat-name mut">فارغ</div></div>`:"");
+  return `<div class="wrap dg-wrap">${header(`<button class="btn ghost sm" data-act="dgLeave">خروج</button>`)}
+<div class="card dg-card" style="text-align:center">
+  <div class="mut" style="font-size:12px">كود الغرفة</div>
+  <div class="dg-code">${esc(r.code)}</div>
+  <div class="row" style="justify-content:center;gap:8px;margin-top:8px">
+    <button class="btn sm ghost" data-act="dgCopy">📋 نسخ</button>
+  </div>
+  <div class="mut" style="margin-top:10px">${players.length} لاعب${players.length>=2?"ين":""}</div>
 </div>
-${isHost?`<button class="btn block gold" data-act="dgStart">ابدأ اللعب</button>`:`<div class="card mut" style="text-align:center">استنى المضيف يبدأ…</div>`}
-<button class="btn block ghost" style="margin-top:8px" data-act="dgCopy">نسخ الكود ${esc(r.code)}</button>
+<div class="dg-seats">${seats}</div>
+${isHost?`<button class="btn block gold" data-act="dgStart" style="margin-top:12px;padding:14px">▶ ابدأ اللعب</button>`:`<div class="card" style="text-align:center;margin-top:12px"><span class="mut">استنى المضيف يبدأ الجولة…</span></div>`}
+<button class="btn block ghost" style="margin-top:8px" data-act="dgLeave">خروج من الغرفة</button>
 </div>${studentNav()}`;
 }
 function dgPlayView(){
@@ -3967,32 +4028,45 @@ function dgPlayView(){
   const scores=r.scores||{};
   const players=r.players||{};
   const msgs=S.dg.msgs||[];
-  const hint=isDrawer?word:(r.hint||("_ ".repeat((word||"").length).trim()));
-  return `<div class="wrap chat-wrap" style="padding-bottom:120px">${header(`<button class="btn ghost sm" data-act="dgLeave">خروج</button>`)}
-<div class="card" style="padding:10px;margin-bottom:8px">
-  <div class="row"><b>🎨 ارسم وخمّن</b><span class="mut">جولة ${(r.round||1)}</span></div>
-  <div style="text-align:center;margin:6px 0;font-size:18px;font-weight:800">${isDrawer?"كلمة: "+esc(word):"خمّن: "+esc(hint)}</div>
-  <div class="mut" style="text-align:center">${isDrawer?"أنت بترسم — الصحاب بيخمّنوا":"الرسام: "+esc((players[r.drawer]||{}).name||"?")}</div>
-</div>
-${isDrawer?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">
-  <button type="button" class="btn sm" data-act="dgColor" data-c="#111">أسود</button>
-  <button type="button" class="btn sm" data-act="dgColor" data-c="#e11d48" style="background:#e11d48;color:#fff">أحمر</button>
-  <button type="button" class="btn sm" data-act="dgColor" data-c="#2563eb" style="background:#2563eb;color:#fff">أزرق</button>
-  <button type="button" class="btn sm" data-act="dgColor" data-c="#16a34a" style="background:#16a34a;color:#fff">أخضر</button>
-  <button type="button" class="btn sm ghost" data-act="dgColor" data-c="#ffffff">ممحاة</button>
+  const hint=isDrawer?word:(r.hint||("_ ".repeat((word||"").length||3).trim()));
+  const drawerName=esc((players[r.drawer]||{}).name||"?");
+  const colors=[
+    ["#111111","أسود"],["#e11d48","أحمر"],["#2563eb","أزرق"],["#16a34a","أخضر"],
+    ["#eab308","أصفر"],["#a855f7","بنفسجي"],["#ffffff","ممحاة"]
+  ];
+  const tools=isDrawer?`<div class="dg-tools">
+  ${colors.map(([c,n])=>`<button type="button" class="dg-swatch ${c==="#ffffff"?"eraser":""}" data-act="dgColor" data-c="${c}" style="--sw:${c==="#ffffff"?"#e2e8f0":c}" title="${n}"></button>`).join("")}
   <button type="button" class="btn sm ghost" data-act="dgClearCanvas">مسح</button>
-</div>`:""}
-<canvas id="dgCanvas" width="900" height="500" style="width:100%;touch-action:none;border-radius:12px;background:#fff;border:1px solid var(--line);cursor:crosshair;display:block;margin-bottom:8px"></canvas>
-<div class="card" style="padding:8px;max-height:160px;overflow:auto" id="dgMsgBox">
-${msgs.slice(-30).map(m=>`<div style="margin:4px 0"><b>${esc(m.name||"?")}:</b> ${esc(m.text||"")}</div>`).join("")||`<div class="mut">التخمينات هنا…</div>`}
+</div>`:"";
+  const scoreHtml=Object.entries(players).map(([id,p])=>{
+    const sc=scores[id]||0;
+    return `<div class="dg-sc ${id===uid?"me":""}"><div class="dg-sc-n">${esc((p.name||"?").slice(0,10))}</div><div class="dg-sc-s">${sc}</div></div>`;
+  }).join("")||`<div class="mut">—</div>`;
+  return `<div class="wrap dg-wrap chat-wrap" style="padding-bottom:${isDrawer?"88":"140"}px">${header(`<button class="btn ghost sm" data-act="dgLeave">خروج</button>`)}
+<div class="dg-top">
+  <div class="dg-pill">جولة ${(r.round||1)}</div>
+  <div class="dg-title">🎨 ارسم وخمّن</div>
+  <div class="dg-pill soft">${isDrawer?"رسّام":"خمّن"}</div>
 </div>
-${!isDrawer?`<form class="tk-compose" data-submit="dgGuess" style="position:fixed;bottom:64px;left:0;right:0;z-index:40">
+<div class="dg-word card">
+  <div class="dg-word-main">${isDrawer?("كلمة: <b>"+esc(word)+"</b>"):('<span class="dg-hint">'+esc(hint)+"</span>")}</div>
+  <div class="mut dg-word-sub">${isDrawer?"أنت بترسم — الصحاب بيخمّنوا":"الرسام: "+drawerName}</div>
+</div>
+${tools}
+<div class="dg-canvas-wrap">
+  <canvas id="dgCanvas" width="900" height="560"></canvas>
+</div>
+<div class="card dg-chat" id="dgMsgBox">
+${msgs.slice(-30).map(m=>{
+  const sys=m.kind==="correct"||m.kind==="system";
+  return `<div class="dg-msg ${sys?"sys":""}"><b>${esc(m.name||"?")}</b> ${esc(m.text||"")}</div>`;
+}).join("")||`<div class="mut">التخمينات هنا…</div>`}
+</div>
+${!isDrawer?`<form class="tk-compose dg-guess" data-submit="dgGuess">
   <input id="dgGuessIn" type="text" maxlength="40" placeholder="اكتب تخمينك…" autocomplete="off">
-  <button class="btn sm" type="submit">➤</button>
+  <button class="btn sm gold" type="submit">تخمين</button>
 </form>`:""}
-<div class="card" style="margin-top:8px"><b>النقاط</b>
-${Object.entries(players).map(([id,p])=>`<div class="row"><span>${esc(p.name||"?")}</span><b>${scores[id]||0}</b></div>`).join("")}
-</div>
+<div class="dg-scores card"><div class="dg-scores-h">النقاط</div><div class="dg-scores-row">${scoreHtml}</div></div>
 </div>${studentNav()}`;
 }
 function dgRedraw(){
@@ -14453,13 +14527,13 @@ Object.assign(A,{
   wbColor(d,el){window.__wbColor=(el&&el.getAttribute("data-c"))||(d&&d.c)||"#111111"},
   wbClear(){try{wbDoClear()}catch(e){}},
   wbDl(){try{wbDownload()}catch(e){}},
-  dgOpen(){S.view="dgOpen";render(true)},
+  dgOpen(){try{location.href=new URL("dg-game.html",location.href).href}catch(_){S.view="dgOpen";render(true)}},
   async dgCreate(){
     try{
       if(!S.user){toast("سجّل الدخول الأول",true);return}
       const code=dgCode();
       const name=(S.profile&&S.profile.name)||"لاعب";
-      const room={host:S.user.uid,status:"lobby",players:{[S.user.uid]:{name}},scores:{},strokes:[],round:0,createdAt:serverTimestamp()};
+      const room={host:S.user.uid,status:"lobby",players:{[S.user.uid]:{name}},scores:{},strokes:[],round:0,createdAt:serverTimestamp()};/* v142 shape */
       await setDoc(doc(db,"dgRooms",code),room);
       S.dg={room:{code,...room}};
       dgListen(code);
@@ -14468,7 +14542,7 @@ Object.assign(A,{
     }catch(e){
       /* v180: رسالة واضحة بدل أكواد غريبة زي internal */
       const c=String((e&&e.code)||(e&&e.message)||e||"");
-      toast(c.includes("permission-denied")?"فشل الإنشاء: نزّل ملف قواعد Firestore الجديد (firestore.rules)":("فشل الإنشاء: "+c),true);
+      toast(c.includes("permission-denied")?"فشل الإنشاء: انشر قواعد Firestore v142 من Console → Publish":("فشل الإنشاء: "+c),true);
     }
   },
   async dgJoin(){
