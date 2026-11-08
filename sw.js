@@ -1,11 +1,10 @@
-/* التفوق SW — v180 — كاش أوفلاين دائم منفصل + فصل واجهة الطالب عن الأدمن */
+/* التفوق SW — v178 — كاش أوفلاين دائم منفصل + فصل واجهة الطالب عن الأدمن */
 /* v115-fix: PETS كان ناقص تعريفه من إصدارات → ReferenceError وقت الـ install → الـ SW مش بيتسجل خالص.
    هرّوا دلوقتي (موديلات الرفاق 3D) — Promise.allSettled بيتجاهل أي ملف مش موجود بأمان */
 /* v131-fix: importScripts كان من غير try/catch — لو gstatic مش متاح (أول تحميل أوفلاين) الـ SW كله كان بيفشل
    ومش بيتسجل خالص (لا أوفلاين ولا إشعارات). بقي محمي — التسجيل بيكمل حتى لو مكتبات الإشعارات محملتش */
 /* v167: مزامنة CACHE مع BUILD، حماية أقوى، تنظيف كاش أدق، وتقليل race أثناء التحديث */
 /* v170: أيقونات الإشعارات متطابقة مع manifest (QG30M) — كانت icon-192 القديمة (404 في الإشعارات) */
-/* v180: تقرير 2026-11-07 — رفع الإصدار عشان الكاشات القديمة (v179 وأقدم) تتضّف تلقائيًا عند التفعيل */
 
 const PETS = ["./pets/fox.glb","./pets/corgi.glb","./pets/hare.glb","./pets/sheep.glb","./pets/boar.glb"];
 const CACHE = "eltafawoq-v180";
@@ -92,7 +91,7 @@ self.addEventListener("install", (e) => {
     Promise.all([caches.open(CACHE), caches.open(OFFLINE_CACHE)]).then(([c, offline]) =>
       /* الملفات الأساسية تُحفظ في الكاش العادي والدائم؛ كل ملف مستقل حتى لا يفشل التثبيت كله. */
       Promise.allSettled(
-        ["./index.html", "./manifest.json", "./sw.js"].concat(typeof PETS !== "undefined" ? PETS : []).map((u) =>
+        ["./index.html", "./dg-game.html", "./manifest.json", "./sw.js"].concat(typeof PETS !== "undefined" ? PETS : []).map((u) =>
           Promise.all([c.add(u).catch(() => {}), offline.add(u).catch(() => {})])
         )
       )
