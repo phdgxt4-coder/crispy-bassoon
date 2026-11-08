@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v208">
+<meta name="sw-build" content="v210">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v208";/* v208: شاشة اختيار نوع الغرفة (عامة 🌍 / خاصة 🔒) شغالة بالكامل — اللي كان بيفشل هو الإنشاء نفسه من وراها بسبب قواعد Firestore الناقصة لمجموعة dgRooms: رسالة الفشل بقت دايلوج خطوات نشر واضحة (بدل رسالة v145 القديمة) في الإنشاء والانضمام · كاش 10 ثواني لقراءات config لتسريع المنصة وإلغاءه فورًا بعد أي حفظ إعدادات · توحيد رقم الإصدار meta=APP_BUILD=v208 · كاش SW جديد eltafawoq-v208 بينضّف القديم · قواعد محسّنة: منع الطالب من تعديل xp/coins/الصلاحيات في ملفه (مقاومة الغش) — v207: ارسم وخمّن — ثورة الملصقات والصوت: 20 ملصق صور حقيقية (ورقة الملصقات) بتتبعت وتظهر لكل اللاعبين لحظيًا · استوديو ملصقات — أي لاعب يرسم ملصقه بنفسه ويبعته ويحفظه في «ملصقاتي» · رسايل صوتية بالمايك (تسجيل/تشغيل/مدة/شريط تقدم) تظهر للخصم لحظيًا · لوحة ملصقات 3 تابات (ملصقات/إيموجي/ملصقاتي) · زر مايك وإيموجي في كل شاشات اللعبة (لوبي+رسم+تخمين) · إلغاء نظام الغرف المفتوحة من جوه اللعبة نهائيًا — إنشاء مباشر وكود انضمام فقط (الغرف المفتوحة للمنصة فقط) · شاشة بداية جديدة بشريط ملصقات · إصلاح جذري لفشل إنشاء الغرفة: قواعد Firestore الناقصة لمجموعة dgRooms اتضافت لملف firestore.rules (انشرها). v205: إصلاحات ارسم وخمّن — رسم ما بيقطعش (الضربات الطويلة) · زر الجاهز بيتحدّث فورًا · لوحة النقاط والتلميح لحظيًا من غير مقاطعة الرسم · قفل التقدّم المزدوج في الكشف · منع تسريب الكلمة في الشات · إصلاح تراجع/إعادة بين الجولات. v204: «آخر واحد واقف» بقت جماعية جوّه الغرف — غرفة أصدقاء كاملة (إنشاء/انضمام/جولات متزامنة لحظية/إقصاء فوري بالغلط والوقت/قاعدة أبطأ واحد/وضع متفرج/منصة تتويج ومكافآت وإعادة لعب) بنفس محرك الغرف وقواعد v144 بدون أي تعديل. v203: «آخر واحد واقف» بقى لعبة كاملة جوّه المنصة (باتل رويال تعليمي ضد روبوت: منطقة بتضيق + تقص لحظي + وضع متفرج + منصة تتويج ومكافآت) + روابط ?game=dg / ?game=los بتفتح جوه المنصة بدل الصفحات المنفصلة. v202: استكمال شات ارسم وخمّن (رد على رسالة + منشن @) + ملفات PWA كاملة (manifest.json وأيقونات وشاشة البداية) + صفحات dg-game/push + هوية بصرية مولّدة. v201: ارسم وخمّن Production كامل — ممحاة وتراجع/إعادة وضغط قلم + عدّاد اختيار الكلمة واختيار تلقائي + كومبو وبونص سرعة وجولة مثالية + تلميح حرف + شات إيموجي/ستيكر ورسائل نظام + منصة تتويج وأفضل رسّام/مخمّن + مكافآت عملات وXP + إصلاح زر الرجوع وشات الأحدث. v200: إعادة بناء ارسم وخمّن Production. v184: زجاجية. v183: أداء errorLogs + كاش SW. v182: مزامنة رسم لحظية + شات لوبي. v181: واجهة ارسم وخمّن محسّنة (ديزاين كامل + أدوات رسم + تايمر بصري). v180: إصلاحات تقرير الأخطاء + إنشاء غرفة بدون CF */</script>
+<script>window.APP_BUILD="v210";/* v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -2395,7 +2395,7 @@ const configured = !firebaseConfig.apiKey.startsWith("PASTE");
 let messaging=null, __msgMod=null;
 if(configured){
   const app=initializeApp(firebaseConfig);
-  auth=getAuth(app);window.__fbApp=app;try{db=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})}) /* v160: كاش دائم متعدد التبويبات (من غير lease errors) — بيانات المنصة بتفضل بعد قفل التطبيق وتشتغل أوفلاين */}catch(e){db=initializeFirestore(app,{})}
+  auth=getAuth(app);window.__fbApp=app;try{db=initializeFirestore(app,{experimentalAutoDetectLongPolling:true,localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})}) /* v160: كاش دائم متعدد التبويبات (من غير lease errors) — بيانات المنصة بتفضل بعد قفل التطبيق وتشتغل أوفلاين */}catch(e){db=initializeFirestore(app,{experimentalAutoDetectLongPolling:true})}
   try{setPersistence(auth,indexedDBLocalPersistence).catch(function(){try{setPersistence(auth,browserLocalPersistence).catch(function(){})}catch(_){}});try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(_){}}catch(_){}getIp();
   // FCM اختياري — لو فشل ميمنعش تشغيل المنصة
   (async()=>{
@@ -5337,7 +5337,7 @@ dgInitCanvas=function(){
     if(dgDrawerOf(S.dg&&S.dg.room)!==dgMe())return;
     drawing=true;D.undone=[];
     var p=pos(e);
-    cur={c:D.tool==="e"?"#000":D.color,w:0,tool:D.tool,pts:[[p[0],p[1]]]};
+    cur={c:D.tool==="e"?"#000":D.color,w:0,tool:D.tool,pts:[[Math.round(p[0]*1000)/1000,Math.round(p[1]*1000)/1000]]};
     try{c.setPointerCapture(e.pointerId)}catch(_e){}
     paintLocal();
   };
@@ -5349,7 +5349,7 @@ dgInitCanvas=function(){
       if(!cur.w)cur.w=D.tool==="e"?(D.brush*2.2):(D.brush*(p[2]!==1?(0.55+p[2]):1));
       var dx=p[0]-lp[0],dy=p[1]-lp[1];
       if(dx*dx+dy*dy<0.000012)continue;
-      cur.pts.push([p[0],p[1]]);
+      cur.pts.push([Math.round(p[0]*1000)/1000,Math.round(p[1]*1000)/1000]);
       if(cur.pts.length>90){
         var hold=cur.pts[cur.pts.length-1];
         var cc=cur.c,ww=cur.w,tt=cur.tool; /* FIX-A: خزّن خصائص الضربة قبل flush — cur بيتصفّى جواها */
@@ -5728,61 +5728,19 @@ A.dgJoinCode=async function(d){
   }catch(e){var c2=String((e&&e.code)||(e&&e.message)||e||"");if(c2.indexOf("permission-denied")>-1){A.dgRulesHelp()}else{console.warn(e);toast("فشل الانضمام",true)}}
 };
 A.dgPublicJoin=function(d){return A.dgJoinCode(d)};
-A.dgCreateSheet=function(){
-  if(!S.user){toast("سجّل الدخول الأول",true);return}
-  try{document.querySelectorAll(".dlg-ov.dg-sheet").forEach(function(n){n.remove()})}catch(_e){}
-  var ov=document.createElement("div");
-  ov.className="dlg-ov dg-sheet";
-  ov.innerHTML='<div class="dg3-sheet-card"><div class="dg3-sheet-bar"></div>'+
-    '<h3 class="dlg-t">إنشاء غرفة 🎨</h3>'+
-    '<div class="dlg-m mut">اختار نوع الغرفة</div>'+
-    '<button type="button" class="dg3-sheet-opt" data-p="public"><span class="ic">🌍</span><div><b>غرفة عامة</b><small>تظهر لكل اللاعبين في «الغرف المفتوحة» وأي حد ينضم</small></div><span class="go">›</span></button>'+
-    '<button type="button" class="dg3-sheet-opt" data-p="private"><span class="ic">🔒</span><div><b>غرفة خاصة</b><small>كود سري — محدش يدخل غير اللي تبعتله الكود</small></div><span class="go">›</span></button>'+
-    '<button type="button" class="btn ghost block" data-p="x" style="margin-top:8px">إلغاء</button></div>';
-  ov.addEventListener("click",function(ev){
-    var b=ev.target&&ev.target.closest?ev.target.closest("[data-p]"):null;
-    if(!b){if(ev.target===ov)ov.remove();return}
-    var p=b.getAttribute("data-p");ov.remove();
-    if(p==="x")return;
-    A.dgCreate({privacy:p});
-  });
-  document.body.appendChild(ov);
-};
-A.dgCreate=async function(d){
-  try{
-    if(!S.user){toast("سجّل الدخول الأول",true);return}
-    var privacy=(d&&d.privacy)==="private"?"private":"public";
-    var code=dgCode();
-    var room={
-      host:dgMe(),status:"lobby",privacy:privacy,public:privacy==="public",game:"dg",
-      players:{},order:[dgMe()],scores:{},strokes:[],round:0,maxRounds:3,
-      settings:{mode:"rounds",rounds:3,maxRounds:3,maxPlayers:8,drawSecs:75,hints:true,order:"random",privacy:privacy,voice:false},
-      createdAt:serverTimestamp(),updatedAt:serverTimestamp()
-    };
-    room.players[dgMe()]={uid:dgMe(),name:dgMeName(),avatar:dgMeAvatar()||null,level:dgMeLevel(),ready:true,lastSeen:Date.now(),joinedAt:Date.now(),away:false,seen:Date.now()};
-    await setDoc(doc(db,"dgRooms",code),room);
-    try{document.querySelectorAll(".dlg-ov.dg-sheet").forEach(function(n){n.remove()})}catch(_e){}
-    S.dg={room:Object.assign({code:code},room),msgs:[],guessMode:false};
-    dgListen(code);S.view="dgLobby";render(true);
-    toast((privacy==="public"?"🌍 غرفة عامة — ":"🔒 غرفة خاصة — ")+"الكود: "+code,true);
-  }catch(e){
-    var c=String((e&&e.code)||(e&&e.message)||e||"");
-    if(c.indexOf("permission-denied")>-1){A.dgRulesHelp()}
-    else toast("فشل الإنشاء: "+c,true);
-  }
-};
 /* v208: دايلوج إرشاد لما إنشاء/انضمام الغرفة يفشل بسبب قواعد Firestore الناقصة */
 A.dgRulesHelp=function(){
   try{document.querySelectorAll(".dlg-ov.dg-rules").forEach(function(n){n.remove()})}catch(_e){}
   var ov=document.createElement("div");ov.className="dlg-ov dg-rules";
   ov.innerHTML='<div class="dg3-sheet-card"><div class="dg3-sheet-bar"></div>'+
     '<h3 class="dlg-t">⚠️ القواعد محتاجة تنشر الأول</h3>'+
-    '<div class="dlg-m mut">إنشاء غرفة «ارسم وخمّن» بيفشل لأن قواعد قاعدة البيانات مش مطابقة للكود. النشر بياخد دقيقتين:</div>'+
+    '<div class="dlg-m mut">إنشاء غرفة «ارسم وخمّن» بيفشل لأن قواعد قاعدة البيانات اللي على Firebase مش مطابقة للكود (الإصدار v210). النشر بياخد دقيقتين:</div>'+
     '<div style="text-align:right;font-size:14px;line-height:2.2;padding:0 4px">'+
     '<div>١ — افتح <b>console.firebase.google.com</b> واختار المشروع</div>'+
     '<div>٢ — من القائمة: <b>Firestore Database</b> ← تاب <b>Rules</b></div>'+
     '<div>٣ — امسح القواعد القديمة والصق ملف <b>firestore.rules</b> كله</div>'+
-    '<div>٤ — اضغط <b>Publish</b> وارجع اعمل الغرفة — هتشتغل ✅</div></div>'+
+    '<div>٤ — اضغط <b>Publish</b> — لو ظهر خط أحمر قبل النشر صوّره وابعته</div>'+
+    '<div>٥ — استنى ١٠ ثواني وارجع اعمل الغرفة — هتشتغل ✅</div></div>'+
     '<button type="button" class="btn gold block" style="margin-top:12px" data-act="dgRulesClose">فهمت — هنشرها دلوقتي</button></div>';
   ov.addEventListener("click",function(ev){if(ev.target===ov)ov.remove()});
   document.body.appendChild(ov);
@@ -6458,8 +6416,16 @@ A.dgCreateSheet=function(){
   A.dgCreate({privacy:"private"});
 };
 A.dgCreate=async function(d){
+  /* v210: قفل الضغط المزدوج — الضغطات المتكررة أثناء بطء الشبكة كانت بتعمل 7 محاولات إنشاء في نفس اللحظة */
+  if(window.__dgCreating)return;
+  if(!S.user||!S.user.uid){toast("سجّل الدخول الأول",true);return}
+  window.__dgCreating=true;
+  var __btns=[].slice.call(document.querySelectorAll('[data-act="dgCreateSheet"]'));
+  __btns.forEach(function(b){try{b.disabled=true;b.classList.add("dg210-busy")}catch(_e){}});
+  var __free=function(){window.__dgCreating=false;__btns.forEach(function(b){try{b.disabled=false;b.classList.remove("dg210-busy")}catch(_e){}})};
+  var __safety=setTimeout(__free,30000);
   try{
-    if(!S.user||!S.user.uid){toast("سجّل الدخول الأول",true);return}
+    toast("جاري إنشاء الغرفة… ⏳",true);
     var me=S.user.uid;
     var code=dgCode();
     var room={
@@ -6476,8 +6442,11 @@ A.dgCreate=async function(d){
     toast("اتعملت الغرفة 🎨 — الكود: "+code+" — ابعتّه لصحابك!",true);
   }catch(e){
     var c=String((e&&e.code)||(e&&e.message)||e||"");
-    toast(c.indexOf("permission-denied")>-1?"فشل الإنشاء: انشر ملف firestore.rules الجديد (v207) في Firebase Console":("فشل الإنشاء: "+c),true);
-  }
+    try{console.warn("dgCreate failed",c)}catch(_e){}
+    if(c.indexOf("permission-denied")>-1){try{A.dgRulesHelp()}catch(_e){toast("فشل الإنشاء: القواعد على Firebase محتاجة نشر (firestore.rules v210)",true)}}
+    else if(c.indexOf("unavailable")>-1||c.indexOf("deadline")>-1||c.indexOf("timeout")>-1){toast("الشبكة ضعيفة دلوقتي — جرّب تاني بعد ثواني 📶",true)}
+    else toast("فشل الإنشاء: "+c,true);
+  }finally{clearTimeout(__safety);__free()}
 };
 
 /* ---------- 10) شاشة البداية الجديدة — من غير أي ذكر للغرف المفتوحة ---------- */
@@ -6522,6 +6491,110 @@ window.__DG207_OK="v207";
 try{window.__DG201_VIEWS.msgs=dgRenderMsgs}catch(_e){}
 }catch(e){try{console.warn("DG v207 patch",e)}catch(_e2){}}},80);
 /* ================= نهاية DG v207 ================= */
+
+/* ================= DG v210 — انيميشن وانتقالات وتأثيرات (CSS + JS خفيف، بيحترم الأجهزة الضعيفة) ================= */
+setTimeout(function(){try{
+if(window.__DG210_OK)return;
+if(!document.getElementById("dg210css")){
+  var st=document.createElement("style");st.id="dg210css";
+  st.textContent=[
+  /* دخول الشاشة مرة واحدة بس عند تغيير الشاشة (مش مع كل تحديث لحظي) */
+  '.dg2-wrap{animation:none}',
+  '.dg2-wrap.dg210-enter{animation:dg210in .4s cubic-bezier(.2,.9,.3,1) both}',
+  '@keyframes dg210in{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}',
+  /* ضغطات أنعم */
+  '.dg2-wrap .btn,.dg2-wrap .dg3-tb,.dg2-wrap .dg2-sw{transition:transform .16s cubic-bezier(.3,1.5,.5,1),box-shadow .2s,filter .2s}',
+  '.dg2-wrap .btn:active,.dg2-wrap .dg3-tb:active{transform:scale(.93)}',
+  '.dg2-wrap .dg3-tb.on{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.2)}',
+  '.dg2-wrap .dg2-sw.on{transform:scale(1.2)}',
+  '.dg2-wrap .dg2-sw:active{transform:scale(.9)}',
+  /* زر الإنشاء: لمعة + حالة انشغال */
+  '.dg3-cta{position:relative;overflow:hidden}',
+  '.dg3-cta::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(110deg,transparent,rgba(255,255,255,.5),transparent);animation:dg210shine 3.4s ease-in-out infinite;pointer-events:none}',
+  '@keyframes dg210shine{0%,55%{left:-60%}100%{left:130%}}',
+  '.dg210-busy{opacity:.65;pointer-events:none;animation:dg210busy 1s ease-in-out infinite}',
+  '@keyframes dg210busy{50%{opacity:.4}}',
+  /* عدّاد آخر 10 ثواني: الرقم بيدق */
+  '.dg3-hot b{display:inline-block;animation:dg210tick 1s ease-out infinite}',
+  '@keyframes dg210tick{0%{transform:scale(1.5)}55%,100%{transform:scale(1)}}',
+  /* فقاعات الشات: آخر رسالة بتطلع بنعومة */
+  '.dg2-chatlog>:last-child{animation:dg210msg .32s cubic-bezier(.2,.9,.3,1) both}',
+  '@keyframes dg210msg{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}',
+  /* سبورة الرسم: ورقة بظل ناعم */
+  '.dg2-canvas-wrap{box-shadow:0 10px 30px rgba(0,0,0,.16),inset 0 0 0 1px rgba(0,0,0,.06)}',
+  /* لوحة الشرف: كل مركز يطلع بدوره */
+  '.pod.p1{animation:dg210pod .7s .25s cubic-bezier(.2,1.2,.4,1) both}',
+  '.pod.p2{animation:dg210pod .7s .05s cubic-bezier(.2,1.2,.4,1) both}',
+  '.pod.p3{animation:dg210pod .7s .45s cubic-bezier(.2,1.2,.4,1) both}',
+  '@keyframes dg210pod{from{opacity:0;transform:translateY(40px) scale(.9)}to{opacity:1;transform:none}}',
+  /* أجهزة ضعيفة أو تقليل الحركة */
+  '@media (prefers-reduced-motion:reduce){.dg2-wrap.dg210-enter,.dg3-cta::after,.dg2-chatlog>:last-child,.pod{animation:none!important}}',
+  'html[data-fx="lite"] .dg3-cta::after{display:none}',
+  'html[data-fx="lite"] .dg2-wrap.dg210-enter{animation-duration:.2s}'
+  ].join("\n");
+  document.head.appendChild(st);
+}
+
+/* كونفيتي خفيف على كانفاس واحد — بيتقفل لوحده بعد ~2.4 ثانية */
+function dg210Confetti(n){
+  try{
+    var de=document.documentElement;
+    if(de.getAttribute("data-fx")==="lite")return;
+    if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+    var old=document.getElementById("dg210conf");if(old)old.remove();
+    var c=document.createElement("canvas");c.id="dg210conf";
+    c.style.cssText="position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:9999";
+    var W=c.width=window.innerWidth,H=c.height=window.innerHeight;
+    document.body.appendChild(c);
+    var ctx=c.getContext("2d");if(!ctx){c.remove();return}
+    var cols=["#FFD865","#ff6b6b","#4ecdc4","#a78bfa","#60a5fa","#34d399","#fb923c"],P=[],i;
+    n=Math.min(n||70,160);
+    for(i=0;i<n;i++)P.push({x:W/2+(Math.random()-.5)*W*.35,y:H*.38,vx:(Math.random()-.5)*12,vy:-Math.random()*12-3,w:Math.random()*7+4,h:Math.random()*4+3,c:cols[i%cols.length],a:Math.random()*6.28,va:(Math.random()-.5)*.5});
+    var t0=performance.now(),last=t0;
+    (function step(now){
+      var dt=Math.min(2,(now-last)/16.7);last=now;
+      var life=now-t0;
+      ctx.clearRect(0,0,W,H);
+      for(var k=0;k<P.length;k++){
+        var p=P[k];
+        p.vy+=.32*dt;p.vx*=.992;p.x+=p.vx*dt;p.y+=p.vy*dt;p.a+=p.va*dt;
+        ctx.save();ctx.globalAlpha=Math.max(0,1-life/2400);
+        ctx.translate(p.x,p.y);ctx.rotate(p.a);ctx.fillStyle=p.c;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();
+      }
+      if(life<2400)requestAnimationFrame(step);else c.remove();
+    })(t0);
+  }catch(_e){}
+}
+window.dg210Confetti=dg210Confetti;
+
+/* انتقال الشاشات + المؤثرات عند تغيّر (الشاشة / حالة الغرفة / الجولة / الرسام) فقط */
+var __prev="";
+function dg210OnRender(){
+  try{
+    var v=S.view||"";
+    if(v.indexOf("dg")!==0){__prev="";return}
+    var r=S.dg&&S.dg.room;
+    var key=v+"|"+(r?(r.status||""):"")+"|"+(r&&r.round||0)+"|"+((r&&r.turn&&r.turn.drawerUid)||"");
+    if(key===__prev)return;
+    __prev=key;
+    var w=document.querySelector(".dg2-wrap");
+    if(w){w.classList.remove("dg210-enter");void w.offsetWidth;w.classList.add("dg210-enter");setTimeout(function(){try{w.classList.remove("dg210-enter")}catch(_e){}},520)}
+    if(r&&r.status==="reveal"&&r.reveal&&r.reveal.solved){
+      dg210Confetti(r.reveal.perfect?130:70);
+      try{navigator.vibrate&&navigator.vibrate(r.reveal.perfect?[60,40,60]:60)}catch(_e){}
+    }
+    if(r&&r.status==="ended")dg210Confetti(150);
+  }catch(_e){}
+}
+if(typeof render==="function"&&!window.__dg210RenderW){
+  window.__dg210RenderW=1;
+  var _r210=render;
+  render=function(f,s){var rr=_r210(f,s);setTimeout(dg210OnRender,0);return rr};
+}
+window.__DG210_OK="v210";
+}catch(e){try{console.warn("DG v210 patch",e)}catch(_e2){}}},110);
+/* ================= نهاية DG v210 ================= */
+
 
 
 
@@ -13298,6 +13371,10 @@ function ecIsNoise(msg){
   if(/Failed to obtain primary lease|FirebaseError: \[code=unavailable\]/i.test(m))return true; /* تحذير تعدد التبويبات من Firestore مش عطل */
   if(/firestore\.googleapis\.com\/.*\/channel/i.test(m)&&/Failed to fetch|fetch فشل/i.test(m))return true; /* انقطاع نت لحظي في قناة Firestore — بيتعاد تلقائي */
   if(/\/errorLogs/i.test(m)&&/permission/i.test(m))return true; // متبعتش فشل سجل الأخطاء على نفسه
+  /* v210: تحذير داخلي من Firestore لما ساعة الجهاز متأخرة ميلّي ثواني — مش عطل */
+  if(/Detected an update time that is in the future/i.test(m))return true;
+  /* v210: 503/502/504 مؤقتة من قناة Firestore (Listen/Write) — بتتعاد تلقائيًا */
+  if(/HTTP 50[234]/i.test(m)&&/firestore\.googleapis\.com/i.test(m))return true;
   return false;
 }
 function ecFlush(){
@@ -17092,7 +17169,7 @@ Object.assign(A,{
       toast(privacy==="public"?"غرفة عامة · "+code:"غرفة خاصة · "+code);
     }catch(e){
       const c=String((e&&e.code)||(e&&e.message)||e||"");
-      toast(c.includes("permission-denied")?"فشل الإنشاء: انشر قواعد Firestore":("فشل الإنشاء: "+c),true);
+      if(c.includes("permission-denied")&&typeof A.dgRulesHelp==="function")A.dgRulesHelp();else toast(c.includes("permission-denied")?"فشل الإنشاء: انشر قواعد Firestore (v210)":("فشل الإنشاء: "+c),true);
     }
   },
   async dgJoin(){
