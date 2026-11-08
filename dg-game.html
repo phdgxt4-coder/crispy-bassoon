@@ -731,7 +731,14 @@ function createRoom() {
     listenAll(code); setView("lobby"); toast("الغرفة جاهزة! انسخ الكود وابعته لصحابك 🎉", false, true); sfx("join");
   }).catch(function (e) {
     if (e && /already-exists/.test(e.code || "")) { setTimeout(function () { createRoom(); }, 50); return; }
+    var codeStr = (e && (e.code || e.message)) || "";
+    if (/permission-denied/i.test(codeStr)) {
+      toast("فشل الإنشاء: انشر ملف قواعد Firestore الجديد (firestore.rules) من Console → Publish", true);
+      try { console.error("dgRooms create denied:", e); } catch (x) {}
+      return;
+    }
     toast("تعذر إنشاء الغرفة — جرب تاني", true);
+    try { console.error("dgRooms create error:", e); } catch (x) {}
   });
 }
 function joinRoom(codeIn) {

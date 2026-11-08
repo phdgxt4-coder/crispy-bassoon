@@ -49,7 +49,7 @@ exports.verifyGuess = functions.https.onCall(async (data, context) => {
   if (!code || !text) throw new functions.https.HttpsError("invalid-argument", "بيانات ناقصة");
 
   const roomRef = db.doc(`dgRooms/${code}`);
-  const wordRef = roomRef.doc("word").parent === null ? null : db.doc(`dgRooms/${code}/word/state`);
+  const wordRef = db.doc(`dgRooms/${code}/word/state`);
 
   const result = await db.runTransaction(async (tr) => {
     const roomSnap = await tr.get(roomRef);
@@ -73,6 +73,12 @@ exports.verifyGuess = functions.https.onCall(async (data, context) => {
     const frac = Math.max(0, Math.min(1, left / (drawSecs * 1000)));
     const guessSnap = await tr.get(roomRef.collection("scores").doc(uid));
     const sc = guessSnap.exists ? guessSnap.data() : {};
+    // كل القراءات قبل أي كتابة (شرط الـ transaction)
+    const drawerSnap = turn.drawerUid
+      ? await tr.get(roomRef.collection("scores").doc(turn.drawerUid))
+      : null;
+    const dsc = (drawerSnap && drawerSnap.exists) ? drawerSnap.data() : {};
+
     const streak = (sc.streak || 0) + 1;
     let pts = 60 + Math.round(140 * frac);
     if (streak >= 2) pts += 15 * Math.min(streak - 1, 4);
@@ -87,17 +93,23 @@ exports.verifyGuess = functions.https.onCall(async (data, context) => {
         fastest: (sc.fastest && sc.fastest > 0) ? Math.min(sc.fastest, spent) : spent,
         lastPts: pts, updatedAt: admin.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
-      tr.set(roomRef.collection("scores").doc(turn.drawerUid), {
-        uid: turn.drawerUid, name: turn.drawerName || "لاعب",
-        score: 0, dpts: 35, correct: 0, wrong: 0, streak: 0, bestStreak: 0, fastest: 0, lastPts: 0,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
+      if (turn.drawerUid) {
+        tr.set(roomRef.collection("scores").doc(turn.drawerUid), {
+          uid: turn.drawerUid,
+          name: turn.drawerName || (room.players[turn.drawerUid] || {}).name || "لاعب",
+          score: dsc.score || 0, dpts: (dsc.dpts || 0) + 35,
+          correct: dsc.correct || 0, wrong: dsc.wrong || 0,
+          streak: dsc.streak || 0, bestStreak: dsc.bestStreak || 0,
+          fastest: dsc.fastest || 0, lastPts: 0,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      }
       tr.update(roomRef, {
         [`guessed.${uid}`]: true,
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       });
       tr.set(roomRef.collection("msgs").doc(), {
-        uid: turn.drawerUid, name: turn.drawerName || "", kind: "correct", text: "",
+        uid: turn.drawerUid || uid, name: turn.drawerName || "", kind: "correct", text: "",
         img: null, audio: null, dur: 0, solverUid: uid, solverName: (room.players[uid] || {}).name || "",
         ts: admin.firestore.FieldValue.serverTimestamp()
       });
