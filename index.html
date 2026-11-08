@@ -4802,6 +4802,7 @@ const DG_COLORS=["#0f172a","#e11d48","#2563eb","#16a34a","#eab308","#a855f7","#f
 function dgPickWord(){return DG_WORDS[Math.floor(Math.random()*DG_WORDS.length)]}
 function dgCode(){const c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=0;i<5;i++)s+=c[Math.floor(Math.random()*c.length)];return s}
 function dgNorm(s){return String(s||"").normalize("NFKC").replace(/[\u064B-\u065F\u0670\u0640]/g,"").replace(/[أإآ]/g,"ا").replace(/ى/g,"ي").replace(/ة/g,"ه").replace(/ؤ/g,"و").replace(/ئ/g,"ي").replace(/\s+/g,"").toLowerCase()}
+function dgMe(){try{return (S&&S.user&&S.user.uid)||null}catch(_){return null}}
 function dgMeName(){return String((S.profile&&S.profile.name)||"لاعب").slice(0,40)}
 function dgMeAvatar(){return (S.profile&&(S.profile.avatar||S.profile.photoURL))||""}
 function dgMeLevel(){const xp=(S.profile&&S.profile.xp)||(S.life&&S.life.xp)||0;return Math.max(1,Math.floor(Number(xp)/100)+1)}
@@ -5042,7 +5043,7 @@ function dgOpts(){var seen={},o=[],g=0;while(o.length<3&&g++<80){var w=dgW();if(
 function dgMaskHint(w){return String(w||"").split("").map(function(ch){return ch===" "?" ":"_"}).join(" ")}
 
 /* ---------- 3) أدوات مساعدة ---------- */
-function dgMe(){return S.user&&S.user.uid}
+/* dgMe defined earlier */
 function dgRoom(){return S.dg&&S.dg.room}
 function dgDrawerOf(r){return ((r&&(r.turn&&r.turn.drawerUid))||(r&&r.drawer))||""}
 function dgRoundTk(r){return ((r&&r.round)||1)+"|"+dgDrawerOf(r)+"|"+(((r&&r.turn)||{}).idx||0)}
@@ -6208,7 +6209,7 @@ A.dgMyStkSend=async function(d){
   var r=dgRoom();if(!r||!dgMe())return;
   dg207ClosePanel();
   try{N.vibrate&&N.vibrate(8)}catch(_e){}
-  try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),{uid:dgMe(),name:dgMeName(),kind:"csticker",img:img,text:"",ts:serverTimestamp()})}catch(e){console.warn(e);toast("فشل إرسال الملصق",true)}
+  try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),{uid:dgMe(),name:dgMeName(),kind:"csticker",sticker:img,img:img,text:"",ts:serverTimestamp()})}catch(e){console.warn(e);toast("فشل إرسال الملصق",true)}
 };
 A.dgMyStkDel=function(d){
   var i=+((d&&d.i)||0);var a=dg207MyStickers();
@@ -6322,7 +6323,7 @@ A.dgStudioSend=async function(){
   var r=dgRoom();if(!r||!dgMe())return;
   A.dgStudioClose();
   try{N.vibrate&&N.vibrate(10)}catch(_e){}
-  try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),{uid:dgMe(),name:dgMeName(),kind:"csticker",img:img,text:"",ts:serverTimestamp()});toast("اتبعت ملصقك 🎨✨",true)}catch(e){console.warn(e);toast("فشل إرسال الملصق",true)}
+  try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),{uid:dgMe(),name:dgMeName(),kind:"csticker",sticker:img,img:img,text:"",ts:serverTimestamp()});toast("اتبعت ملصقك 🎨✨",true)}catch(e){console.warn(e);toast("فشل إرسال الملصق",true)}
 };
 A.dgStudioSave=function(){
   var img=dg207StkExport();
@@ -6458,15 +6459,16 @@ A.dgCreateSheet=function(){
 };
 A.dgCreate=async function(d){
   try{
-    if(!S.user){toast("سجّل الدخول الأول",true);return}
+    if(!S.user||!S.user.uid){toast("سجّل الدخول الأول",true);return}
+    var me=S.user.uid;
     var code=dgCode();
     var room={
-      host:dgMe(),status:"lobby",privacy:"private",public:false,game:"dg",
-      players:{},order:[dgMe()],scores:{},strokes:[],round:0,maxRounds:3,
+      host:me,status:"lobby",privacy:"private",public:false,game:"dg",
+      players:{},order:[me],scores:{},strokes:[],round:0,maxRounds:3,
       settings:{mode:"rounds",rounds:3,maxRounds:3,maxPlayers:8,drawSecs:75,hints:true,order:"random",privacy:"private",voice:true},
       createdAt:serverTimestamp(),updatedAt:serverTimestamp()
     };
-    room.players[dgMe()]={uid:dgMe(),name:dgMeName(),avatar:dgMeAvatar()||null,level:dgMeLevel(),ready:true,lastSeen:Date.now(),joinedAt:Date.now(),away:false,seen:Date.now()};
+    room.players[me]={uid:me,name:dgMeName(),avatar:dgMeAvatar()||null,level:dgMeLevel(),ready:true,lastSeen:Date.now(),joinedAt:Date.now(),away:false,seen:Date.now()};
     await setDoc(doc(db,"dgRooms",code),room);
     try{document.querySelectorAll(".dlg-ov.dg-sheet").forEach(function(n){n.remove()})}catch(_e){}
     S.dg={room:Object.assign({code:code},room),msgs:[],guessMode:false};
