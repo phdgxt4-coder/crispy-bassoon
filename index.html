@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v210">
+<meta name="sw-build" content="v211">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v210";/* v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
+<script>window.APP_BUILD="v211";/* v211: إصلاح «dgRoom is not defined» (كان بيكسر إرسال الملصقات والملصقات المخصصة والمايك) + إصلاح N (الاهتزاز) · الرد على رسالة بقى مسموح في القواعد · ملصق من صورة الفون (من المعرض/الكاميرا) مع إمكانية الرسم فوقها · حدود أكبر: ملصقاتي 50، لاعبين لحد 40، جولات لحد 30، وقت الرسم لحد 300 ث، شات 100 رسالة، رسالة صوتية 90 ث · v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -5120,7 +5120,7 @@ dgListen=function(code){
     try{dgPayRewards(data)}catch(_e){}
   },function(e){console.warn("dgListen",e)});
   /* الشات — الأحدث أولاً ثم عكسها محليًا (إصلاح: كانت الأولانيين الـ50 بس) */
-  window.__dgMsgUnsub=onSnapshot(query(collection(db,"dgRooms",code,"msgs"),orderBy("ts","desc"),limit(60)),function(sn){
+  window.__dgMsgUnsub=onSnapshot(query(collection(db,"dgRooms",code,"msgs"),orderBy("ts","desc"),limit(100)),function(sn){
     if(!S.dg)S.dg={};
     S.dg.msgs=sn.docs.map(function(d){var o={id:d.id},dd=d.data(),k;for(k in dd)o[k]=dd[k];return o}).reverse();
     var box=document.getElementById("dgMsgBox");
@@ -5309,7 +5309,7 @@ dgInitCanvas=function(){
   function H(){return c.clientHeight||1}
   function pos(e){var rr=c.getBoundingClientRect();return [(e.clientX-rr.left)/rr.width,(e.clientY-rr.top)/rr.height,(e.pointerType==="pen"&&e.pressure>0)?e.pressure:1]}
   function strokesArr(){return ((S.dg.room&&S.dg.room.strokes)||[]).slice()}
-  function cap(arr){if(arr.length>160)arr.splice(0,arr.length-160);return arr}
+  function cap(arr){if(arr.length>240)arr.splice(0,arr.length-240);return arr}
   function paintLocal(){
     dgRedraw();
     if(!cur||cur.pts.length<2)return;
@@ -5453,7 +5453,7 @@ A.dgSend2=async function(){
   var rp=D.reply||null;
   var msg={uid:dgMe(),name:dgMeName(),kind:"text",text:txt,ts:serverTimestamp()};
   if(rp){msg.replyName=String(rp.name||"").slice(0,80);msg.replyText=String(rp.text||"").slice(0,200)}
-  try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),msg)}catch(e){console.warn(e);toast("فشل إرسال الرسالة",true)}
+  try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),msg)}catch(e){console.warn(e);toast(String((e&&e.code)||"").indexOf("permission-denied")>-1?"الرسالة اتمنعت — انشر firestore.rules الجديد (v211)":"فشل إرسال الرسالة",true)}
   if(rp)A.dgCancelReply();
 };
 A.dgChat=function(){return A.dgSend2()};
@@ -5534,13 +5534,20 @@ A.dgKick=async function(d){
 };
 A.dgSetRounds=async function(el){
   var r=dgRoom();if(!r||r.host!==dgMe()||!el)return;
-  var n=Math.max(1,Math.min(8,+el.value||3));
+  var n=Math.max(1,Math.min(30,+el.value||3));
   try{await updateDoc(doc(db,"dgRooms",r.code),{maxRounds:n,"settings.rounds":n,"settings.maxRounds":n,updatedAt:serverTimestamp()});toast("عدد الجولات: "+n,true)}catch(e){console.warn(e)}
 };
 A.dgSetSecs=async function(el){
   var r=dgRoom();if(!r||r.host!==dgMe()||!el)return;
-  var n=Math.max(30,Math.min(240,+el.value||75));
+  var n=Math.max(30,Math.min(300,+el.value||75));
   try{await updateDoc(doc(db,"dgRooms",r.code),{"settings.drawSecs":n,updatedAt:serverTimestamp()});toast("وقت الرسم: "+n+" ثانية",true)}catch(e){console.warn(e)}
+};
+A.dgSetMax=async function(el){
+  var r=dgRoom();if(!r||r.host!==dgMe()||!el)return;
+  var n=Math.max(2,Math.min(40,+el.value||8));
+  var cur=Object.keys(r.players||{}).length;
+  if(n<cur){toast("فيه "+cur+" لاعب في الغرفة — اختار رقم أكبر",true);return}
+  try{await updateDoc(doc(db,"dgRooms",r.code),{"settings.maxPlayers":n,updatedAt:serverTimestamp()});toast("أقصى عدد لاعبين: "+n+(n>20?" — فوق 20 ممكن النت يبطّأ":""),true)}catch(e){console.warn(e);toast("تعذر التغيير",true)}
 };
 A.dgSetOrder=async function(el){
   var r=dgRoom();if(!r||r.host!==dgMe()||!el)return;
@@ -5821,8 +5828,9 @@ dgLobbyView=function(){
   '<div class="dg2-seats">'+(seats||'<div class="mut">استنى أصحابك…</div>')+'</div>'+
   (isHost?
     '<div class="card"><b>⚙️ إعدادات المباراة</b>'+
-    '<label class="f">الجولات (كل لاعب يرسم مرة في الجولة)</label><select onchange="A.dgSetRounds(this)">'+[1,2,3,4,5].map(function(n){return '<option value="'+n+'"'+(n===(r.maxRounds||(r.settings&&r.settings.maxRounds)||3)?" selected":"")+'>'+n+'</option>'}).join("")+'</select>'+
-    '<label class="f">وقت الرسم</label><select onchange="A.dgSetSecs(this)">'+[45,60,75,90,120].map(function(n){return '<option value="'+n+'"'+(n===((r.settings&&r.settings.drawSecs)||75)?" selected":"")+'>'+n+' ثانية</option>'}).join("")+'</select>'+
+    '<label class="f">الجولات (كل لاعب يرسم مرة في الجولة)</label><select onchange="A.dgSetRounds(this)">'+[1,2,3,4,5,6,8,10,12,15,20,25,30].map(function(n){return '<option value="'+n+'"'+(n===(r.maxRounds||(r.settings&&r.settings.maxRounds)||3)?" selected":"")+'>'+n+'</option>'}).join("")+'</select>'+
+    '<label class="f">وقت الرسم</label><select onchange="A.dgSetSecs(this)">'+[30,45,60,75,90,120,150,180,240,300].map(function(n){return '<option value="'+n+'"'+(n===((r.settings&&r.settings.drawSecs)||75)?" selected":"")+'>'+n+' ثانية</option>'}).join("")+'</select>'+
+    '<label class="f">أقصى عدد لاعبين</label><select onchange="A.dgSetMax(this)">'+[2,4,6,8,10,12,16,20,30,40].map(function(n){return '<option value="'+n+'"'+(n===maxP?" selected":"")+'>'+n+' لاعب</option>'}).join("")+'</select>'+
     '<label class="f">ترتيب الرسّامين</label><select onchange="A.dgSetOrder(this)"><option value="random"'+((((r.settings||{}).order)||"random")==="random"?" selected":"")+'>عشوائي 🎲</option><option value="join"'+(((r.settings||{}).order)==="join"?" selected":"")+'>حسب الدخول</option></select>'+
     (canStart?"":'<div class="err" style="margin-top:10px">محتاج لاعبَين على الأقل عشان تبدأ — ابعت الكود لصحابك!</div>')+
     '</div>'+
@@ -5895,7 +5903,7 @@ dgPlayView=function(){
     '</div>';
   return '<div class="wrap dg2-wrap" style="padding-bottom:150px">'+hud+wordCard+tools+canvas+
   '<div class="dg2-board card" id="dgBoard">'+(lb||'<span class="mut">مفيش لاعبين</span>')+'</div>'+
-  '<div class="card dg2-chat dg2-chatlog" id="dgMsgBox">'+dgRenderMsgs((S.dg.msgs||[]).slice(-50))+'</div>'+
+  '<div class="card dg2-chat dg2-chatlog" id="dgMsgBox">'+dgRenderMsgs((S.dg.msgs||[]).slice(-100))+'</div>'+
   composer+'</div>';
 };
 dgRevealView=function(){
@@ -5983,6 +5991,9 @@ setTimeout(function(){try{
 /* ---------- 0) حماية + أدوات ---------- */
 if(window.__DG207_OK)return;
 var D=window.__DG2=window.__DG2||{brush:6,color:"#0f172a",tool:"pen",guess:false,emojiOpen:false,undone:[],lastGuess:0,otk:"",opts:null,panelTab:"stk"};
+/* v211: dgRoom و N كانوا مش معرّفين في نطاق v207 → ReferenceError في الملصقات/المايك */
+var N=navigator;
+var dgRoom=function(){return S.dg&&S.dg.room};
 
 /* ---------- 1) CSS ---------- */
 var __css=document.getElementById("dg207css");
@@ -6114,8 +6125,13 @@ dgRenderMsgs=function(list){
 };
 
 /* ---------- 4) لوحة الملصقات والإيموجي (3 تابات) ---------- */
-function dg207MyStickers(){try{var a=JSON.parse(localStorage.getItem("dgMyStickers")||"[]");return Array.isArray(a)?a.filter(function(x){return typeof x==="string"&&x.indexOf("data:image")===0}).slice(0,24):[]}catch(_e){return[]}}
-function dg207SaveSticker(img){var a=dg207MyStickers();a.unshift(img);if(a.length>24)a.length=24;try{localStorage.setItem("dgMyStickers",JSON.stringify(a))}catch(_e){}}
+function dg207MyStickers(){try{var a=JSON.parse(localStorage.getItem("dgMyStickers")||"[]");return Array.isArray(a)?a.filter(function(x){return typeof x==="string"&&x.indexOf("data:image")===0}).slice(0,50):[]}catch(_e){return[]}}
+function dg207SaveSticker(img){
+  var a=dg207MyStickers();a.unshift(img);if(a.length>50)a.length=50;
+  /* لو مساحة التخزين اتملت نشيل أقدم ملصق ونحاول تاني */
+  for(var k=0;k<40;k++){try{localStorage.setItem("dgMyStickers",JSON.stringify(a));return true}catch(_e){if(a.length<=1)break;a.pop()}}
+  return false;
+}
 function dg207PanelHTML(tab){
   var tabs='<div class="dg207-tabs">'+
     '<button type="button" class="'+(tab==="stk"?"on":"")+'" data-act="dgPanelTab" data-t="stk">🖼️ ملصقات</button>'+
@@ -6129,8 +6145,9 @@ function dg207PanelHTML(tab){
     var mine=dg207MyStickers();
     body='<div class="dg207-grid dg207-stks">'+
       mine.map(function(img,i){return '<span class="dg207-mine"><button type="button" class="dg207-stkbtn" data-act="dgMyStkSend" data-i="'+i+'"><img class="dg207-mineimg" src="'+img+'" alt="ملصقي"></button><button type="button" class="dg207-mdel" data-act="dgMyStkDel" data-i="'+i+'" title="حذف">✕</button></span>'}).join("")+
-      '<button type="button" class="dg207-newstk" data-act="dgOpenStudio" title="ارسم ملصق جديد">➕<small>ارسم ملصق</small></button></div>'+
-      (mine.length?'':'<div class="mut" style="text-align:center;font-size:12px;margin-top:6px">لسه مفيش ملصقات ليك — اضغط «ارسم ملصق» واصنع أول ملصق ليك 🎨</div>');
+      '<button type="button" class="dg207-newstk" data-act="dgOpenStudio" title="ارسم ملصق جديد">➕<small>ارسم ملصق</small></button>'+
+      '<button type="button" class="dg207-newstk" data-act="dgPhotoStk" title="ملصق من صورة">🖼️<small>من صورة</small></button></div>'+
+      (mine.length?'':'<div class="mut" style="text-align:center;font-size:12px;margin-top:6px">لسه مفيش ملصقات ليك — اضغط «ارسم ملصق» أو «من صورة» واصنع أول ملصق (لحد 50 ملصق) 🎨</div>');
   }else{
     body='<div class="dg207-grid dg207-stks">'+STK.list.map(function(s2,i){return '<button type="button" class="dg207-stkbtn" data-act="dgSendSticker" data-s="'+s2.id+'" title="'+esc(s2.n)+'">'+dg207StkImg(i,46)+'</button>'}).join("")+'</div>';
   }
@@ -6179,7 +6196,7 @@ A.dgMyStkDel=function(d){
 
 /* ---------- 6) استوديو الملصقات — ارسم ملصقك وابعتّه ---------- */
 var SSIZES=[4,9,16];
-var SD={tool:"pen",color:"#111827",size:9,strokes:[],cur:null,drawing:false};
+var SD={tool:"pen",color:"#111827",size:9,strokes:[],cur:null,drawing:false,bg:null};
 var SCOLORS=["#111827","#e11d48","#2563eb","#16a34a","#eab308","#a855f7","#f97316","#ffffff"];
 function dg207StkCtx(){var c=document.getElementById("dgStkCv");return c?c.getContext("2d"):null}
 function dg207StkRedraw(){
@@ -6187,6 +6204,7 @@ function dg207StkRedraw(){
   var ctx=c.getContext("2d");if(!ctx)return;
   ctx.setTransform(1,0,0,1,0,0);
   ctx.fillStyle="#ffffff";ctx.fillRect(0,0,c.width,c.height);
+  if(SD.bg){try{ctx.drawImage(SD.bg,0,0,c.width,c.height)}catch(_e){}}
   ctx.lineCap="round";ctx.lineJoin="round";
   var all=SD.cur?SD.strokes.concat([SD.cur]):SD.strokes;
   for(var i=0;i<all.length;i++){
@@ -6209,13 +6227,14 @@ function dg207StkSyncTools(){
 }
 function dg207StkExport(){
   var c=document.getElementById("dgStkCv");if(!c)return"";
-  var empty=!SD.strokes.length;
-  if(empty)return"";
-  var o=document.createElement("canvas");o.width=96;o.height=96;
+  if(!SD.strokes.length&&!SD.bg)return"";
+  var sz=SD.bg?192:128;
+  var o=document.createElement("canvas");o.width=sz;o.height=sz;
   var ox=o.getContext("2d");
-  ox.fillStyle="#ffffff";ox.fillRect(0,0,96,96);
-  ox.drawImage(c,0,0,96,96);
-  return o.toDataURL("image/png");
+  ox.fillStyle="#ffffff";ox.fillRect(0,0,sz,sz);
+  ox.drawImage(c,0,0,sz,sz);
+  /* الصور بتتحفظ JPEG (أخف بكتير) والرسم PNG */
+  return SD.bg?o.toDataURL("image/jpeg",0.82):o.toDataURL("image/png");
 }
 A.dgOpenStudio=function(){
   dg207ClosePanel();
@@ -6225,8 +6244,9 @@ A.dgOpenStudio=function(){
   ov.innerHTML='<div class="dg207-sheet">'+
     '<div class="dg207-sheet-bar"></div>'+
     '<h3>🎨 استوديو الملصقات</h3>'+
-    '<p class="mut" style="text-align:center;font-size:12px;margin:-4px 0 10px">ارسم أي ملصق من خيالك — هيتبعت لكل اللاعبين في الشات</p>'+
+    '<p class="mut" style="text-align:center;font-size:12px;margin:-4px 0 10px">ارسم ملصق من خيالك أو اختار صورة من الفون وارسم فوقها — هيتبعت لكل اللاعبين</p>'+
     '<div class="dg207-swrap"><canvas id="dgStkCv" width="320" height="320"></canvas></div>'+
+    '<div class="row" style="gap:8px;margin:0 0 8px"><button type="button" class="btn ghost" style="flex:1" data-act="dgStudioPhoto">🖼️ ملصق من صورة الفون</button><input type="file" id="dgStkFile" accept="image/*" style="display:none"></div>'+
     '<div class="dg207-stools">'+
       SCOLORS.map(function(c0){return '<button type="button" class="dg207-sw'+(c0===SD.color&&SD.tool==="pen"?" on":"")+'" style="--c:'+(c0==="#ffffff"?"#e2e8f0":c0)+'" data-act="dgStudioColor" data-c="'+c0+'" title="لون"></button>'}).join("")+
       '<span style="width:6px"></span>'+
@@ -6243,8 +6263,29 @@ A.dgOpenStudio=function(){
   '</div>';
   ov.addEventListener("click",function(ev){if(ev.target===ov)A.dgStudioClose()});
   document.body.appendChild(ov);
-  SD.strokes=[];SD.cur=null;SD.drawing=false;SD.tool="pen";SD.color="#111827";SD.size=9;
+  SD.strokes=[];SD.cur=null;SD.drawing=false;SD.tool="pen";SD.color="#111827";SD.size=9;SD.bg=null;
   dg207StkRedraw();dg207StkSyncTools();
+  var fi=document.getElementById("dgStkFile");
+  if(fi)fi.onchange=function(){
+    var f=fi.files&&fi.files[0];try{fi.value=""}catch(_e){}
+    if(!f)return;
+    if(!/^image\//.test(f.type||"")){toast("اختار صورة من فضلك",true);return}
+    var url=URL.createObjectURL(f),im=new Image();
+    im.onload=function(){
+      try{
+        var iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height;if(!iw||!ih)throw new Error("size");
+        var off=document.createElement("canvas");off.width=320;off.height=320;
+        var ox=off.getContext("2d"),sc=Math.max(320/iw,320/ih),bw=iw*sc,bh=ih*sc;
+        ox.fillStyle="#ffffff";ox.fillRect(0,0,320,320);
+        ox.drawImage(im,(320-bw)/2,(320-bh)/2,bw,bh);
+        SD.bg=off;SD.strokes=[];SD.cur=null;dg207StkRedraw();
+        toast("اتحطّت الصورة 🖼️ — ممكن ترسم عليها وبعدين ابعتها أو احفظها",true);
+      }catch(_e){toast("الصورة دي مش مدعومة — جرّب صورة تانية",true)}
+      try{URL.revokeObjectURL(url)}catch(_e){}
+    };
+    im.onerror=function(){toast("مقدرتش أفتح الصورة دي",true);try{URL.revokeObjectURL(url)}catch(_e){}};
+    im.src=url;
+  };
   var c=document.getElementById("dgStkCv");if(!c)return;
   var pos=function(e){var rr=c.getBoundingClientRect();return [(e.clientX-rr.left)*320/rr.width,(e.clientY-rr.top)*320/rr.height]};
   c.onpointerdown=function(e){
@@ -6272,12 +6313,14 @@ A.dgOpenStudio=function(){
 A.dgStudioColor=function(d){SD.color=(d&&d.c)||"#111827";SD.tool="pen";dg207StkSyncTools()};
 A.dgStudioSize=function(d){SD.size=+((d&&d.w)||9)||9;dg207StkSyncTools()};
 A.dgStudioTool=function(d){SD.tool=(d&&d.t)==="e"?"e":"pen";dg207StkSyncTools()};
-A.dgStudioUndo=function(){SD.strokes.pop();dg207StkRedraw()};
-A.dgStudioClear=function(){SD.strokes=[];SD.cur=null;dg207StkRedraw()};
+A.dgStudioUndo=function(){if(SD.strokes.length)SD.strokes.pop();else SD.bg=null;dg207StkRedraw()};
+A.dgStudioClear=function(){SD.strokes=[];SD.cur=null;SD.bg=null;dg207StkRedraw()};
+A.dgStudioPhoto=function(){var f=document.getElementById("dgStkFile");if(f)f.click()};
+A.dgPhotoStk=function(){A.dgOpenStudio();var f=document.getElementById("dgStkFile");if(f)f.click()};
 A.dgStudioClose=function(){var s=document.getElementById("dgStudioSheet");if(s)s.remove()};
 A.dgStudioSend=async function(){
   var img=dg207StkExport();
-  if(!img){toast("ارسم حاجة الأول ✏️",true);return}
+  if(!img){toast("ارسم حاجة أو اختار صورة الأول ✏️",true);return}
   var r=dgRoom();if(!r||!dgMe())return;
   A.dgStudioClose();
   try{N.vibrate&&N.vibrate(10)}catch(_e){}
@@ -6285,9 +6328,9 @@ A.dgStudioSend=async function(){
 };
 A.dgStudioSave=function(){
   var img=dg207StkExport();
-  if(!img){toast("ارسم حاجة الأول ✏️",true);return}
-  dg207SaveSticker(img);
-  toast("اتحفظ في ملصقاتك 💾 — تلاقيه في تاب «ملصقاتي»",true);
+  if(!img){toast("ارسم حاجة أو اختار صورة الأول ✏️",true);return}
+  if(dg207SaveSticker(img))toast("اتحفظ في ملصقاتك 💾 — تلاقيه في تاب «ملصقاتي»",true);
+  else toast("مساحة التخزين مليانة — احذف ملصقات قديمة",true);
 };
 
 /* ---------- 7) الرسايل الصوتية 🎤 ---------- */
@@ -6311,7 +6354,7 @@ A.dgMic=function(){
       if(!st2.send)return;
       if(!chunks.length){toast("مفيش صوت اتسجل 😅",true);return}
       var blob=new Blob(chunks,{type:(rec.mimeType||mime||"audio/webm")});
-      if(blob.size>380*1024){toast("الرسالة الصوتية كبيرة أوي — جرب رسالة أقصر 🎤",true);return}
+      if(blob.size>640*1024){toast("الرسالة الصوتية كبيرة أوي — جرب رسالة أقصر 🎤",true);return}
       var fr=new FileReader();
       fr.onload=async function(){
         var dataURL=String(fr.result||"");
@@ -6330,7 +6373,7 @@ A.dgMic=function(){
       var s3=window.__dgRec;if(!s3)return;
       var sec=Math.floor((Date.now()-s3.t0)/1000);
       var el=document.getElementById("dgRecT");if(el)el.textContent=sec+"ث";
-      if(sec>=45)A.dgMicStop();
+      if(sec>=90)A.dgMicStop();
     },250);
   }).catch(function(){toast("سمحتش بالوصول للمايك 🎤",true)});
 };
