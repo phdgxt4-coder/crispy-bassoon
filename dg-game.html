@@ -179,7 +179,7 @@ button{font:inherit;cursor:pointer;border:0}input,select{font:inherit}
       <div class="xp-bar"><i id="xpFill"></i></div>
       <div class="mut" style="margin-top:6px;font-size:.78rem" id="xpHint">العب عشان تزود XP</div>
     </div>
-    <div class="footer-note">منصة التفوق · v5.2 · زجاجي · أصوات · ملصقات · أغاني</div>
+    <div class="footer-note">منصة التفوق · v5.3 · رسم لحظي · شات · أغاني · ملصقات</div>
   </div>
 
   <div class="screen" id="sc-lobby">
@@ -710,7 +710,10 @@ function startTimer(endsAt){clearInterval(ST.timerIv);ST.endsAt=endsAt||0;ST._wa
 
 async function endTurn(){const r=ST.room;if(!r)return;try{await db.collection("dgRooms").doc(r.code).update({status:"reveal",reveal:{word:ST.secretWord||"(انتهى الوقت)",solved:false,at:Date.now()},updatedAt:TS()})}catch(e){console.warn(e)}}
 
-function renderReveal(){show("reveal");const r=ST.room;const solved=r.reveal&&r.reveal.solved;$("revealEmoji").textContent=solved?"🎉":"⏰";$("revealTitle").textContent=solved?"تم التخمين!":"انتهى الوقت";$("revealWord").textContent="الكلمة: "+((r.reveal&&r.reveal.word)||"—");const ids=r.order||Object.keys(r.players||{});$("revealScores").innerHTML=ids.map(id=>{const p=r.players[id]||{},sc=(r.stats&&r.stats[id]&&r.stats[id].score)||0;return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--stroke)"><span>${esc(p.name)}</span><b style="color:var(--gold)">${sc}</b></div>`}).join("");$("btnNext").style.display=r.host===ST.uid?"block":"none";if(solved)SFX.correct();else SFX.reveal()}
+function renderReveal(){show("reveal");const r=ST.room;const solved=r.reveal&&r.reveal.solved;$("revealEmoji").textContent=solved?"🎉":"⏰";$("revealTitle").textContent=solved?"تم التخمين!":"انتهى الوقت";$("revealWord").textContent="الكلمة: "+((r.reveal&&r.reveal.word)||"—");const ids=r.order||Object.keys(r.players||{});$("revealScores").innerHTML=ids.map(id=>{const p=r.players[id]||{},sc=(r.stats&&r.stats[id]&&r.stats[id].score)||0;return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--stroke)"><span>${esc(p.name)}</span><b style="color:var(--gold)">${sc}</b></div>`}).join("");$("btnNext").style.display=r.host===ST.uid?"block":"none";if(solved)SFX.correct();else SFX.reveal();
+  // انتقال تلقائي بعد 2.8 ثانية للمضيف
+  if(r.host===ST.uid){clearTimeout(ST._autoNext);ST._autoNext=setTimeout(()=>{if(ST.room&&ST.room.status==="reveal"&&ST.room.host===ST.uid)nextRound()},2800)}
+}
 
 async function nextRound(){
   const r=ST.room;if(!r||r.host!==ST.uid)return;const ids=r.order||Object.keys(r.players||{});let idx=(r.turnIdx||0)+1,round=r.round||1;if(idx>=ids.length){idx=0;round++}const maxR=(r.settings&&r.settings.rounds)||5;
@@ -730,7 +733,7 @@ function renderWin(){
   if(!ST._xpGiven){ST._xpGiven=true;awardXp(xp,{game:1,win:win?1:0,score:me?me.sc:0})}
 }
 
-async function leave(){stopListen();const r=ST.room;if(r&&ST.uid){try{await db.collection("dgRooms").doc(r.code).update({["players."+ST.uid]:DEL(),updatedAt:TS()})}catch(_){}}ST.room=null;ST.code=null;ST.secretWord=null;ST._xpGiven=false;show("home");loadXp()}
+async function leave(){clearTimeout(ST._autoNext);stopListen();musicStop();const r=ST.room;if(r&&ST.uid){try{await db.collection("dgRooms").doc(r.code).update({["players."+ST.uid]:DEL(),updatedAt:TS()})}catch(_){}}ST.room=null;ST.code=null;ST.secretWord=null;ST._xpGiven=false;ST.localGuessed=false;show("home");loadXp()}
 
 async function submitGuess(){
   const r=ST.room;if(!r||ST.localGuessed||ST._guessBusy)return;if(r.turn&&r.turn.drawerUid===ST.uid)return;
@@ -758,14 +761,47 @@ async function awardCorrect(uid,name){
 
 function setupCanvas(){const c=$("c");if(!c)return;const dpr=Math.min(window.devicePixelRatio||1,2);const rect=c.getBoundingClientRect();c.width=Math.floor(rect.width*dpr);c.height=Math.floor(rect.height*dpr);const ctx=c.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);ctx.lineCap="round";ctx.lineJoin="round";c._ctx=ctx}
 
+function paintStrokes(docs){
+  const c=$("c");if(!c)return;if(!c._ctx)setupCanvas();
+  const ctx=c._ctx;if(!ctx)return;
+  ctx.save();
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,c.width,c.height);
+  ctx.restore();
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.lineCap="round";ctx.lineJoin="round";
+  ST.myStrokeIds=[];
+  const list=(docs||[]).slice().sort((a,b)=>((a.data().at||0)-(b.data().at||0)));
+  list.forEach(d=>{
+    const s=d.data()||{};
+    if(s.uid===ST.uid||!s.uid)ST.myStrokeIds.push(d.id);
+    const pts=s.pts||s.p;
+    if(!pts||pts.length<2)return;
+    ctx.strokeStyle=s.c||"#111";
+    ctx.lineWidth=s.w||3;
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0]*c.clientWidth,pts[0][1]*c.clientHeight);
+    for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0]*c.clientWidth,pts[i][1]*c.clientHeight);
+    ctx.stroke();
+  });
+}
 function listenStrokes(){
   if(ST._sUnsub)try{ST._sUnsub()}catch(_){}
-  if(!ST.room)return;const c=$("c");if(!c||!c._ctx)setupCanvas();
-  ST._sUnsub=db.collection("dgRooms").doc(ST.room.code).collection("strokes").orderBy("at","asc").limitToLast(80).onSnapshot(snap=>{
-    const c=$("c");if(!c||!c._ctx)return;const ctx=c._ctx;ctx.clearRect(0,0,c.width,c.height);
-    ST.myStrokeIds=[];
-    snap.docs.forEach(d=>{const s=d.data();if(s.uid===ST.uid||!s.uid)ST.myStrokeIds.push(d.id);if(!s.pts||s.pts.length<2)return;ctx.strokeStyle=s.c||"#111";ctx.lineWidth=s.w||3;ctx.beginPath();ctx.moveTo(s.pts[0][0]*c.clientWidth,s.pts[0][1]*c.clientHeight);for(let i=1;i<s.pts.length;i++)ctx.lineTo(s.pts[i][0]*c.clientWidth,s.pts[i][1]*c.clientHeight);ctx.stroke()});
-  });
+  if(!ST.room)return;
+  setupCanvas();
+  const col=db.collection("dgRooms").doc(ST.room.code).collection("strokes");
+  // حاول orderBy — لو مفيش اندكس يكمل من غير ترتيب
+  try{
+    ST._sUnsub=col.orderBy("at","asc").limitToLast(100).onSnapshot(snap=>{
+      paintStrokes(snap.docs);
+    },err=>{
+      console.warn("strokes ordered",err);
+      ST._sUnsub=col.limit(100).onSnapshot(snap=>paintStrokes(snap.docs),e=>console.warn(e));
+    });
+  }catch(e){
+    ST._sUnsub=col.limit(100).onSnapshot(snap=>paintStrokes(snap.docs),err=>console.warn(err));
+  }
 }
 
 function bindCanvas(){

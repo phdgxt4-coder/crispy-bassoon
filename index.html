@@ -8,7 +8,7 @@
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v181";/* v181: واجهة ارسم وخمّن محسّنة (ديزاين كامل + أدوات رسم + تايمر بصري). v180: إصلاحات تقرير الأخطاء + إنشاء غرفة بدون CF */</script>
+<script>window.APP_BUILD="v183";/* v183: أداء errorLogs + كاش SW + سلاسة ارسم وخمّن. v182: مزامنة رسم لحظية + شات لوبي. v181: واجهة ارسم وخمّن محسّنة (ديزاين كامل + أدوات رسم + تايمر بصري). v180: إصلاحات تقرير الأخطاء + إنشاء غرفة بدون CF */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -1883,6 +1883,15 @@ html.mora-lock #app{visibility:hidden}
 .dg-sc.me{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 12%,transparent)}
 .dg-sc-n{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dg-sc-s{color:var(--gold);font-weight:800;font-size:16px;margin-top:2px}
+
+/* v183 dg smooth */
+.dg-wrap{animation:dgIn .22s ease both}
+@keyframes dgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.dg-canvas-wrap{touch-action:none;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 8px 28px rgba(0,0,0,.18)}
+.dg-canvas-wrap canvas{display:block;width:100%;height:auto;touch-action:none}
+.dg-msg.sys{color:var(--ok);font-weight:700}
+.dg-seat .dg-av{transition:transform .15s ease,box-shadow .15s}
+.dg-seat .dg-av.host{box-shadow:0 0 0 2px var(--gold)}
 </style>
 </head>
 <body>
@@ -4017,6 +4026,14 @@ function dgLobbyView(){
 </div>
 <div class="dg-seats">${seats}</div>
 ${isHost?`<button class="btn block gold" data-act="dgStart" style="margin-top:12px;padding:14px">▶ ابدأ اللعب</button>`:`<div class="card" style="text-align:center;margin-top:12px"><span class="mut">استنى المضيف يبدأ الجولة…</span></div>`}
+<div class="card" style="margin-top:10px">
+  <div class="mut" style="font-size:12px;margin-bottom:6px">شات الغرفة</div>
+  <div id="dgMsgBox" style="max-height:120px;overflow:auto;font-size:13px;margin-bottom:8px">${((S.dg.msgs)||[]).slice(-20).map(m=>`<div style="margin:3px 0"><b>${esc(m.name||"?")}:</b> ${esc(m.text||"")}</div>`).join("")||'<span class="mut">قولوا هاي…</span>'}</div>
+  <div class="row" style="gap:6px">
+    <input id="dgLobbyChatIn" maxlength="200" placeholder="رسالة…" style="flex:1">
+    <button class="btn sm gold" data-act="dgLobbyChat">إرسال</button>
+  </div>
+</div>
 <button class="btn block ghost" style="margin-top:8px" data-act="dgLeave">خروج من الغرفة</button>
 </div>${studentNav()}`;
 }
@@ -4120,9 +4137,14 @@ function dgInitCanvas(){
     const seg={c:color(),w:color()==="#ffffff"?14:4,p:pts.slice(0,80)};
     pts=[];
     try{
+      if(S.dg&&S.dg.room){
+        const cur=(S.dg.room.strokes||[]).slice();
+        cur.push(seg);
+        S.dg.room.strokes=cur;
+      }
       const ref=doc(db,"dgRooms",S.dg.room.code);
       await updateDoc(ref,{strokes:arrayUnion(seg)});
-    }catch(e){console.error(e)}
+    }catch(e){console.error(e);try{toast("فشل إرسال الخط",true)}catch(_){}}
   }
   c.addEventListener("pointerup",endStroke);
   c.addEventListener("pointerleave",endStroke);
@@ -4140,22 +4162,56 @@ function dgListen(code){
     if(!snap.exists()){S.dg=null;S.view="games";render(true);return}
     const data={code:snap.id,...snap.data()};
     if(!S.dg)S.dg={};
-    const prevStrokes=((S.dg.room||{}).strokes||[]).length;
+    const prev=S.dg.room||{};
+    const prevStrokes=(prev.strokes||[]).length;
+    const prevStatus=prev.status;
+    const prevDrawer=prev.drawer;
+    const prevRound=prev.round;
+    const prevPlayers=JSON.stringify(Object.keys(prev.players||{}).sort());
+    const nextPlayers=JSON.stringify(Object.keys(data.players||{}).sort());
     S.dg.room=data;
+    const statusChanged=data.status!==prevStatus;
+    const turnChanged=data.drawer!==prevDrawer||data.round!==prevRound;
+    const playersChanged=prevPlayers!==nextPlayers;
+    const needFull=statusChanged||turnChanged||playersChanged||!document.getElementById("dgCanvas");
     if(data.status==="lobby")S.view="dgLobby";
     else if(data.status==="playing")S.view="dgPlay";
-    render(true);
-    if(data.status==="playing")setTimeout(function(){try{dgInitCanvas();if(((data.strokes||[]).length)!==prevStrokes||prevStrokes===0)dgRedraw()}catch(e){}},50);
-  },err=>{console.warn("dgListen",err);/* v180: منع أخطاء استماع صامتة */});
+    if(needFull){
+      render(true);
+      if(data.status==="playing")setTimeout(function(){try{dgInitCanvas();dgRedraw()}catch(e){}},40);
+    }else if(data.status==="playing"){
+      // تحديث الرسم فقط بدون إعادة بناء الصفحة — ده اللي بيخلي الخط يظهر لحظيًا عند المتفرج
+      try{
+        if(((data.strokes||[]).length)!==prevStrokes)dgRedraw();
+        const hintEl=document.getElementById("dgHint");
+        if(hintEl&&data.hint)hintEl.textContent=data.hint;
+        const sc=document.getElementById("dgScores");
+        if(sc&&data.scores){
+          const ids=Object.keys(data.players||{});
+          sc.innerHTML=ids.map(id=>{const p=data.players[id]||{};return `<span class="pill">${esc((p.name||"?").slice(0,10))}: <b>${(data.scores[id]||0)}</b></span>`}).join(" ");
+        }
+      }catch(e){console.warn(e)}
+    }
+  },err=>{console.warn("dgListen",err)});
   __dgMsgUnsub=onSnapshot(query(collection(db,"dgRooms",code,"msgs"),orderBy("ts","asc"),limit(40)),snap=>{
     if(!S.dg)S.dg={};
+    const prevLen=(S.dg.msgs||[]).length;
     S.dg.msgs=snap.docs.map(d=>({id:d.id,...d.data()}));
-    if(S.view==="dgPlay"){
-      const box=document.getElementById("dgMsgBox");
-      if(box){
-        box.innerHTML=(S.dg.msgs||[]).slice(-30).map(m=>`<div style="margin:4px 0"><b>${esc(m.name||"?")}:</b> ${esc(m.text||"")}</div>`).join("")||`<div class="mut">التخمينات هنا…</div>`;
-        box.scrollTop=box.scrollHeight;
-      }else render(true);
+    const box=document.getElementById("dgMsgBox");
+    if(box){
+      box.innerHTML=(S.dg.msgs||[]).slice(-40).map(m=>{
+        const ok=m.kind==="correct";
+        return `<div style="margin:5px 0;${ok?"color:var(--ok);font-weight:700":""}">${ok?"✔ ":""}<b>${esc(m.name||"?")}</b>${ok?"":":"} ${esc(m.text||"")}</div>`;
+      }).join("")||`<div class="mut">التخمينات هنا…</div>`;
+      box.scrollTop=box.scrollHeight;
+    }else if(S.view==="dgPlay"||S.view==="dgLobby"){
+      // لو مفيش صندوق رسائل في اللوبي هنحدّث العرض
+      if(S.view==="dgLobby")render(true);
+    }
+    // تنبيه عند تخمين صحيح جديد
+    if((S.dg.msgs||[]).length>prevLen){
+      const last=S.dg.msgs[S.dg.msgs.length-1];
+      if(last&&last.kind==="correct"){try{toast(last.text||"تخمين صحيح! 🎉")}catch(_){}}
     }
   },err=>{console.warn("dgMsgListen",err)});
 }
@@ -10901,17 +10957,21 @@ setInterval(ecFlush,5000);
 /* v115: تحديث تلقائي لسجل الأخطاء والأداء — مفيش زر «تحديث» لازم تتدوسه */
 setInterval(()=>{try{
   if(!S.isAdmin||document.hidden)return;
-  if((S.view==="admin"&&S.tab==="errors")||(S.view==="staff"&&S.stTab==="errors")){if(!S._errAutoBusy){S._errAutoBusy=1;ecLoad().catch(()=>{}).finally(()=>{S._errAutoBusy=0})}}
+  if((S.view==="admin"&&S.tab==="errors")||(S.view==="staff"&&S.stTab==="errors")){if(!S._errAutoBusy){S._errAutoBusy=1;ecLoad(false).catch(()=>{}).finally(()=>{S._errAutoBusy=0})}}
   if(S.view==="admin"&&S.tab==="perf"){if(!S._pfAutoBusy){S._pfAutoBusy=1;pfLoadRemote((S.pf&&S.pf.day)||PF_DAY()).catch(()=>{}).finally(()=>{S._pfAutoBusy=0})}}
-}catch(_){}},45000);
+}catch(_){}},90000);
 
-async function ecLoad(){
+async function ecLoad(force){
+  /* v183: كاش 25 ثانية + limit 60 لتقليل بطء getDocs errorLogs */
   try{
-    const s=await getDocs(query(collection(db,"errorLogs"),orderBy("createdAt","desc"),limit(100)));
-    S.errLogs=s.docs.map(d=>({id:d.id,...d.data()}));S.errMsg="";
+    if(!force&&S._errLoadedAt&&(Date.now()-S._errLoadedAt)<25000&&Array.isArray(S.errLogs)&&S.errLogs.length){
+      if((S.view==="admin"||S.view==="staff")&&["errors","health"].includes(S.tab))render();
+      return;
+    }
+    const s=await getDocs(query(collection(db,"errorLogs"),orderBy("createdAt","desc"),limit(60)));
+    S.errLogs=s.docs.map(d=>({id:d.id,...d.data()}));S.errMsg="";S._errLoadedAt=Date.now();
   }catch(e){S.errLogs=[];S.errMsg=(e&&e.code)||"error"}
   if(!S._errClean){S._errClean=1;ecCleanup()}
-  /* v132: أي خطأ مفتوح من إصدار أقدم من الحالي بيتعلّم Fixed تلقائياً (لو اتكرر هيتسجل تاني بإصدار جديد) */
   try{if(S.isAdmin&&S.errLogs&&S.errLogs.length)await A.errMarkStaleFixed(true)}catch(_){}
   if((S.view==="admin"||S.view==="staff")&&["errors","health"].includes(S.tab))render();
 }
@@ -14583,6 +14643,16 @@ Object.assign(A,{
       const r=S.dg&&S.dg.room;if(!r||r.drawer!==S.user.uid)return;
       await updateDoc(doc(db,"dgRooms",r.code),{strokes:[]});
     }catch(e){}
+  },
+  async dgLobbyChat(){
+    try{
+      const r=S.dg&&S.dg.room;if(!r||!S.user)return;
+      const el=document.getElementById("dgLobbyChatIn");
+      const text=(el&&el.value||"").trim();if(!text)return;
+      if(el)el.value="";
+      const name=(S.profile&&S.profile.name)||"لاعب";
+      await addDoc(collection(db,"dgRooms",r.code,"msgs"),{uid:S.user.uid,name:String(name).slice(0,60),text:String(text).slice(0,200),kind:"text",ts:serverTimestamp()});
+    }catch(e){toast("فشل إرسال الرسالة",true)}
   },
   async dgGuess(){
     try{
