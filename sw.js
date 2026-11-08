@@ -1,4 +1,4 @@
-/* التفوق SW — v206 — CACHE=eltafawoq-v206 + توافق مع أي eltafawoq-v* (حتى v مليون) + أوفلاين دائم */
+/* التفوق SW — v208 — CACHE=eltafawoq-v208 + توافق مع أي eltafawoq-v* (حتى v مليون) + أوفلاين دائم */
 /* v204: «آخر واحد واقف» الجماعية جوّه الغرف (losRoomSync/losRoomResolve/losRoomPlay/losRoomResult) — الغلط أو الوقت بيقصّ والكل صح بيقصّ أبطأ واحد · v203: لعبة الروبوت + روابط ?game=dg / ?game=los — push.html بقى مدخل بيتحوّل للمنصة */
 /* v115-fix: PETS كان ناقص تعريفه من إصدارات → ReferenceError وقت الـ install → الـ SW مش بيتسجل خالص.
    هرّوا دلوقتي (موديلات الرفاق 3D) — Promise.allSettled بيتجاهل أي ملف مش موجود بأمان */
@@ -8,11 +8,11 @@
 /* v170: أيقونات الإشعارات متطابقة مع manifest (QG30M) — كانت icon-192 القديمة (404 في الإشعارات) */
 
 const PETS = ["./pets/fox.glb","./pets/corgi.glb","./pets/hare.glb","./pets/sheep.glb","./pets/boar.glb"];
-/* اسم الكاش الحالي — ثابت على v180 للتوافق مع الأجهزة اللي عندها الكاش ده */
-const CACHE = "eltafawoq-v206";
+/* اسم الكاش الحالي — v208: أول تحميل بعد النشر بينضّف كاشات v206 والقديم تلقائيًا */
+const CACHE = "eltafawoq-v208";
 /* لا يُحذف كاش الأوفلاين عند التحديث؛ الإصدارات القديمة (v1…v مليون) بتترحّل هنا قبل المسح */
 const OFFLINE_CACHE = "eltafawoq-offline-v1";
-const BUILD = "20261110-v206";
+const BUILD = "20261111-v208";
 
 /* أي كاش إصدار واجهة: eltafawoq-v180 / v183 / v1000000 / v1.2-beta … */
 function isVersionCache(name) {
