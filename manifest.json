@@ -1,23 +1,75 @@
 {
-  "id": "/crispy-bassoon/",
-  "name": "التفوق",
+  "name": "منصة التفوق",
   "short_name": "التفوق",
-  "description": "منصة التفوق التعليمية — امتحانات، تقييمات، ألعاب وتواصل للطلاب",
+  "description": "منصة التفوق — تحدي الأوائل، ارسم وخمّن، سرعة ومزاح وتعليم ومكافآت. العب مع أصحابك لحظة بلحظة.",
   "lang": "ar",
   "dir": "rtl",
-  "start_url": "/crispy-bassoon/",
-  "scope": "/crispy-bassoon/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "orientation": "any",
-  "display_override": ["standalone", "minimal-ui"],
-  "background_color": "#07051A",
+  "orientation": "portrait",
+  "background_color": "#0B5D57",
   "theme_color": "#07051A",
-  "categories": ["education", "productivity"],
-  "prefer_related_applications": false,
+  "categories": [
+    "games",
+    "education",
+    "social"
+  ],
   "icons": [
-    {"src":"/crispy-bassoon/icons/eKXVc.png","sizes":"512x512","type":"image/png","purpose":"any"},
-    {"src":"/crispy-bassoon/icons/QG30M.png","sizes":"192x192","type":"image/png","purpose":"any"},
-    {"src":"/crispy-bassoon/icons/eKXVc.png","sizes":"512x512","type":"image/png","purpose":"maskable"},
-    {"src":"/crispy-bassoon/icons/QG30M.png","sizes":"192x192","type":"image/png","purpose":"maskable"}
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "ارسم وخمّن 🎨",
+      "short_name": "ارسم وخمّن",
+      "description": "ادخل لعبة الرسم والتخمين مباشرة",
+      "url": "./?game=dg",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "تحدي الأوائل 🏆",
+      "short_name": "تحدي الأوائل",
+      "url": "./?game=qb",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "آخر واحد واقف 🧍",
+      "short_name": "واقف",
+      "description": "باتل رويال تعليمي — المنطقة بتضيق وآخر واحد واقف يكسب",
+      "url": "./?game=los",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
   ]
 }

@@ -1,4 +1,5 @@
-/* التفوق SW — v184 — CACHE=eltafawoq-v180 + توافق مع أي eltafawoq-v* (حتى v مليون) + أوفلاين دائم */
+/* التفوق SW — v206 — CACHE=eltafawoq-v206 + توافق مع أي eltafawoq-v* (حتى v مليون) + أوفلاين دائم */
+/* v204: «آخر واحد واقف» الجماعية جوّه الغرف (losRoomSync/losRoomResolve/losRoomPlay/losRoomResult) — الغلط أو الوقت بيقصّ والكل صح بيقصّ أبطأ واحد · v203: لعبة الروبوت + روابط ?game=dg / ?game=los — push.html بقى مدخل بيتحوّل للمنصة */
 /* v115-fix: PETS كان ناقص تعريفه من إصدارات → ReferenceError وقت الـ install → الـ SW مش بيتسجل خالص.
    هرّوا دلوقتي (موديلات الرفاق 3D) — Promise.allSettled بيتجاهل أي ملف مش موجود بأمان */
 /* v131-fix: importScripts كان من غير try/catch — لو gstatic مش متاح (أول تحميل أوفلاين) الـ SW كله كان بيفشل
@@ -8,10 +9,10 @@
 
 const PETS = ["./pets/fox.glb","./pets/corgi.glb","./pets/hare.glb","./pets/sheep.glb","./pets/boar.glb"];
 /* اسم الكاش الحالي — ثابت على v180 للتوافق مع الأجهزة اللي عندها الكاش ده */
-const CACHE = "eltafawoq-v180";
+const CACHE = "eltafawoq-v206";
 /* لا يُحذف كاش الأوفلاين عند التحديث؛ الإصدارات القديمة (v1…v مليون) بتترحّل هنا قبل المسح */
 const OFFLINE_CACHE = "eltafawoq-offline-v1";
-const BUILD = "20261108-v180";
+const BUILD = "20261110-v206";
 
 /* أي كاش إصدار واجهة: eltafawoq-v180 / v183 / v1000000 / v1.2-beta … */
 function isVersionCache(name) {
@@ -104,7 +105,7 @@ self.addEventListener("install", (e) => {
     Promise.all([caches.open(CACHE), caches.open(OFFLINE_CACHE)]).then(([c, offline]) =>
       /* الملفات الأساسية تُحفظ في الكاش العادي والدائم؛ كل ملف مستقل حتى لا يفشل التثبيت كله. */
       Promise.allSettled(
-        ["./index.html", "./dg-game.html", "./manifest.json", "./sw.js"].concat(typeof PETS !== "undefined" ? PETS : []).map((u) =>
+        ["./index.html", "./dg-game.html", "./push.html", "./manifest.json", "./sw.js"].concat(typeof PETS !== "undefined" ? PETS : []).map((u) =>
           Promise.all([c.add(u).catch(() => {}), offline.add(u).catch(() => {})])
         )
       )
