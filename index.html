@@ -7670,10 +7670,10 @@ ${(p.badges||[]).length?`<div style="margin-top:10px;display:flex;flex-wrap:wrap
 <button class="btn sm" style="margin-top:10px" data-act="meChangePw">تغيير كلمة السر</button>
 </div>
 <div class="card"><b>استقرار المنصة ⚡</b>
-<p class="mut" style="margin:6px 0 8px">تجهيز الملفات مسبقًا يقلل التقطيع · التحديث مش بيفرض ريلود عليك</p>
+<p class="mut" style="margin:6px 0 8px">تجهيز الملفات مسبقًا يقلل التقطيع · التحديثات بتوصل لوحدها تلقائيًا من غير أي زر</p>
 ${S._preload&&S._preload.running?`<div class="preload-card" id="preloadBox">${preloadRunHtml(S._preload)}</div>`:S._preload&&S._preload.done?preloadDoneHtml(S._preload):""}
 <button class="btn block" data-act="preloadCritical" ${S._preload&&S._preload.running?"disabled":""}>${S._preload&&S._preload.done&&S._preload.fail?"🔁 إعادة محاولة الملفات الفاشلة":"📦 تجهيز للعب بدون تقطيع"}</button>
-`<div class="mut" style="margin-top:8px;font-size:12px;text-align:center">التحديثات بتوصل لوحدها تلقائيًا ✓</div>`
+<div class="mut" style="margin-top:8px;font-size:12px;text-align:center">التحديثات بتوصل لوحدها تلقائيًا ✓</div>
 <button class="btn block" style="margin-top:8px" data-act="openChecklist">🏁 قائمة القبول (مرحلة 13)</button>
 </div>
 <button class="btn ghost block" data-act="logout">تسجيل خروج</button>
