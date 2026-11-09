@@ -6503,6 +6503,13 @@ function dg207Enhance(){
       var fr2=isGB?bar.querySelector("form"):null;
       bar.insertBefore(mic,fr2||bar.firstChild);
     }
+    if(!bar.querySelector('[data-act="openSongs"]')){
+      /* v213: 🎵 يفتح مشغّل أغاني المنصة (نفس الأغاني اللي في قسم الأغاني) — التشغيل بيكمّل طول ما إنت في اللعبة */
+      var sg=document.createElement("button");
+      sg.type="button";sg.className=bar.classList.contains("dg2-guessbar")?"dg3-tb":"dg207-icbtn";sg.title="أغاني المنصة";sg.setAttribute("data-act","openSongs");sg.textContent="🎵";
+      var mic0=bar.querySelector('[data-act="dgMic"]');
+      bar.insertBefore(sg,mic0||bar.firstChild);
+    }
     if(!bar.querySelector('[data-act="dgEmoji"]')){
       var em=document.createElement("button");
       em.type="button";em.className="dg207-icbtn";em.title="ملصقات وإيموجي";em.setAttribute("data-act","dgEmoji");em.textContent="😊";
