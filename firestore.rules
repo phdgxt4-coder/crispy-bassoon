@@ -824,6 +824,30 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    /* ===== فيديوهات المنصة (روابط Catbox/خارجية) ===== */
+    match /videos/{vidId} {
+      allow read: if signedIn();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['title','url','desc','cover','hidden','ts','by','kind'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 160
+        && request.resource.data.url is string
+        && request.resource.data.url.size() > 8 && request.resource.data.url.size() <= 500
+        && request.resource.data.url.matches('https://.*')
+        && (!request.resource.data.keys().hasAny(['desc']) || (request.resource.data.desc is string && request.resource.data.desc.size() <= 1000))
+        && (!request.resource.data.keys().hasAny(['cover']) || (request.resource.data.cover is string && request.resource.data.cover.size() <= 500))
+        && (!request.resource.data.keys().hasAny(['kind']) || (request.resource.data.kind is string && request.resource.data.kind.size() <= 40))
+        && (!request.resource.data.keys().hasAny(['hidden']) || request.resource.data.hidden is bool);
+      allow update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['title','url','desc','cover','hidden','ts','by','kind'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 160
+        && request.resource.data.url is string
+        && request.resource.data.url.size() > 8 && request.resource.data.url.size() <= 500
+        && request.resource.data.url.matches('https://.*');
+      allow delete: if isAdmin();
+    }
+
     /* v138: الأدمن له صلاحية كاملة على أي مسار (بما فيها subcollections) —
        مطلوب لأداة النسخ الاحتياطي/الاستعادة الكاملة، وللوصول لبيانات زي starts بتاعة الطلاب.
        مفيش أي تغيير لصلاحيات الطلاب — اللي مش أدمن بيفضل ممنوع من المسار العام تحت. */

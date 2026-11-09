@@ -3367,7 +3367,7 @@ function render(force,soft){
   else if(modeOn()&&modeCur().kind!=="games"){h=modeView()}
   else{
     if(modeOn()&&!MODE_GAMEVIEWS.has(S.view))S.view="games";
-    const m={games:gamesView,checklist:checklistView,mathg:mathView,xo:xoView,hang:hangView,spin:spinView,react:reactView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,weakQuiz:weakQuizView,flash:flashView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,losSetup:losSetupView,losPlay:losPlayView,losResult:losResultView,losRoomPlay:losRoomPlayView,losRoomResult:losRoomResultView,me:meView,life:lifeView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View,staff:staffView,tanagha:tanaghaView,gallery:galleryView,groups:groupsView,groupThread:groupThreadView,ai:aiView,books:booksView,bag:bagView,focus:focusView,notes:notesView,cert:certView,board:boardView,dgOpen:dgOpenView,dgLobby:dgLobbyView,dgPick:dgPickView,dgPlay:dgPlayView,dgReveal:dgRevealView,dgEnd:dgEndView};
+    const m={games:gamesView,checklist:checklistView,mathg:mathView,xo:xoView,hang:hangView,spin:spinView,react:reactView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,weakQuiz:weakQuizView,flash:flashView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,losSetup:losSetupView,losPlay:losPlayView,losResult:losResultView,losRoomPlay:losRoomPlayView,losRoomResult:losRoomResultView,me:meView,videos:videosView,life:lifeView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View,staff:staffView,tanagha:tanaghaView,gallery:galleryView,groups:groupsView,groupThread:groupThreadView,ai:aiView,books:booksView,bag:bagView,focus:focusView,notes:notesView,cert:certView,board:boardView,dgOpen:dgOpenView,dgLobby:dgLobbyView,dgPick:dgPickView,dgPlay:dgPlayView,dgReveal:dgRevealView,dgEnd:dgEndView};
     let fn=m[S.view];
     {const __ft=featOfView(S.view);if(__ft&&!featOn(__ft))fn=featOffView}
     if(S.view==="tanaghaLock"||(isTgView(S.view)&&tanaghaState(S.profile)!=="approved"))fn=tanaghaLockedView;
@@ -7649,6 +7649,7 @@ ${(p.badges||[]).length?`<div style="margin-top:10px;display:flex;flex-wrap:wrap
 </div>
 <div class="card"><button class="btn block mora-btn" data-act="openMora">🌐 المتصفح</button><p class="mut" style="margin:8px 0 0;text-align:center">تصفّح المواقع والألعاب جوه المنصة</p></div>
 <div class="card"><button class="btn block gold" data-act="openSongs">🎵 الأغاني</button><p class="mut" style="margin:8px 0 0;text-align:center">مشغّل مستقل — بيكمّل في الخلفية</p></div>
+<div class="card"><button class="btn block" data-act="openVideos" style="background:linear-gradient(135deg,#0B5D57,#1a8f7f);color:#fff">🎬 الفيديوهات</button><p class="mut" style="margin:8px 0 0;text-align:center">دروس وأغاني مصوّرة</p></div>
 <div class="card"><button class="btn block" data-act="openCert" style="background:linear-gradient(135deg,#1a0a3e,#0B5D57);color:#fff;border:0">شهادتي</button><p class="mut" style="margin:8px 0 0;text-align:center">شهادة إنجاز PDF / صورة</p></div>
 <div class="card"><button class="btn block" data-act="openBoard">السبورة</button><p class="mut" style="margin:8px 0 0;text-align:center">ارسم وحمّل الرسمة</p></div>
 <div class="card"><b>الإشعارات</b>
@@ -8625,6 +8626,84 @@ ${list.map(card).join("")}
 ${modeSharedCard()}`;
 }
 
+
+/* ===== فيديوهات المنصة (Catbox / روابط مباشرة) ===== */
+async function vidLoad(force){
+  if(VID.loaded&&!force)return VID.list;
+  try{
+    const sn=await getDocs(query(collection(db,"videos"),limit(100)));
+    VID.list=sn.docs.map(d=>Object.assign({id:d.id},d.data())).sort((a,b)=>(b.ts||0)-(a.ts||0));
+    VID.loaded=true;VID.err="";
+  }catch(e){
+    VID.err=(e&&e.code)||"error";
+    console.warn("vidLoad",e);
+  }
+  return VID.list;
+}
+function vidIsOkUrl(u){
+  u=String(u||"").trim();
+  if(!/^https:\/\//i.test(u)||u.length>500)return false;
+  /* Catbox + litterbox + generic https video links */
+  return true;
+}
+function adminVideos(){
+  if(!VID.loaded&&!VID._adm){VID._adm=1;vidLoad(true).then(()=>{VID._adm=0;if(S.isAdmin&&S.tab==="videos")render(true)})}
+  const l=VID.list||[];
+  return `<div class="card"><h3>🎬 مكتبة الفيديوهات</h3>
+<p class="mut">ارفع الفيديو على <b>Catbox</b> (أو أي استضافة) وانسخ الرابط المباشر هنا. مناسب لفيديوهات لحد 100 ميجا وأكتر من غير ما تستهلك Firebase.</p>
+<div class="card" style="margin-top:10px;background:rgba(47,181,168,.08);border-color:rgba(47,181,168,.25)">
+<label class="f">عنوان الفيديو</label>
+<input id="vidTitle" maxlength="120" placeholder="مثال: درس الموجات / أغنية حماسية">
+<label class="f" style="margin-top:8px">رابط الفيديو (Catbox)</label>
+<input id="vidUrl" class="ltr" maxlength="500" placeholder="https://files.catbox.moe/xxxx.mp4" dir="ltr">
+<label class="f" style="margin-top:8px">وصف (اختياري)</label>
+<input id="vidDesc" maxlength="300" placeholder="سطرين عن الفيديو">
+<label class="f" style="margin-top:8px">صورة غلاف (رابط اختياري)</label>
+<input id="vidCover" class="ltr" maxlength="500" placeholder="https://files.catbox.moe/cover.jpg" dir="ltr">
+<label class="f" style="margin-top:8px">التصنيف</label>
+<select id="vidKind"><option value="lesson">درس</option><option value="song">أغنية / ترفيه</option><option value="other">أخرى</option></select>
+<button class="btn gold block" style="margin-top:12px" data-act="videoAdd">＋ نشر فيديو</button>
+</div>
+<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px">
+<button class="btn ghost" data-act="openVideos">▶ فتح مكتبة الطلاب</button>
+<button class="btn ghost" data-act="videosReload">↻ تحديث</button>
+</div></div>
+<div class="card"><b>الفيديوهات المنشورة (${l.length})</b>
+${l.length?l.map((x,i)=>`<div class="row" style="padding:10px 0;border-bottom:1px solid var(--line);align-items:flex-start;gap:10px">
+${x.cover?`<img src="${esc(x.cover)}" alt="" style="width:72px;height:48px;object-fit:cover;border-radius:10px;flex:0 0 auto">`: `<div style="width:72px;height:48px;border-radius:10px;background:linear-gradient(135deg,#1a2744,#0d3d38);display:grid;place-items:center;flex:0 0 auto">🎬</div>`}
+<div style="flex:1;min-width:0"><b>${esc(x.title||"فيديو")}</b>
+<div class="mut" style="font-size:12px">${x.kind==="song"?"🎵 أغنية":x.kind==="lesson"?"📚 درس":"🎬"} · ${x.hidden?"مخفي":"منشور"}</div>
+${x.desc?`<div class="mut" style="font-size:12px;margin-top:2px">${esc(x.desc)}</div>`:""}
+<div class="mut ltr" style="font-size:11px;direction:ltr;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.url||"")}</div>
+<div class="row" style="gap:6px;margin-top:6px;flex-wrap:wrap">
+<button class="btn sm ghost" data-act="videoToggle" data-i="${i}">${x.hidden?"إظهار":"إخفاء"}</button>
+<button class="btn sm danger" data-act="videoDel" data-i="${i}">🗑 حذف</button>
+</div></div></div>`).join(""):`<div class="mut" style="text-align:center;padding:16px 0">${VID.err?"تعذّر التحميل ("+esc(VID.err)+") — انشر قواعد Firestore الجديدة":VID.loaded?"لسه مفيش فيديوهات — انشر أول رابط Catbox":"جاري التحميل…"}</div>`}
+</div>`;
+}
+function videosView(){
+  if(!VID.loaded&&!VID._stu){VID._stu=1;vidLoad(true).then(()=>{VID._stu=0;if(S.view==="videos")render(true)})}
+  const all=(VID.list||[]).filter(x=>!x.hidden);
+  const cur=VID.cur?all.find(x=>x.id===VID.cur):null;
+  return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="openMe">رجوع</button>`)}
+<h2 style="margin:4px 0 8px">🎬 فيديوهات المنصة</h2>
+<p class="mut" style="margin:0 0 12px">دروس وأغاني وفيديوهات رفعها الأدمن</p>
+${cur?`<div class="card" style="padding:0;overflow:hidden;border-radius:18px">
+<video id="vidPlayer" controls playsinline preload="metadata" poster="${esc(cur.cover||"")}" style="width:100%;max-height:52vh;background:#000;display:block" src="${esc(cur.url)}"></video>
+<div style="padding:12px 14px"><b style="font-size:16px">${esc(cur.title)}</b>
+${cur.desc?`<div class="mut" style="margin-top:4px">${esc(cur.desc)}</div>`:""}
+</div></div>`:""}
+<div style="display:grid;gap:10px;margin-top:12px">
+${all.length?all.map(x=>`<button type="button" class="card" data-act="videoPlay" data-id="${esc(x.id)}" style="text-align:right;padding:10px;display:flex;gap:12px;align-items:center;border:${VID.cur===x.id?"2px solid var(--gold)":"1px solid var(--line)"}">
+${x.cover?`<img src="${esc(x.cover)}" alt="" style="width:96px;height:64px;object-fit:cover;border-radius:12px;flex:0 0 auto">`:`<div style="width:96px;height:64px;border-radius:12px;background:linear-gradient(135deg,#243056,#0f3f3a);display:grid;place-items:center;font-size:28px;flex:0 0 auto">🎬</div>`}
+<span style="flex:1;min-width:0"><b>${esc(x.title)}</b>
+<div class="mut" style="font-size:12px;margin-top:2px">${x.kind==="song"?"🎵 أغنية / ترفيه":x.kind==="lesson"?"📚 درس":"🎬 فيديو"}${x.desc?" · "+esc(String(x.desc).slice(0,60)):""}</div>
+</span><span style="font-size:22px;opacity:.7">${VID.cur===x.id?"▶":"▷"}</span>
+</button>`).join(""):`<div class="card empty"><div class="ei">🎬</div><b>مفيش فيديوهات لسه</b><div class="mut" style="margin:8px 0">الأدمن لما ينشر هتظهر هنا</div></div>`}
+</div>
+</div>${studentNav()}`;
+}
+
 function adminSongs(){
   if(!MUS.loaded&&!MUS._adm){MUS._adm=1;musLoad(true).then(()=>{MUS._adm=0;if(S.isAdmin&&S.tab==="songs")render(true)})}
   const l=MUS.list||[];
@@ -8640,7 +8719,7 @@ function adminView(){
     {id:"home",ic:"🏠",title:"الرئيسية والنشاط",d:"ملخص · مباشر · نشاط",items:[["dash","الرئيسية"],["live","مباشر"],["activity","نشاط"]]},
     {id:"content",ic:"📚",title:"المحتوى",d:"امتحانات · تقييمات · كتب · فضايح",items:[["exams","امتحانات"],["asm","تقييمات"],["books","كتب"],["fadaye7","فضايح 😂"],["tanagha","التناغه 💗"]]},
     {id:"students",ic:"👥",title:"الطلاب",d:"حسابات · نتايج · طلبات · تنبيهات",items:[["students","طلاب"],["results","نتايج"],["tgreq","طلبات التناغه"],["alerts","تنبيهات"],["suspicious","احتيالي"]]},
-    {id:"songs",ic:"🎵",title:"الأغاني",d:"رفع وحذف الأغاني",items:[["songs","الأغاني"]]},
+    {id:"songs",ic:"🎵",title:"الأغاني والفيديوهات",d:"أغاني · فيديوهات Catbox",items:[["songs","الأغاني"],["videos","الفيديوهات"]]},
     {id:"control",ic:"🎛",title:"التحكم في المنصة",d:"أوضاع · قفل أقسام · إعدادات · متجر",items:[["modes","🎛 الأوضاع"],["status","حالة المنصة"],["security","🛡 الأمان وقفل الأقسام"],["settings","إعدادات"],["shopadm","🛒 المتجر"],["agent","🤖 الوكيل"]]},
     {id:"tools",ic:"🔧",title:"الصيانة والتشخيص",d:"أخطاء · أداء · نسخ احتياطي · مسؤولين",items:[["errors","🔴 الأخطاء"],["review","🔍 مراجعة شاملة"],["health","📊 صحة المنصة"],["perf","⚡ الأداء"],["devtools","🧰 أدوات المطور"],["backup","💾 نسخ احتياطي"],["managers","المسؤولين"]]}
   ];
@@ -8652,7 +8731,7 @@ function adminView(){
 ${modeCur().kind!=="platform"?`<div class="card" style="margin:0 0 12px;border-color:var(--gold);background:var(--ybg)"><div class="row"><span><b>🎛 الوضع الشغّال للطلاب: ${modeCur().ic} ${esc(modeCur().n)}</b><div class="mut" style="font-size:12px">وضع المنصة مقفول عليهم دلوقتي</div></span><button class="btn sm gold" data-act="setMode" data-id="platform">رجّع وضع المنصة</button></div></div>`:""}
 ${S.site.maintenance?`<div class="err" style="margin:0 0 12px">وضع الصيانة شغّال. الطلاب شايفين "المنصة تحت التعديل".</div>`:""}
 ${S.admMenu===true?"":`<div class="adm-bar"><button class="btn sm gold" data-act="admMenu">☰ كل الأقسام</button><b>${(curG||{}).ic||""} ${(curG||{}).title||""}</b></div>${curG&&curG.items.length>1?`<nav class="adm-nav" aria-label="أقسام الأدمن"><div class="tabs" style="margin-bottom:0;display:flex;gap:6px">${curG.items.map(([k,v])=>`<button class="tab ${t===k?"on":""}" data-act="tab" data-id="${k}">${v}${bd[k]?`<span class="badge">${bd[k]}</span>`:""}</button>`).join("")}</div></nav>`:""}`}
-${S.admMenu===true?menuHtml:({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,tanagha:adminTanagha,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,suspicious:adminSuspicious,managers:adminManagers,security:adminSecurity,tgreq:adminTgReq,settings:adminSettings,shopadm:adminShop,agent:adminAgent,modes:adminModes,songs:adminSongs,errors:adminErrors,health:adminHealth,perf:adminPerf,backup:adminBackup,devtools:adminDev,review:adminReview}[t]||adminDash)()}
+${S.admMenu===true?menuHtml:({dash:adminDash,live:adminLive,status:adminPlatformStatus,activity:adminActivity,exams:adminExams,asm:adminAsm,fadaye7:adminFadaye7,tanagha:adminTanagha,books:adminBooks,students:adminStudents,results:adminResults,alerts:adminAlerts,suspicious:adminSuspicious,managers:adminManagers,security:adminSecurity,tgreq:adminTgReq,settings:adminSettings,shopadm:adminShop,agent:adminAgent,modes:adminModes,songs:adminSongs,videos:adminVideos,errors:adminErrors,health:adminHealth,perf:adminPerf,backup:adminBackup,devtools:adminDev,review:adminReview}[t]||adminDash)()}
 ${t==="exams"?`<button class="fab" data-act="newExam" aria-label="امتحان جديد">+</button>`:""}
 
 </div>`}
@@ -15855,6 +15934,8 @@ window.__modalBack=function(){
 
 /* ================= مكتبة الأغاني ================= */
 const MUS={ctx:null,gain:null,graph:false,list:[],cur:-1,au:null,tok:0,loading:false,rep:0,shuf:false,panel:false,loaded:0,blobUrl:"",seeking:false,unlocked:false,pf:-1,posT:0,auto:true,autoTried:false,pendingT:null,globalVol:100};
+const VID={list:[],loaded:false,err:"",cur:null,playing:null};
+
 function musAutoAllowed(){try{return localStorage.getItem("mus_autoplay")!=="0"}catch(_){return true}}
 function musRememberAuto(){try{localStorage.setItem("mus_autoplay","1")}catch(_){}MUS.auto=true}
 async function musAutoStart(){
@@ -16497,6 +16578,36 @@ async function musWarm(){
   try{for(const s of MUS.list.slice(0,8)){try{if(s.url||!s.parts)continue;if(await musHasLocal(s.id))continue;await musFetchBlob(s)}catch(_){/* ملف واحد تالف لا يعطّل تجهيز باقي الأغاني */}}}catch(_){}
   __warmBusy=0;
 }
+
+
+Object.assign(A,{
+  openVideos(){S.view="videos";VID.cur=null;vidLoad(false).then(()=>render(true));render(true)},
+  videosReload(){vidLoad(true).then(()=>{toast("اتحدّثت القايمة ✓",true);render(true)})},
+  videoPlay(d){VID.cur=d.id||d;S.view="videos";render(true);setTimeout(()=>{try{const v=document.getElementById("vidPlayer");if(v){v.play().catch(()=>{})}}catch(_){}},200)},
+  async videoAdd(){
+    const title=(document.getElementById("vidTitle")&&document.getElementById("vidTitle").value||"").trim();
+    const url=(document.getElementById("vidUrl")&&document.getElementById("vidUrl").value||"").trim();
+    const desc=(document.getElementById("vidDesc")&&document.getElementById("vidDesc").value||"").trim();
+    const cover=(document.getElementById("vidCover")&&document.getElementById("vidCover").value||"").trim();
+    const kind=(document.getElementById("vidKind")&&document.getElementById("vidKind").value)||"lesson";
+    if(!title){toast("اكتب عنوان للفيديو");return}
+    if(!vidIsOkUrl(url)){toast("حط رابط https صحيح من Catbox");return}
+    try{
+      await addDoc(collection(db,"videos"),{title:title.slice(0,160),url:url.slice(0,500),desc:desc.slice(0,300),cover:cover.slice(0,500),kind,hidden:false,ts:Date.now(),by:(S.user&&S.user.uid)||""});
+      toast("الفيديو اتنشر ✓",true);
+      await vidLoad(true);render(true);
+    }catch(e){console.warn(e);toast("فشل النشر: "+((e&&e.code)||e.message||"")+" — انشر قواعد Firestore")}
+  },
+  async videoDel(d){
+    const x=(VID.list||[])[+d.i];if(!x)return;
+    if(!confirm("تحذف «"+(x.title||"فيديو")+"»؟"))return;
+    try{await deleteDoc(doc(db,"videos",x.id));toast("اتحذف");await vidLoad(true);render(true)}catch(e){toast("فشل الحذف")}
+  },
+  async videoToggle(d){
+    const x=(VID.list||[])[+d.i];if(!x)return;
+    try{await updateDoc(doc(db,"videos",x.id),{hidden:!x.hidden});await vidLoad(true);render(true)}catch(e){toast("فشل التعديل")}
+  }
+});
 
 Object.assign(A,{openMora(){moraOpen()},closeMora(){moraClose()},openSongs(){sgOpen(false)},
   songUpload(){sgOpen(false);setTimeout(()=>{try{sgSheet()}catch(_){}},150)},
