@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v213">
+<meta name="sw-build" content="v214">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v213";/* v213: ارسم وخمّن — (1) الملصقات المخصصة والمرسومة كانت بتترفض من قواعد Firestore (مطابقة regex غلط) · (2) تصحيح التخمينات مبقاش بيفوّت تخمين لو وصل وقت ما الرسام بيصحّح غيره + تجاهل تخمينات الجولات القديمة · (3) الرسم اللحظي: استماع بالدور فقط + الخط مبيختفيش لحظة الإرسال + مقاس الكانفاس بيتظبط تلقائيًا · (4) الكتابة في الشات مبتضيعش مع إعادة رسم الشاشة · (5) لو الرسام خرج وسط الدور الجولة بتتكشف تلقائيًا · (6) زر ابدأ محمي من الضغط المزدوج · (7) رسائل خطأ واضحة بدل «فشل» · (8) أزرار الإيموجي/المايك لم تعد تتكرر عند المخمّن · (9) حذف رسائل الغرف المنتهية (ساعة) من السيرفر · v212: إصلاح جذري للرسم (Nested arrays → strokes subcollection لحظي) · توقيت موحّد · انضمام/خروج بدون سباق · ملصقات مخصصة أخف وآمنة · رسائل الشات تتحذف بعد ساعة (expireAt) · v211: إصلاح «dgRoom is not defined» (كان بيكسر إرسال الملصقات والملصقات المخصصة والمايك) + إصلاح N (الاهتزاز) · الرد على رسالة بقى مسموح في القواعد · ملصق من صورة الفون (من المعرض/الكاميرا) مع إمكانية الرسم فوقها · حدود أكبر: ملصقاتي 50، لاعبين لحد 40، جولات لحد 30، وقت الرسم لحد 300 ث، شات 100 رسالة، رسالة صوتية 90 ث · v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
+<script>window.APP_BUILD="v214";/* v214: (1) شاشة اختيار الكلمة كانت بتعلّق لأن المؤقّت مكانش بيشتغل غير أثناء الرسم — اتصلّح (2) تنبيه لو فيه لاعبين مش مستعدين قبل البدء (3) تحذير لو لاعب نسخته قديمة + زر تحديث فوري (4) ملصقات: قاعدة آمنة بدل regex (5) ملخّص «جاهزين X من Y» في اللوبي · v213: ارسم وخمّن — (1) الملصقات المخصصة والمرسومة كانت بتترفض من قواعد Firestore (مطابقة regex غلط) · (2) تصحيح التخمينات مبقاش بيفوّت تخمين لو وصل وقت ما الرسام بيصحّح غيره + تجاهل تخمينات الجولات القديمة · (3) الرسم اللحظي: استماع بالدور فقط + الخط مبيختفيش لحظة الإرسال + مقاس الكانفاس بيتظبط تلقائيًا · (4) الكتابة في الشات مبتضيعش مع إعادة رسم الشاشة · (5) لو الرسام خرج وسط الدور الجولة بتتكشف تلقائيًا · (6) زر ابدأ محمي من الضغط المزدوج · (7) رسائل خطأ واضحة بدل «فشل» · (8) أزرار الإيموجي/المايك لم تعد تتكرر عند المخمّن · (9) حذف رسائل الغرف المنتهية (ساعة) من السيرفر · v212: إصلاح جذري للرسم (Nested arrays → strokes subcollection لحظي) · توقيت موحّد · انضمام/خروج بدون سباق · ملصقات مخصصة أخف وآمنة · رسائل الشات تتحذف بعد ساعة (expireAt) · v211: إصلاح «dgRoom is not defined» (كان بيكسر إرسال الملصقات والملصقات المخصصة والمايك) + إصلاح N (الاهتزاز) · الرد على رسالة بقى مسموح في القواعد · ملصق من صورة الفون (من المعرض/الكاميرا) مع إمكانية الرسم فوقها · حدود أكبر: ملصقاتي 50، لاعبين لحد 40، جولات لحد 30، وقت الرسم لحد 300 ث، شات 100 رسالة، رسالة صوتية 90 ث · v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -2115,6 +2115,9 @@ html.lite .card,html.lite .dlg,html.lite .btn.ghost{
 .mem-back{background:var(--card);border:1.5px solid var(--line);transform:rotateY(180deg)}
 .mem-card.done .mem-back{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 14%,var(--card));animation:memPop .45s cubic-bezier(.3,1.5,.5,1)}
 @keyframes memPop{0%{transform:rotateY(180deg) scale(.75)}55%{transform:rotateY(180deg) scale(1.12)}100%{transform:rotateY(180deg) scale(1)}}
+.dg214-ready{display:flex;flex-direction:column;gap:2px;align-items:center;margin:10px 0;padding:10px 14px;border-radius:14px;background:color-mix(in srgb,var(--pri) 10%,var(--card));border:1px solid var(--line)}
+.dg214-ready small{color:var(--mut);font-size:12px}
+.dg214-warn{margin:8px 0;padding:10px 14px;border-radius:14px;background:color-mix(in srgb,#f59e0b 16%,var(--card));border:1px solid color-mix(in srgb,#f59e0b 50%,var(--line));font-size:13px;line-height:1.7;text-align:center}
 </style>
 </head>
 <body>
@@ -3392,7 +3395,7 @@ function render(force,soft){
   try{if(typeof fadSentinel==="function")fadSentinel()}catch(_){}
   try{if(S.view==="cert")setTimeout(function(){try{certDraw()}catch(e){}},40)}catch(_){}
   try{if(S.view==="board")setTimeout(function(){try{wbInit()}catch(e){}},40)}catch(_){}
-  try{if(S.view==="dgPlay")setTimeout(function(){try{dgInitCanvas();dgRedraw();dgStartTimer()}catch(e){}},40)}catch(_){}
+  try{if(S.view==="dgPlay")setTimeout(function(){try{dgInitCanvas();dgRedraw();dgStartTimer()}catch(e){}},40);else if(S.view==="dgPick"||S.view==="dgReveal")setTimeout(function(){try{dgStartTimer()}catch(e){}},40)}catch(_){}
   try{app.classList.toggle("noanim",!__newView)}catch(_){}
   try{
     let cr=document.getElementById("credit");
@@ -4821,6 +4824,24 @@ function dgMe(){try{return (S&&S.user&&S.user.uid)||null}catch(_){return null}}
 function dgMeName(){return String((S.profile&&S.profile.name)||"لاعب").slice(0,40)}
 /* v212: وقت موحّد لكل اللاعبين (ساعة الجهاز ممكن تكون متقدمة/متأخرة) — الفرق بيتحسب من updatedAt بتاع السيرفر */
 function dgNow(){return Date.now()+(window.__dgOff||0)}
+/* v214: ملخّص الاستعداد + تحذير النسخ القديمة في لوبي الغرفة */
+function dgVerNum(v){var m=String(v||"").match(/\d+/);return m?+m[0]:0}
+function dgLobbyInfo(r){
+  try{
+    var me=dgMe(),ppl=r.players||{},ids=Object.keys(ppl),ready=0,notReady=[],old=[],newer=false,mine=dgVerNum(window.APP_BUILD);
+    ids.forEach(function(id){
+      var p=ppl[id]||{};
+      if(p.ready||id===r.host)ready++;else notReady.push(String(p.name||"لاعب").slice(0,14));
+      var v=dgVerNum(p.ver);
+      if(id!==me&&v<mine)old.push(String(p.name||"لاعب").slice(0,14));
+      if(v>mine)newer=true;
+    });
+    var h='<div class="dg214-ready"><b>'+(ready>=ids.length?'✅ الكل جاهز':'⏳ جاهزين '+ready+' من '+ids.length)+'</b>'+(notReady.length&&ready<ids.length?'<small>لسه: '+esc(notReady.join("، "))+'</small>':'')+'</div>';
+    if(newer)h+='<div class="dg214-warn">⬆️ فيه نسخة أحدث من اللعبة — <button type="button" class="btn sm gold" data-act="dgUpdateNow">حدّث دلوقتي</button></div>';
+    if(old.length&&r.host===me)h+='<div class="dg214-warn">⚠️ نسخة '+esc(old.join("، "))+' قديمة — خليه يقفل الموقع ويفتحه تاني (أو يمسح بيانات الموقع) عشان الرسم والملصقات يظهروا عنده.</div>';
+    return h;
+  }catch(_e){return ""}
+}
 /* v213: رسالة خطأ واضحة لفشل الإرسال (القواعد/الحجم/النت) بدل «فشل» العامة */
 function dgMsgErr(e,fb){
   try{console.warn(e)}catch(_){}
@@ -5140,8 +5161,8 @@ dgListen=function(code){
     var view=dgRouteStatus(data.status);
     var playersSig=JSON.stringify(Object.keys(data.players||{}).sort());
     /* FIX-B/C: توقيعات الاستعداد والنقاط والتلميح — عشان الشاشة تتحرك لحظيًا من غير إعادة رسم الكانفاس */
-    var readySig=JSON.stringify(Object.keys(data.players||{}).sort().map(function(id){return !!((data.players[id]||{}).ready)}));
-    var prevReadySig=JSON.stringify(Object.keys(prev.players||{}).sort().map(function(id){return !!((prev.players[id]||{}).ready)}));
+    var readySig=JSON.stringify(Object.keys(data.players||{}).sort().map(function(id){return (!!((data.players[id]||{}).ready))+"|"+((data.players[id]||{}).ver||"")}));
+    var prevReadySig=JSON.stringify(Object.keys(prev.players||{}).sort().map(function(id){return (!!((prev.players[id]||{}).ready))+"|"+((prev.players[id]||{}).ver||"")}));
     var scoresSig=JSON.stringify(data.scores||{}),prevScoresSig=JSON.stringify(prev.scores||{});
     var hintSig=String(data.hint||""),prevHintSig=String(prev.hint||"");
     var structural=data.status!==prev.status||drawer!==prevDrawer||(data.round!==prev.round)||playersSig!==JSON.stringify(Object.keys(prev.players||{}).sort())||S.view!==view||(view==="dgPlay"&&!document.getElementById("dgCanvas"));
@@ -5161,7 +5182,7 @@ dgListen=function(code){
     else if(view==="dgPlay"&&((data.strokes||[]).length)!==prevStrokesN){try{dgRedraw()}catch(_e){}}
     else if(view==="dgLobby"&&readySig!==prevReadySig){try{render(true)}catch(_e){}}
     else if(view==="dgPlay"&&(scoresSig!==prevScoresSig||hintSig!==prevHintSig)){try{dgSyncHud(data)}catch(_e){}}
-    if(view==="dgPlay"){try{dgStartTimer()}catch(_e){}}
+    if(view==="dgPlay"||view==="dgPick"||view==="dgReveal"){try{dgStartTimer()}catch(_e){}}
     if(view==="dgReveal"){if(data.host===me){clearTimeout(window.__dgAutoNext);window.__dgAutoNext=setTimeout(function(){try{A.dgNext()}catch(_e){}},6500)}}
     else{try{clearTimeout(window.__dgAutoNext)}catch(_e){}} /* FIX-D: لو خرجنا من الكشف قبل المؤجّل → الغِه */
     if(view==="dgEnd")dgCelebrate(data);
@@ -5228,7 +5249,7 @@ dgListen=function(code){
   window.__dgGuessUnsub=onSnapshot(query(collection(db,"dgRooms",code,"guesses"),where("result","==",null),limit(30)),function(sn){gLatest=sn.docs;gRun()},function(){});
   /* نبض حضور */
   var beat=function(){try{var r=S.dg&&S.dg.room;if(!r||!r.players||!r.players[me])return;
-    updateDoc(doc(db,"dgRooms",r.code),(function(){var p={};p["players."+me+".lastSeen"]=Date.now();p["players."+me+".seen"]=Date.now();return p})()).catch(function(){})
+    updateDoc(doc(db,"dgRooms",r.code),(function(){var p={};p["players."+me+".lastSeen"]=Date.now();p["players."+me+".seen"]=Date.now();p["players."+me+".ver"]=String(window.APP_BUILD||"");return p})()).catch(function(){})
   }catch(_e){}};
   window.__dgHb=setInterval(beat,25000);
   setTimeout(beat,800);
@@ -5276,7 +5297,7 @@ function dgPayRewards(r){
 
 /* ---------- 5) التايمر: عرض + سير المباراة الآمن ---------- */
 dgStartTimer=function(){
-  if(window.__dgTick)clearInterval(window.__dgTick);
+  if(window.__dgTick)return; /* v214: المؤقّت واحد بس — وبيشتغل في شاشات الاختيار/الرسم/الكشف (كان بيشتغل في الرسم بس فشاشة الاختيار كانت بتعلّق) */
   window.__dgTick=setInterval(function(){
     var r=S.dg&&S.dg.room;if(!r)return;
     var me=dgMe(),now=dgNow();
@@ -5625,6 +5646,16 @@ A.dgStartGame=async function(){
   if(window.__dgStarting)return;
   var ids=Object.keys(r.players||{});
   if(ids.length<2){toast("محتاج لاعبَين على الأقل — ابعت الكود لصحابك!",true);return}
+  /* v214: لو فيه لاعبين مش مستعدين نقول للمضيف ونسيبه يقرر */
+  var __nr=ids.filter(function(id){return id!==r.host&&!((r.players[id]||{}).ready)}).map(function(id){return String(((r.players[id]||{}).name)||"لاعب").slice(0,14)});
+  if(__nr.length){
+    window.__dgStarting=1;
+    var __ok=await uiDialog({title:"فيه لاعبين مش مستعدين",icon:"⏳",msg:"لسه مش جاهزين: "+__nr.join("، ")+". تبدأ المباراة دلوقتي برضه؟",ok:"ابدأ على أي حال",danger:false});
+    window.__dgStarting=0;
+    if(!__ok)return;
+    r=dgRoom();if(!r||r.status!=="lobby")return;
+    ids=Object.keys(r.players||{});
+  }
   window.__dgStarting=1;setTimeout(function(){window.__dgStarting=0},5000);
   var order=ids.slice();
   if(((r.settings||{}).order||"random")!=="join")order.sort(function(){return Math.random()-0.5});
@@ -5898,6 +5929,7 @@ dgLobbyView=function(){
   '<div><div class="mut" style="font-size:12px">'+(priv?"🔒 غرفة خاصة":"🌍 غرفة عامة")+' · لوبي</div><div class="dg2-code ltr">'+esc(r.code)+'</div></div>'+
   '<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end"><button type="button" class="btn sm ghost" data-act="dgCopy">📋 نسخ الكود</button><span class="pill">'+Object.keys(players).length+'/'+maxP+' لاعب</span></div></div></div>'+
   '<div class="dg2-seats">'+(seats||'<div class="mut">استنى أصحابك…</div>')+'</div>'+
+  dgLobbyInfo(r)+
   (isHost?
     '<div class="card"><b>⚙️ إعدادات المباراة</b>'+
     '<label class="f">الجولات (كل لاعب يرسم مرة في الجولة)</label><select onchange="A.dgSetRounds(this)">'+[1,2,3,4,5,6,8,10,12,15,20,25,30].map(function(n){return '<option value="'+n+'"'+(n===(r.maxRounds||(r.settings&&r.settings.maxRounds)||3)?" selected":"")+'>'+n+'</option>'}).join("")+'</select>'+
@@ -6973,6 +7005,13 @@ var _s213=dgStopListen;
 dgStopListen=function(){try{stkStop()}catch(_e){}return _s213.apply(this,arguments)};
 
 window.__DG212=DG212;
+A.dgUpdateNow=async function(){
+  try{toast("جاري التحديث… ⏳",true)}catch(_e){}
+  try{await clearLocalSpeedCache("dg")}catch(_e){}
+  try{if(window.caches&&caches.keys){var ks=await caches.keys();await Promise.all(ks.filter(function(k){return /^eltafawoq-v/i.test(k)}).map(function(k){return caches.delete(k)}))}}catch(_e){}
+  try{var rg=await navigator.serviceWorker.getRegistrations();for(var i=0;i<rg.length;i++){try{await rg[i].unregister()}catch(_e){}}}catch(_e){}
+  setTimeout(function(){try{location.reload()}catch(_e){}},300);
+};
 window.__DG213_OK="v213";
 try{if(!window.A)window.A=A}catch(_e){} /* E3: القوائم في اللوبي بتنادي A.dgSetRounds من onchange — A كان مش متاح عالميًا */
 window.__DG212_OK="v213";
