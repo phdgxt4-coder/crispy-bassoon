@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v211">
+<meta name="sw-build" content="v213">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
@@ -6967,6 +6967,7 @@ dgStopListen=function(){try{stkStop()}catch(_e){}return _s213.apply(this,argumen
 
 window.__DG212=DG212;
 window.__DG213_OK="v213";
+try{if(!window.A)window.A=A}catch(_e){} /* E3: القوائم في اللوبي بتنادي A.dgSetRounds من onchange — A كان مش متاح عالميًا */
 window.__DG212_OK="v213";
 /* لو اللاعب جوّه غرفة وقت تنفيذ الباتش (تحديث ساخن) نربط الاستماع فورًا */
 try{if(S.dg&&S.dg.room&&S.dg.room.code&&!STK.unsub)stkListen(S.dg.room.code)}catch(_e){}
