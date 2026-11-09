@@ -1,6 +1,7 @@
 rules_version = '2';
 /*
   التفوق — Firestore Rules الموحّدة (v215)
+  v216: wpRooms بقت تدعم public + expireAt (حذف تلقائي بعد ساعة).
   v215: إضافة wpRooms (ارسم وخمّن الجديدة): غرفة + msgs + strokes + secret + presence. القواعد القديمة (dgRooms) متسابة زي ما هي.
   v214: نفس قواعد v213 (تم إلغاء تعديل قص النص لأنه غير مدعوم في القواعد).
   v213: إصلاح الملصقات المخصصة/المرسومة — الشرط كان sticker.matches('^data:image/') و matches في القواعد بتطابق النص كله (مش جزء منه)
@@ -1168,7 +1169,7 @@ service cloud.firestore {
       allow read: if isAdmin() || signedIn();
 
       allow create: if wpOk()
-        && request.resource.data.keys().hasOnly(['host', 'hostName', 'status', 'players', 'order', 'scores', 'solved', 'idx', 'round', 'maxRounds', 'secs', 'createdAt', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['host', 'hostName', 'status', 'public', 'players', 'order', 'scores', 'solved', 'idx', 'round', 'maxRounds', 'secs', 'createdAt', 'updatedAt'])
         && request.resource.data.host == request.auth.uid
         && request.resource.data.status == 'lobby'
         && request.resource.data.players.keys().hasOnly([request.auth.uid])
@@ -1178,7 +1179,7 @@ service cloud.firestore {
         /* عضو في الغرفة: مجرى اللعب والنقاط والإعدادات */
         (wpIn()
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['players', 'order', 'scores', 'solved', 'status', 'idx', 'round', 'drawer',
-               'wh', 'wlen', 'hint', 'answer', 'choiceAt', 'startedAt', 'revealAt', 'maxRounds', 'secs', 'host', 'hostName', 'endedAt', 'updatedAt'])
+               'wh', 'wlen', 'hint', 'answer', 'choiceAt', 'startedAt', 'revealAt', 'maxRounds', 'secs', 'public', 'host', 'hostName', 'endedAt', 'updatedAt'])
           && request.resource.data.players.size() <= 12)
         ||
         /* انضمام لاعب جديد */
@@ -1196,7 +1197,7 @@ service cloud.firestore {
       match /msgs/{mId} {
         allow read: if isAdmin() || wpMember();
         allow create: if wpOk() && wpMember()
-          && request.resource.data.keys().hasOnly(['uid', 'name', 'av', 'kind', 'text', 'team', 'img', 'audio', 'dur', 'pts', 'ts'])
+          && request.resource.data.keys().hasOnly(['uid', 'name', 'av', 'kind', 'text', 'team', 'img', 'audio', 'dur', 'pts', 'ts', 'expireAt'])
           && request.resource.data.uid == request.auth.uid
           && request.resource.data.get('name', '') is string && request.resource.data.name.size() <= 60
           && request.resource.data.kind in ['text', 'guess', 'correct', 'sticker', 'img', 'audio']
@@ -1206,6 +1207,7 @@ service cloud.firestore {
           && request.resource.data.get('audio', '').size() <= 950000
           && request.resource.data.get('dur', 0) is number && request.resource.data.get('dur', 0) <= 300
           && request.resource.data.get('pts', 0) is number && request.resource.data.get('pts', 0) <= 500
+          && (!request.resource.data.keys().hasAny(['expireAt']) || request.resource.data.expireAt is timestamp)
           && request.resource.data.ts == request.time;
         allow update: if isAdmin();
         allow delete: if isAdmin() || (signedIn() && resource.data.get('uid', '') == request.auth.uid)
