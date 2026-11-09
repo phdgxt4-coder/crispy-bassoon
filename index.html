@@ -8,7 +8,7 @@
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v211";/* v211: إصلاح «dgRoom is not defined» (كان بيكسر إرسال الملصقات والملصقات المخصصة والمايك) + إصلاح N (الاهتزاز) · الرد على رسالة بقى مسموح في القواعد · ملصق من صورة الفون (من المعرض/الكاميرا) مع إمكانية الرسم فوقها · حدود أكبر: ملصقاتي 50، لاعبين لحد 40، جولات لحد 30، وقت الرسم لحد 300 ث، شات 100 رسالة، رسالة صوتية 90 ث · v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
+<script>window.APP_BUILD="v213";/* v213: ارسم وخمّن — (1) الملصقات المخصصة والمرسومة كانت بتترفض من قواعد Firestore (مطابقة regex غلط) · (2) تصحيح التخمينات مبقاش بيفوّت تخمين لو وصل وقت ما الرسام بيصحّح غيره + تجاهل تخمينات الجولات القديمة · (3) الرسم اللحظي: استماع بالدور فقط + الخط مبيختفيش لحظة الإرسال + مقاس الكانفاس بيتظبط تلقائيًا · (4) الكتابة في الشات مبتضيعش مع إعادة رسم الشاشة · (5) لو الرسام خرج وسط الدور الجولة بتتكشف تلقائيًا · (6) زر ابدأ محمي من الضغط المزدوج · (7) رسائل خطأ واضحة بدل «فشل» · (8) أزرار الإيموجي/المايك لم تعد تتكرر عند المخمّن · (9) حذف رسائل الغرف المنتهية (ساعة) من السيرفر · v212: إصلاح جذري للرسم (Nested arrays → strokes subcollection لحظي) · توقيت موحّد · انضمام/خروج بدون سباق · ملصقات مخصصة أخف وآمنة · رسائل الشات تتحذف بعد ساعة (expireAt) · v211: إصلاح «dgRoom is not defined» (كان بيكسر إرسال الملصقات والملصقات المخصصة والمايك) + إصلاح N (الاهتزاز) · الرد على رسالة بقى مسموح في القواعد · ملصق من صورة الفون (من المعرض/الكاميرا) مع إمكانية الرسم فوقها · حدود أكبر: ملصقاتي 50، لاعبين لحد 40، جولات لحد 30، وقت الرسم لحد 300 ث، شات 100 رسالة، رسالة صوتية 90 ث · v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -2160,7 +2160,16 @@ const getDoc=__wrapOp("getDoc",function(){
   var pr=_fbSetDoc.apply(this,arguments);
   if(/^config\//.test(p)&&pr&&typeof pr.then==="function"){pr.then(function(){try{delete __cfgCache[p]}catch(_e){}},function(){})}
   return pr;
-}),addDoc=__wrapOp("addDoc",_fbAddDoc),updateDoc=__wrapOp("updateDoc",_fbUpdateDoc),deleteDoc=__wrapOp("deleteDoc",_fbDeleteDoc),getDocs=__wrapOp("getDocs",_fbGetDocs);
+}),addDoc=__wrapOp("addDoc",function(){
+  /* v212: كل رسالة شات (محادثات/جروبات/غرف اللعبة) بتاخد expireAt = بعد ساعة — الواجهة بتخفيها فورًا وFirestore TTL بيحذفها فعليًا */
+  try{
+    var a=arguments,path=__opPath(a),d=a[1];
+    if(/\/msgs$/.test(path)&&d&&typeof d==="object"&&!Array.isArray(d)&&d.expireAt==null){
+      a[1]=Object.assign({},d,{expireAt:Timestamp.fromMillis(Date.now()+3600000)});
+    }
+  }catch(_e){}
+  return _fbAddDoc.apply(this,arguments);
+}),updateDoc=__wrapOp("updateDoc",_fbUpdateDoc),deleteDoc=__wrapOp("deleteDoc",_fbDeleteDoc),getDocs=__wrapOp("getDocs",_fbGetDocs);
 
 /* ============ إعدادات Firebase ============ */
 const firebaseConfig = {
@@ -2209,6 +2218,12 @@ const tsMs = v => {
   return 0;
 };
 const tms = r => Math.floor(tsMs(r&&(r.createdAt||r.updatedAt||r.lastAt||r))/1000);
+/* v212: رسائل شات المنصة بتتحذف بعد ساعة من إرسالها (إخفاء فوري في الواجهة + حذف نهائي بـ Firestore TTL على expireAt) */
+const CHAT_TTL_MS=3600000;
+const chatExpired=m=>{try{if(!m||m._local)return false;const t=tsMs(m.createdAt||m.ts);return !!t&&(Date.now()-t)>CHAT_TTL_MS}catch(_){return false}};
+const chatLive=a=>Array.isArray(a)?a.filter(m=>!chatExpired(m)):a;
+/* بيمسح من السيرفر رسايلي أنا المنتهية (القواعد بتسمح للمرسل بحذف رسالته) — الباقي بيتكفّل بيه TTL */
+const chatReap=snap=>{try{let n=0;const me=S.user&&S.user.uid;if(!me)return;snap.docs.forEach(d=>{if(n>=20)return;const m=d.data()||{};if(m.fromUid===me&&chatExpired(m)){n++;deleteDoc(d.ref).catch(()=>{})}})}catch(_){}};
 
 let __cmtUnsub=null;
 let __fadUnsub=null,__galUnsub=null;
@@ -4804,6 +4819,30 @@ function dgCode(){const c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let s="";for(let i=
 function dgNorm(s){return String(s||"").normalize("NFKC").replace(/[\u064B-\u065F\u0670\u0640]/g,"").replace(/[أإآ]/g,"ا").replace(/ى/g,"ي").replace(/ة/g,"ه").replace(/ؤ/g,"و").replace(/ئ/g,"ي").replace(/\s+/g,"").toLowerCase()}
 function dgMe(){try{return (S&&S.user&&S.user.uid)||null}catch(_){return null}}
 function dgMeName(){return String((S.profile&&S.profile.name)||"لاعب").slice(0,40)}
+/* v212: وقت موحّد لكل اللاعبين (ساعة الجهاز ممكن تكون متقدمة/متأخرة) — الفرق بيتحسب من updatedAt بتاع السيرفر */
+function dgNow(){return Date.now()+(window.__dgOff||0)}
+/* v213: رسالة خطأ واضحة لفشل الإرسال (القواعد/الحجم/النت) بدل «فشل» العامة */
+function dgMsgErr(e,fb){
+  try{console.warn(e)}catch(_){}
+  var c=String((e&&e.code)||(e&&e.message)||"");
+  if(c.indexOf("permission-denied")>-1)toast("اتمنعت — لازم تنشر firestore.rules الجديد (v213) على Firebase",true);
+  else if(c.indexOf("resource-exhausted")>-1||c.indexOf("too large")>-1||c.indexOf("longer than")>-1||c.indexOf("exceeds")>-1)toast("الملف كبير أوي — جرّب أصغر",true);
+  else if(c.indexOf("unavailable")>-1||c.indexOf("network")>-1)toast("النت ضعيف — حاول تاني 📶",true);
+  else toast(fb||"فشل الإرسال",true);
+}
+/* v213: رسائل غرف اللعبة المنتهية (ساعة) — صاحبها يمسحها، والمضيف يمسح أي منتهية (TTL على expireAt بيكمّل الباقي) */
+function dgReap(sn){
+  try{
+    var me=dgMe(),r=S.dg&&S.dg.room,host=!!(r&&r.host===me),n=0;
+    if(!me)return;
+    sn.docs.forEach(function(d){
+      if(n>=25)return;
+      var m=d.data()||{};
+      if(!chatExpired({ts:m.ts}))return;
+      if(m.uid===me||host){n++;deleteDoc(d.ref).catch(function(){})}
+    });
+  }catch(_e){}
+}
 function dgMeAvatar(){return (S.profile&&(S.profile.avatar||S.profile.photoURL))||""}
 function dgMeLevel(){const xp=(S.profile&&S.profile.xp)||(S.life&&S.life.xp)||0;return Math.max(1,Math.floor(Number(xp)/100)+1)}
 function dgPlayerCard(id,p,r){
@@ -4968,7 +5007,7 @@ function dgStartTimer(){
     const r=S.dg&&S.dg.room;const el=document.getElementById("dgTimer");
     if(!r||!el)return;
     const ends=(r.turn&&r.turn.endsAt)||0;
-    const left=Math.max(0,Math.ceil((ends-Date.now())/1000));
+    const left=Math.max(0,Math.ceil((ends-dgNow())/1000));
     el.textContent=left+"ث";
     if(left<=0&&r.host===(S.user&&S.user.uid)&&(r.status==="drawing"||r.status==="playing")){
       clearInterval(window.__dgTick);
@@ -5080,6 +5119,7 @@ dgListen=function(code){
   dgStopListen();
   var me=dgMe();
   dgFullReset();
+  window.__dgOff=null;
   window.__dgSeenG={};window.__dgSeenFirst=true;
   window.__dgUnsub=onSnapshot(doc(db,"dgRooms",code),function(snap){
     if(!snap.exists()){try{dgStopListen()}catch(_e){}S.dg=null;S.view="games";render(true);return}
@@ -5087,6 +5127,14 @@ dgListen=function(code){
     for(k in fd)data[k]=fd[k];
     if(!S.dg)S.dg={};
     var prev=S.dg.room||{};
+    /* v212: تقدير فرق الساعة مع السيرفر — أقل تأخير = أقرب تقدير (بنختار الأكبر) */
+    try{
+      var _um=(fd.updatedAt&&fd.updatedAt.toMillis)?fd.updatedAt.toMillis():0,_pm=(prev.updatedAt&&prev.updatedAt.toMillis)?prev.updatedAt.toMillis():0;
+      if(_um&&_pm&&_um!==_pm&&!snap.metadata.hasPendingWrites&&!snap.metadata.fromCache){
+        var _o=_um-Date.now();
+        if(Math.abs(_o)<10800000&&(window.__dgOff==null||_o>window.__dgOff))window.__dgOff=_o;
+      }
+    }catch(_e){}
     var prevStrokesN=(prev.strokes||[]).length;
     var drawer=dgDrawerOf(data),prevDrawer=dgDrawerOf(prev);
     var view=dgRouteStatus(data.status);
@@ -5120,9 +5168,10 @@ dgListen=function(code){
     try{dgPayRewards(data)}catch(_e){}
   },function(e){console.warn("dgListen",e)});
   /* الشات — الأحدث أولاً ثم عكسها محليًا (إصلاح: كانت الأولانيين الـ50 بس) */
-  window.__dgMsgUnsub=onSnapshot(query(collection(db,"dgRooms",code,"msgs"),orderBy("ts","desc"),limit(100)),function(sn){
+  window.__dgMsgUnsub=onSnapshot(query(collection(db,"dgRooms",code,"msgs"),orderBy("ts","desc"),limit(50)),function(sn){
     if(!S.dg)S.dg={};
-    S.dg.msgs=sn.docs.map(function(d){var o={id:d.id},dd=d.data(),k;for(k in dd)o[k]=dd[k];return o}).reverse();
+    dgReap(sn);
+    S.dg.msgs=chatLive(sn.docs.map(function(d){var o={id:d.id},dd=d.data(),k;for(k in dd)o[k]=dd[k];return o}).reverse());
     var box=document.getElementById("dgMsgBox");
     if(box){box.innerHTML=dgRenderMsgs(S.dg.msgs.slice(-60));box.scrollTop=box.scrollHeight}
     else if(S.view==="dgLobby"||S.view==="dgPick")render(true);
@@ -5133,6 +5182,7 @@ dgListen=function(code){
     if(sn.exists()){var w=sn.data();
       if(w.drawerUid===me){S.dg.secretWord=w.word||"";S.dg.wordOpts=w.options||[]}
       else S.dg.secretWord=null;
+      try{if(window.__dgGuessKick)setTimeout(window.__dgGuessKick,60)}catch(_e){}
     }
   },function(){});
   /* اهتزاز/تصفير تخميناتي (نتيجة من الرسام) */
@@ -5149,26 +5199,33 @@ dgListen=function(code){
       });
     },function(){});
   }catch(_e){}
-  /* الرسام يصحّح التخمينات (الوحيد اللي يعرف الكلمة) */
-  var busy=false;
-  window.__dgGuessUnsub=onSnapshot(query(collection(db,"dgRooms",code,"guesses"),where("result","==",null),limit(30)),function(sn){
-    var r=S.dg&&S.dg.room;if(!r)return;
-    var drawer=dgDrawerOf(r);
-    if(drawer!==me||!S.dg.secretWord)return;
+  /* الرسام يصحّح التخمينات (الوحيد اللي يعرف الكلمة) — v213: مفيش تخمين بيتفوّت لو وصل أثناء التصحيح، والتخمينات القديمة (جولات فاتت) بتتقفل */
+  var gBusy=false,gLatest=[],gDone={},gTry={};
+  var gRun=function(){
+    var r=S.dg&&S.dg.room;if(!r||gBusy)return;
+    if(dgDrawerOf(r)!==me||!S.dg.secretWord)return;
     if(r.status!=="drawing"&&r.status!=="playing")return;
-    if(!sn.docs.length||busy)return;
-    busy=true;
+    var todo=gLatest.filter(function(d){return !gDone[d.id]});
+    if(!todo.length)return;
+    gBusy=true;
     var secret=S.dg.secretWord,chain=Promise.resolve();
-    sn.docs.forEach(function(d){
+    var secs=((r.settings&&r.settings.drawSecs)||75)*1000,tStart=(((r.turn||{}).endsAt)||0)-secs-4000;
+    todo.forEach(function(d){
+      gDone[d.id]=1;
       var g=d.data()||{};
-      if(dgNorm(g.text)===dgNorm(secret)){
-        chain=chain.then(function(){return d.ref.update({result:"correct"}).then(function(){return A._dgAwardCorrect(g.uid,g.name,secret)}).catch(function(e){console.warn(e)})});
+      var fail=function(e){try{console.warn(e)}catch(_e){}gTry[d.id]=(gTry[d.id]||0)+1;if(gTry[d.id]<3)delete gDone[d.id]};
+      if(g.at&&tStart>4000&&g.at<tStart){
+        chain=chain.then(function(){return d.ref.update({result:"stale"}).catch(fail)});
+      }else if(dgNorm(g.text)===dgNorm(secret)){
+        chain=chain.then(function(){return d.ref.update({result:"correct"}).then(function(){return A._dgAwardCorrect(g.uid,g.name,secret)}).catch(fail)});
       }else{
-        chain=chain.then(function(){return d.ref.update({result:"wrong"}).catch(function(){})});
+        chain=chain.then(function(){return d.ref.update({result:"wrong"}).catch(fail)});
       }
     });
-    chain.then(function(){busy=false}).catch(function(){busy=false});
-  },function(){});
+    chain.then(function(){gBusy=false;setTimeout(gRun,250)}).catch(function(){gBusy=false});
+  };
+  window.__dgGuessKick=gRun;
+  window.__dgGuessUnsub=onSnapshot(query(collection(db,"dgRooms",code,"guesses"),where("result","==",null),limit(30)),function(sn){gLatest=sn.docs;gRun()},function(){});
   /* نبض حضور */
   var beat=function(){try{var r=S.dg&&S.dg.room;if(!r||!r.players||!r.players[me])return;
     updateDoc(doc(db,"dgRooms",r.code),(function(){var p={};p["players."+me+".lastSeen"]=Date.now();p["players."+me+".seen"]=Date.now();return p})()).catch(function(){})
@@ -5222,7 +5279,7 @@ dgStartTimer=function(){
   if(window.__dgTick)clearInterval(window.__dgTick);
   window.__dgTick=setInterval(function(){
     var r=S.dg&&S.dg.room;if(!r)return;
-    var me=dgMe(),now=Date.now();
+    var me=dgMe(),now=dgNow();
     var t=r.turn||{},ends=t.endsAt||0,left=Math.max(0,Math.ceil((ends-now)/1000));
     var tEl=document.getElementById("dgTimer");if(tEl)tEl.textContent=String(left);
     var chip=document.getElementById("dgTimerChip");
@@ -5241,6 +5298,13 @@ dgStartTimer=function(){
     }
     /* 3) الانتقال من شاشة الاستعداد لبطاقات الكلمات */
     if(r.status==="choosing"&&S.view==="dgPick"&&left<=10&&left>0&&window.__dgPk!==tk){window.__dgPk=tk;scheduleRender(true)}
+    /* 3b) الرسام خرج/اتشال وسط الدور → المضيف يكشف الجولة بعد 3 ثواني (v213) */
+    if(r.status==="drawing"&&drawerGone&&r.host===me&&!window.__dgRev[tk]){
+      if(!window.__dgGone)window.__dgGone={};
+      var gk2="g"+tk;
+      if(!window.__dgGone[gk2])window.__dgGone[gk2]=now;
+      else if(now-window.__dgGone[gk2]>3000){window.__dgRev[tk]=1;try{A.dgForceReveal()}catch(_e){}}
+    }
     /* 4) انتهى وقت الرسم */
     if((r.status==="drawing"||r.status==="playing")&&left<=0){
       if(drawer===me&&!window.__dgRev[tk]){window.__dgRev[tk]=1;try{A._dgTimeUp()}catch(_e){}}
@@ -5453,7 +5517,7 @@ A.dgSend2=async function(){
   var rp=D.reply||null;
   var msg={uid:dgMe(),name:dgMeName(),kind:"text",text:txt,ts:serverTimestamp()};
   if(rp){msg.replyName=String(rp.name||"").slice(0,80);msg.replyText=String(rp.text||"").slice(0,200)}
-  try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),msg)}catch(e){console.warn(e);toast(String((e&&e.code)||"").indexOf("permission-denied")>-1?"الرسالة اتمنعت — انشر firestore.rules الجديد (v211)":"فشل إرسال الرسالة",true)}
+  try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),msg)}catch(e){dgMsgErr(e,"فشل إرسال الرسالة");try{var _ii=document.getElementById("dgIn2");if(_ii&&!_ii.value)_ii.value=txt}catch(_e){}}
   if(rp)A.dgCancelReply();
 };
 A.dgChat=function(){return A.dgSend2()};
@@ -5464,7 +5528,7 @@ A.dgGuessSend=async function(txt){
   var n=Date.now();
   if(n-(D.lastGuess||0)<800){toast("استنى ثانية بين التخمينات 😅");return}
   D.lastGuess=n;
-  try{await addDoc(collection(db,"dgRooms",r.code,"guesses"),{uid:dgMe(),name:dgMeName(),text:txt.slice(0,60),at:Date.now(),result:null})}catch(e){console.warn(e)}
+  try{await addDoc(collection(db,"dgRooms",r.code,"guesses"),{uid:dgMe(),name:dgMeName(),text:txt.slice(0,60),at:dgNow(),result:null})}catch(e){dgMsgErr(e,"التخمين مابعتش")}
 };
 A.dgGuess=function(){
   var inp=document.getElementById("dgChatIn")||document.getElementById("dgIn2");
@@ -5496,7 +5560,7 @@ A.dgSendSticker=async function(d){
   var s2=(d&&d.s)||"🙂";
   var p=document.getElementById("dgEmojiPanel");if(p)p.remove();
   D.emojiOpen=false;
-  try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),{uid:dgMe(),name:dgMeName(),kind:"sticker",sticker:s2,text:s2,ts:serverTimestamp()})}catch(e){console.warn(e)}
+  try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),{uid:dgMe(),name:dgMeName(),kind:"sticker",sticker:s2,text:s2,ts:serverTimestamp()})}catch(e){dgMsgErr(e,"فشل إرسال الملصق")}
 };
 /* الرد على رسالة (Reply) — v202 */
 A.dgReply=function(d){
@@ -5557,16 +5621,19 @@ A.dgSetOrder=async function(el){
 /* بدء / اختيار كلمة / إدارة الدور */
 A.dgStartGame=async function(){
   var r=dgRoom();if(!r||r.host!==dgMe())return;
+  if(r.status!=="lobby")return; /* v213: الضغط المزدوج أو الغرفة بدأت فعلًا */
+  if(window.__dgStarting)return;
   var ids=Object.keys(r.players||{});
   if(ids.length<2){toast("محتاج لاعبَين على الأقل — ابعت الكود لصحابك!",true);return}
+  window.__dgStarting=1;setTimeout(function(){window.__dgStarting=0},5000);
   var order=ids.slice();
   if(((r.settings||{}).order||"random")!=="join")order.sort(function(){return Math.random()-0.5});
   dgFullReset();
   try{
-    await updateDoc(doc(db,"dgRooms",r.code),{status:"choosing",order:order,round:1,turn:{drawerUid:order[0],idx:0,endsAt:Date.now()+13000},scores:{},strokes:[],guessed:{},reveal:{},word:deleteField(),hint:"",updatedAt:serverTimestamp()});
+    await updateDoc(doc(db,"dgRooms",r.code),{status:"choosing",order:order,round:1,turn:{drawerUid:order[0],idx:0,endsAt:dgNow()+13000},scores:{},strokes:[],guessed:{},reveal:{},word:deleteField(),hint:"",updatedAt:serverTimestamp()});
     try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),{uid:dgMe(),name:dgMeName(),kind:"system",text:"🚀 المباراة بدأت! بالتوفيق للكل 🎨",ts:serverTimestamp()})}catch(_e){}
     try{sfx("success")}catch(_e){}
-  }catch(e){console.warn(e);toast("فشل البدء — لو تكررت اتأكد إن قواعد Firestore v145 منشورة",true)}
+  }catch(e){window.__dgStarting=0;dgMsgErr(e,"فشل البدء — جرّب تاني")}
 };
 A.dgStart=function(){return A.dgStartGame()};
 A.dgChooseWord=async function(d){
@@ -5577,7 +5644,7 @@ A.dgChooseWord=async function(d){
   D.undone=[]; /* FIX-F: الرجوع/الإعادة للجولة الجديدة بس — مش رسم قديم */
   try{
     await setDoc(doc(db,"dgRooms",r.code,"word","state"),{drawerUid:dgMe(),options:((D.opts&&D.opts.length)?D.opts:[[w,h]]).map(function(o){return o[0]}).slice(0,3),word:w,updatedAt:serverTimestamp()});
-    await updateDoc(doc(db,"dgRooms",r.code),{status:"drawing",drawer:dgMe(),turn:{drawerUid:dgMe(),idx:(r.turn&&r.turn.idx)||0,endsAt:Date.now()+secs*1000},hint:dgMaskHint(w),strokes:[],guessed:{},reveal:{},word:deleteField(),updatedAt:serverTimestamp()});
+    await updateDoc(doc(db,"dgRooms",r.code),{status:"drawing",drawer:dgMe(),turn:{drawerUid:dgMe(),idx:(r.turn&&r.turn.idx)||0,endsAt:dgNow()+secs*1000},hint:dgMaskHint(w),strokes:[],guessed:{},reveal:{},word:deleteField(),updatedAt:serverTimestamp()});
     try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),{uid:dgMe(),name:dgMeName(),kind:"system",text:"⏱ "+dgMeName()+" بدأ يرسم — عندكم "+secs+" ثانية!",ts:serverTimestamp()})}catch(_e){}
     try{sfx("tap")}catch(_e){}
   }catch(e){console.warn(e);toast("فشل اختيار الكلمة",true)}
@@ -5598,7 +5665,7 @@ A._dgSkipChooser=async function(){
   var ni=(i+1)%Math.max(1,order.length),nxt=order[ni];
   if(!nxt||nxt===cur)return;
   try{
-    await updateDoc(doc(db,"dgRooms",r.code),{turn:{drawerUid:nxt,idx:ni,endsAt:Date.now()+13000},updatedAt:serverTimestamp()});
+    await updateDoc(doc(db,"dgRooms",r.code),{turn:{drawerUid:nxt,idx:ni,endsAt:dgNow()+13000},updatedAt:serverTimestamp()});
     try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),{uid:dgMe(),name:dgMeName(),kind:"system",text:"⏭ اتخطى الدور — الرسام مش موجود",ts:serverTimestamp()})}catch(_e){}
   }catch(e){console.warn(e)}
 };
@@ -5634,7 +5701,7 @@ A.dgNext=async function(){
       await updateDoc(doc(db,"dgRooms",r.code),{status:"ended",round:round,turn:{},endedAt:serverTimestamp(),winners:winners.slice(0,3),updatedAt:serverTimestamp()});
       try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),{uid:me,name:dgMeName(),kind:"system",text:"🏁 انتهت المباراة — الفوز لـ "+((((ppl[winners[0]]||{}).name))||"؟")+" 🏆",ts:serverTimestamp()})}catch(_e){}
     }else{
-      await updateDoc(doc(db,"dgRooms",r.code),{status:"choosing",order:order,round:round,turn:{drawerUid:order[idx],idx:idx,endsAt:Date.now()+13000},strokes:[],guessed:{},reveal:{},word:deleteField(),hint:"",updatedAt:serverTimestamp()});
+      await updateDoc(doc(db,"dgRooms",r.code),{status:"choosing",order:order,round:round,turn:{drawerUid:order[idx],idx:idx,endsAt:dgNow()+13000},strokes:[],guessed:{},reveal:{},word:deleteField(),hint:"",updatedAt:serverTimestamp()});
     }
   }catch(e){console.warn(e)}
 };
@@ -5657,7 +5724,7 @@ A._dgAdvanceAny=async function(){
       var winners=Object.keys(sc).sort(function(a,b){return (sc[b]||0)-(sc[a]||0)});
       await updateDoc(doc(db,"dgRooms",r.code),{status:"ended",round:round,turn:{},endedAt:serverTimestamp(),winners:winners.slice(0,3),updatedAt:serverTimestamp()});
     }else{
-      await updateDoc(doc(db,"dgRooms",r.code),{status:"choosing",order:order,round:round,turn:{drawerUid:order[idx],idx:idx,endsAt:Date.now()+13000},hint:"",updatedAt:serverTimestamp()});
+      await updateDoc(doc(db,"dgRooms",r.code),{status:"choosing",order:order,round:round,turn:{drawerUid:order[idx],idx:idx,endsAt:dgNow()+13000},hint:"",updatedAt:serverTimestamp()});
     }
   }catch(e){console.warn(e)}
 };
@@ -5681,14 +5748,14 @@ A.dgLeave=async function(){
         var others=Object.keys(r.players||{}).filter(function(x){return x!==me});
         if(others.length){
           var nx=others[0],np=r.players[nx]||{};
-          await updateDoc(doc(db,"dgRooms",r.code),{host:nx,hostName:(np.name||"مضيف"),["players."+me]:deleteField(),order:arrayRemove(me),updatedAt:serverTimestamp()});
           try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),{uid:me,name:dgMeName(),kind:"system",text:"👑 "+((np.name||"لاعب")+" بقى المضيف الجديد"),ts:serverTimestamp()})}catch(_e){}
+          await updateDoc(doc(db,"dgRooms",r.code),{host:nx,hostName:(np.name||"مضيف"),["players."+me]:deleteField(),order:arrayRemove(me),updatedAt:serverTimestamp()});
         }else{
           try{await deleteDoc(doc(db,"dgRooms",r.code))}catch(_e){}
         }
       }else{
-        await updateDoc(doc(db,"dgRooms",r.code),{["players."+me]:deleteField(),order:arrayRemove(me),updatedAt:serverTimestamp()});
         try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),{uid:me,name:dgMeName(),kind:"system",text:"👋 "+dgMeName()+" خرج من الغرفة",ts:serverTimestamp()})}catch(_e){}
+        await updateDoc(doc(db,"dgRooms",r.code),{["players."+me]:deleteField(),order:arrayRemove(me),updatedAt:serverTimestamp()});
       }
     }catch(e){console.warn(e)}
   }
@@ -5720,12 +5787,17 @@ A.dgJoinCode=async function(d){
     var players=Object.assign({},data.players||{});
     if(!players[dgMe()]){
       if(Object.keys(players).length>=((data.settings&&data.settings.maxPlayers)||8)){toast("الغرفة ممتلئة 😅",true);return}
-      players[dgMe()]={uid:dgMe(),name:dgMeName(),avatar:dgMeAvatar()||null,level:dgMeLevel(),ready:false,lastSeen:Date.now(),joinedAt:Date.now(),away:false,seen:Date.now()};
+      var __np={uid:dgMe(),name:dgMeName(),avatar:dgMeAvatar()||null,level:dgMeLevel(),ready:false,lastSeen:Date.now(),joinedAt:Date.now(),away:false,seen:Date.now()};
+      players[dgMe()]=__np;
       var order=Array.isArray(data.order)?data.order.slice():Object.keys(players);
       if(order.indexOf(dgMe())<0)order.push(dgMe());
       var scores=Object.assign({},data.scores||{});
       if(scores[dgMe()]==null)scores[dgMe()]=0;
-      await updateDoc(doc(db,"dgRooms",code),{players:players,order:order,scores:scores,updatedAt:serverTimestamp()});
+      /* v212: تحديث حقول لاعبي بس (players.<uid> + arrayUnion) — مفيش إعادة كتابة لخريطة اللاعبين كلها */
+      var __up={updatedAt:serverTimestamp(),order:arrayUnion(dgMe())};
+      __up["players."+dgMe()]=__np;
+      __up["scores."+dgMe()]=0;
+      await updateDoc(doc(db,"dgRooms",code),__up);
       try{await addDoc(collection(db,"dgRooms",code,"msgs"),{uid:dgMe(),name:dgMeName(),kind:"system",text:"👋 "+dgMeName()+" انضم للغرفة",ts:serverTimestamp()})}catch(_e){}
     }
     S.dg={room:Object.assign({code:code},data,{players:players}),msgs:[],guessMode:false};
@@ -5761,7 +5833,7 @@ A._dgAwardCorrect=async function(uid,name,secret){
   var me=dgMe(),drawer=dgDrawerOf(r);
   var ends=(r.turn&&r.turn.endsAt)||0;
   var secs=((r.settings&&r.settings.drawSecs)||75)*1000;
-  var left=Math.max(0,ends-Date.now());
+  var left=Math.max(0,ends-dgNow());
   var speed=Math.round(60*Math.min(1,secs>0?left/secs:0));
   window.__dgCombo[uid]=(window.__dgCombo[uid]||0)+1;
   var combo=Math.min(5,window.__dgCombo[uid]-1);
@@ -5839,13 +5911,13 @@ dgLobbyView=function(){
     '<button type="button" class="btn block '+((players[me]&&players[me].ready)?"ghost":"gold")+'" data-act="dgReady">'+((players[me]&&players[me].ready)?"إلغاء الاستعداد":"أنا جاهز ✓")+'</button>')+
   '<div class="card dg2-chat dg2-chatlog" id="dgMsgBox">'+dgRenderMsgs((S.dg.msgs||[]).slice(-40))+'</div>'+
   '<div id="dgReplyBar" class="dg3-replybar"></div><form class="row dg2-compose" data-submit="dgSend2" style="gap:8px"><input id="dgIn2" maxlength="200" placeholder="رسالة للجميع…" style="flex:1" autocomplete="off"><button class="btn sm gold" type="submit">إرسال</button></form>'+
-  '<div class="mut" style="text-align:center;margin-top:8px;font-size:12px">'+(isHost?"تقدر تبدأ في أي وقت — اللي مش جاهز هيتحسب غياب":"استنى المضيف يبدأ… جهّز فرشاتك 🖌️")+'</div>'+
+  '<div class="mut" style="text-align:center;margin-top:8px;font-size:12px">'+(isHost?"تقدر تبدأ في أي وقت — حتى لو في لاعبين لسه مش جاهزين":"استنى المضيف يبدأ… جهّز فرشاتك 🖌️")+'</div>'+
   '</div>';
 };
 dgPickView=function(){
   var r=dgRoom();if(!r)return dgOpenView();
   var me=dgMe(),drawer=dgDrawerOf(r),isD=drawer===me;
-  var ends=((r.turn||{}).endsAt)||0,left=Math.max(0,Math.ceil((ends-Date.now())/1000));
+  var ends=((r.turn||{}).endsAt)||0,left=Math.max(0,Math.ceil((ends-dgNow())/1000));
   var dname=String((((r.players||{})[drawer]||{}).name)||"الرسام");
   var round=((r.round||1)+"/"+(r.maxRounds||(r.settings&&r.settings.maxRounds)||3));
   if(isD&&left>10){
@@ -5866,7 +5938,7 @@ dgPickView=function(){
 dgPlayView=function(){
   var r=dgRoom();if(!r)return dgOpenView();
   var me=dgMe(),drawer=dgDrawerOf(r),isD=drawer===me;
-  var t=r.turn||{},left=Math.max(0,Math.ceil(((t.endsAt||0)-Date.now())/1000));
+  var t=r.turn||{},left=Math.max(0,Math.ceil(((t.endsAt||0)-dgNow())/1000));
   var word=(S.dg&&S.dg.secretWord)||"";
   var round=(r.round||1),maxR=(r.maxRounds||(r.settings&&r.settings.maxRounds)||3);
   var dname=String((((r.players||{})[drawer]||{}).name)||"؟");
@@ -6091,7 +6163,7 @@ dgRenderMsgs=function(list){
   window.__dgVoices=window.__dgVoices||{};
   function ment(t){return esc(String(t||"")).replace(/(@[^\s@]{1,24})/g,'<span class="dg3-mention">$1</span>')}
   return list.map(function(m){
-    if(m.kind==="system")return '<div class="dg2-sys">'+esc(m.text||"")+'</div>';
+    if(m.kind==="system"||m.kind==="join"||m.kind==="leave")return '<div class="dg2-sys">'+esc(m.text||"")+'</div>';
     if(m.kind==="correct")return '<div class="dg3-correct">🎉 '+esc(m.text||"")+(m.combo>0?" 🔥x"+(+m.combo+1):"")+'</div>';
     if(m.kind==="sticker"){
       var sid=String(m.sticker||"");
@@ -6104,8 +6176,10 @@ dgRenderMsgs=function(list){
       return '<div class="dg3-sticker" title="'+esc(m.name||"")+'">'+esc(m.sticker||m.text||"🙂")+'</div>';
     }
     if(m.kind==="csticker"){
-      if(!m.img)return "";
-      return '<div class="dg207-stkbub'+(m.uid===me?" me":"")+'"><span class="nm">'+esc(String(m.name||"؟").slice(0,12))+'</span><img class="dg207-cstk" src="'+m.img+'" alt="ملصق" loading="lazy"></div>';
+      var csrc=String(m.sticker||m.img||"");
+      /* v212: data:image فقط — أي حاجة تانية بتتتجاهل (منع حقن HTML من رسالة مزوّرة) */
+      if(!/^data:image\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(csrc))return "";
+      return '<div class="dg207-stkbub'+(m.uid===me?" me":"")+'"><span class="nm">'+esc(String(m.name||"؟").slice(0,12))+'</span><img class="dg207-cstk" src="'+csrc+'" alt="ملصق" loading="lazy"></div>';
     }
     if(m.kind==="voice"){
       var vid=String(m.id||("v"+(m.ts||"")+Math.random().toString(36).slice(2,6)));
@@ -6157,7 +6231,7 @@ A.dgEmoji=function(){
   var old=document.getElementById("dgPanel207");
   if(old){old.remove();D.emojiOpen=false;return}
   var inp=document.getElementById("dgIn2");if(!inp){D.emojiOpen=false;return}
-  var bar=inp.closest(".dg207-bar")||inp.closest("form")||inp.closest(".dg2-guessbar");
+  var bar=inp.closest(".dg2-guessbar")||inp.closest(".dg207-bar")||inp.closest("form");
   if(!bar){D.emojiOpen=false;return}
   D.emojiOpen=true;
   var p=document.createElement("div");
@@ -6176,7 +6250,7 @@ A.dgSendSticker=async function(d){
   var sid=String((d&&d.s)||"s0");
   dg207ClosePanel();
   try{N.vibrate&&N.vibrate(8)}catch(_e){}
-  try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),{uid:dgMe(),name:dgMeName(),kind:"sticker",sticker:sid,text:"",ts:serverTimestamp()})}catch(e){console.warn(e);toast("فشل إرسال الملصق",true)}
+  try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),{uid:dgMe(),name:dgMeName(),kind:"sticker",sticker:sid,text:"",ts:serverTimestamp()})}catch(e){dgMsgErr(e,"فشل إرسال الملصق")}
 };
 A.dgMyStkSend=async function(d){
   var i=+((d&&d.i)||0);var img=dg207MyStickers()[i];
@@ -6184,7 +6258,7 @@ A.dgMyStkSend=async function(d){
   var r=dgRoom();if(!r||!dgMe())return;
   dg207ClosePanel();
   try{N.vibrate&&N.vibrate(8)}catch(_e){}
-  try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),{uid:dgMe(),name:dgMeName(),kind:"csticker",sticker:img,img:img,text:"",ts:serverTimestamp()})}catch(e){console.warn(e);toast("فشل إرسال الملصق",true)}
+  try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),{uid:dgMe(),name:dgMeName(),kind:"csticker",sticker:img,text:"",ts:serverTimestamp()})}catch(e){dgMsgErr(e,"فشل إرسال الملصق")}
 };
 A.dgMyStkDel=function(d){
   var i=+((d&&d.i)||0);var a=dg207MyStickers();
@@ -6324,7 +6398,7 @@ A.dgStudioSend=async function(){
   var r=dgRoom();if(!r||!dgMe())return;
   A.dgStudioClose();
   try{N.vibrate&&N.vibrate(10)}catch(_e){}
-  try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),{uid:dgMe(),name:dgMeName(),kind:"csticker",sticker:img,img:img,text:"",ts:serverTimestamp()});toast("اتبعت ملصقك 🎨✨",true)}catch(e){console.warn(e);toast("فشل إرسال الملصق",true)}
+  try{await addDoc(collection(db,"dgRooms",r.code,"msgs"),{uid:dgMe(),name:dgMeName(),kind:"csticker",sticker:img,text:"",ts:serverTimestamp()});toast("اتبعت ملصقك 🎨✨",true)}catch(e){dgMsgErr(e,"فشل إرسال الملصق")}
 };
 A.dgStudioSave=function(){
   var img=dg207StkExport();
@@ -6362,7 +6436,7 @@ A.dgMic=function(){
         try{
           await addDoc(collection(db,"dgRooms",rr.code,"msgs"),{uid:dgMe(),name:dgMeName(),kind:"voice",audio:dataURL,dur:dur,ts:serverTimestamp()});
           try{N.vibrate&&N.vibrate(8)}catch(_e2){}
-        }catch(e){console.warn(e);toast("فشل إرسال الرسالة الصوتية",true)}
+        }catch(e){dgMsgErr(e,"فشل إرسال الرسالة الصوتية")}
       };
       fr.readAsDataURL(blob);
     };
@@ -6420,7 +6494,7 @@ function dg207Enhance(){
   try{
     if(S.view!=="dgLobby"&&S.view!=="dgPlay")return;
     var inp=document.getElementById("dgIn2");if(!inp)return;
-    var bar=inp.closest(".dg207-bar")||inp.closest("form")||inp.closest(".dg2-guessbar");
+    var bar=inp.closest(".dg2-guessbar")||inp.closest(".dg207-bar")||inp.closest("form");
     if(!bar)return;
     if(!bar.querySelector('[data-act="dgMic"]')){
       var mic=document.createElement("button");
@@ -6637,6 +6711,268 @@ if(typeof render==="function"&&!window.__dg210RenderW){
 window.__DG210_OK="v210";
 }catch(e){try{console.warn("DG v210 patch",e)}catch(_e2){}}},110);
 /* ================= نهاية DG v210 ================= */
+
+/* ================= DG v213 — الرسم اللحظي (strokes مسطّحة) + إصلاحات الغرف ================= */
+/* السبب الجذري القديم: الرسم كان بيتخزّن pts:[[x,y],…] (مصفوفة جوّه مصفوفة) → Firestore بيرفضها (invalid-argument) → الرسم عمره ما كان بيوصل.
+   الحل: كل «دفعة نقاط» مستند صغير في dgRooms/{code}/strokes بمصفوفة مسطّحة [x1,y1,x2,y2,…] — بيوصل للكل لحظيًا ومن غير ما نعيد كتابة مستند الغرفة.
+   v213: استماع مفلتر بالدور (epoch) فقط · الخط الحي مبيختفيش لحظة الإرسال · ترتيب بالوقت مش بعدّاد (آمن لو الرسام عمل ريفريش) · مقاس الكانفاس بيتظبط تلقائيًا · الكتابة في الشات مبتضيعش مع إعادة الرسم */
+/*DG212-CORE-START*/
+var DG212=(function(){
+  function enc(pts){var o=[];for(var i=0;i<pts.length;i++){o.push(Math.round(pts[i][0]*1000)/1000,Math.round(pts[i][1]*1000)/1000)}return o}
+  function dec(flat){var o=[];if(!flat||!flat.length)return o;for(var i=0;i+1<flat.length;i+=2)o.push([+flat[i],+flat[i+1]]);return o}
+  /* docs: {id:data} — بيرجّع قائمة الضربات للدور (epoch) الحالي بترتيب t */
+  function build(docs,ep){
+    var arr=[],k,d;
+    for(k in docs){d=docs[k];if(d&&d.epoch===ep)arr.push(d)}
+    arr.sort(function(a,b){return (a.t||0)-(b.t||0)});
+    var list=[],by={};
+    arr.forEach(function(d){
+      var tool=d.tool;
+      if(tool==="clear"){list=[];by={};return}
+      if(tool==="undo"){var l=list.pop();if(l)delete by[l.key];return}
+      var key=(d.uid||"")+":"+(d.i||0),s=by[key];
+      if(!s){s={key:key,c:d.c||"#111111",w:d.w||4,tool:tool==="e"?"e":"pen",pts:[]};by[key]=s;list.push(s)}
+      var p=dec(d.p);
+      if(s.pts.length&&p.length){var a=s.pts[s.pts.length-1],b=p[0];if(a[0]===b[0]&&a[1]===b[1])p.shift()}
+      s.pts=s.pts.concat(p);
+    });
+    return list;
+  }
+  return {enc:enc,dec:dec,build:build};
+})();
+/*DG212-CORE-END*/
+setTimeout(function(){try{
+if(window.__DG213_OK)return;
+var D=window.__DG2||(window.__DG2={brush:6,color:"#0f172a",tool:"pen",guess:false,emojiOpen:false,undone:[],lastGuess:0,otk:"",opts:null,panelTab:"stk"});
+/* dgRoom/dgDrawerOf متعرّفين جوّه نطاقات الباتشات القديمة (setTimeout) — مش متاحين هنا، فبنعرّفهم محليًا */
+var dgRoom=function(){return S.dg&&S.dg.room};
+var dgDrawerOf=function(r){return ((r&&(r.turn&&r.turn.drawerUid))||(r&&r.drawer))||""};
+var STK={docs:{},list:[],listEp:null,unsub:null,code:null,lep:null,live:null,raf:0,t:0,cleanEp:null,timer:0,watch:0,errAt:0};
+
+function epoch(){var r=S.dg&&S.dg.room;return (r&&r.turn&&r.turn.endsAt)||0}
+function recompute(){STK.list=DG212.build(STK.docs,epoch());STK.listEp=epoch()}
+/* الخط اللي لسه مرسوم محليًا بيفضل لحد ما يرجع من السيرفر كامل (من غير وميض) */
+function settleLive(){
+  var l=STK.live;if(!l||!l.done)return;
+  if(Date.now()-(l.doneAt||0)>2500){STK.live=null;return}
+  for(var i=STK.list.length-1;i>=0;i--){var s=STK.list[i];if(s.key===l.key){if(s.pts.length>=l.pts.length)STK.live=null;return}}
+}
+function schedule(){
+  if(STK.raf)return;
+  STK.raf=requestAnimationFrame(function(){STK.raf=0;try{recompute();settleLive();dgRedraw()}catch(e){console.warn(e)}});
+}
+function stkStop(){
+  try{if(STK.unsub)STK.unsub()}catch(_e){}
+  STK.unsub=null;STK.docs={};STK.list=[];STK.live=null;STK.code=null;STK.lep=null;STK.cleanEp=null;STK.listEp=null;
+  try{if(STK.timer)clearInterval(STK.timer)}catch(_e){}
+  try{if(STK.watch)clearInterval(STK.watch)}catch(_e){}
+  STK.timer=0;STK.watch=0;
+}
+/* استماع مفلتر بالدور الحالي بس — لو الدور اتغيّر بنعيد الاشتراك (أقل قراءات وأسرع دخول متأخر) */
+function stkEnsure(){
+  try{
+    var r=dgRoom();if(!r||!STK.code||!db)return;
+    var ep=epoch();if(!ep)return;
+    if(STK.unsub&&STK.lep===ep)return;
+    try{if(STK.unsub)STK.unsub()}catch(_e){}
+    STK.docs={};STK.list=[];STK.listEp=null;STK.lep=ep;STK.live=null;
+    STK.unsub=onSnapshot(query(collection(db,"dgRooms",STK.code,"strokes"),where("epoch","==",ep)),function(sn){
+      sn.docChanges().forEach(function(ch){
+        if(ch.type==="removed")delete STK.docs[ch.doc.id];
+        else STK.docs[ch.doc.id]=ch.doc.data();
+      });
+      schedule();
+    },function(e){console.warn("dgStrokes",e)});
+  }catch(e){console.warn(e)}
+}
+function stkListen(code){
+  stkStop();STK.code=code;
+  stkEnsure();
+  STK.watch=setInterval(stkEnsure,1500); /* لو الدور اتغيّر من غير إعادة رسم الشاشة */
+}
+function strokeErr(e){
+  var c=String((e&&e.code)||(e&&e.message)||""),n=Date.now();
+  try{console.warn("stroke",e)}catch(_e){}
+  if(n-STK.errAt<8000)return;STK.errAt=n;
+  if(c.indexOf("permission-denied")>-1)toast("الرسم اتمنع — لازم تنشر firestore.rules الجديد (v213) على Firebase",true);
+  else toast("الرسم مابعتش — اتأكد من النت",true);
+}
+function send(o){
+  var r=dgRoom();if(!r||!dgMe()||!db)return Promise.resolve();
+  var ep=epoch();if(!ep)return Promise.resolve();
+  var n=Date.now();STK.t=Math.max(STK.t+1,n);
+  o.t=STK.t;o.uid=dgMe();o.epoch=ep;o.at=n;
+  o.expireAt=Timestamp.fromMillis(n+3600000);
+  return addDoc(collection(db,"dgRooms",r.code,"strokes"),o).catch(strokeErr);
+}
+/* الرسام بيمسح مستندات الأدوار القديمة (مرة واحدة لكل دور) */
+function cleanup(){
+  var ep=epoch(),r=dgRoom();
+  if(!r||!ep||STK.cleanEp===ep)return;
+  STK.cleanEp=ep;
+  try{
+    getDocs(query(collection(db,"dgRooms",r.code,"strokes"),where("epoch","<",ep),limit(450))).then(function(sn){
+      if(!sn||!sn.docs||!sn.docs.length)return;
+      var b=writeBatch(db);
+      sn.docs.forEach(function(d){b.delete(d.ref)});
+      return b.commit();
+    }).catch(function(e){console.warn("stk cleanup",e)});
+  }catch(e){console.warn(e)}
+}
+
+/* ---------- الرسم على الكانفاس ---------- */
+function paint(ctx,s,W,H){
+  var p=s.pts;if(!p||p.length<2)return;
+  ctx.globalCompositeOperation=s.tool==="e"?"destination-out":"source-over";
+  ctx.strokeStyle=s.c||"#111";ctx.lineWidth=Math.max(1,s.w||3);
+  ctx.beginPath();ctx.moveTo(p[0][0]*W,p[0][1]*H);
+  if(p.length===2)ctx.lineTo(p[1][0]*W,p[1][1]*H);
+  else{
+    for(var j=1;j<p.length-1;j++)ctx.quadraticCurveTo(p[j][0]*W,p[j][1]*H,((p[j][0]+p[j+1][0])/2)*W,((p[j][1]+p[j+1][1])/2)*H);
+    ctx.lineTo(p[p.length-1][0]*W,p[p.length-1][1]*H);
+  }
+  ctx.stroke();
+}
+dgRedraw=function(){
+  var c=document.getElementById("dgCanvas");if(!c)return;
+  stkEnsure();
+  var ctx;try{ctx=c.getContext("2d")}catch(_e){return}
+  if(!ctx)return;
+  if(STK.listEp!==epoch())recompute();
+  var dpr=Math.min(window.devicePixelRatio||1,2);
+  /* مقاس الكانفاس يتظبط تلقائيًا (تدوير الشاشة / تغيير الحجم) — الرسم بيتعاد من المستندات فمفيش حاجة بتضيع */
+  var cw=c.clientWidth,chh=c.clientHeight;
+  if(cw>=10&&chh>=10){var tw=Math.floor(cw*dpr),th=Math.floor(chh*dpr);if(c.width!==tw||c.height!==th){c.width=tw;c.height=th}}
+  ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,c.width,c.height);
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.lineCap="round";ctx.lineJoin="round";
+  var W=c.clientWidth||1,H=c.clientHeight||1,live=STK.live,i,s;
+  for(i=0;i<STK.list.length;i++){s=STK.list[i];if(live&&s.key===live.key)continue;paint(ctx,s,W,H)}
+  if(live)paint(ctx,live,W,H);
+  ctx.globalCompositeOperation="source-over";
+};
+
+dgInitCanvas=function(){
+  var c=document.getElementById("dgCanvas");if(!c)return;
+  var r=dgRoom(),me=dgMe(),drawer=r?dgDrawerOf(r):"";
+  try{c.style.touchAction="none"}catch(_e){}
+  var dpr=Math.min(window.devicePixelRatio||1,2),rect=c.getBoundingClientRect();
+  if(rect.width>=10){c.width=Math.max(1,Math.floor(rect.width*dpr));c.height=Math.max(1,Math.floor(rect.height*dpr))}
+  stkEnsure();recompute();dgRedraw();
+  try{if(STK.timer)clearInterval(STK.timer)}catch(_e){}
+  STK.timer=0;STK.live=null;
+  if(!r||drawer!==me||!S.user)return;
+  if(r.status!=="drawing"&&r.status!=="playing")return;
+  cleanup();
+  var drawing=false,cur=null,paintRaf=0;
+  function pos(e){
+    var rr=c.getBoundingClientRect();
+    return [Math.min(1,Math.max(0,(e.clientX-rr.left)/(rr.width||1))),Math.min(1,Math.max(0,(e.clientY-rr.top)/(rr.height||1)))];
+  }
+  function rd(v){return Math.round(v*1000)/1000}
+  function repaint(){if(paintRaf)return;paintRaf=requestAnimationFrame(function(){paintRaf=0;dgRedraw()})}
+  function flush(){
+    if(!cur||cur.pts.length<=cur.sent)return;
+    var from=Math.max(0,cur.sent-1),chunk=cur.pts.slice(from);
+    cur.sent=cur.pts.length;
+    send({i:cur.i,c:cur.c,w:cur.w,tool:cur.tool,p:DG212.enc(chunk)});
+  }
+  function finish(){
+    if(!drawing||!cur)return;
+    drawing=false;
+    if(cur.pts.length===1){var q=cur.pts[0];cur.pts.push([Math.min(1,rd(q[0]+0.0006)),rd(q[1])])} /* نقطة واحدة = دايرة صغيرة */
+    flush();
+    cur.done=true;cur.doneAt=Date.now(); /* بيفضل مرسوم لحد ما السيرفر يرجّعه */
+    cur=null;repaint();
+  }
+  c.onpointerdown=function(e){
+    if(dgDrawerOf(dgRoom())!==me)return;
+    if(e.pointerType==="mouse"&&e.button>0)return;
+    if(drawing)finish();
+    drawing=true;D.undone=[];
+    var p=pos(e);
+    var erase=D.tool==="e";
+    var sid=Date.now();
+    cur={key:me+":"+sid,i:sid,c:erase?"#000000":D.color,w:erase?Math.round(D.brush*2.2*10)/10:D.brush,tool:erase?"e":"pen",pts:[[rd(p[0]),rd(p[1])]],sent:0};
+    STK.live=cur;
+    try{c.setPointerCapture(e.pointerId)}catch(_e){}
+    repaint();
+  };
+  c.onpointermove=function(e){
+    if(!drawing||!cur)return;
+    var evs=(e.getCoalescedEvents&&e.getCoalescedEvents().length)?e.getCoalescedEvents():[e];
+    for(var i=0;i<evs.length;i++){
+      var p=pos(evs[i]),lp=cur.pts[cur.pts.length-1];
+      var dx=p[0]-lp[0],dy=p[1]-lp[1];
+      if(dx*dx+dy*dy<0.000012)continue;
+      cur.pts.push([rd(p[0]),rd(p[1])]);
+    }
+    if(cur.pts.length-cur.sent>=40)flush();
+    repaint();
+  };
+  c.onpointerup=finish;
+  c.onpointercancel=finish;
+  c.onlostpointercapture=function(){if(drawing)finish()};
+  /* دفعة كل 220ms طول ما الرسام بيرسم → باقي اللاعبين بيشوفوا الخط وهو بيتكوّن */
+  STK.timer=setInterval(function(){if(drawing&&cur)flush()},220);
+};
+
+/* ---------- تراجع / إعادة / مسح ---------- */
+function isDrawer(){var r=dgRoom();return !!r&&dgDrawerOf(r)===dgMe()}
+A.dgUndo=function(){
+  if(!isDrawer())return;
+  recompute();
+  var l=STK.list[STK.list.length-1];if(!l)return;
+  D.undone.push({c:l.c,w:l.w,tool:l.tool,pts:l.pts.slice()});
+  if(D.undone.length>60)D.undone.shift();
+  STK.live=null;
+  /* نشيل الخط محليًا فورًا (من غير ما نستنى السيرفر) */
+  STK.list=STK.list.slice(0,-1);dgRedraw();
+  send({i:0,tool:"undo"});
+};
+A.dgRedo=function(){
+  if(!isDrawer()||!D.undone||!D.undone.length)return;
+  var s=D.undone.pop();
+  var id=Date.now(),pts=s.pts||[],a=0;
+  if(pts.length<2)return;
+  do{
+    send({i:id,c:s.c,w:s.w,tool:s.tool==="e"?"e":"pen",p:DG212.enc(pts.slice(a?a-1:0,a+80))});
+    a+=80;
+  }while(a<pts.length);
+};
+A.dgClearCanvas=function(){
+  if(!isDrawer())return;
+  D.undone=[];STK.live=null;STK.list=[];dgRedraw();
+  send({i:0,tool:"clear"});
+  toast("اتمسحت اللوحة 🧽");
+};
+
+/* ---------- الكتابة في الشات مبتضيعش لما الشاشة تتعاد رسمها (لحظيًا) ---------- */
+if(typeof render==="function"&&!window.__dg213RenderW){
+  window.__dg213RenderW=1;
+  var _r213=render;
+  render=function(f,s){
+    var sv=null,sf=false,ss=0;
+    try{var inp=document.getElementById("dgIn2");if(inp&&inp.value){sv=inp.value;sf=(document.activeElement===inp);ss=inp.selectionStart||sv.length}}catch(_e){}
+    var rv=_r213(f,s);
+    if(sv!==null){try{var n=document.getElementById("dgIn2");if(n&&!n.value){n.value=sv;if(sf){n.focus();try{n.setSelectionRange(ss,ss)}catch(_e2){}}}}catch(_e){}}
+    return rv;
+  };
+}
+
+/* ---------- ربط الاستماع بدورة حياة الغرفة ---------- */
+var _l213=dgListen;
+dgListen=function(code){var rv=_l213.apply(this,arguments);try{stkListen(code)}catch(e){console.warn(e)}return rv};
+var _s213=dgStopListen;
+dgStopListen=function(){try{stkStop()}catch(_e){}return _s213.apply(this,arguments)};
+
+window.__DG212=DG212;
+window.__DG213_OK="v213";
+window.__DG212_OK="v213";
+/* لو اللاعب جوّه غرفة وقت تنفيذ الباتش (تحديث ساخن) نربط الاستماع فورًا */
+try{if(S.dg&&S.dg.room&&S.dg.room.code&&!STK.unsub)stkListen(S.dg.room.code)}catch(_e){}
+}catch(e){try{console.warn("DG v213 patch",e)}catch(_e2){}}},140);
+/* ================= نهاية DG v213 ================= */
+
 
 
 
@@ -11573,7 +11909,7 @@ async function openDmThread(uid,name){
   }catch(e){console.warn("conv",e);toast("تأكد من نشر قواعد Firestore الجديدة")}
   S.chatThread={uid,name:name||"زميل",avatar,convId:cid};
   S.chatMsgs=[];
-  try{const raw=localStorage.getItem("dmcache_"+cid);if(raw){const arr=JSON.parse(raw);if(Array.isArray(arr))S.chatMsgs=arr}}catch(_){}
+  try{const raw=localStorage.getItem("dmcache_"+cid);if(raw){const arr=JSON.parse(raw);if(Array.isArray(arr))S.chatMsgs=chatLive(arr)}}catch(_){}
   S.chatStickBottom=true;S.chatNewBelow=0;
   S.view="chatThread";
   S.chatPeerOnline=false;
@@ -12152,9 +12488,10 @@ function loadMyGroups(){
 }
 function listenGroup(gid){
   if(window.__grpUnsub){try{window.__grpUnsub()}catch(_){}}
-  window.__grpUnsub=onSnapshot(query(collection(db,"groups",gid,"msgs"),limit(80)),snap=>{
+  window.__grpUnsub=onSnapshot(query(collection(db,"groups",gid,"msgs"),orderBy("createdAt","desc"),limit(80)),snap=>{
     const prev=(S.groupMsgs||[]).length;
-    let msgs=snap.docs.map(d=>({id:d.id,...d.data()}));
+    chatReap(snap);
+    let msgs=chatLive(snap.docs.map(d=>({id:d.id,...d.data()})));
     msgs.sort((a,b)=>tsMs(a.createdAt)-tsMs(b.createdAt));
     S.groupMsgs=msgs;
     if(S.view==="groupThread"){
@@ -12244,6 +12581,17 @@ function patchChatLog(log,msgs,fn,emptyHtml){
   });
   old.forEach((el,id)=>{if(!keep.has(id)&&el.parentNode===log)el.remove()});
 }
+/* v212: كل دقيقة نخفي الرسائل اللي عدّت ساعة من غير ما المستخدم يعمل أي حاجة */
+setInterval(function(){try{
+  if(S.chatMsgs&&S.chatMsgs.some(chatExpired)){
+    S.chatMsgs=chatLive(S.chatMsgs);
+    if(S.view==="chatThread"){const log=$("#dmChatLog");if(log)try{patchChatLog(log,S.chatMsgs,dmBubbleHtml,EMPTY_DM)}catch(_){render(true)}}
+  }
+  if(S.groupMsgs&&S.groupMsgs.some(chatExpired)){
+    S.groupMsgs=chatLive(S.groupMsgs);
+    if(S.view==="groupThread"){const log=$("#grpLog");if(log)try{patchChatLog(log,S.groupMsgs,grpBubbleHtml,EMPTY_GRP)}catch(_){render(true)}}
+  }
+}catch(_){}},60000);
 function peersLoad(){try{return JSON.parse(localStorage.getItem("peers_v1")||"{}")||{}}catch(_){return {}}}
 function peersSave(){try{const p=window.__peers||{};const o={};Object.keys(p).slice(-120).forEach(k=>{o[k]={name:p[k].name,avatar:(p[k].avatar&&String(p[k].avatar).length<5000)?p[k].avatar:null}});localStorage.setItem("peers_v1",JSON.stringify(o))}catch(_){}}
 function chatsCacheKey(){return "chats_cache_"+(S.user?S.user.uid:"")}
@@ -12386,7 +12734,8 @@ function listenDmThread(cid,otherUid){
   },()=>{});
   window.__dmUnsub=onSnapshot(query(collection(db,"conversations",cid,"msgs"),orderBy("createdAt","desc"),limit(50)),snap=>{
     const prev=(S.chatMsgs||[]).length;
-    let msgs=snap.docs.map(d=>({id:d.id,...d.data()})).reverse();
+    chatReap(snap);
+    let msgs=chatLive(snap.docs.map(d=>({id:d.id,...d.data()})).reverse());
     // احتفظ بالرسائل المحلية لحد ما توصل من السيرفر (صور فورية)
     const locals=(S.chatMsgs||[]).filter(m=>m._local);
     if(locals.length){
@@ -12430,7 +12779,7 @@ function listenDmThread(cid,otherUid){
     console.warn("dm",err);
     window.__dmUnsub=onSnapshot(collection(db,"conversations",cid,"msgs"),snap=>{
       const prev=(S.chatMsgs||[]).length;
-      let msgs=snap.docs.map(d=>({id:d.id,...d.data()})).slice(-50);
+      let msgs=chatLive(snap.docs.map(d=>({id:d.id,...d.data()}))).slice(-50);
       msgs.sort((a,b)=>tms(a.createdAt)-tms(b.createdAt));
       S.chatMsgs=msgs;
       if(S.view==="chatThread"){render(true);bindChatScroll();onChatMsgsUpdate(prev,msgs.length)}
@@ -17261,7 +17610,7 @@ Object.assign(A,{
       await updateDoc(doc(db,"dgRooms",r.code),{
         status:"choosing",
         drawer,
-        turn:{drawerUid:drawer,phase:"choose",endsAt:Date.now()+20000},
+        turn:{drawerUid:drawer,phase:"choose",endsAt:dgNow()+20000},
         round:1,
         strokes:[],
         hint:"",
@@ -17393,7 +17742,7 @@ Object.assign(A,{
       await updateDoc(doc(db,"dgRooms",r.code),{
         status:"choosing",
         drawer:next,
-        turn:{drawerUid:next,phase:"choose",endsAt:Date.now()+20000},
+        turn:{drawerUid:next,phase:"choose",endsAt:dgNow()+20000},
         round:(r.round||1)+1,
         strokes:[],
         hint:"",
