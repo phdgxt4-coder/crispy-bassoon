@@ -1,33 +1,19 @@
 /* ============================================================
-   التفوق — «ارسم وخمّن» (WP v220) — إعادة بناء كاملة بتصميم Premium
+   التفوق — «ارسم وخمّن» (WP v221) — Premium + لحظية أقوى
    ------------------------------------------------------------
-   v220 — كل ملاحظاتك اتصلحت:
-   (1) الكلمات بقت ظاهرة فعلًا: سبب الخلل كان loadSecret بيتنادى مرة واحدة
-       مع تغيّر رقم الدور بس، والانتقال بيعدي على مرحلة «اختيار» الأول
-       فالكلمة مكانش بتتحمّل أبدًا للرسام. دلوقتي الكلمة بتتحمّل لحظيًا
-       مهما كان تسلسل اللقطات + شريط كلمة جديد بحروف في مربعات واضحة.
-   (2) لحظية أقوى: أول نقطة من الخط بتتبعت فورًا لحظة لمس الشاشة،
-       وبعدين دفعات كل ~100ms (كانت 220) + رسم أصلي ناعم بالمنحنيات،
-       والكانفاس بيرسم الإضافات فقط بدون إعادة رسم كل حاجة.
-   (3) تصميم Premium جديد بالكامل بهوية منصة التفوق (ذهبي/بترولي/زجاجي)
-       مع انتقالات وحركات ناعمة وشريط لاعبين أسفل الشاشة صورهم.
-   (4) الملصقات رجعت: إيموجي + ستيكرات كبيرة + «ملصقاتي» + استوديو
-       لصناعة ملصق (ارسمه أو من الكاميرا/المعرض وارسم فوقه) زي الكود القديم.
-   (5) الصوت اتصلح: مشغّل صوت واحد بس — أي تشغيل بيقف اللي قبله،
-       زر إيقاف صريح + شريط تقدم، ومفيش أي تكرار أو إعادة تشغيل
-       لما الشات يحدّث (الرسائل بتترندر بتزايد مش من الصفر).
-   (6) الأغاني رجعت 🎵 مشغّل أغاني منصة التفوق داخل الغرفة (songs/songParts).
-   (7) الشات رجع في اللوبي قبل بدء الماتش (نفس شات اللعبة، بيوصل بعد ما تبدأ).
-   (8) مكافآت العملات + إحصائيات dgStats + كونفيتي عند النهاية (زي القديم).
-   (9) ممحاة + تراجع + إعادة + مسح للوحة الرسم.
-   متوافق 100% مع firestore.rules v215/v216 — مفيش أي تعديل قواعد مطلوب.
-   الحقول مستخدمة بالظبط زي ما القواعد مسموحة (غرفة/msgs/strokes/secret/presence).
+   v221:
+   (1) الرسم أسرع: دفعات كل 50ms + نقاط أدق + إرسال أول نقطة فور اللمس.
+   (2) الشات أثناء الرسم مسموح عادي للرسام (مش سري) — السري بس للمخمّن اللي حلّ.
+   (3) ملصقات Premium من dg-stickers.webp (سprite sheet) + إيموجي + ملصقاتي + استوديو صور.
+   (4) زر أغاني ظاهر أثناء اللعب + نفس مشغّل مكتبة التفوق.
+   (5) تصميم أفخم: زجاج أقوى، توهج ذهبي، شريط لاعبين أوضح، كروت أغنى.
+   متوافق 100% مع firestore.rules v215/v216.
    ============================================================ */
 (function(){
 "use strict";
 if(window.WP)return;
 
-var WP_V="v220";
+var WP_V="v221";
 var FSU="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /* ---------- الكلمات ---------- */
@@ -40,6 +26,10 @@ var ERASER="#ffffff";
 var EMO_FACE="😂 🤣 😍 🥰 😎 🤔 😱 😭 😡 🥳 🤯 😴 👍 👎 👏 🙏 💪 🔥 ❤️ 💯 🎉 💩 👻 🙈 🤝 😜 🤪 😅 🥺 😏 🤤 🤮".split(" ");
 var EMO_MORE="⚽ 🏀 🎯 🎮 🎨 🎵 🌟 ⭐ ✨ ⚡ ☀️ 🌈 🌙 💡 🍕 🍔 🍟 🍩 🍪 🎂 🍎 📚 ✏️ 🚌 ✈️ 🚀 🚗 ⛅ 🌊 🏝️ 🐱 🐶".split(" ");
 var STICKS="🥳 😂 😭 😱 🤯 😎 🥰 🤔 👏 🔥 💯 ❤️ 🎉 🎁 🌟 💩 👻 🤖 🐱 🐶 🦄 🍕 ⚽ 🏆 🥇 👑 💎 🚀".split(" ");
+/* ملصقات Premium (dg-stickers.webp) — شبكة 5×4 · كل خلية 120×120 */
+var PACK_SRC="./dg-stickers.webp";
+var PACK_COLS=5,PACK_ROWS=4,PACK_CELL=120;
+var PACK=[];(function(){for(var i=0;i<PACK_COLS*PACK_ROWS;i++)PACK.push(i)})();
 
 /* ---------- الحالة ---------- */
 var FS=null,db=null,ME=null,B=null;
@@ -103,7 +93,7 @@ function css(){
   s.textContent=
 /* ===== الأساس والهوية ===== */
 "#wp{position:fixed;inset:0;z-index:99990;color:#f4f1ff;font-family:inherit;direction:rtl;display:flex;flex-direction:column;overflow:hidden;-webkit-tap-highlight-color:transparent;"+
-"background:radial-gradient(1100px 750px at 88% -12%,rgba(93,63,211,.32) 0%,transparent 60%),radial-gradient(950px 700px at -6% 112%,rgba(47,181,168,.20) 0%,transparent 55%),radial-gradient(700px 500px at 50% 118%,rgba(245,185,74,.10) 0%,transparent 55%),#0b0820}"+
+"background:radial-gradient(1200px 800px at 90% -15%,rgba(120,80,255,.38) 0%,transparent 58%),radial-gradient(1000px 720px at -8% 110%,rgba(47,181,168,.24) 0%,transparent 55%),radial-gradient(780px 560px at 50% 120%,rgba(245,185,74,.14) 0%,transparent 55%),linear-gradient(165deg,#0a061c 0%,#120a2a 45%,#0b1022 100%)}"+
 "#wp *{box-sizing:border-box}:where(#wp) button{font-family:inherit;cursor:pointer;border:0;color:inherit;background:none;padding:0}"+
 "#wp h1,#wp h2,#wp h3{margin:0}"+
 ".wp-scr{flex:1;display:flex;flex-direction:column;min-height:0;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);animation:wpIn .42s cubic-bezier(.22,1,.36,1) both}"+
@@ -235,6 +225,9 @@ function css(){
 ".wp-grid.myst{grid-template-columns:repeat(4,1fr);gap:8px}"+
 ".wp-grid.myst button{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:6px}"+
 ".wp-grid.myst img{width:100%;aspect-ratio:1;object-fit:contain;border-radius:10px}"+
+".wp-pack-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px}"+
+".wp-pack{aspect-ratio:1;border-radius:16px;background-color:rgba(255,255,255,.06);background-repeat:no-repeat;border:1px solid rgba(255,211,107,.18);box-shadow:0 4px 14px rgba(0,0,0,.25);transition:transform .15s,border-color .2s,box-shadow .2s}"+
+".wp-pack:active{transform:scale(.92);border-color:#FFD36B;box-shadow:0 0 16px rgba(255,211,107,.35)}"+
 ".wp-empty{padding:24px 12px;text-align:center;color:#b8b0e8;font-size:13.5px;line-height:2}"+
 ".wp-add{grid-column:1/-1;background:rgba(255,211,107,.1);border:1.5px dashed rgba(255,211,107,.45)!important;color:#FFD36B;font-size:14px!important;font-weight:800;padding:12px!important;border-radius:14px}"+
 /* الأغاني */
@@ -533,7 +526,7 @@ function shell(){
     $("wpLeave").onclick=leave;
   }else{
     r.innerHTML='<div class="wp-scr">'+
-    '<div class="wp-top"><button class="wp-x" id="wpLeave">✕</button><button class="wp-chip" id="wpCode" title="نسخ الكود"></button><div class="wp-pill" id="wpRd"></div><div style="flex:1"></div><div class="wp-tm" id="wpTm" style="--p:100"><i id="wpTmI">--</i></div></div>'+
+    '<div class="wp-top"><button class="wp-x" id="wpLeave">✕</button><button class="wp-chip" id="wpCode" title="نسخ الكود"></button><div class="wp-pill" id="wpRd"></div><div style="flex:1"></div><button class="wp-ic" id="wpSongsT" title="الأغاني" style="margin-inline-end:6px">🎵</button><div class="wp-tm" id="wpTm" style="--p:100"><i id="wpTmI">--</i></div></div>'+
     '<div class="wp-word" id="wpWord"></div>'+
     '<div class="wp-cvw" id="wpCw"><canvas id="wpCv"></canvas><div class="wp-ov" id="wpOv"></div></div>'+
     '<div class="wp-tools" id="wpTools"></div>'+
@@ -542,12 +535,13 @@ function shell(){
     '<div class="wp-pl" id="wpPl"></div>'+
     '<div class="wp-role" id="wpRole"></div>'+
     '<form class="wp-in" id="wpForm"><button type="button" class="ib" id="wpEmo">😊</button><button type="button" class="ib" id="wpImg">🖼️</button><button type="button" class="ib" id="wpMic">🎤</button>'+
-    '<input id="wpTx" maxlength="120" autocomplete="off" placeholder="اكتب إجابتك هنا"><button class="send" type="submit">إرسال</button></form>'+
+    '<input id="wpTx" maxlength="120" autocomplete="off" placeholder="اكتب رسالة أو تخمين…"><button class="send" type="submit">إرسال</button></form>'+
     '<input type="file" id="wpFile" accept="image/*" style="display:none">'+
     '<div class="wp-sheet" id="wpSheet"></div></div>';
     $("wpLeave").onclick=leave;
     $("wpCode").textContent=code;
     $("wpCode").onclick=copyCode;
+    $("wpSongsT").onclick=function(){openSheet("songs")};
     $("wpForm").onsubmit=function(e){e.preventDefault();var i=$("wpTx"),v=i.value;i.value="";sticky=true;send(v)};
     $("wpEmo").onclick=function(){openSheet(sheetMode==="stick"?"":"stick")};
     $("wpImg").onclick=function(){$("wpFile").click()};
@@ -643,7 +637,8 @@ function send(text){
     if(c&&R.wh&&H(c,code+":"+R.idx)===R.wh)return correct();
     return msg({kind:"guess",text:text.slice(0,60)});
   }
-  return msg({kind:"text",text:text.slice(0,300),team:(st==="drawing"&&(dr||sv))?1:0});
+  /* الرسام يكتب عادي للجميع؛ السري بس للمخمّن اللي حلّ بالفعل */
+  return msg({kind:"text",text:text.slice(0,300),team:(st==="drawing"&&sv&&!dr)?1:0});
 }
 function correct(){
   var tot=R.secs*1000,left=Math.max(0,ms(R.startedAt)+tot-now());
@@ -859,14 +854,41 @@ function renderSheet(){
     body.innerHTML='<div class="wp-grid">'+EMO_FACE.concat(EMO_MORE).map(function(e){return '<button type="button" data-e="'+e+'">'+e+'</button>'}).join("")+'</div>';
     body.onclick=pickEmoji;
   }else if(sheetMode==="stick"){
-    body.innerHTML='<div class="wp-grid big">'+STICKS.map(function(e){return '<button type="button" data-e="'+e+'">'+e+'</button>'}).join("")+'</div>';
-    body.onclick=pickEmoji;
+    var packHtml=PACK.map(function(i){
+      var col=i%PACK_COLS,row=Math.floor(i/PACK_COLS);
+      var x=-col*PACK_CELL,y=-row*PACK_CELL;
+      return '<button type="button" class="wp-pack" data-pi="'+i+'" style="background-image:url('+PACK_SRC+');background-size:'+(PACK_COLS*100)+'% '+(PACK_ROWS*100)+'%;background-position:'+x+'px '+y+'px" title="ملصق"></button>';
+    }).join("");
+    body.innerHTML='<div class="wp-pack-grid">'+packHtml+'</div>'+
+      '<div style="font-size:11px;color:#9a93c8;padding:4px 2px 2px">إيموجي سريع</div>'+
+      '<div class="wp-grid big">'+STICKS.map(function(e){return '<button type="button" data-e="'+e+'">'+e+'</button>'}).join("")+'</div>';
+    body.onclick=function(ev){
+      var pb=ev.target.closest("[data-pi]");
+      if(pb){sendPack(+pb.getAttribute("data-pi"));return}
+      pickEmoji(ev);
+    };
   }else if(sheetMode==="myst")renderMyst(body);
   else if(sheetMode==="songs")renderSongs(body);
 }
 function pickEmoji(e){
   var b=e.target.closest("button[data-e]");if(!b)return;
   msg({kind:"sticker",text:b.getAttribute("data-e")});closeSheet();
+}
+function sendPack(i){
+  if(i<0||i>=PACK.length)return;
+  var col=i%PACK_COLS,row=Math.floor(i/PACK_COLS);
+  var c=document.createElement("canvas");c.width=PACK_CELL;c.height=PACK_CELL;
+  var img=new Image();
+  img.onload=function(){
+    try{
+      c.getContext("2d").drawImage(img,col*PACK_CELL,row*PACK_CELL,PACK_CELL,PACK_CELL,0,0,PACK_CELL,PACK_CELL);
+      var d=c.toDataURL("image/webp",0.9);
+      if(d.length<40)d=c.toDataURL("image/png");
+      msg({kind:"sticker",text:"",img:d});closeSheet();
+    }catch(err){console.warn(err);toast("فشل إرسال الملصق")}
+  };
+  img.onerror=function(){toast("ملف الملصقات مش موجود — ارفع dg-stickers.webp مع الموقع")};
+  img.src=PACK_SRC;
 }
 function renderMyst(body){
   var a=myStickers();
@@ -1272,11 +1294,13 @@ function inputUI(){
   var dr=R.drawer===ME.uid,sv=(R.solved||{})[ME.uid];
   var rl=$("wpRole");
   if(rl){
-    if(R.status==="drawing"&&dr)rl.innerHTML='<span class="rk">✏️ أنت الرسام — ارسم الكلمة، ومحتجش تشرحها بالحروف</span>';
-    else if(R.status==="drawing"&&sv)rl.innerHTML='<span class="rk g">🔒 خمّنتها! الشات بقى سري بينك وبين الرسام</span>';
+    if(R.status==="drawing"&&dr)rl.innerHTML='<span class="rk">✏️ أنت الرسام — ارسم واكتب في الشات عادي</span>';
+    else if(R.status==="drawing"&&sv)rl.innerHTML='<span class="rk g">🔒 خمّنتها! رسائلك صارت سرية بينك وبين الرسام</span>';
     else rl.innerHTML="";
   }
-  i.placeholder=(R.status==="drawing"&&!dr&&!sv)?"اكتب تخمينك هنا…":"اكتب رسالة…";
+  if(R.status==="drawing"&&!dr&&!sv)i.placeholder="اكتب تخمينك هنا…";
+  else if(R.status==="drawing"&&dr)i.placeholder="اكتب رسالة للاعبين…";
+  else i.placeholder="اكتب رسالة…";
 }
 
 /* ============================================================
@@ -1300,7 +1324,7 @@ function initCanvas(){
     if(!canDraw())return;e.preventDefault();
     try{c.setPointerCapture(e.pointerId)}catch(_){}
     var p=pos(e);
-    cur={s:nextS++,k:0,c:pen.c,w:pen.w,p:[p[0],p[1]],sent:0,timer:setInterval(flush,100)};
+    cur={s:nextS++,k:0,c:pen.c,w:pen.w,p:[p[0],p[1]],sent:0,timer:setInterval(flush,50)};
     flush();            /* ← أول نقطة بتوصل للاعبين فورًا */
     paintSoon();
   };
@@ -1309,7 +1333,7 @@ function initCanvas(){
     var ev=e.getCoalescedEvents?e.getCoalescedEvents():[e];if(!ev.length)ev=[e];
     ev.forEach(function(x){
       var p=pos(x),n=cur.p.length;
-      if(Math.abs(p[0]-cur.p[n-2])+Math.abs(p[1]-cur.p[n-1])>=2)cur.p.push(p[0],p[1]);
+      if(Math.abs(p[0]-cur.p[n-2])+Math.abs(p[1]-cur.p[n-1])>=1)cur.p.push(p[0],p[1]);
     });
     paintSoon();
   };

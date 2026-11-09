@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v216">
+<meta name="sw-build" content="v218">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v216";/* v216: الغرف العامة لـ«ارسم وخمّن» في «الغرف المفتوحة» · إصلاح ظهور خانة كتابة الشات · حذف بحث المحادثة · الحذف التلقائي بعد ساعة اتعمم على شات الغرف ·  v215: «ارسم وخمّن» اتعمل من الصفر على نمط ويبلاي (ملف wp.js): رسم لحظي بـ chunks · التخمين في الشات نفسه (الإجابة الصحيحة بتتسجل لحظيًا من غير ما تتكشف) · نقاط بالوقت + بونص أول مخمّن + نقاط للرسام · اختيار كلمة من 4 · تلميحات حروف · رسائل صوتية/صور/ملصقات · لوبي بجاهزية · نهاية بترتيب · لازم تنشر firestore.rules v215 · */ v214: (1) شاشة اختيار الكلمة كانت بتعلّق لأن المؤقّت مكانش بيشتغل غير أثناء الرسم — اتصلّح (2) تنبيه لو فيه لاعبين مش مستعدين قبل البدء (3) تحذير لو لاعب نسخته قديمة + زر تحديث فوري (4) ملصقات: قاعدة آمنة بدل regex (5) ملخّص «جاهزين X من Y» في اللوبي · v213: ارسم وخمّن — (1) الملصقات المخصصة والمرسومة كانت بتترفض من قواعد Firestore (مطابقة regex غلط) · (2) تصحيح التخمينات مبقاش بيفوّت تخمين لو وصل وقت ما الرسام بيصحّح غيره + تجاهل تخمينات الجولات القديمة · (3) الرسم اللحظي: استماع بالدور فقط + الخط مبيختفيش لحظة الإرسال + مقاس الكانفاس بيتظبط تلقائيًا · (4) الكتابة في الشات مبتضيعش مع إعادة رسم الشاشة · (5) لو الرسام خرج وسط الدور الجولة بتتكشف تلقائيًا · (6) زر ابدأ محمي من الضغط المزدوج · (7) رسائل خطأ واضحة بدل «فشل» · (8) أزرار الإيموجي/المايك لم تعد تتكرر عند المخمّن · (9) حذف رسائل الغرف المنتهية (ساعة) من السيرفر · v212: إصلاح جذري للرسم (Nested arrays → strokes subcollection لحظي) · توقيت موحّد · انضمام/خروج بدون سباق · ملصقات مخصصة أخف وآمنة · رسائل الشات تتحذف بعد ساعة (expireAt) · v211: إصلاح «dgRoom is not defined» (كان بيكسر إرسال الملصقات والملصقات المخصصة والمايك) + إصلاح N (الاهتزاز) · الرد على رسالة بقى مسموح في القواعد · ملصق من صورة الفون (من المعرض/الكاميرا) مع إمكانية الرسم فوقها · حدود أكبر: ملصقاتي 50، لاعبين لحد 40، جولات لحد 30، وقت الرسم لحد 300 ث، شات 100 رسالة، رسالة صوتية 90 ث · v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
+<script>window.APP_BUILD="v218";/* v216: الغرف العامة لـ«ارسم وخمّن» في «الغرف المفتوحة» · إصلاح ظهور خانة كتابة الشات · حذف بحث المحادثة · الحذف التلقائي بعد ساعة اتعمم على شات الغرف ·  v215: «ارسم وخمّن» اتعمل من الصفر على نمط ويبلاي (ملف wp.js): رسم لحظي بـ chunks · التخمين في الشات نفسه (الإجابة الصحيحة بتتسجل لحظيًا من غير ما تتكشف) · نقاط بالوقت + بونص أول مخمّن + نقاط للرسام · اختيار كلمة من 4 · تلميحات حروف · رسائل صوتية/صور/ملصقات · لوبي بجاهزية · نهاية بترتيب · لازم تنشر firestore.rules v215 · */ v214: (1) شاشة اختيار الكلمة كانت بتعلّق لأن المؤقّت مكانش بيشتغل غير أثناء الرسم — اتصلّح (2) تنبيه لو فيه لاعبين مش مستعدين قبل البدء (3) تحذير لو لاعب نسخته قديمة + زر تحديث فوري (4) ملصقات: قاعدة آمنة بدل regex (5) ملخّص «جاهزين X من Y» في اللوبي · v213: ارسم وخمّن — (1) الملصقات المخصصة والمرسومة كانت بتترفض من قواعد Firestore (مطابقة regex غلط) · (2) تصحيح التخمينات مبقاش بيفوّت تخمين لو وصل وقت ما الرسام بيصحّح غيره + تجاهل تخمينات الجولات القديمة · (3) الرسم اللحظي: استماع بالدور فقط + الخط مبيختفيش لحظة الإرسال + مقاس الكانفاس بيتظبط تلقائيًا · (4) الكتابة في الشات مبتضيعش مع إعادة رسم الشاشة · (5) لو الرسام خرج وسط الدور الجولة بتتكشف تلقائيًا · (6) زر ابدأ محمي من الضغط المزدوج · (7) رسائل خطأ واضحة بدل «فشل» · (8) أزرار الإيموجي/المايك لم تعد تتكرر عند المخمّن · (9) حذف رسائل الغرف المنتهية (ساعة) من السيرفر · v212: إصلاح جذري للرسم (Nested arrays → strokes subcollection لحظي) · توقيت موحّد · انضمام/خروج بدون سباق · ملصقات مخصصة أخف وآمنة · رسائل الشات تتحذف بعد ساعة (expireAt) · v211: إصلاح «dgRoom is not defined» (كان بيكسر إرسال الملصقات والملصقات المخصصة والمايك) + إصلاح N (الاهتزاز) · الرد على رسالة بقى مسموح في القواعد · ملصق من صورة الفون (من المعرض/الكاميرا) مع إمكانية الرسم فوقها · حدود أكبر: ملصقاتي 50، لاعبين لحد 40، جولات لحد 30، وقت الرسم لحد 300 ث، شات 100 رسالة، رسالة صوتية 90 ث · v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -2138,7 +2138,7 @@ html.lite .card,html.lite .dlg,html.lite .btn.ghost{
 .chat-wrap .tk-compose{position:sticky!important;left:auto!important;right:auto!important;bottom:calc(72px + env(safe-area-inset-bottom,0px))!important;margin:8px 0 0!important;max-width:none!important;width:100%;z-index:45}
 .chat-wrap .tk-log{max-height:calc(100dvh - 300px);padding-bottom:12px!important}
 </style>
-<script src="./wp.js?v=216" defer></script>
+<script src="./wp.js?v=218" defer></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,updatePassword,setPersistence,browserLocalPersistence,indexedDBLocalPersistence} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -2892,16 +2892,19 @@ if("serviceWorker" in navigator){
       S._pendingCall=d.callId;
       try{handlePendingCall()}catch(_){}
     }
-    /* Stage 12: SW اتفعّل بعد موافقة المستخدم */
+    /* تحديث تلقائي: SW اتفعّل لوحده */
     if(d.type==="SW_ACTIVATED"){
       S._swWaiting=false;S._swProgress=null;
-      toast("التحديث اتفعّل ✓ — المنصة جاهزة",true);
+      try{if(typeof window.toast==="function")window.toast("تم التحديث ✓",true)}catch(_){}
       try{render()}catch(_){}
     }
   });
-  /* Stage 12: إشعار بتحديث جديد بدون ريلود قسري */
+  /* تحديث فوري بدون زر */
   navigator.serviceWorker.addEventListener("controllerchange",()=>{
-    /* مش بنعمل location.reload تلقائي — المستخدم يختار */
+    try{
+      if(window.__swReloading)return;window.__swReloading=1;
+      location.reload();
+    }catch(_){}
   });
 }
 
@@ -4259,7 +4262,7 @@ function gamesView(){
   /* v206: 8 ألعاب غرف (تحدي الأوائل · Speed Duel · آخر واحد واقف · ارسم وخمّن · Memory Battle · CTF · Treasure Race · Arena) + 6 ألعاب سريعة فردية — قسم للغرف المفتوحة وقسم للألعاب وإنشاء الغرف وقسم للألعاب السريعة */
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
 <h2>الألعاب</h2>
-${S._swWaiting?`<div class="preload-card" style="border-color:var(--pri)"><b>تحديث جديد جاهز</b> — من «أنا» فعّل التحديث عشان ما يقطّعش اللعب.</div>`:""}
+""
 <div class="card" style="border-color:var(--pri)">
   <b style="font-size:17px">🌐 الغرف المفتوحة</b>
   <div class="mut" style="margin:4px 0 8px">اضغط انضم → المضيف يوافق</div>
@@ -7670,7 +7673,7 @@ ${(p.badges||[]).length?`<div style="margin-top:10px;display:flex;flex-wrap:wrap
 <p class="mut" style="margin:6px 0 8px">تجهيز الملفات مسبقًا يقلل التقطيع · التحديث مش بيفرض ريلود عليك</p>
 ${S._preload&&S._preload.running?`<div class="preload-card" id="preloadBox">${preloadRunHtml(S._preload)}</div>`:S._preload&&S._preload.done?preloadDoneHtml(S._preload):""}
 <button class="btn block" data-act="preloadCritical" ${S._preload&&S._preload.running?"disabled":""}>${S._preload&&S._preload.done&&S._preload.fail?"🔁 إعادة محاولة الملفات الفاشلة":"📦 تجهيز للعب بدون تقطيع"}</button>
-${S._swWaiting?`<div class="preload-card" style="margin-top:10px;border-color:var(--pri)"><b>تحديث جديد جاهز</b><p class="mut" style="margin:6px 0">اضغط للتفعيل (هتعمل تحديث خفيف)</p><button class="btn gold block" data-act="applySwUpdate">تفعيل التحديث ✓</button></div>`:`<button class="btn ghost block" style="margin-top:8px" data-act="applySwUpdate">🔄 فحص / تفعيل تحديث المنصة</button>`}
+`<div class="mut" style="margin-top:8px;font-size:12px;text-align:center">التحديثات بتوصل لوحدها تلقائيًا ✓</div>`
 <button class="btn block" style="margin-top:8px" data-act="openChecklist">🏁 قائمة القبول (مرحلة 13)</button>
 </div>
 <button class="btn ghost block" data-act="logout">تسجيل خروج</button>
@@ -18053,25 +18056,27 @@ if('serviceWorker' in navigator){
         navigator.serviceWorker.ready.then(function(){setTimeout(warm,2000)}).catch(function(){});
         if(reg.periodicSync&&reg.periodicSync.register)reg.periodicSync.register('eltafawoq-refresh',{minInterval:6*3600*1000}).catch(function(){});
       }catch(_){}
-      /* Stage 12 Anti-lag: تحديث سلس — نبلّغ المستخدم ونسيبه يختار */
+      /* تحديث تلقائي فوري — مفيش زر تفعيل */
+      function autoActivate(w){
+        if(!w)return;
+        try{w.postMessage({type:'SKIP_WAITING'})}catch(e){}
+      }
       function onUpdateFound(){
         var w=reg.installing||reg.waiting;
         if(!w)return;
+        if(w.state==='installed')autoActivate(w);
         w.addEventListener('statechange',function(){
-          if(w.state==='installed'&&navigator.serviceWorker.controller){
-            /* v131-fix: S و render و toast كانوا مراجع مكسورة هنا (متغيرات الوحدة مش عالمية) —
-               التحديث الجديد ماكانش بيظهر شارة «تفعيل التحديث» ولا التنبيه خالص. بقى عبر window.__elt/window.toast */
-            try{var __e=window.__elt;if(__e&&__e.S)__e.S._swWaiting=true;if(__e&&typeof __e.rerender==='function')__e.rerender()}catch(e){}
-            try{if(typeof window.toast==='function')window.toast('في نسخة جديدة جاهزة — من «أنا» اضغط تفعيل التحديث',true)}catch(e){}
-          }
+          if(w.state==='installed')autoActivate(w);
         });
       }
-      if(reg.waiting){try{var __e2=window.__elt;if(__e2&&__e2.S)__e2.S._swWaiting=true}catch(e){}}
+      if(reg.waiting)autoActivate(reg.waiting);
       reg.addEventListener('updatefound',onUpdateFound);
-      /* فحص هادي للتحديث مرة كل ساعة كحد أقصى */
+      /* فحص تحديث كل دقيقتين + عند الرجوع للتطبيق */
       try{
-        var last=+(localStorage.getItem('sw_check_at')||0);
-        if(Date.now()-last>3600000){localStorage.setItem('sw_check_at',String(Date.now()));reg.update().catch(function(){})}
+        var check=function(){reg.update().catch(function(){})};
+        setInterval(check,120000);
+        document.addEventListener('visibilitychange',function(){if(!document.hidden)check()});
+        check();
       }catch(e){}
     }).catch(function(){});
   });

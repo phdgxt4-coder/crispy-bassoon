@@ -1,5 +1,5 @@
-/* v217: wp.js v220 (إعادة بناء ارسم وخمّن) في الكاش — bump لتوزيع التحديث فورًا */
-/* التفوق SW — v215 — CACHE=eltafawoq-v216 + توافق مع أي eltafawoq-v* (حتى v مليون) + أوفلاين دائم */
+/* v218: wp.js v221 (رسم أسرع + ملصقات Premium + شات أثناء الرسم + أغاني) */
+/* التفوق SW — CACHE=eltafawoq-v218 + توافق مع أي eltafawoq-v* + أوفلاين دائم */
 /* v214: إصلاح ملصقات ارسم وخمّن + الرسم اللحظي + تصحيح التخمينات */
 /* v210: توحيد الإصدار مع index.html (كان SW=v209 والمنصة=v208) — أي eltafawoq-v* قديم بيتنضّف تلقائيًا */
 /* v209: مزامنة الكاش مع قواعد v209 (إصلاح الملصقات) — أي eltafawoq-v* بيتنضّف وبيترحّل أوفلاين زي ما هو */
@@ -13,10 +13,10 @@
 
 const PETS = ["./pets/fox.glb","./pets/corgi.glb","./pets/hare.glb","./pets/sheep.glb","./pets/boar.glb"];
 /* اسم الكاش الحالي — v208: أول تحميل بعد النشر بينضّف كاشات v206 والقديم تلقائيًا */
-const CACHE = "eltafawoq-v217";
+const CACHE = "eltafawoq-v218";
 /* لا يُحذف كاش الأوفلاين عند التحديث؛ الإصدارات القديمة (v1…v مليون) بتترحّل هنا قبل المسح */
 const OFFLINE_CACHE = "eltafawoq-offline-v1";
-const BUILD = "20261109-v217";
+const BUILD = "20261109-v218";
 
 /* أي كاش إصدار واجهة: eltafawoq-v180 / v183 / v1000000 / v1.2-beta … */
 function isVersionCache(name) {
@@ -105,11 +105,13 @@ self.addEventListener("notificationclick", (e) => {
 });
 
 self.addEventListener("install", (e) => {
+  /* تفعيل فوري لأي نسخة جديدة — بدون انتظار موافقة المستخدم */
+  try { self.skipWaiting(); } catch (_) {}
   e.waitUntil(
     Promise.all([caches.open(CACHE), caches.open(OFFLINE_CACHE)]).then(([c, offline]) =>
       /* الملفات الأساسية تُحفظ في الكاش العادي والدائم؛ كل ملف مستقل حتى لا يفشل التثبيت كله. */
       Promise.allSettled(
-        ["./index.html", "./dg-game.html", "./wp.js", "./push.html", "./manifest.json", "./sw.js"].concat(typeof PETS !== "undefined" ? PETS : []).map((u) =>
+        ["./index.html", "./dg-game.html", "./wp.js", "./dg-stickers.webp", "./push.html", "./manifest.json", "./sw.js"].concat(typeof PETS !== "undefined" ? PETS : []).map((u) =>
           Promise.all([c.add(u).catch(() => {}), offline.add(u).catch(() => {})])
         )
       )
@@ -215,8 +217,8 @@ self.addEventListener("periodicsync", (e) => {
   );
 });
 
-/* فحص خلفية لصفحة HTML مرة كل 30 دقيقة — بدل كل فتح (توفير داتا) */
-const NAV_TTL_MS = 30 * 60 * 1000;
+/* فحص HTML كل 30 ثانية عشان أي تحديث يوصل بسرعة */
+const NAV_TTL_MS = 30 * 1000;
 async function navNeedCheck() {
   try {
     const c = await caches.open(CACHE);
@@ -397,20 +399,26 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  /* Same-origin assets: cache-first + background update */
+  /* ملفات حرجة: network-first عشان التحديث يوصل فورًا */
   if (url.origin === self.location.origin) {
+    const path = url.pathname || "";
+    const critical = /(?:^|\/)(index\.html|wp\.js|sw\.js|dg-stickers\.webp|manifest\.json)$/i.test(path)
+      || path.endsWith("/") || /\/crispy-bassoon\/?$/i.test(path);
     e.respondWith(
       caches.open(CACHE).then(async (c) => {
         const hit = await c.match(e.request) || await offlineMatch(e.request);
-          const net = fetch(e.request).then((res) => {
-            if (res && res.ok) c.put(e.request, res.clone()).catch(() => {});
-            return res;
-          });
-          if (hit) {
-            e.waitUntil(net.catch(() => {}));
-            return hit;
-          }
+        const net = fetch(e.request, critical ? { cache: "no-store" } : undefined).then((res) => {
+          if (res && res.ok) c.put(e.request, res.clone()).catch(() => {});
+          return res;
+        });
+        if (critical) {
           return net.catch(() => hit || new Response("", { status: 504 }));
+        }
+        if (hit) {
+          e.waitUntil(net.catch(() => {}));
+          return hit;
+        }
+        return net.catch(() => hit || new Response("", { status: 504 }));
       })
     );
     return;
