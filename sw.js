@@ -1,5 +1,5 @@
 /* v215: ارسم وخمّن الجديدة (wp.js) في الكاش */
-/* التفوق SW — v215 — CACHE=eltafawoq-v215 + توافق مع أي eltafawoq-v* (حتى v مليون) + أوفلاين دائم */
+/* التفوق SW — v215 — CACHE=eltafawoq-v216 + توافق مع أي eltafawoq-v* (حتى v مليون) + أوفلاين دائم */
 /* v214: إصلاح ملصقات ارسم وخمّن + الرسم اللحظي + تصحيح التخمينات */
 /* v210: توحيد الإصدار مع index.html (كان SW=v209 والمنصة=v208) — أي eltafawoq-v* قديم بيتنضّف تلقائيًا */
 /* v209: مزامنة الكاش مع قواعد v209 (إصلاح الملصقات) — أي eltafawoq-v* بيتنضّف وبيترحّل أوفلاين زي ما هو */
@@ -13,10 +13,10 @@
 
 const PETS = ["./pets/fox.glb","./pets/corgi.glb","./pets/hare.glb","./pets/sheep.glb","./pets/boar.glb"];
 /* اسم الكاش الحالي — v208: أول تحميل بعد النشر بينضّف كاشات v206 والقديم تلقائيًا */
-const CACHE = "eltafawoq-v215";
+const CACHE = "eltafawoq-v216";
 /* لا يُحذف كاش الأوفلاين عند التحديث؛ الإصدارات القديمة (v1…v مليون) بتترحّل هنا قبل المسح */
 const OFFLINE_CACHE = "eltafawoq-offline-v1";
-const BUILD = "20261109-v215";
+const BUILD = "20261109-v216";
 
 /* أي كاش إصدار واجهة: eltafawoq-v180 / v183 / v1000000 / v1.2-beta … */
 function isVersionCache(name) {

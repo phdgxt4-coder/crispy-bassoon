@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v215">
+<meta name="sw-build" content="v216">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v215";/* v215: «ارسم وخمّن» اتعمل من الصفر على نمط ويبلاي (ملف wp.js): رسم لحظي بـ chunks · التخمين في الشات نفسه (الإجابة الصحيحة بتتسجل لحظيًا من غير ما تتكشف) · نقاط بالوقت + بونص أول مخمّن + نقاط للرسام · اختيار كلمة من 4 · تلميحات حروف · رسائل صوتية/صور/ملصقات · لوبي بجاهزية · نهاية بترتيب · لازم تنشر firestore.rules v215 · */ v214: (1) شاشة اختيار الكلمة كانت بتعلّق لأن المؤقّت مكانش بيشتغل غير أثناء الرسم — اتصلّح (2) تنبيه لو فيه لاعبين مش مستعدين قبل البدء (3) تحذير لو لاعب نسخته قديمة + زر تحديث فوري (4) ملصقات: قاعدة آمنة بدل regex (5) ملخّص «جاهزين X من Y» في اللوبي · v213: ارسم وخمّن — (1) الملصقات المخصصة والمرسومة كانت بتترفض من قواعد Firestore (مطابقة regex غلط) · (2) تصحيح التخمينات مبقاش بيفوّت تخمين لو وصل وقت ما الرسام بيصحّح غيره + تجاهل تخمينات الجولات القديمة · (3) الرسم اللحظي: استماع بالدور فقط + الخط مبيختفيش لحظة الإرسال + مقاس الكانفاس بيتظبط تلقائيًا · (4) الكتابة في الشات مبتضيعش مع إعادة رسم الشاشة · (5) لو الرسام خرج وسط الدور الجولة بتتكشف تلقائيًا · (6) زر ابدأ محمي من الضغط المزدوج · (7) رسائل خطأ واضحة بدل «فشل» · (8) أزرار الإيموجي/المايك لم تعد تتكرر عند المخمّن · (9) حذف رسائل الغرف المنتهية (ساعة) من السيرفر · v212: إصلاح جذري للرسم (Nested arrays → strokes subcollection لحظي) · توقيت موحّد · انضمام/خروج بدون سباق · ملصقات مخصصة أخف وآمنة · رسائل الشات تتحذف بعد ساعة (expireAt) · v211: إصلاح «dgRoom is not defined» (كان بيكسر إرسال الملصقات والملصقات المخصصة والمايك) + إصلاح N (الاهتزاز) · الرد على رسالة بقى مسموح في القواعد · ملصق من صورة الفون (من المعرض/الكاميرا) مع إمكانية الرسم فوقها · حدود أكبر: ملصقاتي 50، لاعبين لحد 40، جولات لحد 30، وقت الرسم لحد 300 ث، شات 100 رسالة، رسالة صوتية 90 ث · v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
+<script>window.APP_BUILD="v216";/* v216: الغرف العامة لـ«ارسم وخمّن» في «الغرف المفتوحة» · إصلاح ظهور خانة كتابة الشات · حذف بحث المحادثة · الحذف التلقائي بعد ساعة اتعمم على شات الغرف ·  v215: «ارسم وخمّن» اتعمل من الصفر على نمط ويبلاي (ملف wp.js): رسم لحظي بـ chunks · التخمين في الشات نفسه (الإجابة الصحيحة بتتسجل لحظيًا من غير ما تتكشف) · نقاط بالوقت + بونص أول مخمّن + نقاط للرسام · اختيار كلمة من 4 · تلميحات حروف · رسائل صوتية/صور/ملصقات · لوبي بجاهزية · نهاية بترتيب · لازم تنشر firestore.rules v215 · */ v214: (1) شاشة اختيار الكلمة كانت بتعلّق لأن المؤقّت مكانش بيشتغل غير أثناء الرسم — اتصلّح (2) تنبيه لو فيه لاعبين مش مستعدين قبل البدء (3) تحذير لو لاعب نسخته قديمة + زر تحديث فوري (4) ملصقات: قاعدة آمنة بدل regex (5) ملخّص «جاهزين X من Y» في اللوبي · v213: ارسم وخمّن — (1) الملصقات المخصصة والمرسومة كانت بتترفض من قواعد Firestore (مطابقة regex غلط) · (2) تصحيح التخمينات مبقاش بيفوّت تخمين لو وصل وقت ما الرسام بيصحّح غيره + تجاهل تخمينات الجولات القديمة · (3) الرسم اللحظي: استماع بالدور فقط + الخط مبيختفيش لحظة الإرسال + مقاس الكانفاس بيتظبط تلقائيًا · (4) الكتابة في الشات مبتضيعش مع إعادة رسم الشاشة · (5) لو الرسام خرج وسط الدور الجولة بتتكشف تلقائيًا · (6) زر ابدأ محمي من الضغط المزدوج · (7) رسائل خطأ واضحة بدل «فشل» · (8) أزرار الإيموجي/المايك لم تعد تتكرر عند المخمّن · (9) حذف رسائل الغرف المنتهية (ساعة) من السيرفر · v212: إصلاح جذري للرسم (Nested arrays → strokes subcollection لحظي) · توقيت موحّد · انضمام/خروج بدون سباق · ملصقات مخصصة أخف وآمنة · رسائل الشات تتحذف بعد ساعة (expireAt) · v211: إصلاح «dgRoom is not defined» (كان بيكسر إرسال الملصقات والملصقات المخصصة والمايك) + إصلاح N (الاهتزاز) · الرد على رسالة بقى مسموح في القواعد · ملصق من صورة الفون (من المعرض/الكاميرا) مع إمكانية الرسم فوقها · حدود أكبر: ملصقاتي 50، لاعبين لحد 40، جولات لحد 30، وقت الرسم لحد 300 ث، شات 100 رسالة، رسالة صوتية 90 ث · v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -2133,7 +2133,12 @@ html.lite .card,html.lite .dlg,html.lite .btn.ghost{
 <div id="app"></div><div id="verBadge"></div><script>try{document.getElementById("verBadge").textContent=window.APP_BUILD||""}catch(_){}</script>
 <div id="toast" role="status" aria-live="polite"></div>
 
-<script src="./wp.js?v=215" defer></script>
+<style id="v216chat">
+/* v216: خانة كتابة الشات كانت بتختفي (fixed جوّه عنصر عليه transform) → sticky مضمون الظهور */
+.chat-wrap .tk-compose{position:sticky!important;left:auto!important;right:auto!important;bottom:calc(72px + env(safe-area-inset-bottom,0px))!important;margin:8px 0 0!important;max-width:none!important;width:100%;z-index:45}
+.chat-wrap .tk-log{max-height:calc(100dvh - 300px);padding-bottom:12px!important}
+</style>
+<script src="./wp.js?v=216" defer></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,updatePassword,setPersistence,browserLocalPersistence,indexedDBLocalPersistence} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -2168,7 +2173,7 @@ const getDoc=__wrapOp("getDoc",function(){
   /* v212: كل رسالة شات (محادثات/جروبات/غرف اللعبة) بتاخد expireAt = بعد ساعة — الواجهة بتخفيها فورًا وFirestore TTL بيحذفها فعليًا */
   try{
     var a=arguments,path=__opPath(a),d=a[1];
-    if(/\/msgs$/.test(path)&&d&&typeof d==="object"&&!Array.isArray(d)&&d.expireAt==null){
+    if(/\/(msgs|chat)$/.test(path)&&d&&typeof d==="object"&&!Array.isArray(d)&&d.expireAt==null){
       a[1]=Object.assign({},d,{expireAt:Timestamp.fromMillis(Date.now()+3600000)});
     }
   }catch(_e){}
@@ -4244,10 +4249,10 @@ function gamesView(){
     </div></div></div></div>`};
   const roomRows=openRooms.map(r=>{
     const n=Object.keys(r.players||{}).filter(k=>k!=="bot").length;
-    const isDg=r._src==="dg"||r.game==="dg";
+    const isDg=r._src==="dg"||r._src==="wp"||r.game==="dg";
     const label=isDg?"ارسم وخمّن":esc(qbGameLabel(r.game||"qb"));
     const sub=isDg?"رسم وتخمين":(subName(r.subject)||"");
-    const act=isDg?`data-act="dgJoinCode" data-code="${esc(r.code)}"`:`data-act="qbRequestJoin" data-code="${esc(r.code)}"`;
+    const act=r._src==="wp"?`data-act="wpJoin" data-code="${esc(r.code)}"`:isDg?`data-act="dgJoinCode" data-code="${esc(r.code)}"`:`data-act="qbRequestJoin" data-code="${esc(r.code)}"`;
     return `<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><div><b dir="ltr">${esc(r.code)}</b> · ${label}<div class="mut">${sub} · ${n}/${(r.settings&&r.settings.maxPlayers)||r.maxPlayers||8} لاعب</div></div><button class="btn sm" ${act}>انضم</button></div>`;
   }).join("");
   const gc=(ic,bg,title,sub,btns)=>`<div class="card lift"><div class="row" style="flex-wrap:nowrap;gap:14px;align-items:flex-start"><div class="av" style="border-radius:16px;font-size:28px;background:${bg}">${ic}</div><div style="flex:1"><b style="font-size:17px">${title}</b><div class="mut">${sub}</div><div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">${btns}</div></div></div></div>`;
@@ -7470,7 +7475,7 @@ function chatThreadView(){
   <button class="btn ghost sm" data-act="startCall" data-uid="${t.uid}" data-name="${esc(t.name||"")}" aria-label="مكالمة">📞</button>
 </div>
 <div class="tk-thread">
-  <div class="tk-search-row" style="padding:6px 10px 0;display:flex;gap:6px;align-items:center"><input id="dmSearch" type="search" maxlength="80" placeholder="🔎 بحث في المحادثة…" value="${esc(S.chatSearch||"")}" style="flex:1;font:inherit;padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:inherit" autocomplete="off"><button type="button" class="btn ghost sm" data-act="dmClearSearch" style="${S.chatSearch?"":"display:none"}">✕</button></div>
+  
   <div class="tk-log" id="dmChatLog">${(()=>{const q=(S.chatSearch||"").trim().toLowerCase();const list=q?msgs.filter(m=>!m.deleted&&((m.text||"").toLowerCase().includes(q)||(m.fromName||"").toLowerCase().includes(q))):msgs;return list.length?list.map(dmBubbleHtml).join(""):`<div class="mut" style="text-align:center;margin:auto">${q?"مفيش نتائج للبحث":"قول سلام 👋"}</div>`})()}</div>
 </div>
 ${replyBar}
@@ -12841,8 +12846,8 @@ function loadOpenRooms(){
     if(window.__dgOpenUnsub){try{window.__dgOpenUnsub()}catch(_){}}
     const mergeOpen=()=>{
       const qb=S._openQb||[];
-      const dg=S._openDg||[];
-      S.openRooms=qb.concat(dg);
+      const wp=S._openWp||[];
+      S.openRooms=qb.concat(wp);
       if(S.view==="games")scheduleRender();
     };
     window.__openRoomsUnsub=onSnapshot(query(collection(db,"qb_rooms"),limit(40)),snap=>{
@@ -12856,6 +12861,15 @@ function loadOpenRooms(){
       });
       mergeOpen();
     },err=>console.warn("openRooms",err));
+    try{if(window.__wpOpenUnsub)window.__wpOpenUnsub()}catch(_){}
+    window.__wpOpenUnsub=onSnapshot(query(collection(db,"wpRooms"),where("public","==",true),limit(40)),snap=>{
+      S._openWp=snap.docs.map(d=>({id:d.id,code:d.id,...d.data(),_src:"wp",game:"dg"})).filter(r=>{
+        const n=Object.keys(r.players||{}).length;
+        const u=(r.updatedAt&&r.updatedAt.toMillis)?r.updatedAt.toMillis():0;
+        return r.status==="lobby"&&n>0&&(!u||Date.now()-u<3*3600000);
+      });
+      mergeOpen();
+    },err=>console.warn("wpOpen",err));
     window.__dgOpenUnsub=onSnapshot(query(collection(db,"dgRooms"),limit(40)),snap=>{
       S._openDg=snap.docs.map(d=>({id:d.id,code:d.id,...d.data(),_src:"dg",game:"dg"})).filter(r=>{
         const n=Object.keys(r.players||{}).length;
@@ -12876,7 +12890,7 @@ function qbStopChat(){if(S.qbChatSub){try{S.qbChatSub()}catch(_){} S.qbChatSub=n
 function qbListenChat(code){
   qbStopChat();
   S.qbChatSub=onSnapshot(query(collection(db,"qb_rooms",code,"chat"),orderBy("createdAt","asc"),limit(80)),s=>{
-    S.qbChat=s.docs.map(d=>({id:d.id,...d.data()}));
+    S.qbChat=chatLive(s.docs.map(d=>({id:d.id,...d.data()})));
     if(S.view==="qbLobby"||S.view==="qbPlay"||S.view==="qbResult"||S.view==="losRoomPlay"||S.view==="losRoomResult"){
       const box=$("#qbChatLog");
       if(box){
@@ -17554,6 +17568,7 @@ Object.assign(A,{
   wbColor(d,el){window.__wbColor=(el&&el.getAttribute("data-c"))||(d&&d.c)||"#111111"},
   wbClear(){try{wbDoClear()}catch(e){}},
   wbDl(){try{wbDownload()}catch(e){}},
+  wpJoin(d){if(window.WP)window.WP.joinCode(d.code||"")},
   dgOpen(){if(window.WP&&window.WP.open){window.WP.open()}else{S.view="dgOpen";render(true)}},
 
   dgCreateSheet(){

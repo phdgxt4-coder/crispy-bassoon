@@ -124,17 +124,17 @@ function entry(){
   screen="entry";
   root().innerHTML='<div class="wp-scr"><div class="wp-top"><button class="wp-x" id="wpBack">✕</button><div class="wp-hint">ارسم وخمّن</div><div style="width:38px"></div></div>'+
   '<div class="wp-center"><div style="font-size:70px">🎨</div><h1>ارسم وخمّن</h1><div style="opacity:.7">ارسم الكلمة وصحابك يخمنوها — الأسرع بياخد نقاط أكتر</div>'+
-  '<button class="wp-btn gold" id="wpCreate" style="font-size:18px;padding:16px">＋ إنشاء غرفة</button>'+
+  '<button class="wp-btn gold" id="wpCreate" style="font-size:18px;padding:16px">🌍 إنشاء غرفة عامة</button><button class="wp-btn" id="wpCreateP" style="padding:14px">🔒 إنشاء غرفة خاصة (بالكود)</button>'+
   '<input id="wpJc" maxlength="5" placeholder="كود الغرفة" autocomplete="off"><button class="wp-btn" id="wpJoin">انضم</button></div></div>';
-  $("wpBack").onclick=exit;$("wpCreate").onclick=create;$("wpJoin").onclick=function(){join($("wpJc").value)};
+  $("wpBack").onclick=exit;$("wpCreate").onclick=function(){create(true)};$("wpCreateP").onclick=function(){create(false)};$("wpJoin").onclick=function(){join($("wpJc").value)};
 }
-async function create(){
-  if(busy)return;busy=true;$("wpCreate").disabled=true;
+async function create(pub){
+  if(busy)return;busy=true;$("wpCreate").disabled=true;$("wpCreateP").disabled=true;
   try{
     for(var t=0;t<6;t++){
       var c=genCode(),ref=FS.doc(db,"wpRooms",c),ex=await FS.getDoc(ref);if(ex.exists())continue;
       var pl={};pl[ME.uid]={name:ME.name,av:ME.thumb,ready:true};
-      await FS.setDoc(ref,{host:ME.uid,hostName:ME.name,status:"lobby",players:pl,order:[],scores:{},solved:{},idx:-1,round:0,maxRounds:3,secs:75,createdAt:FS.serverTimestamp(),updatedAt:FS.serverTimestamp()});
+      await FS.setDoc(ref,{host:ME.uid,hostName:ME.name,status:"lobby",public:!!pub,players:pl,order:[],scores:{},solved:{},idx:-1,round:0,maxRounds:3,secs:75,createdAt:FS.serverTimestamp(),updatedAt:FS.serverTimestamp()});
       listen(c);break;
     }
   }catch(e){console.warn(e);toast(e&&e.code==="permission-denied"?"انشر firestore.rules الجديد (v215) على Firebase":"فشل إنشاء الغرفة")}
@@ -170,7 +170,7 @@ function listen(c){
     onRoom(prev);
   },function(e){console.warn("room",e)}));
   U.push(FS.onSnapshot(FS.query(col("msgs"),FS.orderBy("ts","desc"),FS.limit(70)),function(s){
-    msgs=s.docs.map(function(d){return Object.assign({id:d.id},d.data({serverTimestamps:"estimate"}))}).reverse();paintMsgs();
+    msgs=s.docs.map(function(d){return Object.assign({id:d.id},d.data({serverTimestamps:"estimate"}))}).reverse().filter(function(m){var t=ms(m.ts);return !t||Date.now()-t<3600000});paintMsgs();
   },function(e){console.warn("msgs",e)}));
   U.push(FS.onSnapshot(col("presence"),function(s){
     var p={};
@@ -262,8 +262,8 @@ function lobbyUI(){
     return '<div class="wp-row">'+avatar(u,p,40)+'<b>'+E(p.name)+(u===ME.uid?' <small>(أنت)</small>':'')+(u===R.host?' 👑':'')+'</b>'+(p.ready||u===R.host?'<em>✓ جاهز</em>':'<em class="no">مش جاهز</em>')+'</div>'}).join("");
   var rd=ids.filter(function(u){return u===R.host||R.players[u].ready}).length;
   var mine=R.players[ME.uid]||{};
-  el.innerHTML='<div class="wp-card"><div style="text-align:center;opacity:.7;font-size:12px">كود الغرفة</div><div class="wp-code">'+E(code)+'</div>'+
-  '<div style="display:flex;gap:8px;margin-top:8px"><button class="wp-btn" style="flex:1" id="wpCopy">نسخ الكود</button><button class="wp-btn" style="flex:1" id="wpShare">مشاركة</button></div></div>'+
+  el.innerHTML='<div class="wp-card"><div style="text-align:center;opacity:.7;font-size:12px">'+(R.public?'🌍 غرفة عامة':'🔒 غرفة خاصة')+' · كود الغرفة</div><div class="wp-code">'+E(code)+'</div>'+
+  '<div style="display:flex;gap:8px;margin-top:8px"><button class="wp-btn" style="flex:1" id="wpCopy">نسخ الكود</button><button class="wp-btn" style="flex:1" id="wpShare">مشاركة</button></div>'+(host?'<button class="wp-btn" style="margin-top:8px;width:100%" id="wpPub">'+(R.public?'اجعلها خاصة 🔒':'اجعلها عامة 🌍')+'</button>':'')+'</div>'+
   '<div class="wp-card"><b>اللاعبين ('+ids.length+') · جاهزين '+rd+' من '+ids.length+'</b>'+rows+'</div>'+
   (host?'<div class="wp-card"><b>الإعدادات</b><div class="wp-set"><span>الجولات</span><select id="wpRounds">'+[1,2,3,4,5,6,8,10].map(function(n){return '<option'+(n===R.maxRounds?' selected':'')+'>'+n+'</option>'}).join("")+'</select></div>'+
    '<div class="wp-set"><span>وقت الرسم</span><select id="wpSecs">'+[45,60,75,90,120,180].map(function(n){return '<option value="'+n+'"'+(n===R.secs?' selected':'')+'>'+n+' ثانية</option>'}).join("")+'</select></div></div>':
@@ -273,6 +273,7 @@ function lobbyUI(){
   $("wpCopy").onclick=function(){try{navigator.clipboard.writeText(code);toast("اتنسخ الكود")}catch(_){toast(code)}};
   $("wpShare").onclick=function(){var t="تعالى العب ارسم وخمّن معايا في التفوق 🎨 كود الغرفة: "+code;if(navigator.share)navigator.share({text:t}).catch(function(){});else{try{navigator.clipboard.writeText(t);toast("اتنسخت الدعوة")}catch(_){}}};
   if(host){
+    $("wpPub").onclick=function(){FS.updateDoc(rref(),{public:!R.public,updatedAt:FS.serverTimestamp()})};
     $("wpRounds").onchange=function(){FS.updateDoc(rref(),{maxRounds:+this.value,updatedAt:FS.serverTimestamp()})};
     $("wpSecs").onchange=function(){FS.updateDoc(rref(),{secs:+this.value,updatedAt:FS.serverTimestamp()})};
     $("wpStart").onclick=start;
@@ -352,7 +353,7 @@ function hints(){
 
 /* ---------- الرسائل والتخمين ---------- */
 function msg(m){
-  var d=Object.assign({uid:ME.uid,name:ME.name,ts:FS.serverTimestamp()},m);
+  var d=Object.assign({uid:ME.uid,name:ME.name,ts:FS.serverTimestamp(),expireAt:FS.Timestamp.fromMillis(Date.now()+3600000)},m);
   if(ME.thumb)d.av=ME.thumb;
   return FS.addDoc(col("msgs"),d).catch(function(e){console.warn("msg",e);toast("الرسالة ماتبعتتش")});
 }
@@ -626,5 +627,5 @@ function exit(){
   var r=$("wp");if(r)r.remove();
   try{B&&B.back&&B.back()}catch(_){}
 }
-window.WP={open:open,leave:leave,_t:{canon:canon,H:H,buildItems:buildItems}};
+window.WP={open:open,leave:leave,joinCode:async function(c){if(!(await init()))return;me();css();stopAll();R=null;root();await join(c);if(!R&&$("wp")&&screen!=="lobby"&&screen!=="game"){var r=$("wp");if(r&&!R)r.remove()}},_t:{canon:canon,H:H,buildItems:buildItems}};
 })();
