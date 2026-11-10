@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v231">
+<meta name="sw-build" content="v233">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v231";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
+<script>window.APP_BUILD="v233";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
 </script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
@@ -2290,6 +2290,59 @@ body.vid-focus-body #verBadge{display:none!important}
 .vid-focus-mode .vid-card{opacity:1}
 
 </style>
+<style id="vx233">
+/* v233 — قسم الفيديوهات (ريلز) */
+.vx{position:fixed;inset:0;bottom:var(--vx-b,0);z-index:30;background:#05060b;color:#fff;direction:rtl;overflow:hidden}
+.vx:not(.vx-focus){--vx-b:calc(76px + env(safe-area-inset-bottom,0px))}
+.vx-feed{height:100%;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.vx-feed::-webkit-scrollbar{display:none}
+.vx-item{position:relative;height:100%;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden;background:radial-gradient(80% 50% at 50% 0%,color-mix(in srgb,var(--c1,#7c5cff) 28%,transparent),transparent 70%),#07080f}
+.vx-bg{position:absolute;inset:-30px;background-size:cover;background-position:center;filter:blur(30px) brightness(.45) saturate(1.4);transform:scale(1.1);opacity:.9}
+.vx-stage{position:absolute;top:calc(58px + env(safe-area-inset-top,0px));bottom:62px;left:50%;transform:translateX(-50%);width:min(calc(100% - 20px),520px);border-radius:22px;overflow:hidden;background:#000;box-shadow:0 18px 50px rgba(0,0,0,.6);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.vx-v{width:100%;height:100%;object-fit:contain;display:block;background:#000}
+.vx-ring{position:absolute;inset:0;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--c1) 35%,transparent);transition:box-shadow .35s}
+.vx-item.is-active .vx-ring{box-shadow:inset 0 0 0 2px var(--c1),inset 0 0 34px -6px var(--c2);animation:vxGlow 2.6s ease-in-out infinite}
+@keyframes vxGlow{50%{box-shadow:inset 0 0 0 2px var(--c2),inset 0 0 46px -4px var(--c1)}}
+.vx-center{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+.vx-center i{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:30px;background:rgba(0,0,0,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;transform:scale(.7)}
+.vx-center.on i{animation:vxPop .7s ease-out}
+@keyframes vxPop{0%{opacity:0;transform:scale(.6)}25%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.15)}}
+.vx-item.is-paused:not(.is-fail) .vx-center i{opacity:.95;transform:scale(1);animation:none}
+.vx-wait{position:absolute;inset:0;display:none;place-items:center;pointer-events:none}.vx-wait.on{display:grid}
+.vx-spin{width:38px;height:38px;border-radius:50%;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;animation:vxSp .8s linear infinite}
+@keyframes vxSp{to{transform:rotate(360deg)}}
+.vx-fail{position:absolute;inset:0;display:none;flex-direction:column;gap:12px;align-items:center;justify-content:center;background:rgba(0,0,0,.72);font-weight:700}
+.vx-item.is-fail .vx-fail{display:flex}
+.vx-fail button,.vx-retry{border:0;border-radius:14px;padding:10px 18px;font:inherit;font-weight:800;color:#111;background:linear-gradient(135deg,#fbbf24,#f59e0b);cursor:pointer}
+.vx-top{position:absolute;z-index:6;top:0;inset-inline:0;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 22px;background:linear-gradient(#000a,transparent);pointer-events:none}
+.vx-top>*{pointer-events:auto}
+.vx-title{flex:1;font-family:'Reem Kufi',sans-serif;font-size:20px;font-weight:700;letter-spacing:.3px;text-shadow:0 2px 12px #000;-webkit-user-select:none;user-select:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vx-count{font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.vx-count:empty{display:none}
+.vx-btn{width:42px;height:42px;border-radius:50%;border:0;display:grid;place-items:center;font-size:20px;color:#fff;background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);cursor:pointer;font-family:inherit}
+.vx-info{position:absolute;z-index:4;inset-inline:calc(50% - min(calc(50% - 10px),260px) + 14px);bottom:78px;display:flex;flex-direction:column;gap:4px;pointer-events:none;text-shadow:0 2px 14px #000}
+.vx-info b{font-size:16px;line-height:1.4}.vx-info span{font-size:13px;opacity:.9;line-height:1.5;max-height:4.5em;overflow:hidden}
+.vx-badge{align-self:flex-start;font-style:normal;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;color:#241800;background:linear-gradient(135deg,var(--c1),var(--c2));text-shadow:none}
+.vx-side{position:absolute;z-index:5;inset-inline-end:calc(50% - min(calc(50% - 10px),260px) + 12px);bottom:calc(62px + 120px);display:flex;flex-direction:column;gap:12px}
+.vx-snd.pulse{animation:vxPulse 1.6s ease-in-out infinite}
+@keyframes vxPulse{50%{box-shadow:0 0 0 8px rgba(255,255,255,.14)}}
+.vx-bar{position:absolute;z-index:5;left:50%;transform:translateX(-50%);width:min(calc(100% - 44px),480px);bottom:26px;height:22px;display:flex;align-items:center;cursor:pointer}
+.vx-bar::before{content:"";position:absolute;inset-inline:0;height:4px;border-radius:4px;background:rgba(255,255,255,.22)}
+.vx-bar i{position:relative;display:block;height:4px;width:0;border-radius:4px;background:linear-gradient(90deg,var(--c2),var(--c1));margin-inline-end:auto}
+.vx-time{position:absolute;inset-inline-end:0;top:14px;font-size:10px;opacity:.75;text-decoration:none;font-variant-numeric:tabular-nums}
+.vx-hint{position:absolute;z-index:4;bottom:4px;inset-inline:0;text-align:center;font-size:11px;opacity:0;pointer-events:none}
+.vx-item:first-child.is-active .vx-hint{animation:vxHint 4.5s ease .6s both}
+@keyframes vxHint{0%,100%{opacity:0}15%,70%{opacity:.7}}
+.vx-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px}
+.vx-state b{font-size:18px}.vx-state span{opacity:.7;font-size:14px}.vx-ico{font-size:52px}
+@media (prefers-reduced-motion:reduce){.vx-item.is-active .vx-ring,.vx-snd.pulse{animation:none}}
+body.vid-focus-body .vx-top .vx-btn{display:none}
+.vx-count,.vx-time{direction:ltr;unicode-bidi:isolate}
+.vx-bar{direction:ltr}
+.vx-time{inset-inline-end:auto;right:0}
+.vx-stage::after{content:"";position:absolute;inset:auto 0 0 0;height:46%;background:linear-gradient(transparent,rgba(0,0,0,.78));pointer-events:none;z-index:2}
+.vx-ring,.vx-center,.vx-wait,.vx-fail{z-index:3}
+</style>
 </head>
 <body>
 <div class="bgfx"><i></i><i></i></div>
@@ -3229,7 +3282,7 @@ async function startSession(u){
       }catch(e){console.warn("publicProfile",e)}
       setTimeout(()=>{try{pkSync()}catch(_){}},1500);setTimeout(()=>{try{rvAuto()}catch(_){}},15000);
       S.examsLoaded=false;
-      if(guestVideosAllowed()&&!S.isAdmin){S.view="videos";S._homeDone=1;try{vidLoad(true)}catch(_){}}
+      if(shouldVideosLanding()){S.view="videos";S._homeDone=1;try{vidLoad(true)}catch(_){}}
       else S.view="home";
       render(true);
       // رابط مباشر للغرفة: #room=CODE
@@ -3371,10 +3424,11 @@ if(configured){
     try{localStorage.setItem("videos_only_fast",S.site.videosOnly?"1":"0")}catch(_){}
     try{
       try{if(/(?:[?&]__m=7(?:&|$)|#__m7)/.test(String(location.search||"")+String(location.hash||""))){S.adminLogin=true;S.view="auth";S.guestVideos=false}}catch(_){}
-      if(guestVideosAllowed()){
+      if(!S.user&&!(auth&&auth.currentUser)&&S.view==="videos"&&S.guestVideos&&!guestVideosAllowed()&&!shouldVideosLanding()){S.view="auth";S.guestVideos=false;render(true)}
+      if(shouldVideosLanding()||guestVideosAllowed()){
         if(!S.user&&!(auth&&auth.currentUser)){
-          S.view="videos";S.guestVideos=true;
-          try{vidLoad(true).then(()=>{if(!S.user)render(true)})}catch(_){}
+          if(guestVideosAllowed()){S.view="videos";S.guestVideos=true;
+          try{vidLoad(true).then(()=>{if(!S.user)render(true)})}catch(_){}}
         }else if(S.user&&!S.isAdmin){
           S.view="videos";S._homeDone=1;
           try{vidLoad(true).then(()=>render(true))}catch(_){render(true)}
@@ -3410,7 +3464,7 @@ if(configured){
   window.__credAuto=async function(){
     if(window.__credTried||!window.PasswordCredential||!navigator.credentials||S.registering)return;window.__credTried=1;
     try{
-      const c=await navigator.credentials.get({password:true,mediation:"silent"});
+      let c=null;try{c=await navigator.credentials.get({password:true,mediation:"silent"})}catch(__cm){c=null}
       if(c&&c.id&&c.password&&!auth.currentUser){const e=c.id.includes("@");await signInWithEmailAndPassword(auth,e?c.id.toLowerCase():phoneClean(c.id)+DOMAIN,c.password)}
     }catch(_){}
   };
@@ -3437,8 +3491,8 @@ if(configured){
           stopSubs();try{musSubStop();musStop();S.admMenu=undefined}catch(_){}
           S.user=null;S.isAdmin=false;S.profile=null;S.myList=[];S.attempts={};
           __authBoot=false;
-          if(guestVideosAllowed()){
-            S.view="videos";S.guestVideos=true;
+          if(guestVideosAllowed()||shouldVideosLanding()){
+            S.view="videos";if(guestVideosAllowed())S.guestVideos=true;
             try{vidLoad(true).then(()=>{if(!S.user)render(true)})}catch(_){}
             render(true);
           }else{
@@ -3464,8 +3518,8 @@ if(configured){
   // لو التحميل طول: متودّيش لشاشة الدخول لو في مستخدم
   setTimeout(function(){
     if(S.view==="loading"&&!S.user&&!(auth&&auth.currentUser)){
-      S.view=guestVideosAllowed()?"videos":"auth";
-      if(S.view==="videos")S.guestVideos=true;
+      S.view=(guestVideosAllowed()||shouldVideosLanding())?"videos":"auth";
+      if(S.view==="videos"&&guestVideosAllowed())S.guestVideos=true;
       render(true);
     }
   },10000);
@@ -3553,18 +3607,18 @@ function render(force,soft){
     const privileged=!!S.isAdmin||!!S.role||(typeof isAsmManager==="function"&&isAsmManager());
     if(!privileged&&ADMIN_ONLY_VIEWS.has(S.view)){S.view=S.user?"home":"auth";S.tab="dash";S.adminLogin=false}
     if(S.user&&!S.isAdmin)S.adminLogin=false;
-    if(S.user&&!S.isAdmin&&guestVideosAllowed()&&S.view!=="videos"&&S.view!=="loading"){
+    if(S.user&&!S.isAdmin&&shouldVideosLanding()&&S.view!=="videos"&&S.view!=="loading"&&S.view!=="auth"){
       S.view="videos";
     }
-  }catch(_){if(S.user&&!S.isAdmin){S.view=guestVideosAllowed()?"videos":"home";S.adminLogin=false}}
+  }catch(_){if(S.user&&!S.isAdmin){S.view=shouldVideosLanding()?"videos":"home";S.adminLogin=false}}
   let h;
   try{
   if(S.view==="loading")h=splash();
   else if(S.site.maintenance&&!S.isAdmin&&!S.adminLogin)h=maintenance();
   else if(!S.user){
     if(S.adminLogin){h=authView()}
-    else if(guestVideosAllowed()&&(S.view==="videos"||S.view==="loading"||S.view==="auth"||!S.view)){
-      S.view="videos";S.guestVideos=true;
+    else if((guestVideosAllowed()||shouldVideosLanding())&&(S.view==="videos"||S.view==="loading"||S.view==="auth"||!S.view)){
+      S.view="videos";if(guestVideosAllowed())S.guestVideos=true;
       h=typeof videosView==="function"?videosView():authView();
     }else h=authView();
   }
@@ -3632,7 +3686,7 @@ function render(force,soft){
   if(soft&&!__newView&&typeof h==="string"&&h&&window.__lastHtml===h&&app.firstChild){window.__renderSkipped=(window.__renderSkipped||0)+1;return}
   window.__lastHtml=(typeof h==="string")?h:"";
   app.innerHTML=h||`<div class="wrap"><div class="card empty"><div class="ei">⏳</div><b>لحظة…</b><div class="mut" style="margin:8px 0 12px">بنجهّز الصفحة</div><button class="btn" data-act="home">الرئيسية</button></div></div>`;
-  if(!h&&!window.__emptyFix){window.__emptyFix=1;setTimeout(()=>{window.__emptyFix=0;try{if(!S.user){S.view=guestVideosAllowed()?"videos":"auth";if(S.view==="videos")S.guestVideos=true}else if(!S.view||S.view==="loading"){S.view="home"}render(true)}catch(_){}},1200)}
+  if(!h&&!window.__emptyFix){window.__emptyFix=1;setTimeout(()=>{window.__emptyFix=0;try{if(!S.user){S.view=(guestVideosAllowed()||shouldVideosLanding())?"videos":"auth";if(S.view==="videos"&&guestVideosAllowed())S.guestVideos=true}else if(!S.view||S.view==="loading"){S.view="home"}render(true)}catch(_){}},1200)}
   if(__aeId){const el=document.getElementById(__aeId);if(el){if(__aeVal!=null&&"value" in el)el.value=__aeVal;el.focus();if(__aePos!=null)try{el.setSelectionRange(__aePos,__aePos)}catch(_){}}}
   if(__sy>0){try{window.scrollTo(0,__sy)}catch(_){}}
   if(__inner.length){try{const __all=app.querySelectorAll("div,section,ul,table,pre");__inner.forEach(([i,t])=>{const el=__all[i];if(el)el.scrollTop=t})}catch(_){}}
@@ -3691,14 +3745,26 @@ const videosPageTitle=()=>{const t=(S.site&&S.site.videosTitle)||"";return Strin
 function isVideosFocus(){
   try{
     if(S.isAdmin)return false;
-    if(S.site&&S.site.videosOnly)return true;
+    if(S.siteRaw){if(S.site&&S.site.videosOnly)return true}else if(vxFast())return true;
     if(!featOn("videos"))return false;
     const core=["subjects","chat","games","life","progress","me","books","asms","fadaye7","tanagha","ai","calls","focus","notes","search","board","songs"];
     return core.every(k=>!featState(k));
   }catch(_){return false}
 }
+/* v233: قبل ما إعدادات الموقع توصل من السيرفر بنعتمد على آخر قيمة محفوظة — فالرابط يفتح الفيديوهات علطول من غير ما تظهر صفحة تسجيل الدخول لحظة */
+function vxFast(){try{return localStorage.getItem("videos_only_fast")==="1"}catch(_){return false}}
 function guestVideosAllowed(){
-  try{return !!(S.site&&S.site.videosOnly)}catch(_){return false}
+  try{if(S.siteRaw)return !!(S.site&&S.site.videosOnly);return vxFast()}catch(_){return false}
+}
+/* هبوط تلقائي على الفيديوهات: وضع يدوي أو الفيديوهات مفتوحة وباقي الأساسيات مقفولة */
+function shouldVideosLanding(){
+  try{
+    if(S.isAdmin)return false;
+    if(S.adminLogin)return false;
+    if(guestVideosAllowed())return true;
+    if(typeof isVideosFocus==="function"&&isVideosFocus())return true;
+    return false;
+  }catch(_){return false}
 }
 
 
@@ -8942,144 +9008,141 @@ ${frameOpts.map(([id,lab])=>`<option value="${id}" ${fr===id?"selected":""}>${la
 }).join(""):`<div class="mut" style="text-align:center;padding:16px 0">${VID.err?"تعذّر التحميل ("+esc(VID.err)+") — انشر قواعد Firestore":VID.loaded?"لسه مفيش فيديوهات":"جاري التحميل…"}</div>`}
 </div>`;
 }
+/* ===== v233 — قسم الفيديوهات: إعادة تصميم كاملة (ريلز عمودي بملء الشاشة) ===== */
+const VX_FRAMES={gold:["#fbbf24","#f59e0b"],energy:["#38bdf8","#fbbf24"],neon:["#e879f9","#a78bfa"],ice:["#e0f2fe","#7dd3fc"],fire:["#fb923c","#ef4444"]};
+const VXS={i:0,muted:true,touched:false,io:null,off:null};
+function vxFrame(x){let f=String(x.frame||(x.feat?"gold":"energy")).toLowerCase();if(!VX_FRAMES[f])f=x.feat?"gold":"energy";return f}
+function vxFmt(t){t=Math.max(0,Math.floor(t||0));return Math.floor(t/60)+":"+String(t%60).padStart(2,"0")}
 function videosView(){
   if(!VID.loaded&&!VID._stu){VID._stu=1;vidLoad(true).then(()=>{VID._stu=0;if(S.view==="videos")render(true)})}
   const all=(VID.list||[]).filter(x=>!x.hidden);
-  const frames=["gold","energy","neon","ice","fire"];
-  const cards=all.length?all.map(x=>{
-    let fr=String(x.frame||(x.feat?"gold":"energy")).toLowerCase();
-    if(frames.indexOf(fr)<0)fr=x.feat?"gold":"energy";
-    const meta=(x.title||x.desc)?`<div class="vid-meta">${x.title?`<b>${esc(x.title)}</b>`:""}${x.desc?`<span>${esc(x.desc)}</span>`:""}</div>`:"";
-    return `<article class="vid-card${x.feat?" is-feat":""}" data-vid="${esc(x.id)}">
-  <div class="vid-frame f-${fr}">
-    <video class="vid-el" playsinline webkit-playsinline preload="metadata" poster="${esc(x.cover||"")}" src="${esc(x.url)}" data-vid="${esc(x.id)}"></video>
-    <div class="vid-reconnect" aria-hidden="true">⏳ جاري إعادة الاتصال…</div>
-    <div class="vid-mute-tip" hidden>اضغط للصوت 🔊</div>
-    ${meta}
-  </div>
-</article>`;
-  }).join(""):`<div class="card empty"><div class="ei">🎬</div><b>مفيش فيديوهات لسه</b></div>`;
+  /* المميّز الأول، وبعده الأحدث */
+  all.sort((a,b)=>(b.feat?1:0)-(a.feat?1:0)||(b.ts||0)-(a.ts||0));
   const focus=(typeof isVideosFocus==="function"&&isVideosFocus()&&!S.isAdmin)||!!S.guestVideos;
-  const tit=typeof videosPageTitle==="function"?videosPageTitle():"";
-  const topExtra=(focus||S.guestVideos)?``:(S.user?`<button class="btn ghost sm" data-act="home">رجوع</button>`:``);
-  const h2=(focus||S.guestVideos)?(tit?``:`<h2 class="vid-h">${esc(videosTabName())}</h2>`):`<h2 class="vid-h">${esc(tit||videosTabName())}</h2>`;
-  return `<div class="wrap vid-feed${(focus||S.guestVideos)?" vid-focus-mode":""}">${header(topExtra)}
-${h2}
-<div class="vid-list" id="vidList">${cards}</div>
-</div>${(focus||S.guestVideos)?``:studentNav()}`;
+  const tit=(typeof videosPageTitle==="function"&&videosPageTitle())||(typeof videosTabName==="function"?videosTabName():"");
+  const back=focus?"":`<button type="button" class="vx-btn" data-act="home" aria-label="رجوع">‹</button>`;
+  const top=`<div class="vx-top">${back}<div class="vx-title" data-act="secretStaffGate">${esc(tit)}</div><span class="vid-secret-hit" data-act="secretStaffGate" aria-hidden="true"></span><span class="vx-count" id="vxCount">${all.length?"1 / "+all.length:""}</span></div>`;
+  let body;
+  if(!VID.loaded&&!VID.err){
+    body=`<section class="vx-item vx-state"><div class="vx-spin"></div><b>بنجهّز الفيديوهات…</b></section>`;
+  }else if(VID.err&&!all.length){
+    body=`<section class="vx-item vx-state"><div class="vx-ico">📡</div><b>تعذّر تحميل الفيديوهات</b><span>اتأكد من النت وجرّب تاني</span><button type="button" class="vx-retry" data-act="vxRetry">↻ إعادة المحاولة</button></section>`;
+  }else if(!all.length){
+    body=`<section class="vx-item vx-state"><div class="vx-ico">🎬</div><b>مفيش فيديوهات لسه</b><span>أول ما يتضاف فيديو هيظهر هنا لحظيًا</span></section>`;
+  }else{
+    body=all.map((x,k)=>{
+      const f=vxFrame(x),c=VX_FRAMES[f];
+      return `<section class="vx-item" data-k="${k}" data-vid="${esc(x.id)}" style="--c1:${c[0]};--c2:${c[1]}">
+  <div class="vx-bg"${x.cover?` style="background-image:url('${esc(x.cover)}')"`:""}></div>
+  <div class="vx-stage">
+    <video class="vx-v" playsinline webkit-playsinline loop preload="none" data-src="${esc(x.url)}"${x.cover?` poster="${esc(x.cover)}"`:""}></video>
+    <div class="vx-ring"></div>
+    <div class="vx-center" aria-hidden="true"><i>▶</i></div>
+    <div class="vx-wait"><div class="vx-spin"></div></div>
+    <div class="vx-fail"><span>⚠️ الفيديو مش بيتحمّل</span><button type="button" data-act="vxReload">↻ جرّب تاني</button></div>
+  </div>
+  <div class="vx-info">${x.feat?`<em class="vx-badge">⭐ مميّز</em>`:""}${x.title?`<b>${esc(x.title)}</b>`:""}${x.desc?`<span>${esc(x.desc)}</span>`:""}</div>
+  <div class="vx-side"><button type="button" class="vx-btn vx-snd" data-act="vxMute" aria-label="الصوت">🔇</button></div>
+  <div class="vx-bar" data-act="vxSeek"><i></i><u class="vx-time">0:00</u></div>
+  <div class="vx-hint">اسحب لفوق لفيديو تاني</div>
+</section>`}).join("");
+  }
+  return `<div class="vx${focus?" vx-focus":""}" id="vxRoot">${top}<div class="vx-feed" id="vxFeed">${body}</div></div>${focus?``:studentNav()}`;
 }
 function vidStopAll(except){
-  try{
-    document.querySelectorAll("#vidList video.vid-el").forEach(v=>{
-      if(except&&v===except)return;
-      try{v.pause();if(!v.dataset.keepTime)v.currentTime=v.currentTime}catch(_){}
-    });
-    document.querySelectorAll("#vidList .vid-card").forEach(c=>{
-      if(except&&c.contains(except))return;
-      c.classList.remove("is-active");
-    });
-  }catch(_){}
+  try{document.querySelectorAll("#vxFeed video.vx-v").forEach(v=>{if(v!==except){try{v.pause()}catch(_){}}})}catch(_){}
+}
+function vxSetSrc(v,on){
+  if(!v)return;
+  if(on){if(!v.getAttribute("src")&&v.dataset.src){v.setAttribute("src",v.dataset.src);v.preload="auto"}}
+}
+function vxFreeFar(items,idx){
+  /* بنفضّي مصدر الفيديوهات البعيدة (أكتر من 2 عن الحالي) عشان الذاكرة/الداتا */
+  items.forEach((it,k)=>{
+    if(Math.abs(k-idx)<=2)return;
+    const v=it.querySelector("video");
+    if(v&&v.getAttribute("src")){try{v.pause();v.removeAttribute("src");v.load()}catch(_){}}
+  });
 }
 function vidBindFeed(){
-  const list=document.getElementById("vidList");
-  if(!list||list._vidBound)return;
-  list._vidBound=true;
-  const vids=[...list.querySelectorAll("video.vid-el")];
-  if(!vids.length)return;
+  const feed=document.getElementById("vxFeed");
+  if(!feed)return;
+  if(feed._vx)return;feed._vx=true;
+  try{if(VXS.off)VXS.off()}catch(_){}
+  const items=[...feed.querySelectorAll(".vx-item[data-vid]")];
+  if(!items.length)return;
+  const cnt=document.getElementById("vxCount");
+  const flash=(it,ic)=>{const c=it.querySelector(".vx-center");if(!c)return;c.firstElementChild.textContent=ic;c.classList.remove("on");void c.offsetWidth;c.classList.add("on")};
+  const setMuteUI=()=>document.querySelectorAll("#vxFeed .vx-snd").forEach(b=>{b.textContent=VXS.muted?"🔇":"🔊";b.classList.toggle("pulse",VXS.muted)});
   let active=null;
-  let lock=false;
-  const setActiveCard=(v)=>{
-    document.querySelectorAll("#vidList .vid-card").forEach(c=>c.classList.remove("is-active"));
-    const card=v&&v.closest(".vid-card");
-    if(card)card.classList.add("is-active");
-  };
-  const showReconnect=(v,on)=>{
-    try{const el=v&&v.parentElement&&v.parentElement.querySelector(".vid-reconnect");if(el)el.classList.toggle("on",!!on)}catch(_){}
-  };
-  const tryPlay=async(v)=>{
-    if(!v||active===v||lock)return;
-    lock=true;
-    try{
-      vidStopAll(v);
-      active=v;setActiveCard(v);v.muted=false;
-      try{
-        const p=v.play();if(p&&p.then)await p;
-        const tip=v.parentElement&&v.parentElement.querySelector(".vid-mute-tip");
-        if(tip)tip.hidden=true;showReconnect(v,false);
-      }catch(_){
-        try{
-          v.muted=true;await v.play();
-          const tip=v.parentElement&&v.parentElement.querySelector(".vid-mute-tip");
-          if(tip){tip.hidden=false;tip.onclick=async(ev)=>{ev.stopPropagation();try{v.muted=false;await v.play();tip.hidden=true}catch(e){}}}
-          showReconnect(v,false);
-        }catch(e){}
-      }
-    }finally{lock=false}
-  };
-  const pickCenter=()=>{
-    const mid=window.innerHeight*0.45;
-    let best=null,bestDist=1e9;
-    vids.forEach(v=>{
-      const r=v.getBoundingClientRect();if(r.height<=0)return;
-      const c=r.top+r.height*0.5,dist=Math.abs(c-mid);
-      const visible=Math.min(r.bottom,window.innerHeight)-Math.max(r.top,0);
-      const ratio=visible/Math.max(r.height,1);
-      if(ratio>=0.45&&dist<bestDist){bestDist=dist;best=v}
-    });
-    if(best)tryPlay(best);
-    else if(active){
-      const r=active.getBoundingClientRect();
-      const visible=Math.min(r.bottom,window.innerHeight)-Math.max(r.top,0);
-      if(visible/Math.max(r.height,1)<0.3){try{active.pause()}catch(_){} active=null;setActiveCard(null)}
+  const wait=(it,on)=>{const w=it.querySelector(".vx-wait");if(w)w.classList.toggle("on",!!on)};
+  const fail=(it,on)=>{it.classList.toggle("is-fail",!!on);if(on)wait(it,false)};
+  const play=async(it)=>{
+    const v=it.querySelector("video");if(!v)return;
+    vxSetSrc(v,true);v.muted=VXS.muted;
+    try{await v.play();it.classList.remove("is-paused")}
+    catch(e){
+      if(!VXS.muted||v.muted){it.classList.add("is-paused");return}
+      v.muted=true;try{await v.play();it.classList.remove("is-paused")}catch(_){it.classList.add("is-paused")}
     }
   };
-  let tmr=null;
-  const onScroll=()=>{clearTimeout(tmr);tmr=setTimeout(pickCenter,80)};
-  window.addEventListener("scroll",onScroll,{passive:true});
-  const recover=(v)=>{
-    if(!v)return;
-    const t=Math.max(0,v.currentTime||0);
-    showReconnect(v,true);
-    const src=v.getAttribute("src")||v.src;
-    try{
-      v.pause();v.setAttribute("src",src);v.load();
-      const onReady=()=>{
-        try{v.currentTime=t}catch(_){}
-        v.play().then(()=>showReconnect(v,false)).catch(()=>{v.muted=true;v.play().then(()=>showReconnect(v,false)).catch(()=>showReconnect(v,false))});
-        v.removeEventListener("loadedmetadata",onReady);
-      };
-      v.addEventListener("loadedmetadata",onReady);
-      setTimeout(()=>showReconnect(v,false),8000);
-    }catch(_){showReconnect(v,false)}
+  const activate=(k)=>{
+    const it=items[k];if(!it||it===active)return;
+    if(active){const pv=active.querySelector("video");try{pv&&pv.pause()}catch(_){}active.classList.remove("is-active")}
+    active=it;VXS.i=k;it.classList.add("is-active");
+    if(cnt)cnt.textContent=(k+1)+" / "+items.length;
+    /* حمّل الحالي والجاي والسابق */
+    [k-1,k,k+1].forEach(j=>{const o=items[j];if(o){const v=o.querySelector("video");vxSetSrc(v,true);if(j!==k&&v)v.preload="metadata"}});
+    vxFreeFar(items,k);
+    play(it);
   };
-  vids.forEach(v=>{
-    v.addEventListener("play",()=>{if(active&&active!==v){try{active.pause()}catch(_){}}active=v;setActiveCard(v);vidStopAll(v);showReconnect(v,false)});
-    v.addEventListener("click",()=>tryPlay(v));
+  /* تحديد الفيديو الحالي بالـ IntersectionObserver */
+  const io=new IntersectionObserver((es)=>{
+    es.forEach(e=>{if(e.isIntersecting&&e.intersectionRatio>=.6){activate(items.indexOf(e.target))}});
+  },{root:feed,threshold:[.6,.9]});
+  items.forEach(it=>io.observe(it));
+  /* أحداث الفيديو */
+  items.forEach((it,k)=>{
+    const v=it.querySelector("video"),bar=it.querySelector(".vx-bar"),fill=bar.querySelector("i"),tm=bar.querySelector(".vx-time");
     let errN=0;
-    v.addEventListener("error",()=>{errN++;if(errN<=3)setTimeout(()=>recover(v),600*errN);else showReconnect(v,false)});
-    v.addEventListener("stalled",()=>{if(v===active&&!v.paused)setTimeout(()=>{if(v.readyState<2)recover(v)},2500)});
-    v.addEventListener("waiting",()=>{if(v===active)showReconnect(v,true)});
-    v.addEventListener("playing",()=>showReconnect(v,false));
-    v.addEventListener("canplay",()=>showReconnect(v,false));
-  });
-  const onOnline=()=>{if(active&&(active.error||active.readyState<2))recover(active);else if(active&&active.paused&&!active.ended)active.play().catch(()=>{})};
-  window.addEventListener("online",onOnline);
-  document.addEventListener("visibilitychange",()=>{if(!document.hidden&&active&&active.paused&&!active.ended)active.play().catch(()=>{})});
-  list._vidOff=()=>{window.removeEventListener("scroll",onScroll);window.removeEventListener("online",onOnline);clearTimeout(tmr)};
-  /* إعادة من الأول فقط لو الفيديو خلص كامل */
-  vids.forEach(v=>{
-    v.addEventListener("ended",()=>{
-      try{
-        if(v.duration&&isFinite(v.duration)&&v.duration>0){
-          /* خلص فعلاً */
-          v.currentTime=0;
-          const p=v.play();
-          if(p&&p.catch)p.catch(()=>{});
-        }
-      }catch(_){}
+    v.addEventListener("loadstart",()=>{if(it===active)wait(it,true)});
+    v.addEventListener("waiting",()=>{if(it===active)wait(it,true)});
+    v.addEventListener("stalled",()=>{if(it===active&&!v.paused)setTimeout(()=>{if(v.readyState<3&&it===active){const t=v.currentTime;try{v.load();v.currentTime=t;v.play().catch(()=>{})}catch(_){}}},3500)});
+    ["playing","canplay","loadeddata"].forEach(n=>v.addEventListener(n,()=>{wait(it,false);fail(it,false);errN=0}));
+    v.addEventListener("play",()=>{it.classList.remove("is-paused")});
+    v.addEventListener("pause",()=>{if(it===active&&!v.ended&&document.visibilityState==="visible")it.classList.add("is-paused")});
+    v.addEventListener("timeupdate",()=>{if(v.duration&&isFinite(v.duration)){fill.style.width=(v.currentTime/v.duration*100)+"%";tm.textContent=vxFmt(v.currentTime)+" / "+vxFmt(v.duration)}});
+    v.addEventListener("error",()=>{errN++;if(!v.getAttribute("src"))return;if(errN<=2){const t=v.currentTime;setTimeout(()=>{try{v.load();v.currentTime=t;if(it===active)v.play().catch(()=>{})}catch(_){}},700*errN)}else fail(it,true)});
+    /* لمسة على الفيديو = تشغيل/إيقاف (وأول لمسة بتفتح الصوت لكل الفيديوهات) */
+    it.querySelector(".vx-stage").addEventListener("click",()=>{
+      if(!VXS.touched){VXS.touched=true;if(VXS.muted){VXS.muted=false;v.muted=false;setMuteUI()}}
+      if(v.paused){play(it);flash(it,"▶")}else{v.pause();flash(it,"⏸")}
     });
+    /* سحب على شريط التقدّم */
+    const seek=(ev)=>{const r=bar.getBoundingClientRect();const x=(ev.touches?ev.touches[0].clientX:ev.clientX);const p=Math.min(1,Math.max(0,(x-r.left)/r.width));if(v.duration&&isFinite(v.duration))v.currentTime=p*v.duration};
+    bar.addEventListener("click",ev=>{ev.stopPropagation();seek(ev)});
+    bar.addEventListener("touchmove",ev=>{ev.stopPropagation();seek(ev)},{passive:true});
   });
-  setTimeout(pickCenter,300);
+  /* أزرار عامة */
+  feed.addEventListener("click",(ev)=>{
+    const b=ev.target.closest("[data-act]");if(!b)return;
+    const a=b.getAttribute("data-act");
+    if(a==="vxMute"){ev.stopPropagation();VXS.touched=true;VXS.muted=!VXS.muted;items.forEach(it=>{const v=it.querySelector("video");if(v)v.muted=VXS.muted});setMuteUI();if(active){const v=active.querySelector("video");if(v&&v.paused)play(active)}}
+    else if(a==="vxReload"){ev.stopPropagation();const it=b.closest(".vx-item"),v=it.querySelector("video");fail(it,false);wait(it,true);try{v.removeAttribute("src");vxSetSrc(v,true);v.load();v.play().catch(()=>{})}catch(_){}}
+  });
+  const onVis=()=>{if(!active)return;const v=active.querySelector("video");if(!v)return;if(document.hidden){try{v.pause()}catch(_){}}else if(!active.classList.contains("is-paused")){v.play().catch(()=>{})}};
+  const onOnline=()=>{if(!active)return;const v=active.querySelector("video");if(v&&(v.error||v.readyState<2)){try{v.load();v.play().catch(()=>{})}catch(_){}}};
+  const onKey=(e)=>{if(S.view!=="videos")return;const t=(e.target&&e.target.tagName)||"";if(/INPUT|TEXTAREA|SELECT/.test(t))return;
+    if(e.key==="ArrowDown"||e.key==="PageDown"){e.preventDefault();const n=items[Math.min(items.length-1,VXS.i+1)];n&&n.scrollIntoView({behavior:"smooth"})}
+    else if(e.key==="ArrowUp"||e.key==="PageUp"){e.preventDefault();const n=items[Math.max(0,VXS.i-1)];n&&n.scrollIntoView({behavior:"smooth"})}
+    else if(e.key===" "){e.preventDefault();const st=active&&active.querySelector(".vx-stage");st&&st.click()}};
+  document.addEventListener("visibilitychange",onVis);window.addEventListener("online",onOnline);document.addEventListener("keydown",onKey);
+  VXS.off=()=>{try{io.disconnect()}catch(_){}document.removeEventListener("visibilitychange",onVis);window.removeEventListener("online",onOnline);document.removeEventListener("keydown",onKey)};
+  setMuteUI();
+  /* ارجع لآخر فيديو كان مفتوح (لو الشاشة اتعمّلها render) وإلا ابدأ من الأول */
+  const start=Math.min(VXS.i||0,items.length-1);
+  if(start>0){feed.scrollTop=items[start].offsetTop}
+  setTimeout(()=>{if(!active)activate(start)},60);
 }
 
 function adminSongs(){
@@ -10100,6 +10163,7 @@ const A={
   logoTap(){const n=Date.now();S.taps=S.taps.filter(t=>n-t<2500);S.taps.push(n);if(S.taps.length>=3){S.taps=[];if(S.user&&!S.isAdmin){S.adminLogin=false;return}S.adminLogin=true;S.error="";S.mode="login";S.guestVideos=false;S.view="auth";render(true)}},
   /* بوابة سرية: 3 ضغطات سريعة على منطقة العنوان / الزاوية — مش ظاهرة كـ«تسجيل أدمن» */
   secretStaffGate(){A.logoTap()},
+  vxRetry(){VID.err="";VID.loaded=false;VID._stu=0;render(true)},vxMute(){},vxReload(){},vxSeek(){},
   studentLink(){S.adminLogin=false;S.error="";if(guestVideosAllowed()&&!S.user){S.view="videos";S.guestVideos=true}render(true)},
   async logout(){
     if(!await uiConfirm("تسجيل خروج من التفوق؟\nهتحتاج تسجّل تاني لما ترجع."))return;
@@ -14763,12 +14827,8 @@ const pfLabel=v=>PF_VIEWS[v]||String(v||"?");
 function modeHomeApply(){
   S._homeDone=1;
   try{
-    if(!S.isAdmin&&guestVideosAllowed()){
+    if(shouldVideosLanding()){
       setTimeout(()=>{try{S.view="videos";if(A.openVideos)A.openVideos();else render(true)}catch(_){}},0);
-      return true;
-    }
-    if(!S.isAdmin&&typeof isVideosFocus==="function"&&isVideosFocus()&&featOn("videos")){
-      setTimeout(()=>{try{if(S.view==="home"&&A.openVideos)A.openVideos()}catch(_){}},0);
       return true;
     }
   }catch(_){}
@@ -17013,7 +17073,7 @@ async function musWarm(){
 
 
 Object.assign(A,{
-  openVideos(){if(!S.guestVideos&&!featOn("videos")){toast("الفيديوهات متوقفة مؤقتاً");return}S.view="videos";VID.cur=null;vidLoad(false).then(()=>render(true));render(true)},
+  openVideos(){if(!S.guestVideos&&!featOn("videos")&&!shouldVideosLanding()){toast("الفيديوهات متوقفة مؤقتاً");return}S.view="videos";VID.cur=null;vidLoad(false).then(()=>render(true));render(true)},
   videosReload(){vidLoad(true).then(()=>{toast("اتحدّثت القايمة ✓",true);render(true)})},
   videoPlay(d){VID.cur=d.id||d;S.view="videos";render(true);setTimeout(()=>{try{const v=document.getElementById("vidPlayer");if(v){v.play().catch(()=>{})}}catch(_){}},200)},
   async videoAdd(){
@@ -18608,7 +18668,7 @@ window.__WPFB=function(){var p=S.profile||{};return{db:db,uid:S.user&&S.user.uid
     el.classList.add("hide");
     setTimeout(function(){try{el.remove()}catch(e){}},500);
   }
-  function appReady(){var a=document.getElementById("app");return !!(a&&a.firstElementChild&&(a.innerText||"").length>8)}
+  function appReady(){var a=document.getElementById("app");return !!(a&&a.firstElementChild&&((a.innerText||"").length>8||a.querySelector("video,.vx,.vx-feed,.card,button,input")))}
   // أظهر التطبيق فور جاهزيته
   var iv=setInterval(function(){
     var elapsed=Date.now()-t0;
@@ -18622,18 +18682,7 @@ window.__WPFB=function(){var p=S.profile||{};return{db:db,uid:S.user&&S.user.uid
     if(!el)return;
     var box=el.querySelector(".splash-inner");
     if(!box)return;
-    /* محاولة تلقائية واحدة لمسح الكاش لو التحميل فشل */
-    try{
-      if(sessionStorage.getItem("sp_autoclear")!=="1"){
-        sessionStorage.setItem("sp_autoclear","1");
-        var jobs=[];
-        try{if(window.caches)jobs.push(caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}))}catch(e){}
-        try{if(navigator.serviceWorker)jobs.push(navigator.serviceWorker.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.unregister()}))}))}catch(e){}
-        Promise.all(jobs).catch(function(){}).then(function(){location.reload()});
-        box.innerHTML='<div class="splash-logo">التفوق</div><div class="splash-sub" style="margin:14px 0">بنظّف الكاش ونحاول تاني…</div>';
-        return;
-      }
-    }catch(e){}
+    /* v233: اتشال المسح التلقائي للكاش — المسح بقى يدوي بس (زرار «مسح الكاش وإعادة التحميل») */
     box.innerHTML='<div class="splash-logo">التفوق</div><div class="splash-sub" style="margin:14px 0">تعذّر تحميل المنصة، اتأكد من النت وجرب تاني</div>'
       +'<button id="spRetry" style="padding:10px 22px;border-radius:12px;border:0;background:#2f6df6;color:#fff;font:inherit;font-weight:700;margin:4px">إعادة المحاولة</button>'
       +'<button id="spClear" style="padding:10px 22px;border-radius:12px;border:1px solid #888;background:transparent;color:inherit;font:inherit;margin:4px">مسح الكاش وإعادة التحميل</button>';
