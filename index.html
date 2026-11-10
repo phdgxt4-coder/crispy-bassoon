@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v224">
+<meta name="sw-build" content="v225">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v224";/* v224: قفل كل أقسام المنصة (مواد/أنا/فيديوهات/تركيز/ملاحظات/بحث/لوحة شرف) + 5 براويز فيديو محسّنة (ذهب/طاقة/نيون/سايبر/نار) ·  v216: الغرف العامة لـ«ارسم وخمّن» في «الغرف المفتوحة» · إصلاح ظهور خانة كتابة الشات · حذف بحث المحادثة · الحذف التلقائي بعد ساعة اتعمم على شات الغرف ·  v215: «ارسم وخمّن» اتعمل من الصفر على نمط ويبلاي (ملف wp.js): رسم لحظي بـ chunks · التخمين في الشات نفسه (الإجابة الصحيحة بتتسجل لحظيًا من غير ما تتكشف) · نقاط بالوقت + بونص أول مخمّن + نقاط للرسام · اختيار كلمة من 4 · تلميحات حروف · رسائل صوتية/صور/ملصقات · لوبي بجاهزية · نهاية بترتيب · لازم تنشر firestore.rules v215 · */ v214: (1) شاشة اختيار الكلمة كانت بتعلّق لأن المؤقّت مكانش بيشتغل غير أثناء الرسم — اتصلّح (2) تنبيه لو فيه لاعبين مش مستعدين قبل البدء (3) تحذير لو لاعب نسخته قديمة + زر تحديث فوري (4) ملصقات: قاعدة آمنة بدل regex (5) ملخّص «جاهزين X من Y» في اللوبي · v213: ارسم وخمّن — (1) الملصقات المخصصة والمرسومة كانت بتترفض من قواعد Firestore (مطابقة regex غلط) · (2) تصحيح التخمينات مبقاش بيفوّت تخمين لو وصل وقت ما الرسام بيصحّح غيره + تجاهل تخمينات الجولات القديمة · (3) الرسم اللحظي: استماع بالدور فقط + الخط مبيختفيش لحظة الإرسال + مقاس الكانفاس بيتظبط تلقائيًا · (4) الكتابة في الشات مبتضيعش مع إعادة رسم الشاشة · (5) لو الرسام خرج وسط الدور الجولة بتتكشف تلقائيًا · (6) زر ابدأ محمي من الضغط المزدوج · (7) رسائل خطأ واضحة بدل «فشل» · (8) أزرار الإيموجي/المايك لم تعد تتكرر عند المخمّن · (9) حذف رسائل الغرف المنتهية (ساعة) من السيرفر · v212: إصلاح جذري للرسم (Nested arrays → strokes subcollection لحظي) · توقيت موحّد · انضمام/خروج بدون سباق · ملصقات مخصصة أخف وآمنة · رسائل الشات تتحذف بعد ساعة (expireAt) · v211: إصلاح «dgRoom is not defined» (كان بيكسر إرسال الملصقات والملصقات المخصصة والمايك) + إصلاح N (الاهتزاز) · الرد على رسالة بقى مسموح في القواعد · ملصق من صورة الفون (من المعرض/الكاميرا) مع إمكانية الرسم فوقها · حدود أكبر: ملصقاتي 50، لاعبين لحد 40، جولات لحد 30، وقت الرسم لحد 300 ث، شات 100 رسالة، رسالة صوتية 90 ث · v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
+<script>window.APP_BUILD="v225";/* v225: جليد بدل سايبر + سطوع فائق لكل البراويز · v224: قفل كل أقسام المنصة (مواد/أنا/فيديوهات/تركيز/ملاحظات/بحث/لوحة شرف) + 5 براويز فيديو محسّنة (ذهب/طاقة/نيون/سايبر/نار) ·  v216: الغرف العامة لـ«ارسم وخمّن» في «الغرف المفتوحة» · إصلاح ظهور خانة كتابة الشات · حذف بحث المحادثة · الحذف التلقائي بعد ساعة اتعمم على شات الغرف ·  v215: «ارسم وخمّن» اتعمل من الصفر على نمط ويبلاي (ملف wp.js): رسم لحظي بـ chunks · التخمين في الشات نفسه (الإجابة الصحيحة بتتسجل لحظيًا من غير ما تتكشف) · نقاط بالوقت + بونص أول مخمّن + نقاط للرسام · اختيار كلمة من 4 · تلميحات حروف · رسائل صوتية/صور/ملصقات · لوبي بجاهزية · نهاية بترتيب · لازم تنشر firestore.rules v215 · */ v214: (1) شاشة اختيار الكلمة كانت بتعلّق لأن المؤقّت مكانش بيشتغل غير أثناء الرسم — اتصلّح (2) تنبيه لو فيه لاعبين مش مستعدين قبل البدء (3) تحذير لو لاعب نسخته قديمة + زر تحديث فوري (4) ملصقات: قاعدة آمنة بدل regex (5) ملخّص «جاهزين X من Y» في اللوبي · v213: ارسم وخمّن — (1) الملصقات المخصصة والمرسومة كانت بتترفض من قواعد Firestore (مطابقة regex غلط) · (2) تصحيح التخمينات مبقاش بيفوّت تخمين لو وصل وقت ما الرسام بيصحّح غيره + تجاهل تخمينات الجولات القديمة · (3) الرسم اللحظي: استماع بالدور فقط + الخط مبيختفيش لحظة الإرسال + مقاس الكانفاس بيتظبط تلقائيًا · (4) الكتابة في الشات مبتضيعش مع إعادة رسم الشاشة · (5) لو الرسام خرج وسط الدور الجولة بتتكشف تلقائيًا · (6) زر ابدأ محمي من الضغط المزدوج · (7) رسائل خطأ واضحة بدل «فشل» · (8) أزرار الإيموجي/المايك لم تعد تتكرر عند المخمّن · (9) حذف رسائل الغرف المنتهية (ساعة) من السيرفر · v212: إصلاح جذري للرسم (Nested arrays → strokes subcollection لحظي) · توقيت موحّد · انضمام/خروج بدون سباق · ملصقات مخصصة أخف وآمنة · رسائل الشات تتحذف بعد ساعة (expireAt) · v211: إصلاح «dgRoom is not defined» (كان بيكسر إرسال الملصقات والملصقات المخصصة والمايك) + إصلاح N (الاهتزاز) · الرد على رسالة بقى مسموح في القواعد · ملصق من صورة الفون (من المعرض/الكاميرا) مع إمكانية الرسم فوقها · حدود أكبر: ملصقاتي 50، لاعبين لحد 40، جولات لحد 30، وقت الرسم لحد 300 ث، شات 100 رسالة، رسالة صوتية 90 ث · v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -2120,165 +2120,156 @@ html.lite .card,html.lite .dlg,html.lite .btn.ghost{
 .dg214-warn{margin:8px 0;padding:10px 14px;border-radius:14px;background:color-mix(in srgb,#f59e0b 16%,var(--card));border:1px solid color-mix(in srgb,#f59e0b 50%,var(--line));font-size:13px;line-height:1.7;text-align:center}
 </style>
 <style id="vidFeedCss">
-/* ===== مشغّل فيديوهات احترافي — 5 براويز مضيئة دقيقة ===== */
+/* ===== مشغّل فيديوهات — 5 براويز إضاءة فائقة ===== */
 .vid-feed .vid-h{margin:8px 0 14px;font-size:22px;text-align:center;letter-spacing:.5px}
-.vid-list{display:flex;flex-direction:column;gap:36px;padding:8px 4px 48px;scroll-snap-type:y proximity}
-.vid-card{background:transparent;border:none;overflow:visible;scroll-snap-align:start;scroll-margin-top:12px;opacity:.5;transform:scale(.98);transition:opacity .3s,transform .3s,filter .3s;position:relative}
+.vid-list{display:flex;flex-direction:column;gap:40px;padding:10px 6px 52px;scroll-snap-type:y proximity}
+.vid-card{background:transparent;border:none;overflow:visible;scroll-snap-align:start;scroll-margin-top:14px;opacity:.48;transform:scale(.975);transition:opacity .3s,transform .3s;position:relative}
 .vid-card.is-active{opacity:1;transform:scale(1)}
-.vid-card.is-feat .vid-frame{filter:brightness(1.06)}
-
 .vid-frame{
-  position:relative;
-  background:#000;
-  aspect-ratio:16/10;
-  max-height:62vh;
-  border-radius:18px;
-  overflow:hidden;
-  isolation:isolate;
-  box-shadow:0 10px 36px rgba(0,0,0,.55);
+  position:relative;background:#000;aspect-ratio:16/10;max-height:62vh;
+  border-radius:18px;overflow:hidden;isolation:isolate;
+  box-shadow:0 12px 40px rgba(0,0,0,.6);
 }
 .vid-el{width:100%;height:100%;object-fit:contain;display:block;background:#000;border-radius:inherit;position:relative;z-index:1}
-.vid-mute-tip{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:700;z-index:5;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 4px 20px rgba(0,0,0,.45)}
-.vid-reconnect{position:absolute;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);color:#fff;font-weight:700;font-size:14px;gap:8px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:none;opacity:0;transition:opacity .25s}
+.vid-mute-tip{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:700;z-index:5;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.vid-reconnect{position:absolute;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);color:#fff;font-weight:700;font-size:14px;pointer-events:none;opacity:0;transition:opacity .25s;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 .vid-reconnect.on{opacity:1}
 .vid-meta{position:absolute;left:12px;right:12px;bottom:12px;z-index:4;pointer-events:none;opacity:0;transition:opacity .25s}
 .vid-card.is-active .vid-meta{opacity:1}
-.vid-meta b{display:block;color:#fff;font-size:14px;text-shadow:0 2px 12px rgba(0,0,0,.9);margin-bottom:2px}
-.vid-meta span{color:rgba(255,255,255,.85);font-size:12px;text-shadow:0 1px 8px rgba(0,0,0,.75)}
+.vid-meta b{display:block;color:#fff;font-size:14px;text-shadow:0 2px 12px #000;margin-bottom:2px}
+.vid-meta span{color:rgba(255,255,255,.88);font-size:12px;text-shadow:0 1px 8px #000}
 
-/* طبقة توهج خارجية مشتركة */
-.vid-frame::before,.vid-frame::after{content:"";position:absolute;pointer-events:none;z-index:2;border-radius:22px}
-.vid-card.is-active .vid-frame::before{opacity:1}
-.vid-card.is-active .vid-frame::after{opacity:1}
+.vid-frame::before,.vid-frame::after{content:"";position:absolute;pointer-events:none;z-index:2;border-radius:24px;opacity:0;transition:opacity .3s}
+.vid-card.is-active .vid-frame::before,.vid-card.is-active .vid-frame::after{opacity:1}
 
-/* 1) GOLD — البرواز الذهبي الأصلي (محسّن، سطوع عالي) */
+/* 1 GOLD — سطوع أقصى */
 .vid-frame.f-gold{
-  border:2.5px solid #fbbf24;
+  border:3px solid #fde68a;
   box-shadow:
-    0 0 0 1px rgba(253,230,138,.9),
-    0 0 16px 3px rgba(251,191,36,1),
-    0 0 36px 10px rgba(245,158,11,.85),
-    0 0 70px 18px rgba(251,191,36,.5),
-    0 12px 40px rgba(0,0,0,.55);
+    0 0 0 2px #fbbf24,
+    0 0 12px 2px #fbbf24,
+    0 0 28px 8px rgba(251,191,36,1),
+    0 0 55px 18px rgba(245,158,11,.95),
+    0 0 100px 28px rgba(251,191,36,.65),
+    0 0 140px 40px rgba(253,230,138,.35),
+    0 14px 44px rgba(0,0,0,.55);
 }
 .vid-frame.f-gold::before{
-  inset:-10px;z-index:0;
-  background:radial-gradient(ellipse at 50% 40%,rgba(253,230,138,1),rgba(251,191,36,.7) 38%,transparent 68%);
-  filter:blur(14px) brightness(2);opacity:.95;animation:vidPulse 1.9s ease-in-out infinite;
+  inset:-14px;z-index:0;
+  background:radial-gradient(ellipse at 50% 40%,#fff 0%,#fde68a 18%,#fbbf24 40%,transparent 68%);
+  filter:blur(16px) brightness(2.4);opacity:1;animation:vidPulse 1.6s ease-in-out infinite;
 }
 .vid-frame.f-gold::after{
   inset:0;border-radius:18px;z-index:2;
-  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.65),inset 0 0 28px rgba(251,191,36,.35);
-  opacity:1;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.85),inset 0 0 36px rgba(251,191,36,.5);
 }
 
-/* 2) ENERGY — برواز الصورة (أزرق + ذهبي طاقة دوّار) */
+/* 2 ENERGY — أزرق+ذهبي من الصورة، سطوع عالي */
 .vid-frame.f-energy{
-  border:2.5px solid transparent;
-  background:
-    linear-gradient(#000,#000) padding-box,
-    linear-gradient(135deg,#38bdf8,#fbbf24,#60a5fa,#f59e0b,#22d3ee,#38bdf8) border-box;
+  border:3px solid transparent;
+  background:linear-gradient(#000,#000) padding-box,linear-gradient(135deg,#67e8f9,#fde68a,#38bdf8,#fbbf24,#22d3ee,#fde68a) border-box;
   box-shadow:
-    0 0 0 1px rgba(56,189,248,.9),
-    0 0 18px 4px rgba(56,189,248,.95),
-    0 0 40px 12px rgba(251,191,36,.8),
-    0 0 78px 20px rgba(56,189,248,.45),
-    0 12px 40px rgba(0,0,0,.6);
+    0 0 0 2px #38bdf8,
+    0 0 14px 3px rgba(56,189,248,1),
+    0 0 32px 10px rgba(251,191,36,1),
+    0 0 60px 20px rgba(56,189,248,.85),
+    0 0 110px 32px rgba(251,191,36,.55),
+    0 14px 44px rgba(0,0,0,.55);
 }
 .vid-frame.f-energy::before{
-  inset:-8px;z-index:0;border-radius:24px;
-  background:conic-gradient(from 0deg,#38bdf8,#fbbf24,#60a5fa,#f59e0b,#22d3ee,#38bdf8);
-  filter:blur(16px) brightness(1.95) saturate(1.7);opacity:.8;animation:vidSpin 5.5s linear infinite;
+  inset:-12px;z-index:0;border-radius:26px;
+  background:conic-gradient(from 0deg,#67e8f9,#fde68a,#38bdf8,#fbbf24,#22d3ee,#fde68a,#67e8f9);
+  filter:blur(18px) brightness(2.35) saturate(1.8);opacity:.95;animation:vidSpin 5s linear infinite;
 }
 .vid-frame.f-energy::after{
   inset:0;border-radius:18px;z-index:2;
-  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55),inset 0 0 22px rgba(56,189,248,.3),0 0 28px 6px rgba(251,191,36,.55);
-  opacity:1;animation:vidPulse 2.2s ease-in-out infinite;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.7),inset 0 0 28px rgba(56,189,248,.4),0 0 36px 10px rgba(251,191,36,.7);
+  animation:vidPulse 2s ease-in-out infinite;
 }
 
-/* 3) NEON — نيون وردي/بنفسجي ساطع */
+/* 3 NEON — نيون ساطع جدًا */
 .vid-frame.f-neon{
-  border:2.5px solid #e879f9;
+  border:3px solid #f0abfc;
   box-shadow:
-    0 0 0 1px rgba(240,171,252,.95),
-    0 0 18px 4px rgba(232,121,249,1),
-    0 0 40px 12px rgba(168,85,247,.85),
-    0 0 75px 18px rgba(236,72,153,.45),
-    0 12px 40px rgba(0,0,0,.55);
+    0 0 0 2px #e879f9,
+    0 0 14px 3px rgba(232,121,249,1),
+    0 0 32px 10px rgba(168,85,247,1),
+    0 0 60px 18px rgba(236,72,153,.9),
+    0 0 110px 30px rgba(232,121,249,.5),
+    0 14px 44px rgba(0,0,0,.55);
 }
 .vid-frame.f-neon::before{
-  inset:-9px;z-index:0;border-radius:24px;
-  background:conic-gradient(from 90deg,#e879f9,#a855f7,#ec4899,#c026d3,#e879f9);
-  filter:blur(15px) brightness(1.9) saturate(1.6);opacity:.85;animation:vidSpin 4.8s linear infinite reverse;
+  inset:-13px;z-index:0;border-radius:26px;
+  background:conic-gradient(from 90deg,#f0abfc,#a855f7,#ec4899,#e879f9,#c026d3,#f0abfc);
+  filter:blur(17px) brightness(2.35) saturate(1.7);opacity:.95;animation:vidSpin 4.5s linear infinite reverse;
 }
 .vid-frame.f-neon::after{
   inset:0;border-radius:18px;z-index:2;
-  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5),0 0 32px 8px rgba(232,121,249,.55);
-  opacity:1;animation:vidPulse 2s ease-in-out infinite;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.65),0 0 40px 12px rgba(232,121,249,.7);
+  animation:vidPulse 1.8s ease-in-out infinite;
 }
 
-/* 4) CYBER — سماوي/أخضر سايبر دقيق */
-.vid-frame.f-cyber{
-  border:2.5px solid #22d3ee;
+/* 4 ICE — جليد أبيض/أزرق ساطع (بدل سايبر) */
+.vid-frame.f-ice{
+  border:3px solid #f0f9ff;
   box-shadow:
-    0 0 0 1px rgba(103,232,249,.95),
-    0 0 16px 3px rgba(34,211,238,1),
-    0 0 36px 10px rgba(16,185,129,.8),
-    0 0 70px 16px rgba(34,211,238,.4),
-    0 12px 40px rgba(0,0,0,.55);
+    0 0 0 2px #e0f2fe,
+    0 0 14px 3px rgba(255,255,255,1),
+    0 0 30px 10px rgba(186,230,253,1),
+    0 0 58px 18px rgba(125,211,252,.95),
+    0 0 105px 28px rgba(255,255,255,.55),
+    0 0 140px 36px rgba(186,230,253,.35),
+    0 14px 44px rgba(0,0,0,.5);
 }
-.vid-frame.f-cyber::before{
-  inset:-8px;z-index:0;border-radius:22px;
-  background:linear-gradient(125deg,rgba(34,211,238,.95),rgba(16,185,129,.75),rgba(56,189,248,.9));
-  filter:blur(14px) brightness(1.95);opacity:.9;animation:vidPulse 1.7s ease-in-out infinite;
+.vid-frame.f-ice::before{
+  inset:-14px;z-index:0;border-radius:26px;
+  background:radial-gradient(ellipse at 50% 35%,#fff 0%,#e0f2fe 22%,#7dd3fc 48%,transparent 70%);
+  filter:blur(16px) brightness(2.5);opacity:1;animation:vidPulse 1.7s ease-in-out infinite;
 }
-.vid-frame.f-cyber::after{
+.vid-frame.f-ice::after{
   inset:0;border-radius:18px;z-index:2;
-  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.45),inset 0 0 24px rgba(34,211,238,.35);
-  opacity:1;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.95),inset 0 0 32px rgba(186,230,253,.55),0 0 36px 10px rgba(255,255,255,.55);
 }
 
-/* 5) FIRE — نار/برتقالي ساطع */
+/* 5 FIRE — نار ساطعة */
 .vid-frame.f-fire{
-  border:2.5px solid #fb923c;
+  border:3px solid #fdba74;
   box-shadow:
-    0 0 0 1px rgba(253,186,116,.95),
-    0 0 18px 4px rgba(251,146,60,1),
-    0 0 40px 12px rgba(239,68,68,.85),
-    0 0 75px 18px rgba(251,146,60,.45),
-    0 12px 40px rgba(0,0,0,.55);
+    0 0 0 2px #fb923c,
+    0 0 14px 3px rgba(251,146,60,1),
+    0 0 32px 10px rgba(239,68,68,1),
+    0 0 60px 18px rgba(251,146,60,.9),
+    0 0 110px 30px rgba(239,68,68,.5),
+    0 14px 44px rgba(0,0,0,.55);
 }
 .vid-frame.f-fire::before{
-  inset:-10px;z-index:0;border-radius:24px;
-  background:conic-gradient(from 180deg,#fb923c,#ef4444,#f97316,#fbbf24,#fb923c);
-  filter:blur(15px) brightness(2) saturate(1.5);opacity:.88;animation:vidSpin 4.2s linear infinite;
+  inset:-13px;z-index:0;border-radius:26px;
+  background:conic-gradient(from 180deg,#fdba74,#ef4444,#f97316,#fde68a,#fb923c,#fdba74);
+  filter:blur(17px) brightness(2.4) saturate(1.6);opacity:.95;animation:vidSpin 4s linear infinite;
 }
 .vid-frame.f-fire::after{
   inset:0;border-radius:18px;z-index:2;
-  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5),0 0 34px 8px rgba(251,146,60,.55);
-  opacity:1;animation:vidPulse 1.8s ease-in-out infinite;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.7),0 0 40px 12px rgba(251,146,60,.7);
+  animation:vidPulse 1.7s ease-in-out infinite;
 }
 
 @keyframes vidSpin{to{transform:rotate(360deg)}}
 @keyframes vidPulse{
-  0%,100%{filter:brightness(1) saturate(1.25);opacity:.88}
-  50%{filter:brightness(1.4) saturate(1.55);opacity:1}
+  0%,100%{filter:brightness(1.15) saturate(1.3);opacity:.92}
+  50%{filter:brightness(1.55) saturate(1.65);opacity:1}
 }
 
-/* شبكة اختيار البرواز في الأدمن */
 .vid-frame-picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;margin-top:10px}
 .vid-frame-opt{position:relative;aspect-ratio:16/10;border-radius:12px;overflow:hidden;cursor:pointer;border:2px solid transparent;background:#0a0a12;transition:border-color .2s,transform .2s,box-shadow .2s}
 .vid-frame-opt:hover{transform:translateY(-2px)}
 .vid-frame-opt.on{border-color:var(--pri);box-shadow:0 0 0 2px color-mix(in srgb,var(--pri) 45%,transparent)}
 .vid-frame-opt span{position:absolute;inset:0;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;text-shadow:0 1px 5px #000;z-index:2;background:rgba(0,0,0,.28)}
-.vid-frame-opt[data-f="gold"]{box-shadow:0 0 16px 4px rgba(251,191,36,.9);border-color:#fbbf24}
-.vid-frame-opt[data-f="energy"]{box-shadow:0 0 16px 4px rgba(56,189,248,.75),0 0 28px 6px rgba(251,191,36,.55);border-color:#38bdf8}
-.vid-frame-opt[data-f="neon"]{box-shadow:0 0 16px 4px rgba(232,121,249,.85);border-color:#e879f9}
-.vid-frame-opt[data-f="cyber"]{box-shadow:0 0 16px 4px rgba(34,211,238,.85);border-color:#22d3ee}
-.vid-frame-opt[data-f="fire"]{box-shadow:0 0 16px 4px rgba(251,146,60,.9);border-color:#fb923c}
-@media (prefers-reduced-motion:reduce){
-  .vid-frame::before,.vid-frame::after{animation:none!important}
-}
+.vid-frame-opt[data-f="gold"]{box-shadow:0 0 18px 5px rgba(251,191,36,1);border-color:#fbbf24}
+.vid-frame-opt[data-f="energy"]{box-shadow:0 0 16px 4px rgba(56,189,248,.9),0 0 28px 8px rgba(251,191,36,.7);border-color:#38bdf8}
+.vid-frame-opt[data-f="neon"]{box-shadow:0 0 18px 5px rgba(232,121,249,1);border-color:#e879f9}
+.vid-frame-opt[data-f="ice"]{box-shadow:0 0 18px 5px rgba(255,255,255,.95),0 0 28px 8px rgba(186,230,253,.85);border-color:#e0f2fe}
+.vid-frame-opt[data-f="fire"]{box-shadow:0 0 18px 5px rgba(251,146,60,1);border-color:#fb923c}
+@media (prefers-reduced-motion:reduce){.vid-frame::before,.vid-frame::after{animation:none!important}}
 </style>
 </head>
 <body>
@@ -8815,8 +8806,8 @@ function vidIsOkUrl(u){
 function adminVideos(){
   if(!VID.loaded&&!VID._adm){VID._adm=1;vidLoad(true).then(()=>{VID._adm=0;if(S.isAdmin&&S.tab==="videos")render(true)})}
   const l=VID.list||[];
-  const frameOpts=[["gold","ذهب ✨"],["energy","طاقة ⚡"],["neon","نيون 💜"],["cyber","سايبر 💠"],["fire","نار 🔥"]];
-  const frameNames={gold:"ذهب",energy:"طاقة",neon:"نيون",cyber:"سايبر",fire:"نار"};
+  const frameOpts=[["gold","ذهب ✨"],["energy","طاقة ⚡"],["neon","نيون 💜"],["ice","جليد ❄️"],["fire","نار 🔥"]];
+  const frameNames={gold:"ذهب",energy:"طاقة",neon:"نيون",ice:"جليد",fire:"نار"};
   const pickHtml=frameOpts.map(([id,lab])=>`<button type="button" class="vid-frame-opt${id==="gold"?" on":""}" data-act="vidFramePick" data-f="${id}"><span>${lab}</span></button>`).join("");
   return `<div class="card"><h3>🎬 مكتبة الفيديوهات</h3>
 <p class="mut">ارفع على <b>Catbox</b> والصق الرابط. التشغيل تلقائي + براويز مضيئة فخمة (5 أنماط).</p>
@@ -8839,7 +8830,7 @@ function adminVideos(){
 <label class="f" style="margin-top:10px">برواز الفيديو (سطوع عالي)</label>
 <input type="hidden" id="vidFrame" value="gold">
 <div class="vid-frame-picker" id="vidFramePicker">${pickHtml}</div>
-<div class="mut" style="font-size:12px;margin-top:6px">ذهب = البرواز الذهبي الأصلي · طاقة = برواز الصورة (أزرق+ذهبي) · + نيون / سايبر / نار</div>
+<div class="mut" style="font-size:12px;margin-top:6px">ذهب = البرواز الذهبي الأصلي · طاقة = برواز الصورة (أزرق+ذهبي) · + نيون / جليد / نار</div>
 <button class="btn gold block" style="margin-top:12px" data-act="videoAdd">＋ نشر فيديو</button>
 </div>
 <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px">
@@ -8870,7 +8861,7 @@ ${frameOpts.map(([id,lab])=>`<option value="${id}" ${fr===id?"selected":""}>${la
 function videosViewfunction videosView(){
   if(!VID.loaded&&!VID._stu){VID._stu=1;vidLoad(true).then(()=>{VID._stu=0;if(S.view==="videos")render(true)})}
   const all=(VID.list||[]).filter(x=>!x.hidden);
-  const frames=["gold","energy","neon","cyber","fire"];
+  const frames=["gold","energy","neon","ice","fire"];
   const cards=all.length?all.map(x=>{
     let fr=String(x.frame||(x.feat?"gold":"energy")).toLowerCase();
     if(frames.indexOf(fr)<0)fr=x.feat?"gold":"energy";
@@ -16917,7 +16908,7 @@ Object.assign(A,{
     const cover=(document.getElementById("vidCover")&&document.getElementById("vidCover").value||"").trim();
     if(!vidIsOkUrl(url)){toast("حط رابط https صحيح من Catbox");return}
     try{
-      const allowed=["gold","energy","neon","cyber","fire"];
+      const allowed=["gold","energy","neon","ice","fire"];
     let frame=(document.getElementById("vidFrame")&&document.getElementById("vidFrame").value||"gold").toLowerCase();
     if(allowed.indexOf(frame)<0)frame="gold";
     await addDoc(collection(db,"videos"),{title:title.slice(0,160),url:url.slice(0,500),desc:desc.slice(0,300),cover:cover.slice(0,500),frame:frame,kind:"",hidden:false,feat:false,ts:Date.now(),by:(S.user&&S.user.uid)||""});
@@ -17223,7 +17214,7 @@ const LF_SHOP=[
 {id:"s1",c:"skin",i:"🌊",n:"Ocean",p:1800,lv:2,k:"ocean"},{id:"s2",c:"skin",i:"🟣",n:"Purple",p:1800,lv:2,k:"purple"},{id:"s3",c:"skin",i:"🌅",n:"Sunset",p:2100,lv:3,k:"sunset"},{id:"s4",c:"skin",i:"🌲",n:"Forest",p:2100,lv:3,k:"forest"},{id:"s5",c:"skin",i:"🌈",n:"Aurora",p:3600,lv:5,k:"aurora"},{id:"s6",c:"skin",i:"💗",n:"Neon",p:3600,lv:5,k:"neon"},
 {id:"x1",c:"fx",i:"⭐",n:"نجوم",p:2100,lv:2,k:"⭐"},{id:"x2",c:"fx",i:"❄️",n:"ثلج",p:2100,lv:3,k:"❄️"},{id:"x3",c:"fx",i:"💖",n:"قلوب",p:2400,lv:3,k:"💖"},{id:"x4",c:"fx",i:"✨",n:"شرارات",p:3000,lv:4,k:"✨"},{id:"x5",c:"fx",i:"💧",n:"مطر",p:2400,lv:3,k:"💧"},
 {id:"a1",c:"acc",i:"🎩",n:"قبعة",p:1400,lv:1,k:"hat"},{id:"a2",c:"acc",i:"🕶️",n:"نظارة",p:1400,lv:1,k:"glasses"},{id:"a3",c:"acc",i:"🧣",n:"وشاح",p:1750,lv:2,k:"scarf"},{id:"a4",c:"acc",i:"👑",n:"تاج",p:4900,lv:5,k:"crown"},{id:"a5",c:"acc",i:"🪽",n:"جناحين",p:6300,lv:6,k:"wings"},{id:"a6",c:"acc",i:"😇",n:"هالة",p:4200,lv:4,k:"halo"},
-{id:"r1",c:"room",s:"wall",i:"🦋",n:"فراشات",p:750,lv:1},{id:"r2",c:"room",s:"wall",i:"🐦",n:"عصافير",p:1000,lv:1},{id:"r3",c:"room",s:"desk",i:"📚",n:"رف كتب",p:1250,lv:2,rm:1},{id:"r4",c:"room",s:"desk",i:"🖥️",n:"كمبيوتر",p:3000,lv:4,rm:1},{id:"r5",c:"room",s:"plant",i:"🌵",n:"صبار",p:600,lv:1},{id:"r6",c:"room",s:"plant",i:"🌷",n:"زهور",p:900,lv:2},{id:"r7",c:"room",s:"floor",i:"🛏️",n:"سرير",p:2500,lv:3,rm:1},{id:"r8",c:"room",s:"floor",i:"🪑",n:"مقعد حديقة",p:1250,lv:2},{id:"r9",c:"room",s:"light",i:"💡",n:"عمود إنارة",p:1000,lv:1},{id:"r10",c:"room",s:"light",i:"🏮",n:"فانوس",p:2250,lv:3},{id:"r11",c:"room",s:"clock",i:"🪁",n:"طائرة ورقية",p:1100,lv:2},{id:"r12",c:"room",s:"clock",i:"🎈",n:"بالونات",p:750,lv:1},{id:"p1",c:"room",s:"paint",i:"☀️",n:"نهار صافي",p:900,lv:1,k:"#8ec5ff",f:"#79c24f"},{id:"p2",c:"room",s:"paint",i:"🌿",n:"ربيع",p:900,lv:1,k:"#bfe8d0",f:"#8bd05a"},{id:"p3",c:"room",s:"paint",i:"🌸",n:"غروب وردي",p:1100,lv:2,k:"#f6b9d3",f:"#6aa84a"},{id:"p4",c:"room",s:"paint",i:"🌅",n:"غروب برتقالي",p:1100,lv:2,k:"#ffc08a",f:"#8ea84a"},{id:"p5",c:"room",s:"paint",i:"🌙",n:"ليل",p:1500,lv:3,k:"#2b2f4a",f:"#2f5a3a"},{id:"g1",c:"room",s:"rug",i:"🟫",n:"ممر ترابي",p:800,lv:1,k:"#b58a5a"},{id:"g2",c:"room",s:"rug",i:"⬜",n:"ممر حجري",p:800,lv:1,k:"#a5adb7"},{id:"g3",c:"room",s:"rug",i:"🟩",n:"رقعة عشب فاتحة",p:800,lv:2,k:"#a6e06f"},{id:"h1",c:"room",s:"shelf",i:"🏆",n:"كأس",p:2000,lv:3,rm:1},{id:"h2",c:"room",s:"shelf",i:"🌍",n:"جلوب",p:1250,lv:2,rm:1},{id:"h3",c:"room",s:"shelf",i:"🧸",n:"دبدوب",p:750,lv:1,rm:1},{id:"h4",c:"room",s:"desk2",i:"🎧",n:"سماعات",p:1500,lv:3,rm:1},{id:"h5",c:"room",s:"desk2",i:"☕",n:"قهوة",p:500,lv:1,rm:1},{id:"h6",c:"room",s:"side",i:"🎸",n:"جيتار",p:2250,lv:4,rm:1},{id:"h7",c:"room",s:"side",i:"🔭",n:"تلسكوب",p:3000,lv:5,rm:1},{id:"h8",c:"room",s:"side",i:"⚽",n:"كورة",p:500,lv:1},{id:"h9",c:"room",s:"light",i:"🪔",n:"مشعل",p:3500,lv:6},{id:"n1",c:"snd",s:"win",i:"🎺",n:"فوز: ريترو",p:600,lv:1,k:[392,392,523,659,784],w:"square"},{id:"n2",c:"snd",s:"win",i:"🔔",n:"فوز: جرس",p:800,lv:2,k:[1047,1319,1568,2093],w:"sine"},{id:"n3",c:"snd",s:"lvl",i:"🎼",n:"ليفل: فانفار",p:1000,lv:3,k:[262,330,392,523,659,784],w:"sawtooth"},{id:"n4",c:"snd",s:"lvl",i:"🪄",n:"ليفل: سحر",p:1000,lv:3,k:[523,659,784,988,1319,1568],w:"sine"},{id:"n5",c:"snd",s:"box",i:"🔮",n:"صندوق: غموض",p:600,lv:1,k:[220,277,330,415,554],w:"sine"},{id:"n6",c:"snd",s:"box",i:"🕹️",n:"صندوق: أركيد",p:600,lv:1,k:[330,440,660,880],w:"square"},{id:"n7",c:"snd",s:"buy",i:"💵",n:"شراء: كاش",p:500,lv:1,k:[1568,2093],w:"sine"},{id:"n8",c:"snd",s:"buy",i:"🫧",n:"شراء: بوب",p:500,lv:1,k:[440,660,990],w:"triangle"},{id:"b1",c:"bub",i:"🟡",n:"ذهبي",p:2400,lv:3,k:"gold"},{id:"b2",c:"bub",i:"🔷",n:"نيون",p:3000,lv:4,k:"neon"},{id:"b3",c:"bub",i:"🪟",n:"زجاج",p:2700,lv:4,k:"glass"},{id:"b4",c:"bub",i:"💥",n:"كوميك",p:2100,lv:2,k:"comic"},{id:"b5",c:"bub",i:"🌇",n:"غروب",p:2400,lv:3,k:"sunset"},{id:"f8",c:"frame",i:"❤️",n:"روبي",p:7200,lv:6,k:"ruby"},{id:"f9",c:"frame",i:"💚",n:"زمرد",p:7200,lv:6,k:"emerald"},{id:"f10",c:"frame",i:"💙",n:"ياقوت",p:7200,lv:6,k:"sapphire"},{id:"f11",c:"frame",i:"🧊",n:"Ice",p:6000,lv:5,k:"ice"},{id:"f12",c:"frame",i:"🤖",n:"Cyber",p:10400,lv:8,k:"cyber"},{id:"f13",c:"frame",i:"🌈",n:"RGB",p:11200,lv:9,k:"rgb"},{id:"f14",c:"frame",i:"⚡",n:"Electric",p:9200,lv:7,k:"electric"},{id:"f15",c:"frame",i:"🌑",n:"Shadow",p:8000,lv:7,k:"shadow"},{id:"f16",c:"frame",i:"🔮",n:"Crystal",p:12800,lv:10,k:"crystal"},{id:"s7",c:"skin",i:"🪟",n:"Glass",p:2400,lv:3,k:"glass"},{id:"s8",c:"skin",i:"🌃",n:"Midnight",p:2400,lv:3,k:"midnight"},{id:"s9",c:"skin",i:"🥇",n:"Gold",p:4200,lv:5,k:"gold"},{id:"s10",c:"skin",i:"🌸",n:"Pink",p:2100,lv:2,k:"pink"},{id:"s11",c:"skin",i:"☁️",n:"Sky",p:2100,lv:2,k:"sky"},{id:"s12",c:"skin",i:"☕",n:"Coffee",p:2100,lv:2,k:"coffee"},{id:"s13",c:"skin",i:"🦾",n:"Cyberpunk",p:5400,lv:6,k:"cyberpunk"},{id:"s14",c:"skin",i:"📼",n:"Retro",p:3000,lv:4,k:"retro"},{id:"s15",c:"skin",i:"⬜",n:"Minimal",p:1500,lv:2,k:"minimal"},{id:"x6",c:"fx",i:"🍃",n:"أوراق",p:2100,lv:3,k:"🍃"},{id:"x7",c:"fx",i:"☄️",n:"نيزك",p:4500,lv:5,k:"☄️"},{id:"x8",c:"fx",i:"⚡",n:"برق",p:4800,lv:5,k:"⚡"},{id:"x9",c:"fx",i:"🫧",n:"فقاعات",p:2400,lv:3,k:"🫧"},{id:"x10",c:"fx",i:"💎",n:"ألماس",p:7500,lv:7,k:"💎"},{id:"x11",c:"fx",i:"☁️",n:"سحب",p:2100,lv:2,k:"☁️"},{id:"x12",c:"fx",i:"🌠",n:"شهب",p:5400,lv:6,k:"🌠"},{id:"z1",c:"pet",i:"🦋",n:"فراشة",p:12000,lv:4,k:"🦋",rm:1},{id:"z2",c:"pet",i:"🦉",n:"بومة",p:15000,lv:5,k:"🦉",rm:1},{id:"z3",c:"pet",i:"🦛",n:"فرس النهر",p:15000,lv:6,k:"🦛"},{id:"z4",c:"pet",i:"🐙",n:"أخطبوط",p:20000,lv:7,k:"🐙",rm:1},{id:"z5",c:"pet",i:"🦁",n:"أسد",p:30000,lv:9,k:"🦁"},{id:"z6",c:"pet",i:"🐯",n:"نمر",p:25000,lv:8,k:"🐯",rm:1},{id:"z7",c:"pet",i:"🦅",n:"نسر",p:30000,lv:9,k:"🦅",rm:1},{id:"z8",c:"pet",i:"🐬",n:"دلفين",p:30000,lv:9,k:"🐬",rm:1},{id:"z9",c:"pet",i:"🐘",n:"فيل",p:35000,lv:10,k:"🐘",rm:1},{id:"z10",c:"pet",i:"🦖",n:"ديناصور",p:45000,lv:11,k:"🦖",rm:1},{id:"z11",c:"pet",i:"🦓",n:"حمار وحشي",p:20000,lv:8,k:"🦓"},{id:"z12",c:"pet",i:"🦖",n:"تي ركس",p:80000,lv:15,k:"🦖"},{id:"z13",c:"pet",i:"🦕",n:"سبينوصور",p:50000,lv:12,k:"🦕"},{id:"d1",c:"room",s:"hill",i:"🏞️",n:"تل أخضر",p:1800,lv:2,m:"Hill001"},{id:"d2",c:"room",s:"hill",i:"🏞️",n:"تل مرتفع",p:2200,lv:3,m:"Hill002"},{id:"d3",c:"room",s:"hill",i:"⛰️",n:"جبال بعيدة",p:3500,lv:5,m:"MountainFar001"},{id:"d4",c:"room",s:"hill",i:"🏔️",n:"جبل",p:4800,lv:7,m:"Mountain001"},{id:"d5",c:"room",s:"cloud",i:"☁️",n:"سحابة",p:700,lv:1,m:"Cloud001"},{id:"d6",c:"room",s:"cloud",i:"☁️",n:"سحابة كبيرة",p:900,lv:2,m:"Cloud002"},{id:"d7",c:"room",s:"cloud",i:"☁️",n:"سحابة ثقيلة",p:1100,lv:3,m:"Cloud003"},{id:"d8",c:"room",s:"tree",i:"🌳",n:"شجرة صغيرة",p:1200,lv:1,m:"TreeLow001"},{id:"d9",c:"room",s:"tree",i:"🌳",n:"شجرة متوسطة",p:2400,lv:3,m:"TreeMed001"},{id:"d10",c:"room",s:"tree",i:"🌲",n:"شجرة عالية",p:3800,lv:5,m:"TreeHigh001"},{id:"d11",c:"room",s:"tree2",i:"🌳",n:"شجرة صغيرة (يمين)",p:1200,lv:1,m:"TreeLow002"},{id:"d12",c:"room",s:"tree2",i:"🌳",n:"شجرة متوسطة (يمين)",p:2400,lv:3,m:"TreeMed002"},{id:"d13",c:"room",s:"tree2",i:"🌲",n:"شجرة عالية (يمين)",p:3800,lv:5,m:"TreeHigh002"},{id:"d14",c:"room",s:"bush",i:"🌿",n:"شجيرة",p:700,lv:1,m:"Bush001"},{id:"d15",c:"room",s:"bush",i:"🌿",n:"شجيرة كبيرة",p:1000,lv:2,m:"Bush002"},{id:"d16",c:"room",s:"bush2",i:"🌾",n:"قصب",p:800,lv:2,m:"Reed001"},{id:"d17",c:"room",s:"bush2",i:"🌾",n:"قصب طويل",p:1100,lv:3,m:"Reed002"},{id:"d18",c:"room",s:"rock",i:"🪨",n:"صخرة",p:600,lv:1,m:"Rock001"},{id:"d19",c:"room",s:"rock",i:"🪨",n:"صخرة كبيرة",p:900,lv:2,m:"Rock002"},{id:"d20",c:"room",s:"rock",i:"🪨",n:"صخرة ضخمة",p:1300,lv:3,m:"Rock003"},{id:"d21",c:"room",s:"grass",i:"🌱",n:"عشب",p:400,lv:1,m:"Grass001"},{id:"d22",c:"room",s:"grass",i:"🌱",n:"عشب كثيف",p:650,lv:2,m:"Grass002"},{id:"d23",c:"room",s:"grass",i:"🌱",n:"عشب طويل",p:900,lv:3,m:"Grass003"},{id:"d24",c:"room",s:"floor",i:"⛲",n:"نافورة",p:3500,lv:4},{id:"d25",c:"room",s:"floor",i:"⛺",n:"خيمة",p:2500,lv:3},{id:"d26",c:"room",s:"floor",i:"🛝",n:"زحليقة",p:2800,lv:4},
+{id:"r1",c:"room",s:"wall",i:"🦋",n:"فراشات",p:750,lv:1},{id:"r2",c:"room",s:"wall",i:"🐦",n:"عصافير",p:1000,lv:1},{id:"r3",c:"room",s:"desk",i:"📚",n:"رف كتب",p:1250,lv:2,rm:1},{id:"r4",c:"room",s:"desk",i:"🖥️",n:"كمبيوتر",p:3000,lv:4,rm:1},{id:"r5",c:"room",s:"plant",i:"🌵",n:"صبار",p:600,lv:1},{id:"r6",c:"room",s:"plant",i:"🌷",n:"زهور",p:900,lv:2},{id:"r7",c:"room",s:"floor",i:"🛏️",n:"سرير",p:2500,lv:3,rm:1},{id:"r8",c:"room",s:"floor",i:"🪑",n:"مقعد حديقة",p:1250,lv:2},{id:"r9",c:"room",s:"light",i:"💡",n:"عمود إنارة",p:1000,lv:1},{id:"r10",c:"room",s:"light",i:"🏮",n:"فانوس",p:2250,lv:3},{id:"r11",c:"room",s:"clock",i:"🪁",n:"طائرة ورقية",p:1100,lv:2},{id:"r12",c:"room",s:"clock",i:"🎈",n:"بالونات",p:750,lv:1},{id:"p1",c:"room",s:"paint",i:"☀️",n:"نهار صافي",p:900,lv:1,k:"#8ec5ff",f:"#79c24f"},{id:"p2",c:"room",s:"paint",i:"🌿",n:"ربيع",p:900,lv:1,k:"#bfe8d0",f:"#8bd05a"},{id:"p3",c:"room",s:"paint",i:"🌸",n:"غروب وردي",p:1100,lv:2,k:"#f6b9d3",f:"#6aa84a"},{id:"p4",c:"room",s:"paint",i:"🌅",n:"غروب برتقالي",p:1100,lv:2,k:"#ffc08a",f:"#8ea84a"},{id:"p5",c:"room",s:"paint",i:"🌙",n:"ليل",p:1500,lv:3,k:"#2b2f4a",f:"#2f5a3a"},{id:"g1",c:"room",s:"rug",i:"🟫",n:"ممر ترابي",p:800,lv:1,k:"#b58a5a"},{id:"g2",c:"room",s:"rug",i:"⬜",n:"ممر حجري",p:800,lv:1,k:"#a5adb7"},{id:"g3",c:"room",s:"rug",i:"🟩",n:"رقعة عشب فاتحة",p:800,lv:2,k:"#a6e06f"},{id:"h1",c:"room",s:"shelf",i:"🏆",n:"كأس",p:2000,lv:3,rm:1},{id:"h2",c:"room",s:"shelf",i:"🌍",n:"جلوب",p:1250,lv:2,rm:1},{id:"h3",c:"room",s:"shelf",i:"🧸",n:"دبدوب",p:750,lv:1,rm:1},{id:"h4",c:"room",s:"desk2",i:"🎧",n:"سماعات",p:1500,lv:3,rm:1},{id:"h5",c:"room",s:"desk2",i:"☕",n:"قهوة",p:500,lv:1,rm:1},{id:"h6",c:"room",s:"side",i:"🎸",n:"جيتار",p:2250,lv:4,rm:1},{id:"h7",c:"room",s:"side",i:"🔭",n:"تلسكوب",p:3000,lv:5,rm:1},{id:"h8",c:"room",s:"side",i:"⚽",n:"كورة",p:500,lv:1},{id:"h9",c:"room",s:"light",i:"🪔",n:"مشعل",p:3500,lv:6},{id:"n1",c:"snd",s:"win",i:"🎺",n:"فوز: ريترو",p:600,lv:1,k:[392,392,523,659,784],w:"square"},{id:"n2",c:"snd",s:"win",i:"🔔",n:"فوز: جرس",p:800,lv:2,k:[1047,1319,1568,2093],w:"sine"},{id:"n3",c:"snd",s:"lvl",i:"🎼",n:"ليفل: فانفار",p:1000,lv:3,k:[262,330,392,523,659,784],w:"sawtooth"},{id:"n4",c:"snd",s:"lvl",i:"🪄",n:"ليفل: سحر",p:1000,lv:3,k:[523,659,784,988,1319,1568],w:"sine"},{id:"n5",c:"snd",s:"box",i:"🔮",n:"صندوق: غموض",p:600,lv:1,k:[220,277,330,415,554],w:"sine"},{id:"n6",c:"snd",s:"box",i:"🕹️",n:"صندوق: أركيد",p:600,lv:1,k:[330,440,660,880],w:"square"},{id:"n7",c:"snd",s:"buy",i:"💵",n:"شراء: كاش",p:500,lv:1,k:[1568,2093],w:"sine"},{id:"n8",c:"snd",s:"buy",i:"🫧",n:"شراء: بوب",p:500,lv:1,k:[440,660,990],w:"triangle"},{id:"b1",c:"bub",i:"🟡",n:"ذهبي",p:2400,lv:3,k:"gold"},{id:"b2",c:"bub",i:"🔷",n:"نيون",p:3000,lv:4,k:"neon"},{id:"b3",c:"bub",i:"🪟",n:"زجاج",p:2700,lv:4,k:"glass"},{id:"b4",c:"bub",i:"💥",n:"كوميك",p:2100,lv:2,k:"comic"},{id:"b5",c:"bub",i:"🌇",n:"غروب",p:2400,lv:3,k:"sunset"},{id:"f8",c:"frame",i:"❤️",n:"روبي",p:7200,lv:6,k:"ruby"},{id:"f9",c:"frame",i:"💚",n:"زمرد",p:7200,lv:6,k:"emerald"},{id:"f10",c:"frame",i:"💙",n:"ياقوت",p:7200,lv:6,k:"sapphire"},{id:"f11",c:"frame",i:"🧊",n:"Ice",p:6000,lv:5,k:"ice"},{id:"f12",c:"frame",i:"🤖",n:"Cyber",p:10400,lv:8,k:"ice"},{id:"f13",c:"frame",i:"🌈",n:"RGB",p:11200,lv:9,k:"rgb"},{id:"f14",c:"frame",i:"⚡",n:"Electric",p:9200,lv:7,k:"electric"},{id:"f15",c:"frame",i:"🌑",n:"Shadow",p:8000,lv:7,k:"shadow"},{id:"f16",c:"frame",i:"🔮",n:"Crystal",p:12800,lv:10,k:"crystal"},{id:"s7",c:"skin",i:"🪟",n:"Glass",p:2400,lv:3,k:"glass"},{id:"s8",c:"skin",i:"🌃",n:"Midnight",p:2400,lv:3,k:"midnight"},{id:"s9",c:"skin",i:"🥇",n:"Gold",p:4200,lv:5,k:"gold"},{id:"s10",c:"skin",i:"🌸",n:"Pink",p:2100,lv:2,k:"pink"},{id:"s11",c:"skin",i:"☁️",n:"Sky",p:2100,lv:2,k:"sky"},{id:"s12",c:"skin",i:"☕",n:"Coffee",p:2100,lv:2,k:"coffee"},{id:"s13",c:"skin",i:"🦾",n:"Cyberpunk",p:5400,lv:6,k:"cyberpunk"},{id:"s14",c:"skin",i:"📼",n:"Retro",p:3000,lv:4,k:"retro"},{id:"s15",c:"skin",i:"⬜",n:"Minimal",p:1500,lv:2,k:"minimal"},{id:"x6",c:"fx",i:"🍃",n:"أوراق",p:2100,lv:3,k:"🍃"},{id:"x7",c:"fx",i:"☄️",n:"نيزك",p:4500,lv:5,k:"☄️"},{id:"x8",c:"fx",i:"⚡",n:"برق",p:4800,lv:5,k:"⚡"},{id:"x9",c:"fx",i:"🫧",n:"فقاعات",p:2400,lv:3,k:"🫧"},{id:"x10",c:"fx",i:"💎",n:"ألماس",p:7500,lv:7,k:"💎"},{id:"x11",c:"fx",i:"☁️",n:"سحب",p:2100,lv:2,k:"☁️"},{id:"x12",c:"fx",i:"🌠",n:"شهب",p:5400,lv:6,k:"🌠"},{id:"z1",c:"pet",i:"🦋",n:"فراشة",p:12000,lv:4,k:"🦋",rm:1},{id:"z2",c:"pet",i:"🦉",n:"بومة",p:15000,lv:5,k:"🦉",rm:1},{id:"z3",c:"pet",i:"🦛",n:"فرس النهر",p:15000,lv:6,k:"🦛"},{id:"z4",c:"pet",i:"🐙",n:"أخطبوط",p:20000,lv:7,k:"🐙",rm:1},{id:"z5",c:"pet",i:"🦁",n:"أسد",p:30000,lv:9,k:"🦁"},{id:"z6",c:"pet",i:"🐯",n:"نمر",p:25000,lv:8,k:"🐯",rm:1},{id:"z7",c:"pet",i:"🦅",n:"نسر",p:30000,lv:9,k:"🦅",rm:1},{id:"z8",c:"pet",i:"🐬",n:"دلفين",p:30000,lv:9,k:"🐬",rm:1},{id:"z9",c:"pet",i:"🐘",n:"فيل",p:35000,lv:10,k:"🐘",rm:1},{id:"z10",c:"pet",i:"🦖",n:"ديناصور",p:45000,lv:11,k:"🦖",rm:1},{id:"z11",c:"pet",i:"🦓",n:"حمار وحشي",p:20000,lv:8,k:"🦓"},{id:"z12",c:"pet",i:"🦖",n:"تي ركس",p:80000,lv:15,k:"🦖"},{id:"z13",c:"pet",i:"🦕",n:"سبينوصور",p:50000,lv:12,k:"🦕"},{id:"d1",c:"room",s:"hill",i:"🏞️",n:"تل أخضر",p:1800,lv:2,m:"Hill001"},{id:"d2",c:"room",s:"hill",i:"🏞️",n:"تل مرتفع",p:2200,lv:3,m:"Hill002"},{id:"d3",c:"room",s:"hill",i:"⛰️",n:"جبال بعيدة",p:3500,lv:5,m:"MountainFar001"},{id:"d4",c:"room",s:"hill",i:"🏔️",n:"جبل",p:4800,lv:7,m:"Mountain001"},{id:"d5",c:"room",s:"cloud",i:"☁️",n:"سحابة",p:700,lv:1,m:"Cloud001"},{id:"d6",c:"room",s:"cloud",i:"☁️",n:"سحابة كبيرة",p:900,lv:2,m:"Cloud002"},{id:"d7",c:"room",s:"cloud",i:"☁️",n:"سحابة ثقيلة",p:1100,lv:3,m:"Cloud003"},{id:"d8",c:"room",s:"tree",i:"🌳",n:"شجرة صغيرة",p:1200,lv:1,m:"TreeLow001"},{id:"d9",c:"room",s:"tree",i:"🌳",n:"شجرة متوسطة",p:2400,lv:3,m:"TreeMed001"},{id:"d10",c:"room",s:"tree",i:"🌲",n:"شجرة عالية",p:3800,lv:5,m:"TreeHigh001"},{id:"d11",c:"room",s:"tree2",i:"🌳",n:"شجرة صغيرة (يمين)",p:1200,lv:1,m:"TreeLow002"},{id:"d12",c:"room",s:"tree2",i:"🌳",n:"شجرة متوسطة (يمين)",p:2400,lv:3,m:"TreeMed002"},{id:"d13",c:"room",s:"tree2",i:"🌲",n:"شجرة عالية (يمين)",p:3800,lv:5,m:"TreeHigh002"},{id:"d14",c:"room",s:"bush",i:"🌿",n:"شجيرة",p:700,lv:1,m:"Bush001"},{id:"d15",c:"room",s:"bush",i:"🌿",n:"شجيرة كبيرة",p:1000,lv:2,m:"Bush002"},{id:"d16",c:"room",s:"bush2",i:"🌾",n:"قصب",p:800,lv:2,m:"Reed001"},{id:"d17",c:"room",s:"bush2",i:"🌾",n:"قصب طويل",p:1100,lv:3,m:"Reed002"},{id:"d18",c:"room",s:"rock",i:"🪨",n:"صخرة",p:600,lv:1,m:"Rock001"},{id:"d19",c:"room",s:"rock",i:"🪨",n:"صخرة كبيرة",p:900,lv:2,m:"Rock002"},{id:"d20",c:"room",s:"rock",i:"🪨",n:"صخرة ضخمة",p:1300,lv:3,m:"Rock003"},{id:"d21",c:"room",s:"grass",i:"🌱",n:"عشب",p:400,lv:1,m:"Grass001"},{id:"d22",c:"room",s:"grass",i:"🌱",n:"عشب كثيف",p:650,lv:2,m:"Grass002"},{id:"d23",c:"room",s:"grass",i:"🌱",n:"عشب طويل",p:900,lv:3,m:"Grass003"},{id:"d24",c:"room",s:"floor",i:"⛲",n:"نافورة",p:3500,lv:4},{id:"d25",c:"room",s:"floor",i:"⛺",n:"خيمة",p:2500,lv:3},{id:"d26",c:"room",s:"floor",i:"🛝",n:"زحليقة",p:2800,lv:4},
 {id:"t14",c:"title",i:"🧮",n:"ملك الرياضيات",p:3000,lv:4},{id:"t15",c:"title",i:"⚛️",n:"ملك الفيزياء",p:3000,lv:4},{id:"t16",c:"title",i:"🧪",n:"ملك الكيمياء",p:3000,lv:4},{id:"t17",c:"title",i:"🧬",n:"ملك الأحياء",p:3000,lv:4},{id:"t18",c:"title",i:"📜",n:"ملك العربي",p:3000,lv:4},{id:"t19",c:"title",i:"🔤",n:"ملك الإنجليزي",p:3000,lv:4},{id:"t20",c:"title",i:"🔭",n:"نجم الفيزياء",p:2500,lv:4},{id:"t21",c:"title",i:"🥇",n:"الذهبي",p:4000,lv:5},{id:"t22",c:"title",i:"✨",n:"المتميز",p:2000,lv:3},{id:"t23",c:"title",i:"🏛️",n:"الأسطوري",p:8000,lv:8}
 ];
 const LF_POOL=[{id:"login",e:"login",t:"ادخل المنصة",n:1,r:20},{id:"e1",e:"exam",t:"خلّص امتحان",n:1,r:60},{id:"e2",e:"exam",t:"خلّص امتحانين",n:2,r:90},{id:"full",e:"full",t:"هات درجة كاملة",n:1,r:80},{id:"box",e:"box",t:"افتح صندوق الحظ",n:1,r:30},{id:"ai",e:"ai",t:"اسأل المساعد الذكي",n:1,r:30},{id:"game",e:"game",t:"ادخل لعبة",n:1,r:40},{id:"q10",e:"q",t:"حل 10 أسئلة",n:10,r:50},{id:"win1",e:"win",t:"اكسب مباراة Quiz Battle",n:1,r:60},{id:"min30",e:"min",t:"ذاكر 30 دقيقة (جلسة تركيز)",n:30,r:60}];
