@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v221">
+<meta name="sw-build" content="v222">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v221";/* v216: الغرف العامة لـ«ارسم وخمّن» في «الغرف المفتوحة» · إصلاح ظهور خانة كتابة الشات · حذف بحث المحادثة · الحذف التلقائي بعد ساعة اتعمم على شات الغرف ·  v215: «ارسم وخمّن» اتعمل من الصفر على نمط ويبلاي (ملف wp.js): رسم لحظي بـ chunks · التخمين في الشات نفسه (الإجابة الصحيحة بتتسجل لحظيًا من غير ما تتكشف) · نقاط بالوقت + بونص أول مخمّن + نقاط للرسام · اختيار كلمة من 4 · تلميحات حروف · رسائل صوتية/صور/ملصقات · لوبي بجاهزية · نهاية بترتيب · لازم تنشر firestore.rules v215 · */ v214: (1) شاشة اختيار الكلمة كانت بتعلّق لأن المؤقّت مكانش بيشتغل غير أثناء الرسم — اتصلّح (2) تنبيه لو فيه لاعبين مش مستعدين قبل البدء (3) تحذير لو لاعب نسخته قديمة + زر تحديث فوري (4) ملصقات: قاعدة آمنة بدل regex (5) ملخّص «جاهزين X من Y» في اللوبي · v213: ارسم وخمّن — (1) الملصقات المخصصة والمرسومة كانت بتترفض من قواعد Firestore (مطابقة regex غلط) · (2) تصحيح التخمينات مبقاش بيفوّت تخمين لو وصل وقت ما الرسام بيصحّح غيره + تجاهل تخمينات الجولات القديمة · (3) الرسم اللحظي: استماع بالدور فقط + الخط مبيختفيش لحظة الإرسال + مقاس الكانفاس بيتظبط تلقائيًا · (4) الكتابة في الشات مبتضيعش مع إعادة رسم الشاشة · (5) لو الرسام خرج وسط الدور الجولة بتتكشف تلقائيًا · (6) زر ابدأ محمي من الضغط المزدوج · (7) رسائل خطأ واضحة بدل «فشل» · (8) أزرار الإيموجي/المايك لم تعد تتكرر عند المخمّن · (9) حذف رسائل الغرف المنتهية (ساعة) من السيرفر · v212: إصلاح جذري للرسم (Nested arrays → strokes subcollection لحظي) · توقيت موحّد · انضمام/خروج بدون سباق · ملصقات مخصصة أخف وآمنة · رسائل الشات تتحذف بعد ساعة (expireAt) · v211: إصلاح «dgRoom is not defined» (كان بيكسر إرسال الملصقات والملصقات المخصصة والمايك) + إصلاح N (الاهتزاز) · الرد على رسالة بقى مسموح في القواعد · ملصق من صورة الفون (من المعرض/الكاميرا) مع إمكانية الرسم فوقها · حدود أكبر: ملصقاتي 50، لاعبين لحد 40، جولات لحد 30، وقت الرسم لحد 300 ث، شات 100 رسالة، رسالة صوتية 90 ث · v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
+<script>window.APP_BUILD="v222";/* v216: الغرف العامة لـ«ارسم وخمّن» في «الغرف المفتوحة» · إصلاح ظهور خانة كتابة الشات · حذف بحث المحادثة · الحذف التلقائي بعد ساعة اتعمم على شات الغرف ·  v215: «ارسم وخمّن» اتعمل من الصفر على نمط ويبلاي (ملف wp.js): رسم لحظي بـ chunks · التخمين في الشات نفسه (الإجابة الصحيحة بتتسجل لحظيًا من غير ما تتكشف) · نقاط بالوقت + بونص أول مخمّن + نقاط للرسام · اختيار كلمة من 4 · تلميحات حروف · رسائل صوتية/صور/ملصقات · لوبي بجاهزية · نهاية بترتيب · لازم تنشر firestore.rules v215 · */ v214: (1) شاشة اختيار الكلمة كانت بتعلّق لأن المؤقّت مكانش بيشتغل غير أثناء الرسم — اتصلّح (2) تنبيه لو فيه لاعبين مش مستعدين قبل البدء (3) تحذير لو لاعب نسخته قديمة + زر تحديث فوري (4) ملصقات: قاعدة آمنة بدل regex (5) ملخّص «جاهزين X من Y» في اللوبي · v213: ارسم وخمّن — (1) الملصقات المخصصة والمرسومة كانت بتترفض من قواعد Firestore (مطابقة regex غلط) · (2) تصحيح التخمينات مبقاش بيفوّت تخمين لو وصل وقت ما الرسام بيصحّح غيره + تجاهل تخمينات الجولات القديمة · (3) الرسم اللحظي: استماع بالدور فقط + الخط مبيختفيش لحظة الإرسال + مقاس الكانفاس بيتظبط تلقائيًا · (4) الكتابة في الشات مبتضيعش مع إعادة رسم الشاشة · (5) لو الرسام خرج وسط الدور الجولة بتتكشف تلقائيًا · (6) زر ابدأ محمي من الضغط المزدوج · (7) رسائل خطأ واضحة بدل «فشل» · (8) أزرار الإيموجي/المايك لم تعد تتكرر عند المخمّن · (9) حذف رسائل الغرف المنتهية (ساعة) من السيرفر · v212: إصلاح جذري للرسم (Nested arrays → strokes subcollection لحظي) · توقيت موحّد · انضمام/خروج بدون سباق · ملصقات مخصصة أخف وآمنة · رسائل الشات تتحذف بعد ساعة (expireAt) · v211: إصلاح «dgRoom is not defined» (كان بيكسر إرسال الملصقات والملصقات المخصصة والمايك) + إصلاح N (الاهتزاز) · الرد على رسالة بقى مسموح في القواعد · ملصق من صورة الفون (من المعرض/الكاميرا) مع إمكانية الرسم فوقها · حدود أكبر: ملصقاتي 50، لاعبين لحد 40، جولات لحد 30، وقت الرسم لحد 300 ث، شات 100 رسالة، رسالة صوتية 90 ث · v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -2120,17 +2120,15 @@ html.lite .card,html.lite .dlg,html.lite .btn.ghost{
 .dg214-warn{margin:8px 0;padding:10px 14px;border-radius:14px;background:color-mix(in srgb,#f59e0b 16%,var(--card));border:1px solid color-mix(in srgb,#f59e0b 50%,var(--line));font-size:13px;line-height:1.7;text-align:center}
 </style>
 <style id="vidFeedCss">
-.vid-feed .vid-h{margin:6px 0 4px;font-size:20px}
-.vid-feed .vid-p{margin:0 0 14px}
-.vid-list{display:flex;flex-direction:column;gap:28px;padding:4px 0 28px;scroll-snap-type:y proximity}
-.vid-card{background:var(--card,#14102e);border:1px solid rgba(255,255,255,.08);border-radius:18px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.25);scroll-snap-align:start;scroll-margin-top:12px;opacity:.55;transform:scale(.985);transition:opacity .25s,transform .25s,box-shadow .25s}
-.vid-card.is-active{opacity:1;transform:scale(1);box-shadow:0 12px 36px rgba(0,0,0,.4),0 0 0 2px rgba(255,176,32,.35)}
-.vid-frame{position:relative;background:#000;aspect-ratio:16/10;max-height:58vh}
+.vid-feed .vid-h{margin:8px 0 14px;font-size:22px;text-align:center;letter-spacing:.5px}
+.vid-list{display:flex;flex-direction:column;gap:26px;padding:2px 0 32px;scroll-snap-type:y proximity}
+.vid-card{background:#0a0a12;border:1px solid rgba(255,255,255,.06);border-radius:18px;overflow:hidden;scroll-snap-align:start;scroll-margin-top:10px;opacity:.52;transform:scale(.985);transition:opacity .25s,transform .25s,box-shadow .25s,border-color .25s}
+.vid-card.is-active{opacity:1;transform:scale(1)}
+.vid-card.is-feat{border:2px solid #f5c542;box-shadow:0 0 0 1px rgba(245,197,66,.25),0 10px 32px rgba(245,197,66,.18)}
+.vid-card.is-feat.is-active{box-shadow:0 0 0 2px #f5c542,0 14px 40px rgba(245,197,66,.28)}
+.vid-frame{position:relative;background:#000;aspect-ratio:16/10;max-height:62vh}
 .vid-el{width:100%;height:100%;object-fit:contain;display:block;background:#000}
 .vid-mute-tip{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:rgba(0,0,0,.72);color:#fff;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:700;z-index:2}
-.vid-meta{padding:12px 14px 14px}
-.vid-title{font-weight:800;font-size:16px;line-height:1.35}
-.vid-desc{margin-top:4px;color:var(--mut,#9aa3b2);font-size:13px;line-height:1.45;white-space:pre-wrap}
 </style>
 </head>
 <body>
@@ -2151,7 +2149,7 @@ html.lite .card,html.lite .dlg,html.lite .btn.ghost{
 .chat-wrap .tk-compose{position:sticky!important;left:auto!important;right:auto!important;bottom:calc(72px + env(safe-area-inset-bottom,0px))!important;margin:8px 0 0!important;max-width:none!important;width:100%;z-index:45}
 .chat-wrap .tk-log{max-height:calc(100dvh - 300px);padding-bottom:12px!important}
 </style>
-<script src="./wp.js?v=221" defer></script>
+<script src="./wp.js?v=222" defer></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,updatePassword,setPersistence,browserLocalPersistence,indexedDBLocalPersistence} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -8696,10 +8694,11 @@ function adminVideos(){
 ${l.length?l.map((x,i)=>`<div class="row" style="padding:10px 0;border-bottom:1px solid var(--line);align-items:flex-start;gap:10px">
 ${x.cover?`<img src="${esc(x.cover)}" alt="" style="width:72px;height:48px;object-fit:cover;border-radius:10px;flex:0 0 auto">`: `<div style="width:72px;height:48px;border-radius:10px;background:linear-gradient(135deg,#1a2744,#0d3d38);display:grid;place-items:center;flex:0 0 auto">🎬</div>`}
 <div style="flex:1;min-width:0"><b>${esc(x.title||"فيديو")}</b>
-<div class="mut" style="font-size:12px">${x.hidden?"مخفي":"منشور"}</div>
+<div class="mut" style="font-size:12px">${x.feat?"★ مميز · ":""}${x.hidden?"مخفي":"منشور"}</div>
 ${x.desc?`<div class="mut" style="font-size:12px;margin-top:2px">${esc(x.desc)}</div>`:""}
 <div class="mut ltr" style="font-size:11px;direction:ltr;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.url||"")}</div>
 <div class="row" style="gap:6px;margin-top:6px;flex-wrap:wrap">
+<button class="btn sm ${x.feat?"gold":"ghost"}" data-act="videoFeat" data-i="${i}">${x.feat?"★ مميز":"☆ برواز دهب"}</button>
 <button class="btn sm ghost" data-act="videoToggle" data-i="${i}">${x.hidden?"إظهار":"إخفاء"}</button>
 <button class="btn sm danger" data-act="videoDel" data-i="${i}">🗑 حذف</button>
 </div></div></div>`).join(""):`<div class="mut" style="text-align:center;padding:16px 0">${VID.err?"تعذّر التحميل ("+esc(VID.err)+") — انشر قواعد Firestore الجديدة":VID.loaded?"لسه مفيش فيديوهات — انشر أول رابط Catbox":"جاري التحميل…"}</div>`}
@@ -8708,22 +8707,14 @@ ${x.desc?`<div class="mut" style="font-size:12px;margin-top:2px">${esc(x.desc)}<
 function videosView(){
   if(!VID.loaded&&!VID._stu){VID._stu=1;vidLoad(true).then(()=>{VID._stu=0;if(S.view==="videos")render(true)})}
   const all=(VID.list||[]).filter(x=>!x.hidden);
-  const cards=all.length?all.map(x=>{
-    const title=(x.title&&String(x.title).trim())?esc(x.title):"";
-    return `<article class="vid-card" data-vid="${esc(x.id)}">
+  const cards=all.length?all.map(x=>`<article class="vid-card${x.feat?" is-feat":""}" data-vid="${esc(x.id)}">
   <div class="vid-frame">
     <video class="vid-el" playsinline webkit-playsinline preload="metadata" poster="${esc(x.cover||"")}" src="${esc(x.url)}" data-vid="${esc(x.id)}"></video>
     <div class="vid-mute-tip" hidden>اضغط للصوت 🔊</div>
   </div>
-  <div class="vid-meta">
-    ${title?`<div class="vid-title">${title}</div>`:""}
-    ${x.desc?`<div class="vid-desc">${esc(x.desc)}</div>`:""}
-  </div>
-</article>`;
-  }).join(""):`<div class="card empty"><div class="ei">🎬</div><b>مفيش فيديوهات لسه</b><div class="mut" style="margin:8px 0">الأدمن لما ينشر هتظهر هنا</div></div>`;
+</article>`).join(""):`<div class="card empty"><div class="ei">🎬</div></div>`;
   return `<div class="wrap vid-feed">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
 <h2 class="vid-h">${esc(videosTabName())}</h2>
-<p class="mut vid-p">اسحب لتحت — الفيديو اللي في النص هو اللي بيشتغل</p>
 <div class="vid-list" id="vidList">${cards}</div>
 </div>${studentNav()}`;
 }
@@ -16698,7 +16689,7 @@ Object.assign(A,{
     const cover=(document.getElementById("vidCover")&&document.getElementById("vidCover").value||"").trim();
     if(!vidIsOkUrl(url)){toast("حط رابط https صحيح من Catbox");return}
     try{
-      await addDoc(collection(db,"videos"),{title:title.slice(0,160),url:url.slice(0,500),desc:desc.slice(0,300),cover:cover.slice(0,500),kind:"",hidden:false,ts:Date.now(),by:(S.user&&S.user.uid)||""});
+      await addDoc(collection(db,"videos"),{title:title.slice(0,160),url:url.slice(0,500),desc:desc.slice(0,300),cover:cover.slice(0,500),kind:"",hidden:false,feat:false,ts:Date.now(),by:(S.user&&S.user.uid)||""});
       toast("الفيديو اتنشر ✓",true);
       await vidLoad(true);render(true);
     }catch(e){console.warn(e);toast("فشل النشر: "+((e&&e.code)||e.message||"")+" — انشر قواعد Firestore")}
@@ -16711,6 +16702,10 @@ Object.assign(A,{
   async videoToggle(d){
     const x=(VID.list||[])[+d.i];if(!x)return;
     try{await updateDoc(doc(db,"videos",x.id),{hidden:!x.hidden});await vidLoad(true);render(true)}catch(e){toast("فشل التعديل")}
+  },
+  async videoFeat(d){
+    const x=(VID.list||[])[+d.i];if(!x)return;
+    try{await updateDoc(doc(db,"videos",x.id),{feat:!x.feat});await vidLoad(true);render(true);toast(x.feat?"اتشال التمييز":"اتميز ببرواز دهب ✓",true)}catch(e){toast("فشل التعديل")}
   },
   async videoTabSave(){
     const el=document.getElementById("vidTabName");
