@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v228">
+<meta name="sw-build" content="v229">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>wwindow.APP_BUILD="v228";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
+<script>wwindow.APP_BUILD="v229";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
 </script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
@@ -2276,6 +2276,15 @@ html.lite .card,html.lite .dlg,html.lite .btn.ghost{
 .vid-focus-mode{padding-bottom:28px}
 body.vid-focus-body #credit{display:none!important}
 body.vid-focus-body nav.bot{display:none!important}
+
+body.vid-focus-body nav.bot,
+body.vid-focus-body .bot,
+.vid-focus-mode ~ nav.bot{display:none!important;height:0!important;overflow:hidden!important;opacity:0!important;pointer-events:none!important}
+body.vid-focus-body #credit,
+body.vid-focus-body #verBadge{display:none!important}
+.vid-focus-mode{min-height:100vh;padding-bottom:28px!important}
+.vid-focus-mode .vid-card{opacity:1}
+
 </style>
 </head>
 <body>
@@ -3351,6 +3360,13 @@ if(configured){
     const was=S.site.maintenance;
     S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",aiProxy:d.aiProxy||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",pushUrl:d.pushUrl||"",resetPassUrl:d.resetPassUrl||"",booksUrl:d.booksUrl||"",proxyUrl:d.proxyUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0,appMode:d.appMode||"platform",modes:Array.isArray(d.modes)?d.modes:[],modesOff:Array.isArray(d.modesOff)?d.modesOff.filter(x=>typeof x==="string").slice(0,30):[],modeHome:(d.modeHome&&typeof d.modeHome==="object")?d.modeHome:{},lastBackupAt:d.lastBackupAt||null,lastBackupDocs:d.lastBackupDocs||0,videosTabName:(typeof d.videosTabName==="string"?d.videosTabName.slice(0,24):""),videosOnly:!!d.videosOnly,videosTitle:(typeof d.videosTitle==="string"?d.videosTitle.slice(0,60):"")};
     S.siteRaw=d;applyAiCfg();
+    try{
+      if(guestVideosAllowed()&&!S.user&&!(auth&&auth.currentUser)){
+        S.view="videos";S.guestVideos=true;
+        try{vidLoad(true).then(()=>{if(!S.user)render(true)})}catch(_){}
+      }
+    }catch(_){}
+
     if(S.user&&!S.isAdmin)try{syncFeatureAvailability()}catch(_){}
     // تحديث جماعي غير قسري: لا نمسح كاش المستخدم ولا نعيد تحميل الصفحة تلقائيًا.
     try{
@@ -3405,10 +3421,16 @@ if(configured){
           // أول مرة null بعد الإقلاع = مش مسجّل؛ بعد كده null = خرج فعلًا
           stopSubs();try{musSubStop();musStop();S.admMenu=undefined}catch(_){}
           S.user=null;S.isAdmin=false;S.profile=null;S.myList=[];S.attempts={};
-          S.view="auth";
           __authBoot=false;
-          render(true);
-          try{window.__credAuto&&window.__credAuto()}catch(_){}
+          if(guestVideosAllowed()){
+            S.view="videos";S.guestVideos=true;
+            try{vidLoad(true).then(()=>{if(!S.user)render(true)})}catch(_){}
+            render(true);
+          }else{
+            S.view="auth";S.guestVideos=false;
+            render(true);
+            try{window.__credAuto&&window.__credAuto()}catch(_){}
+          }
         }
       }catch(e){
         console.error("auth run",e);
@@ -3427,7 +3449,8 @@ if(configured){
   // لو التحميل طول: متودّيش لشاشة الدخول لو في مستخدم
   setTimeout(function(){
     if(S.view==="loading"&&!S.user&&!(auth&&auth.currentUser)){
-      S.view="auth";
+      S.view=guestVideosAllowed()?"videos":"auth";
+      if(S.view==="videos")S.guestVideos=true;
       render(true);
     }
   },10000);
@@ -3520,7 +3543,12 @@ function render(force,soft){
   try{
   if(S.view==="loading")h=splash();
   else if(S.site.maintenance&&!S.isAdmin&&!S.adminLogin)h=maintenance();
-  else if(!S.user)h=authView();
+  else if(!S.user){
+    if(guestVideosAllowed()&&(S.view==="videos"||S.view==="loading"||S.view==="auth"||!S.view)){
+      S.view="videos";S.guestVideos=true;
+      h=typeof videosView==="function"?videosView():authView();
+    }else h=authView();
+  }
   else if(S.isAdmin){
     h=S.view==="modePreview"?modeView(modesAll().find(x=>x.id===S.modePrev)||modeCur()):S.view==="editExam"?editor():S.view==="editAsm"?asmEditor():S.view==="studentDetail"?studentDetail():S.view==="review"?reviewView():adminView();
   }else if(typeof isAsmManager==="function"&&isAsmManager()&&(S.view==="editAsm"||S.view==="asmAdmin")){
@@ -3574,7 +3602,7 @@ function render(force,soft){
     const noCr=["loading","exam","chatThread","groupThread","ai","qbPlay"].includes(S.view)||(typeof isVideosFocus==="function"&&isVideosFocus()&&!S.isAdmin)||(S.view==="videos"&&typeof isVideosFocus==="function"&&isVideosFocus());
     cr.style.display=noCr?"none":"";document.body.classList.toggle("has-credit",!noCr);
     cr.classList.toggle("nav",!!S.user&&!S.isAdmin&&!noCr&&!(typeof isAsmManager==="function"&&S.view==="asmAdmin"));
-    try{document.body.classList.toggle("vid-focus-body",!S.isAdmin&&typeof isVideosFocus==="function"&&isVideosFocus())}catch(_){}
+    try{document.body.classList.toggle("vid-focus-body",(!S.isAdmin&&typeof isVideosFocus==="function"&&isVideosFocus())||!!S.guestVideos)}catch(_){}
   }catch(_){}
   let __chatKeepTop=0;
   try{if(S.view==="chatThread"||S.view==="groupThread"){const __ck=chatLogEl();if(__ck)__chatKeepTop=__ck.scrollTop}}catch(_){}
@@ -3585,7 +3613,7 @@ function render(force,soft){
   if(soft&&!__newView&&typeof h==="string"&&h&&window.__lastHtml===h&&app.firstChild){window.__renderSkipped=(window.__renderSkipped||0)+1;return}
   window.__lastHtml=(typeof h==="string")?h:"";
   app.innerHTML=h||`<div class="wrap"><div class="card empty"><div class="ei">⏳</div><b>لحظة…</b><div class="mut" style="margin:8px 0 12px">بنجهّز الصفحة</div><button class="btn" data-act="home">الرئيسية</button></div></div>`;
-  if(!h&&!window.__emptyFix){window.__emptyFix=1;setTimeout(()=>{window.__emptyFix=0;try{if(!S.user){S.view="auth"}else if(!S.view||S.view==="loading"){S.view="home"}render(true)}catch(_){}},1200)}
+  if(!h&&!window.__emptyFix){window.__emptyFix=1;setTimeout(()=>{window.__emptyFix=0;try{if(!S.user){S.view=guestVideosAllowed()?"videos":"auth";if(S.view==="videos")S.guestVideos=true}else if(!S.view||S.view==="loading"){S.view="home"}render(true)}catch(_){}},1200)}
   if(__aeId){const el=document.getElementById(__aeId);if(el){if(__aeVal!=null&&"value" in el)el.value=__aeVal;el.focus();if(__aePos!=null)try{el.setSelectionRange(__aePos,__aePos)}catch(_){}}}
   if(__sy>0){try{window.scrollTo(0,__sy)}catch(_){}}
   if(__inner.length){try{const __all=app.querySelectorAll("div,section,ul,table,pre");__inner.forEach(([i,t])=>{const el=__all[i];if(el)el.scrollTop=t})}catch(_){}}
@@ -3643,14 +3671,19 @@ const videosPageTitle=()=>{const t=(S.site&&S.site.videosTitle)||"";return Strin
 /* وضع فيديوهات فقط: إما إعداد يدوي، أو الفيديوهات مفتوحة وباقي الأقسام الأساسية مقفولة */
 function isVideosFocus(){
   try{
-    /* الأدمن دايمًا يشوف المنصة كاملة — الوضع يطبّق على الطلاب فقط */
     if(S.isAdmin)return false;
+    /* زائر وضع الفيديوهات فقط */
+    if(S.site&&S.site.videosOnly&&!S.user)return true;
     if(!featOn("videos"))return false;
     if(S.site&&S.site.videosOnly)return true;
     const core=["subjects","chat","games","life","progress","me","books","asms","fadaye7","tanagha","ai","calls","focus","notes","search","board","songs"];
     return core.every(k=>!featState(k));
   }catch(_){return false}
 }
+function guestVideosAllowed(){
+  try{return !!(S.site&&S.site.videosOnly)}catch(_){return false}
+}
+
 
 const studentNav=()=>modeOn()?modeNav():`<nav class="bot">
 ${featOn("subjects")?`<button class="${S.view==="home"||S.view==="subject"||S.view==="exam"||S.view==="result"?"on":""}" data-act="home">المواد</button>`:""}
@@ -8909,14 +8942,14 @@ function videosView(){
   </div>
 </article>`;
   }).join(""):`<div class="card empty"><div class="ei">🎬</div><b>مفيش فيديوهات لسه</b></div>`;
-  const focus=typeof isVideosFocus==="function"&&isVideosFocus()&&!S.isAdmin;
+  const focus=(typeof isVideosFocus==="function"&&isVideosFocus()&&!S.isAdmin)||!!S.guestVideos;
   const tit=typeof videosPageTitle==="function"?videosPageTitle():"";
-  const topExtra=focus?``:`<button class="btn ghost sm" data-act="home">رجوع</button>`;
-  const h2=focus?(tit?``:`<h2 class="vid-h">${esc(videosTabName())}</h2>`):`<h2 class="vid-h">${esc(tit||videosTabName())}</h2>`;
-  return `<div class="wrap vid-feed${focus?" vid-focus-mode":""}">${header(topExtra)}
+  const topExtra=(focus||S.guestVideos)?``:(S.user?`<button class="btn ghost sm" data-act="home">رجوع</button>`:``);
+  const h2=(focus||S.guestVideos)?(tit?``:`<h2 class="vid-h">${esc(videosTabName())}</h2>`):`<h2 class="vid-h">${esc(tit||videosTabName())}</h2>`;
+  return `<div class="wrap vid-feed${(focus||S.guestVideos)?" vid-focus-mode":""}">${header(topExtra)}
 ${h2}
 <div class="vid-list" id="vidList">${cards}</div>
-</div>${focus?``:studentNav()}`;
+</div>${(focus||S.guestVideos)?``:studentNav()}`;
 }
 function vidStopAll(except){
   try{
@@ -9016,6 +9049,19 @@ function vidBindFeed(){
   window.addEventListener("online",onOnline);
   document.addEventListener("visibilitychange",()=>{if(!document.hidden&&active&&active.paused&&!active.ended)active.play().catch(()=>{})});
   list._vidOff=()=>{window.removeEventListener("scroll",onScroll);window.removeEventListener("online",onOnline);clearTimeout(tmr)};
+  /* إعادة من الأول فقط لو الفيديو خلص كامل */
+  vids.forEach(v=>{
+    v.addEventListener("ended",()=>{
+      try{
+        if(v.duration&&isFinite(v.duration)&&v.duration>0){
+          /* خلص فعلاً */
+          v.currentTime=0;
+          const p=v.play();
+          if(p&&p.catch)p.catch(()=>{});
+        }
+      }catch(_){}
+    });
+  });
   setTimeout(pickCenter,300);
 }
 
@@ -16944,7 +16990,7 @@ async function musWarm(){
 
 
 Object.assign(A,{
-  openVideos(){if(!featOn("videos")){toast("الفيديوهات متوقفة مؤقتاً");return}S.view="videos";VID.cur=null;vidLoad(false).then(()=>render(true));render(true)},
+  openVideos(){if(!S.guestVideos&&!featOn("videos")){toast("الفيديوهات متوقفة مؤقتاً");return}S.view="videos";VID.cur=null;vidLoad(false).then(()=>render(true));render(true)},
   videosReload(){vidLoad(true).then(()=>{toast("اتحدّثت القايمة ✓",true);render(true)})},
   videoPlay(d){VID.cur=d.id||d;S.view="videos";render(true);setTimeout(()=>{try{const v=document.getElementById("vidPlayer");if(v){v.play().catch(()=>{})}}catch(_){}},200)},
   async videoAdd(){
@@ -17013,9 +17059,29 @@ Object.assign(A,{
     try{
       await setDoc(doc(db,"config","site"),{videosTitle:title,videosOnly:only,videosTabName:tab},{merge:true});
       if(S.site){S.site.videosTitle=title;S.site.videosOnly=only;S.site.videosTabName=tab}
-      toast(only?"✓ وضع فيديوهات فقط شغّال — الطلاب يدخلوا على الفيديوهات مباشرة":"✓ اتحفظت إعدادات العرض",true);
+      toast(only?"✓ وضع فيديوهات فقط شغّال — الزائر يدخل الفيديوهات بدون حساب":"✓ اتحفظت إعدادات العرض",true);
       render(true);
     }catch(e){toast("فشل الحفظ: "+((e&&e.code)||e.message||""))}
+  },
+  vidFramePick(d){
+    const f=String((d&&d.f)||"gold").toLowerCase();
+    const hid=document.getElementById("vidFrame");
+    if(hid)hid.value=f;
+    document.querySelectorAll("#vidFramePicker .vid-frame-opt").forEach(b=>b.classList.toggle("on",b.getAttribute("data-f")===f));
+  },
+  async videoSetFrame(d,el){
+    if(!S.isAdmin)return;
+    const x=(VID.list||[])[+(d&&d.i)];
+    if(!x)return;
+    const allowed=["gold","energy","neon","ice","fire"];
+    let frame=String((el&&el.value)||(d&&d.f)||"gold").toLowerCase();
+    if(allowed.indexOf(frame)<0)frame="gold";
+    try{
+      await updateDoc(doc(db,"videos",x.id),{frame:frame});
+      x.frame=frame;
+      toast("✓ اتحفظ البرواز («"+frame+"»)",true);
+      /* متوقفش عن render عشان القائمة تفضل مكانها — بس لو محتاج */
+    }catch(e){toast("فشل حفظ البرواز: "+((e&&e.code)||e.message||""))}
   },
 
   losRoomSkip(){
