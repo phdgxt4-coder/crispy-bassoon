@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v220">
+<meta name="sw-build" content="v221">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v220";/* v216: الغرف العامة لـ«ارسم وخمّن» في «الغرف المفتوحة» · إصلاح ظهور خانة كتابة الشات · حذف بحث المحادثة · الحذف التلقائي بعد ساعة اتعمم على شات الغرف ·  v215: «ارسم وخمّن» اتعمل من الصفر على نمط ويبلاي (ملف wp.js): رسم لحظي بـ chunks · التخمين في الشات نفسه (الإجابة الصحيحة بتتسجل لحظيًا من غير ما تتكشف) · نقاط بالوقت + بونص أول مخمّن + نقاط للرسام · اختيار كلمة من 4 · تلميحات حروف · رسائل صوتية/صور/ملصقات · لوبي بجاهزية · نهاية بترتيب · لازم تنشر firestore.rules v215 · */ v214: (1) شاشة اختيار الكلمة كانت بتعلّق لأن المؤقّت مكانش بيشتغل غير أثناء الرسم — اتصلّح (2) تنبيه لو فيه لاعبين مش مستعدين قبل البدء (3) تحذير لو لاعب نسخته قديمة + زر تحديث فوري (4) ملصقات: قاعدة آمنة بدل regex (5) ملخّص «جاهزين X من Y» في اللوبي · v213: ارسم وخمّن — (1) الملصقات المخصصة والمرسومة كانت بتترفض من قواعد Firestore (مطابقة regex غلط) · (2) تصحيح التخمينات مبقاش بيفوّت تخمين لو وصل وقت ما الرسام بيصحّح غيره + تجاهل تخمينات الجولات القديمة · (3) الرسم اللحظي: استماع بالدور فقط + الخط مبيختفيش لحظة الإرسال + مقاس الكانفاس بيتظبط تلقائيًا · (4) الكتابة في الشات مبتضيعش مع إعادة رسم الشاشة · (5) لو الرسام خرج وسط الدور الجولة بتتكشف تلقائيًا · (6) زر ابدأ محمي من الضغط المزدوج · (7) رسائل خطأ واضحة بدل «فشل» · (8) أزرار الإيموجي/المايك لم تعد تتكرر عند المخمّن · (9) حذف رسائل الغرف المنتهية (ساعة) من السيرفر · v212: إصلاح جذري للرسم (Nested arrays → strokes subcollection لحظي) · توقيت موحّد · انضمام/خروج بدون سباق · ملصقات مخصصة أخف وآمنة · رسائل الشات تتحذف بعد ساعة (expireAt) · v211: إصلاح «dgRoom is not defined» (كان بيكسر إرسال الملصقات والملصقات المخصصة والمايك) + إصلاح N (الاهتزاز) · الرد على رسالة بقى مسموح في القواعد · ملصق من صورة الفون (من المعرض/الكاميرا) مع إمكانية الرسم فوقها · حدود أكبر: ملصقاتي 50، لاعبين لحد 40، جولات لحد 30، وقت الرسم لحد 300 ث، شات 100 رسالة، رسالة صوتية 90 ث · v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
+<script>window.APP_BUILD="v221";/* v216: الغرف العامة لـ«ارسم وخمّن» في «الغرف المفتوحة» · إصلاح ظهور خانة كتابة الشات · حذف بحث المحادثة · الحذف التلقائي بعد ساعة اتعمم على شات الغرف ·  v215: «ارسم وخمّن» اتعمل من الصفر على نمط ويبلاي (ملف wp.js): رسم لحظي بـ chunks · التخمين في الشات نفسه (الإجابة الصحيحة بتتسجل لحظيًا من غير ما تتكشف) · نقاط بالوقت + بونص أول مخمّن + نقاط للرسام · اختيار كلمة من 4 · تلميحات حروف · رسائل صوتية/صور/ملصقات · لوبي بجاهزية · نهاية بترتيب · لازم تنشر firestore.rules v215 · */ v214: (1) شاشة اختيار الكلمة كانت بتعلّق لأن المؤقّت مكانش بيشتغل غير أثناء الرسم — اتصلّح (2) تنبيه لو فيه لاعبين مش مستعدين قبل البدء (3) تحذير لو لاعب نسخته قديمة + زر تحديث فوري (4) ملصقات: قاعدة آمنة بدل regex (5) ملخّص «جاهزين X من Y» في اللوبي · v213: ارسم وخمّن — (1) الملصقات المخصصة والمرسومة كانت بتترفض من قواعد Firestore (مطابقة regex غلط) · (2) تصحيح التخمينات مبقاش بيفوّت تخمين لو وصل وقت ما الرسام بيصحّح غيره + تجاهل تخمينات الجولات القديمة · (3) الرسم اللحظي: استماع بالدور فقط + الخط مبيختفيش لحظة الإرسال + مقاس الكانفاس بيتظبط تلقائيًا · (4) الكتابة في الشات مبتضيعش مع إعادة رسم الشاشة · (5) لو الرسام خرج وسط الدور الجولة بتتكشف تلقائيًا · (6) زر ابدأ محمي من الضغط المزدوج · (7) رسائل خطأ واضحة بدل «فشل» · (8) أزرار الإيموجي/المايك لم تعد تتكرر عند المخمّن · (9) حذف رسائل الغرف المنتهية (ساعة) من السيرفر · v212: إصلاح جذري للرسم (Nested arrays → strokes subcollection لحظي) · توقيت موحّد · انضمام/خروج بدون سباق · ملصقات مخصصة أخف وآمنة · رسائل الشات تتحذف بعد ساعة (expireAt) · v211: إصلاح «dgRoom is not defined» (كان بيكسر إرسال الملصقات والملصقات المخصصة والمايك) + إصلاح N (الاهتزاز) · الرد على رسالة بقى مسموح في القواعد · ملصق من صورة الفون (من المعرض/الكاميرا) مع إمكانية الرسم فوقها · حدود أكبر: ملصقاتي 50، لاعبين لحد 40، جولات لحد 30، وقت الرسم لحد 300 ث، شات 100 رسالة، رسالة صوتية 90 ث · v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -2121,16 +2121,16 @@ html.lite .card,html.lite .dlg,html.lite .btn.ghost{
 </style>
 <style id="vidFeedCss">
 .vid-feed .vid-h{margin:6px 0 4px;font-size:20px}
-.vid-feed .vid-p{margin:0 0 12px}
-.vid-list{display:flex;flex-direction:column;gap:18px;padding-bottom:12px}
-.vid-card{background:var(--card,#14102e);border:1px solid rgba(255,255,255,.08);border-radius:18px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.25)}
-.vid-frame{position:relative;background:#000;aspect-ratio:16/10;max-height:62vh}
+.vid-feed .vid-p{margin:0 0 14px}
+.vid-list{display:flex;flex-direction:column;gap:28px;padding:4px 0 28px;scroll-snap-type:y proximity}
+.vid-card{background:var(--card,#14102e);border:1px solid rgba(255,255,255,.08);border-radius:18px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.25);scroll-snap-align:start;scroll-margin-top:12px;opacity:.55;transform:scale(.985);transition:opacity .25s,transform .25s,box-shadow .25s}
+.vid-card.is-active{opacity:1;transform:scale(1);box-shadow:0 12px 36px rgba(0,0,0,.4),0 0 0 2px rgba(255,176,32,.35)}
+.vid-frame{position:relative;background:#000;aspect-ratio:16/10;max-height:58vh}
 .vid-el{width:100%;height:100%;object-fit:contain;display:block;background:#000}
 .vid-mute-tip{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:rgba(0,0,0,.72);color:#fff;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:700;z-index:2}
 .vid-meta{padding:12px 14px 14px}
 .vid-title{font-weight:800;font-size:16px;line-height:1.35}
 .vid-desc{margin-top:4px;color:var(--mut,#9aa3b2);font-size:13px;line-height:1.45;white-space:pre-wrap}
-.vid-sub{margin-top:6px;font-size:12px;opacity:.7}
 </style>
 </head>
 <body>
@@ -2151,7 +2151,7 @@ html.lite .card,html.lite .dlg,html.lite .btn.ghost{
 .chat-wrap .tk-compose{position:sticky!important;left:auto!important;right:auto!important;bottom:calc(72px + env(safe-area-inset-bottom,0px))!important;margin:8px 0 0!important;max-width:none!important;width:100%;z-index:45}
 .chat-wrap .tk-log{max-height:calc(100dvh - 300px);padding-bottom:12px!important}
 </style>
-<script src="./wp.js?v=220" defer></script>
+<script src="./wp.js?v=221" defer></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,updatePassword,setPersistence,browserLocalPersistence,indexedDBLocalPersistence} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -8678,16 +8678,14 @@ function adminVideos(){
 <div class="mut" style="font-size:12px;margin-top:6px">الاسم ده يظهر في الشريط السفلي جنب المتجر والتواصل. الألعاب لسه من الرئيسية.</div>
 </div>
 <div class="card" style="margin-top:10px;background:rgba(47,181,168,.08);border-color:rgba(47,181,168,.25)">
-<label class="f">عنوان الفيديو</label>
-<input id="vidTitle" maxlength="120" placeholder="مثال: درس الموجات / أغنية حماسية">
-<label class="f" style="margin-top:8px">رابط الفيديو (Catbox)</label>
+<label class="f">رابط الفيديو (Catbox) *</label>
 <input id="vidUrl" class="ltr" maxlength="500" placeholder="https://files.catbox.moe/xxxx.mp4" dir="ltr">
+<label class="f" style="margin-top:8px">عنوان (اختياري)</label>
+<input id="vidTitle" maxlength="120" placeholder="لو سيبته فاضي مش هيظهر عنوان">
 <label class="f" style="margin-top:8px">وصف (اختياري)</label>
 <input id="vidDesc" maxlength="300" placeholder="سطرين عن الفيديو">
-<label class="f" style="margin-top:8px">صورة غلاف (رابط اختياري)</label>
+<label class="f" style="margin-top:8px">صورة غلاف (اختياري)</label>
 <input id="vidCover" class="ltr" maxlength="500" placeholder="https://files.catbox.moe/cover.jpg" dir="ltr">
-<label class="f" style="margin-top:8px">التصنيف</label>
-<select id="vidKind"><option value="lesson">درس</option><option value="song">أغنية / ترفيه</option><option value="other">أخرى</option></select>
 <button class="btn gold block" style="margin-top:12px" data-act="videoAdd">＋ نشر فيديو</button>
 </div>
 <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px">
@@ -8698,7 +8696,7 @@ function adminVideos(){
 ${l.length?l.map((x,i)=>`<div class="row" style="padding:10px 0;border-bottom:1px solid var(--line);align-items:flex-start;gap:10px">
 ${x.cover?`<img src="${esc(x.cover)}" alt="" style="width:72px;height:48px;object-fit:cover;border-radius:10px;flex:0 0 auto">`: `<div style="width:72px;height:48px;border-radius:10px;background:linear-gradient(135deg,#1a2744,#0d3d38);display:grid;place-items:center;flex:0 0 auto">🎬</div>`}
 <div style="flex:1;min-width:0"><b>${esc(x.title||"فيديو")}</b>
-<div class="mut" style="font-size:12px">${x.kind==="song"?"🎵 أغنية":x.kind==="lesson"?"📚 درس":"🎬"} · ${x.hidden?"مخفي":"منشور"}</div>
+<div class="mut" style="font-size:12px">${x.hidden?"مخفي":"منشور"}</div>
 ${x.desc?`<div class="mut" style="font-size:12px;margin-top:2px">${esc(x.desc)}</div>`:""}
 <div class="mut ltr" style="font-size:11px;direction:ltr;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.url||"")}</div>
 <div class="row" style="gap:6px;margin-top:6px;flex-wrap:wrap">
@@ -8710,21 +8708,22 @@ ${x.desc?`<div class="mut" style="font-size:12px;margin-top:2px">${esc(x.desc)}<
 function videosView(){
   if(!VID.loaded&&!VID._stu){VID._stu=1;vidLoad(true).then(()=>{VID._stu=0;if(S.view==="videos")render(true)})}
   const all=(VID.list||[]).filter(x=>!x.hidden);
-  const kindLab=k=>k==="song"?"🎵 أغنية":k==="lesson"?"📚 درس":"🎬 فيديو";
-  const cards=all.length?all.map(x=>`<article class="vid-card" data-vid="${esc(x.id)}">
+  const cards=all.length?all.map(x=>{
+    const title=(x.title&&String(x.title).trim())?esc(x.title):"";
+    return `<article class="vid-card" data-vid="${esc(x.id)}">
   <div class="vid-frame">
     <video class="vid-el" playsinline webkit-playsinline preload="metadata" poster="${esc(x.cover||"")}" src="${esc(x.url)}" data-vid="${esc(x.id)}"></video>
     <div class="vid-mute-tip" hidden>اضغط للصوت 🔊</div>
   </div>
   <div class="vid-meta">
-    <div class="vid-title">${esc(x.title||"فيديو")}</div>
+    ${title?`<div class="vid-title">${title}</div>`:""}
     ${x.desc?`<div class="vid-desc">${esc(x.desc)}</div>`:""}
-    <div class="vid-sub">${kindLab(x.kind)}</div>
   </div>
-</article>`).join(""):`<div class="card empty"><div class="ei">🎬</div><b>مفيش فيديوهات لسه</b><div class="mut" style="margin:8px 0">الأدمن لما ينشر هتظهر هنا</div></div>`;
+</article>`;
+  }).join(""):`<div class="card empty"><div class="ei">🎬</div><b>مفيش فيديوهات لسه</b><div class="mut" style="margin:8px 0">الأدمن لما ينشر هتظهر هنا</div></div>`;
   return `<div class="wrap vid-feed">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
-<h2 class="vid-h">${esc(videosTabName())} <span style="opacity:.7">فيديوهات المنصة</span></h2>
-<p class="mut vid-p">دروس وأغاني وفيديوهات — التشغيل تلقائي لما يوصل على الشاشة</p>
+<h2 class="vid-h">${esc(videosTabName())}</h2>
+<p class="mut vid-p">اسحب لتحت — الفيديو اللي في النص هو اللي بيشتغل</p>
 <div class="vid-list" id="vidList">${cards}</div>
 </div>${studentNav()}`;
 }
@@ -8732,7 +8731,11 @@ function vidStopAll(except){
   try{
     document.querySelectorAll("#vidList video.vid-el").forEach(v=>{
       if(except&&v===except)return;
-      try{v.pause();v.muted=true}catch(_){}
+      try{v.pause();if(!v.dataset.keepTime)v.currentTime=v.currentTime}catch(_){}
+    });
+    document.querySelectorAll("#vidList .vid-card").forEach(c=>{
+      if(except&&c.contains(except))return;
+      c.classList.remove("is-active");
     });
   }catch(_){}
 }
@@ -8743,48 +8746,69 @@ function vidBindFeed(){
   const vids=[...list.querySelectorAll("video.vid-el")];
   if(!vids.length)return;
   let active=null;
+  let lock=false;
+  const setActiveCard=(v)=>{
+    document.querySelectorAll("#vidList .vid-card").forEach(c=>c.classList.remove("is-active"));
+    const card=v&&v.closest(".vid-card");
+    if(card)card.classList.add("is-active");
+  };
   const tryPlay=async(v)=>{
-    if(!v||active===v)return;
-    vidStopAll(v);
-    active=v;
-    v.muted=false;
+    if(!v||active===v||lock)return;
+    lock=true;
     try{
-      const p=v.play();
-      if(p&&p.then)await p;
-      const tip=v.parentElement&&v.parentElement.querySelector(".vid-mute-tip");
-      if(tip)tip.hidden=true;
-    }catch(_){
+      vidStopAll(v);
+      active=v;
+      setActiveCard(v);
+      v.muted=false;
       try{
-        v.muted=true;
-        await v.play();
+        const p=v.play();
+        if(p&&p.then)await p;
         const tip=v.parentElement&&v.parentElement.querySelector(".vid-mute-tip");
-        if(tip){tip.hidden=false;tip.onclick=async()=>{try{v.muted=false;await v.play();tip.hidden=true}catch(e){}}}
-      }catch(e){}
+        if(tip)tip.hidden=true;
+      }catch(_){
+        try{
+          v.muted=true;
+          await v.play();
+          const tip=v.parentElement&&v.parentElement.querySelector(".vid-mute-tip");
+          if(tip){tip.hidden=false;tip.onclick=async(ev)=>{ev.stopPropagation();try{v.muted=false;await v.play();tip.hidden=true}catch(e){}}}
+        }catch(e){}
+      }
+    }finally{lock=false}
+  };
+  /* اختَر الفيديو الأقرب لمركز الشاشة */
+  const pickCenter=()=>{
+    const mid=window.innerHeight*0.45;
+    let best=null,bestDist=1e9;
+    vids.forEach(v=>{
+      const r=v.getBoundingClientRect();
+      if(r.height<=0)return;
+      const c=r.top+r.height*0.5;
+      const dist=Math.abs(c-mid);
+      const visible=Math.min(r.bottom,window.innerHeight)-Math.max(r.top,0);
+      const ratio=visible/Math.max(r.height,1);
+      if(ratio>=0.45&&dist<bestDist){bestDist=dist;best=v}
+    });
+    if(best)tryPlay(best);
+    else if(active){
+      const r=active.getBoundingClientRect();
+      const visible=Math.min(r.bottom,window.innerHeight)-Math.max(r.top,0);
+      if(visible/Math.max(r.height,1)<0.3){try{active.pause()}catch(_){} active=null;setActiveCard(null)}
     }
   };
-  const io=new IntersectionObserver((entries)=>{
-    /* اختار الأكثر ظهورًا على الشاشة */
-    let best=null,bestR=0;
-    entries.forEach(en=>{
-      if(en.isIntersecting&&en.intersectionRatio>bestR){bestR=en.intersectionRatio;best=en.target}
-    });
-    if(best&&bestR>=0.55)tryPlay(best);
-    else if(active){
-      const r=entries.find(e=>e.target===active);
-      if(r&&(!r.isIntersecting||r.intersectionRatio<0.35)){try{active.pause()}catch(_){} }
-    }
-  },{threshold:[0.35,0.55,0.7,0.85],root:null,rootMargin:"-8% 0px -8% 0px"});
+  let tmr=null;
+  const onScroll=()=>{clearTimeout(tmr);tmr=setTimeout(pickCenter,80)};
+  window.addEventListener("scroll",onScroll,{passive:true});
+  list._vidOff=()=>{window.removeEventListener("scroll",onScroll);clearTimeout(tmr)};
   vids.forEach(v=>{
-    io.observe(v);
-    v.addEventListener("play",()=>{if(active&&active!==v){try{active.pause()}catch(_){}}active=v;vidStopAll(v)});
-    v.addEventListener("click",()=>{tryPlay(v)});
+    v.addEventListener("play",()=>{
+      if(active&&active!==v){try{active.pause()}catch(_){}}
+      active=v;setActiveCard(v);vidStopAll(v);
+    });
+    v.addEventListener("click",()=>tryPlay(v));
   });
-  /* أول فيديو ظاهر */
-  setTimeout(()=>{
-    const top=vids.find(v=>{const r=v.getBoundingClientRect();return r.top<window.innerHeight*0.75&&r.bottom>window.innerHeight*0.2});
-    if(top)tryPlay(top);
-  },350);
+  setTimeout(pickCenter,300);
 }
+
 
 
 function adminSongs(){
@@ -16672,11 +16696,9 @@ Object.assign(A,{
     const url=(document.getElementById("vidUrl")&&document.getElementById("vidUrl").value||"").trim();
     const desc=(document.getElementById("vidDesc")&&document.getElementById("vidDesc").value||"").trim();
     const cover=(document.getElementById("vidCover")&&document.getElementById("vidCover").value||"").trim();
-    const kind=(document.getElementById("vidKind")&&document.getElementById("vidKind").value)||"lesson";
-    if(!title){toast("اكتب عنوان للفيديو");return}
     if(!vidIsOkUrl(url)){toast("حط رابط https صحيح من Catbox");return}
     try{
-      await addDoc(collection(db,"videos"),{title:title.slice(0,160),url:url.slice(0,500),desc:desc.slice(0,300),cover:cover.slice(0,500),kind,hidden:false,ts:Date.now(),by:(S.user&&S.user.uid)||""});
+      await addDoc(collection(db,"videos"),{title:title.slice(0,160),url:url.slice(0,500),desc:desc.slice(0,300),cover:cover.slice(0,500),kind:"",hidden:false,ts:Date.now(),by:(S.user&&S.user.uid)||""});
       toast("الفيديو اتنشر ✓",true);
       await vidLoad(true);render(true);
     }catch(e){console.warn(e);toast("فشل النشر: "+((e&&e.code)||e.message||"")+" — انشر قواعد Firestore")}
