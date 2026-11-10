@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v229">
+<meta name="sw-build" content="v231">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>wwindow.APP_BUILD="v229";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
+<script>window.APP_BUILD="v231";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
 </script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
@@ -2282,6 +2282,10 @@ body.vid-focus-body .bot,
 .vid-focus-mode ~ nav.bot{display:none!important;height:0!important;overflow:hidden!important;opacity:0!important;pointer-events:none!important}
 body.vid-focus-body #credit,
 body.vid-focus-body #verBadge{display:none!important}
+
+.vid-secret-hit{position:fixed;top:0;left:0;width:56px;height:56px;z-index:40;opacity:0;pointer-events:auto}
+.vid-focus-title{cursor:default;-webkit-user-select:none;user-select:none}
+
 .vid-focus-mode{min-height:100vh;padding-bottom:28px!important}
 .vid-focus-mode .vid-card{opacity:1}
 
@@ -2558,7 +2562,8 @@ const S = {asms:[],asm:null,editingAsm:null,logins:{},sq:"",starts:[],examsLoade
   qb:null,qbSub:null,qbChatSub:null,qbChat:[],board:[],notifs:[],unreadNotif:0,activity:[],activityLoaded:false,
   fadaye7:[],suspicious:[],adminRooms:[],adminConvs:[]};
 // زيارة تانية: مفيش انتظار. أول زيارة: 200ms بس
-const splashUntil=Date.now()+2100;
+let splashUntil=Date.now()+2100;
+try{if(localStorage.getItem("videos_only_fast")==="1")splashUntil=Date.now()+120}catch(_){}
 
 const vis=e=>!e.publishAt||Date.now()>=e.publishAt;
 const todayKey=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
@@ -3223,7 +3228,10 @@ async function startSession(u){
         }
       }catch(e){console.warn("publicProfile",e)}
       setTimeout(()=>{try{pkSync()}catch(_){}},1500);setTimeout(()=>{try{rvAuto()}catch(_){}},15000);
-      S.view="home";S.examsLoaded=false;render(true);
+      S.examsLoaded=false;
+      if(guestVideosAllowed()&&!S.isAdmin){S.view="videos";S._homeDone=1;try{vidLoad(true)}catch(_){}}
+      else S.view="home";
+      render(true);
       // رابط مباشر للغرفة: #room=CODE
       try{
         const h=(location.hash||"").replace(/^#/,"");
@@ -3360,10 +3368,17 @@ if(configured){
     const was=S.site.maintenance;
     S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",aiProxy:d.aiProxy||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",pushUrl:d.pushUrl||"",resetPassUrl:d.resetPassUrl||"",booksUrl:d.booksUrl||"",proxyUrl:d.proxyUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0,appMode:d.appMode||"platform",modes:Array.isArray(d.modes)?d.modes:[],modesOff:Array.isArray(d.modesOff)?d.modesOff.filter(x=>typeof x==="string").slice(0,30):[],modeHome:(d.modeHome&&typeof d.modeHome==="object")?d.modeHome:{},lastBackupAt:d.lastBackupAt||null,lastBackupDocs:d.lastBackupDocs||0,videosTabName:(typeof d.videosTabName==="string"?d.videosTabName.slice(0,24):""),videosOnly:!!d.videosOnly,videosTitle:(typeof d.videosTitle==="string"?d.videosTitle.slice(0,60):"")};
     S.siteRaw=d;applyAiCfg();
+    try{localStorage.setItem("videos_only_fast",S.site.videosOnly?"1":"0")}catch(_){}
     try{
-      if(guestVideosAllowed()&&!S.user&&!(auth&&auth.currentUser)){
-        S.view="videos";S.guestVideos=true;
-        try{vidLoad(true).then(()=>{if(!S.user)render(true)})}catch(_){}
+      try{if(/(?:[?&]__m=7(?:&|$)|#__m7)/.test(String(location.search||"")+String(location.hash||""))){S.adminLogin=true;S.view="auth";S.guestVideos=false}}catch(_){}
+      if(guestVideosAllowed()){
+        if(!S.user&&!(auth&&auth.currentUser)){
+          S.view="videos";S.guestVideos=true;
+          try{vidLoad(true).then(()=>{if(!S.user)render(true)})}catch(_){}
+        }else if(S.user&&!S.isAdmin){
+          S.view="videos";S._homeDone=1;
+          try{vidLoad(true).then(()=>render(true))}catch(_){render(true)}
+        }
       }
     }catch(_){}
 
@@ -3538,13 +3553,17 @@ function render(force,soft){
     const privileged=!!S.isAdmin||!!S.role||(typeof isAsmManager==="function"&&isAsmManager());
     if(!privileged&&ADMIN_ONLY_VIEWS.has(S.view)){S.view=S.user?"home":"auth";S.tab="dash";S.adminLogin=false}
     if(S.user&&!S.isAdmin)S.adminLogin=false;
-  }catch(_){if(S.user&&!S.isAdmin){S.view="home";S.adminLogin=false}}
+    if(S.user&&!S.isAdmin&&guestVideosAllowed()&&S.view!=="videos"&&S.view!=="loading"){
+      S.view="videos";
+    }
+  }catch(_){if(S.user&&!S.isAdmin){S.view=guestVideosAllowed()?"videos":"home";S.adminLogin=false}}
   let h;
   try{
   if(S.view==="loading")h=splash();
   else if(S.site.maintenance&&!S.isAdmin&&!S.adminLogin)h=maintenance();
   else if(!S.user){
-    if(guestVideosAllowed()&&(S.view==="videos"||S.view==="loading"||S.view==="auth"||!S.view)){
+    if(S.adminLogin){h=authView()}
+    else if(guestVideosAllowed()&&(S.view==="videos"||S.view==="loading"||S.view==="auth"||!S.view)){
       S.view="videos";S.guestVideos=true;
       h=typeof videosView==="function"?videosView():authView();
     }else h=authView();
@@ -3661,7 +3680,7 @@ const findBtn=()=>(S.user&&!S.isAdmin)?`<button type="button" class="tg tg-icon 
 const header=(extra)=>{
   if(typeof isVideosFocus==="function"&&isVideosFocus()&&!S.isAdmin){
     const tit=typeof videosPageTitle==="function"?videosPageTitle():"";
-    return `<div class="top vid-focus-top"><div class="hdr-r">${tit?`<div class="vid-focus-title">${esc(tit)}</div>`:`<div class="vid-focus-title">${esc(videosTabName())}</div>`}</div><div class="row hdr-l">${extra||""}</div></div>`;
+    return `<div class="top vid-focus-top"><div class="hdr-r"><div class="vid-focus-title" data-act="secretStaffGate" title="">${esc(tit||videosTabName())}</div><span class="vid-secret-hit" data-act="secretStaffGate" aria-hidden="true"></span></div><div class="row hdr-l">${extra||""}</div></div>`;
   }
   return `<div class="top"><div class="hdr-r">${logo}${aiBtn()}${boostBtn()}${themeBtn()}${findBtn()}</div><div class="row hdr-l">${extra||""}</div></div>`;
 };
@@ -3672,10 +3691,8 @@ const videosPageTitle=()=>{const t=(S.site&&S.site.videosTitle)||"";return Strin
 function isVideosFocus(){
   try{
     if(S.isAdmin)return false;
-    /* زائر وضع الفيديوهات فقط */
-    if(S.site&&S.site.videosOnly&&!S.user)return true;
-    if(!featOn("videos"))return false;
     if(S.site&&S.site.videosOnly)return true;
+    if(!featOn("videos"))return false;
     const core=["subjects","chat","games","life","progress","me","books","asms","fadaye7","tanagha","ai","calls","focus","notes","search","board","songs"];
     return core.every(k=>!featState(k));
   }catch(_){return false}
@@ -3706,7 +3723,7 @@ function authView(){
   return `<div class="wrap">${header()}
 <img class="auth-hero" src="logo.webp" alt="منصة التفوق" decoding="async">
 <form class="card" data-submit="${reg?"doRegister":rec?"doRecover":"doLogin"}" autocomplete="on">
-<h2>${S.adminLogin?"دخول الأدمن":reg?"إنشاء حساب جديد":rec?"استعادة كلمة السر 🔑":"تسجيل الدخول"}</h2>
+<h2>${S.adminLogin?"تسجيل الدخول":reg?"إنشاء حساب جديد":rec?"استعادة كلمة السر 🔑":"تسجيل الدخول"}</h2>
 ${reg?`<label class="f" for="nm">الاسم بالكامل</label><input id="nm" type="text" autocomplete="name" required>`:""}
 ${rec?`<div class="mut" style="margin:0 0 8px">اطلب «كود استعادة» لرقمك، وبعدين اكتب رقمك + الكود + كلمة السر الجديدة.</div>
 <label class="f" for="rid">رقم التليفون</label>
@@ -10080,8 +10097,10 @@ const A={
   },
   theme(d,el){document.querySelectorAll('.tg[data-act="theme"]').forEach(b=>{b.classList.add("spin");setTimeout(()=>b.classList.remove("spin"),500)});cycleTheme();},
   mode(){S.mode=S.mode==="login"?"register":"login";S.error="";render(true)},
-  logoTap(){const n=Date.now();S.taps=S.taps.filter(t=>n-t<2500);S.taps.push(n);if(S.taps.length>=3){S.taps=[];if(S.user&&!S.isAdmin){S.adminLogin=false;return}S.adminLogin=true;S.error="";render(true)}},
-  studentLink(){S.adminLogin=false;S.error="";render(true)},
+  logoTap(){const n=Date.now();S.taps=S.taps.filter(t=>n-t<2500);S.taps.push(n);if(S.taps.length>=3){S.taps=[];if(S.user&&!S.isAdmin){S.adminLogin=false;return}S.adminLogin=true;S.error="";S.mode="login";S.guestVideos=false;S.view="auth";render(true)}},
+  /* بوابة سرية: 3 ضغطات سريعة على منطقة العنوان / الزاوية — مش ظاهرة كـ«تسجيل أدمن» */
+  secretStaffGate(){A.logoTap()},
+  studentLink(){S.adminLogin=false;S.error="";if(guestVideosAllowed()&&!S.user){S.view="videos";S.guestVideos=true}render(true)},
   async logout(){
     if(!await uiConfirm("تسجيل خروج من التفوق؟\nهتحتاج تسجّل تاني لما ترجع."))return;
     try{
@@ -14744,6 +14763,10 @@ const pfLabel=v=>PF_VIEWS[v]||String(v||"?");
 function modeHomeApply(){
   S._homeDone=1;
   try{
+    if(!S.isAdmin&&guestVideosAllowed()){
+      setTimeout(()=>{try{S.view="videos";if(A.openVideos)A.openVideos();else render(true)}catch(_){}},0);
+      return true;
+    }
     if(!S.isAdmin&&typeof isVideosFocus==="function"&&isVideosFocus()&&featOn("videos")){
       setTimeout(()=>{try{if(S.view==="home"&&A.openVideos)A.openVideos()}catch(_){}},0);
       return true;
@@ -17059,6 +17082,7 @@ Object.assign(A,{
     try{
       await setDoc(doc(db,"config","site"),{videosTitle:title,videosOnly:only,videosTabName:tab},{merge:true});
       if(S.site){S.site.videosTitle=title;S.site.videosOnly=only;S.site.videosTabName=tab}
+      try{localStorage.setItem("videos_only_fast",only?"1":"0")}catch(_){}
       toast(only?"✓ وضع فيديوهات فقط شغّال — الزائر يدخل الفيديوهات بدون حساب":"✓ اتحفظت إعدادات العرض",true);
       render(true);
     }catch(e){toast("فشل الحفظ: "+((e&&e.code)||e.message||""))}
