@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v227">
+<meta name="sw-build" content="v228">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>wwindow.APP_BUILD="v227";/* v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
+<script>wwindow.APP_BUILD="v228";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
 </script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
@@ -2271,6 +2271,11 @@ html.lite .card,html.lite .dlg,html.lite .btn.ghost{
 .vid-frame-opt[data-f="ice"]{box-shadow:0 0 18px 5px rgba(255,255,255,.95),0 0 28px 8px rgba(186,230,253,.85);border-color:#e0f2fe}
 .vid-frame-opt[data-f="fire"]{box-shadow:0 0 18px 5px rgba(251,146,60,1);border-color:#fb923c}
 @media (prefers-reduced-motion:reduce){.vid-frame::before,.vid-frame::after{animation:none!important}}
+.vid-focus-top{padding:10px 14px 4px}
+.vid-focus-title{font-family:'Reem Kufi',sans-serif;font-size:20px;font-weight:700;color:var(--ink);letter-spacing:.3px;line-height:1.35;max-width:78vw}
+.vid-focus-mode{padding-bottom:28px}
+body.vid-focus-body #credit{display:none!important}
+body.vid-focus-body nav.bot{display:none!important}
 </style>
 </head>
 <body>
@@ -3344,7 +3349,7 @@ if(configured){
   onSnapshot(doc(db,"config","site"),s=>{
     const d=s.exists()?s.data():{};
     const was=S.site.maintenance;
-    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",aiProxy:d.aiProxy||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",pushUrl:d.pushUrl||"",resetPassUrl:d.resetPassUrl||"",booksUrl:d.booksUrl||"",proxyUrl:d.proxyUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0,appMode:d.appMode||"platform",modes:Array.isArray(d.modes)?d.modes:[],modesOff:Array.isArray(d.modesOff)?d.modesOff.filter(x=>typeof x==="string").slice(0,30):[],modeHome:(d.modeHome&&typeof d.modeHome==="object")?d.modeHome:{},lastBackupAt:d.lastBackupAt||null,lastBackupDocs:d.lastBackupDocs||0,videosTabName:(typeof d.videosTabName==="string"?d.videosTabName.slice(0,24):"")};
+    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",aiProxy:d.aiProxy||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",pushUrl:d.pushUrl||"",resetPassUrl:d.resetPassUrl||"",booksUrl:d.booksUrl||"",proxyUrl:d.proxyUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0,appMode:d.appMode||"platform",modes:Array.isArray(d.modes)?d.modes:[],modesOff:Array.isArray(d.modesOff)?d.modesOff.filter(x=>typeof x==="string").slice(0,30):[],modeHome:(d.modeHome&&typeof d.modeHome==="object")?d.modeHome:{},lastBackupAt:d.lastBackupAt||null,lastBackupDocs:d.lastBackupDocs||0,videosTabName:(typeof d.videosTabName==="string"?d.videosTabName.slice(0,24):""),videosOnly:!!d.videosOnly,videosTitle:(typeof d.videosTitle==="string"?d.videosTitle.slice(0,60):"")};
     S.siteRaw=d;applyAiCfg();
     if(S.user&&!S.isAdmin)try{syncFeatureAvailability()}catch(_){}
     // تحديث جماعي غير قسري: لا نمسح كاش المستخدم ولا نعيد تحميل الصفحة تلقائيًا.
@@ -3566,9 +3571,10 @@ function render(force,soft){
   try{
     let cr=document.getElementById("credit");
     if(!cr){cr=document.createElement("div");cr.id="credit";cr.innerHTML=`<div><b>بواسطة المبرمج مورا 么</b></div><div class="cr-sub">للتواصل:</div><div class="cr-links"><a href="https://wa.me/201013905431" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="#25D366"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.2 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.2-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.8-.1 1.4z"/></svg> واتساب 01013905431</a><a href="https://t.me/T_YAXC" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="#2AABEE"><path d="M21.9 4.3 2.6 11.7c-1 .4-1 1.1-.2 1.3l4.9 1.5 1.9 5.8c.2.6.4.8.8.8s.6-.2.9-.5l2.4-2.3 4.9 3.6c.9.5 1.5.2 1.8-.8l3.2-15.1c.3-1.3-.5-1.900-1.300-1.700zM9.200 13.800l9.100-5.700c.4-.3.800-.1.500.2l-7.500 6.800-.3 3.200-1.800-4.500z"/></svg> تلجرام T_YAXC</a></div>`;app.insertAdjacentElement("afterend",cr)}
-    const noCr=["loading","exam","chatThread","groupThread","ai","qbPlay"].includes(S.view);
+    const noCr=["loading","exam","chatThread","groupThread","ai","qbPlay"].includes(S.view)||(typeof isVideosFocus==="function"&&isVideosFocus()&&!S.isAdmin)||(S.view==="videos"&&typeof isVideosFocus==="function"&&isVideosFocus());
     cr.style.display=noCr?"none":"";document.body.classList.toggle("has-credit",!noCr);
     cr.classList.toggle("nav",!!S.user&&!S.isAdmin&&!noCr&&!(typeof isAsmManager==="function"&&S.view==="asmAdmin"));
+    try{document.body.classList.toggle("vid-focus-body",!S.isAdmin&&typeof isVideosFocus==="function"&&isVideosFocus())}catch(_){}
   }catch(_){}
   let __chatKeepTop=0;
   try{if(S.view==="chatThread"||S.view==="groupThread"){const __ck=chatLogEl();if(__ck)__chatKeepTop=__ck.scrollTop}}catch(_){}
@@ -3624,9 +3630,28 @@ const logo=`<div class="logo"><img class="logo-mark" src="mark.png" alt="" width
 const aiBtn=()=>S.user?`<button type="button" class="tg tg-icon" data-act="openAI" aria-label="么" title="مساعد 么">🤖</button>`:"";
 const boostBtn=()=>S.user?`<button type="button" class="tg tg-icon tg-lbl" data-act="speedBoost" aria-label="تسريع المنصة للهواتف الضعيفة" title="تسريع المنصة للهواتف الضعيفة"><span>⚡</span><small>للهواتف<br>الضعيفة</small></button>`:"";
 const findBtn=()=>(S.user&&!S.isAdmin)?`<button type="button" class="tg tg-icon hdr-s" data-act="openSearch" aria-label="بحث" title="بحث عن زميل">🔍</button>`:"";
-const header=(extra)=>`<div class="top"><div class="hdr-r">${logo}${aiBtn()}${boostBtn()}${themeBtn()}${findBtn()}</div><div class="row hdr-l">${extra||""}</div></div>`;
+const header=(extra)=>{
+  if(typeof isVideosFocus==="function"&&isVideosFocus()&&!S.isAdmin){
+    const tit=typeof videosPageTitle==="function"?videosPageTitle():"";
+    return `<div class="top vid-focus-top"><div class="hdr-r">${tit?`<div class="vid-focus-title">${esc(tit)}</div>`:`<div class="vid-focus-title">${esc(videosTabName())}</div>`}</div><div class="row hdr-l">${extra||""}</div></div>`;
+  }
+  return `<div class="top"><div class="hdr-r">${logo}${aiBtn()}${boostBtn()}${themeBtn()}${findBtn()}</div><div class="row hdr-l">${extra||""}</div></div>`;
+};
 const NOHDR="<span></span>";
 const videosTabName=()=>((S.site&&S.site.videosTabName)||"❤️‍🔥🔪");
+const videosPageTitle=()=>{const t=(S.site&&S.site.videosTitle)||"";return String(t).trim().slice(0,60)};
+/* وضع فيديوهات فقط: إما إعداد يدوي، أو الفيديوهات مفتوحة وباقي الأقسام الأساسية مقفولة */
+function isVideosFocus(){
+  try{
+    /* الأدمن دايمًا يشوف المنصة كاملة — الوضع يطبّق على الطلاب فقط */
+    if(S.isAdmin)return false;
+    if(!featOn("videos"))return false;
+    if(S.site&&S.site.videosOnly)return true;
+    const core=["subjects","chat","games","life","progress","me","books","asms","fadaye7","tanagha","ai","calls","focus","notes","search","board","songs"];
+    return core.every(k=>!featState(k));
+  }catch(_){return false}
+}
+
 const studentNav=()=>modeOn()?modeNav():`<nav class="bot">
 ${featOn("subjects")?`<button class="${S.view==="home"||S.view==="subject"||S.view==="exam"||S.view==="result"?"on":""}" data-act="home">المواد</button>`:""}
 ${featOn("progress")?`<button class="${S.view==="progress"?"on":""}" data-act="progress">تقدمي${(S.unreadNotif||0)?` <span class="badge">${S.unreadNotif}</span>`:""}</button>`:""}
@@ -8818,6 +8843,14 @@ function adminVideos(){
 <input id="vidTabName" maxlength="24" value="${esc((S.site&&S.site.videosTabName)||"❤️‍🔥🔪")}" placeholder="❤️‍🔥🔪" style="flex:1">
 <button class="btn sm gold" data-act="videoTabSave">حفظ الاسم</button>
 </div>
+<label class="f" style="margin-top:12px">عنوان الصفحة من فوق (اختياري)</label>
+<input id="vidPageTitle" maxlength="60" value="${esc((S.site&&S.site.videosTitle)||"")}" placeholder="مثال: قناة التفوق · فيديوهات اليوم">
+<div class="mut" style="font-size:12px;margin-top:4px">يظهر أعلى شاشة الفيديوهات بدل الأيقونات (بحث / تاج / روبوت…)</div>
+<label class="f" style="margin-top:12px;display:flex;align-items:center;gap:10px">
+<input type="checkbox" id="vidOnlyMode" ${(S.site&&S.site.videosOnly)?"checked":""} style="width:18px;height:18px">
+<span>وضع فيديوهات فقط — فتح تلقائي + إخفاء هيدر المنصة و«بواسطة المبرمج» والتواصل</span>
+</label>
+<div class="row" style="gap:8px;margin-top:10px"><button class="btn sm gold" data-act="videoFocusSave">حفظ إعدادات العرض</button></div>
 </div>
 <div class="card" style="margin-top:10px;background:rgba(47,181,168,.08);border-color:rgba(47,181,168,.25)">
 <label class="f">رابط الفيديو (Catbox) *</label>
@@ -8876,10 +8909,14 @@ function videosView(){
   </div>
 </article>`;
   }).join(""):`<div class="card empty"><div class="ei">🎬</div><b>مفيش فيديوهات لسه</b></div>`;
-  return `<div class="wrap vid-feed">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
-<h2 class="vid-h">${esc(videosTabName())}</h2>
+  const focus=typeof isVideosFocus==="function"&&isVideosFocus()&&!S.isAdmin;
+  const tit=typeof videosPageTitle==="function"?videosPageTitle():"";
+  const topExtra=focus?``:`<button class="btn ghost sm" data-act="home">رجوع</button>`;
+  const h2=focus?(tit?``:`<h2 class="vid-h">${esc(videosTabName())}</h2>`):`<h2 class="vid-h">${esc(tit||videosTabName())}</h2>`;
+  return `<div class="wrap vid-feed${focus?" vid-focus-mode":""}">${header(topExtra)}
+${h2}
 <div class="vid-list" id="vidList">${cards}</div>
-</div>${studentNav()}`;
+</div>${focus?``:studentNav()}`;
 }
 function vidStopAll(except){
   try{
@@ -14660,6 +14697,12 @@ const PF_VIEWS={home:"الرئيسية",games:"الألعاب",checklist:"قائ
 const pfLabel=v=>PF_VIEWS[v]||String(v||"?");
 function modeHomeApply(){
   S._homeDone=1;
+  try{
+    if(!S.isAdmin&&typeof isVideosFocus==="function"&&isVideosFocus()&&featOn("videos")){
+      setTimeout(()=>{try{if(S.view==="home"&&A.openVideos)A.openVideos()}catch(_){}},0);
+      return true;
+    }
+  }catch(_){}
   const v=((S.site&&S.site.modeHome)||{})[modeCur().id],act=MODE_HOME_ACT[v];
   if(act&&A[act])setTimeout(()=>{try{if(S.view==="home")A[act]()}catch(_){}},0);
   return true;
@@ -16962,6 +17005,19 @@ Object.assign(A,{
     render(true);
     updateDoc(doc(db,"qb_rooms",g.roomCode),{[`players.${S.user.uid}.ans`]:m.pick,[`players.${S.user.uid}.ansAt`]:Date.now()}).catch(()=>{m.answered=false;m.pick=null;toast("تعذر إرسال الإجابة — جرّب تاني");render(true)});
   },
+  async videoFocusSave(){
+    if(!S.isAdmin)return;
+    const title=String((document.getElementById("vidPageTitle")&&document.getElementById("vidPageTitle").value)||"").trim().slice(0,60);
+    const only=!!(document.getElementById("vidOnlyMode")&&document.getElementById("vidOnlyMode").checked);
+    const tab=String((document.getElementById("vidTabName")&&document.getElementById("vidTabName").value)||"").trim().slice(0,24)||"❤️‍🔥🔪";
+    try{
+      await setDoc(doc(db,"config","site"),{videosTitle:title,videosOnly:only,videosTabName:tab},{merge:true});
+      if(S.site){S.site.videosTitle=title;S.site.videosOnly=only;S.site.videosTabName=tab}
+      toast(only?"✓ وضع فيديوهات فقط شغّال — الطلاب يدخلوا على الفيديوهات مباشرة":"✓ اتحفظت إعدادات العرض",true);
+      render(true);
+    }catch(e){toast("فشل الحفظ: "+((e&&e.code)||e.message||""))}
+  },
+
   losRoomSkip(){
     const g=S.qb;if(!g||!g.room)return;
     if(g.room.host!==S.user.uid){toast("المضيف بس يقدر يخطّي الجولة");return}
