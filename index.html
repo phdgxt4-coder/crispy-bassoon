@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v226">
+<meta name="sw-build" content="v227">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>wwindow.APP_BUILD="v226";/* v226: fix syntax load + ice frames + bright glow + full section locks */
+<script>wwindow.APP_BUILD="v227";/* v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
 </script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
@@ -9695,8 +9695,8 @@ const uiConfirm=(msg,o)=>uiDialog(Object.assign({msg},o||{}));
 const uiPrompt=(msg,def,o)=>uiDialog(Object.assign({msg,input:true,def:def||""},o||{}));
 
 /* ===== مرحلة 2: مفاتيح الأقسام + سجل تدقيق + حظر مؤقت + إعدادات AI محمية ===== */
-const FEATURES=[["subjects","📚 المواد والامتحانات (تبويب المواد)"],["progress","📊 تقدمي ولوحة الشرف"],["chat","💬 التواصل (شات وجروبات)"],["calls","📞 المكالمات"],["videos","🎬 الفيديوهات (تبويب الشريط)"],["life","🛒 المتجر والحيوان"],["me","👤 أنا (حسابي وملفي)"],["games","🎮 الألعاب"],["fadaye7","😂 الفضائح"],["tanagha","💗 التناغه والمعرض"],["books","📚 الكتب"],["asms","📝 التقييمات"],["ai","🤖 المساعد 么"],["focus","🎯 وضع التركيز"],["notes","📝 ملاحظاتي"],["songs","🎵 مشغّل الأغاني"],["search","🔍 البحث عن الطلاب"],["board","🏆 لوحة الشرف والشهادات"]];
-const FEAT_ACT={openChats:"chat",openChat:"chat",startChat:"chat",startCall:"calls",openGames:"games",qbCreateRoom:"games",qbStartBot:"games",qbBot:"games",losBot:"games",losStart:"games",losRoomAnswer:"games",losRoomSkip:"games",qbJoinRoom:"games",qbFriends:"games",openGameFriends:"games",openMath:"games",openXo:"games",openHang:"games",openSpin:"games",openReact:"games",openMemory:"games",openDraw:"games",openTanagha:"tanagha",openGallery:"tanagha",openFadaye7:"fadaye7",openBooks:"books",openBag:"books",openAsms:"asms",openAI:"ai",openLife:"life",openProgress:"progress",openSubject:"subjects",home:"subjects",openVideos:"videos",openMe:"me",openFocus:"focus",openNotes:"notes",openSongs:"songs",searchFriend:"search",openSearch:"search",studentCard:"me",openBoard:"board",openCert:"board",giftOpen:"life"};
+const FEATURES=[["subjects","📚 المواد والامتحانات (تبويب المواد)"],["progress","📊 تقدمي ولوحة الشرف"],["chat","💬 التواصل (شات وجروبات)"],["calls","📞 المكالمات"],["videos","🎬 الفيديوهات / ❤️‍🔥🔪 (تبويب الشريط)"],["life","🛒 المتجر والحيوان"],["me","👤 أنا (حسابي وملفي)"],["games","🎮 الألعاب"],["fadaye7","😂 الفضائح"],["tanagha","💗 التناغه والمعرض"],["books","📚 الكتب"],["asms","📝 التقييمات"],["ai","🤖 المساعد 么"],["focus","🎯 وضع التركيز"],["notes","📝 ملاحظاتي"],["songs","🎵 مشغّل الأغاني"],["search","🔍 البحث عن الطلاب"],["board","🏆 لوحة الشرف والشهادات"]];
+const FEAT_ACT={openChats:"chat",openChat:"chat",startChat:"chat",startCall:"calls",openGames:"games",qbCreateRoom:"games",qbStartBot:"games",qbBot:"games",losBot:"games",losStart:"games",losRoomAnswer:"games",losRoomSkip:"games",qbJoinRoom:"games",qbFriends:"games",openGameFriends:"games",openMath:"games",openXo:"games",openHang:"games",openSpin:"games",openReact:"games",openMemory:"games",openDraw:"games",openTanagha:"tanagha",openGallery:"tanagha",openFadaye7:"fadaye7",openBooks:"books",openBag:"books",openAsms:"asms",openAI:"ai",openLife:"life",openProgress:"progress",openSubject:"subjects",openVideos:"videos",openMe:"me",openFocus:"focus",openNotes:"notes",openSongs:"songs",searchFriend:"search",openSearch:"search",studentCard:"me",openBoard:"board",openCert:"board",giftOpen:"life"};
 function featState(k){return !(S.features&&S.features[k]===false)}
 function featOn(k){return S.isAdmin||featState(k)}
 function clientFeatureAllowed(k){
@@ -9756,6 +9756,8 @@ function secKick(){
 function fadBlockedView(){return `<div class="wrap screen">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}<div class="card empty"><div class="ei">⛔</div><b>القسم ده مش متاح ليك دلوقتي</b></div></div>${studentNav()}`}
 function featOfView(v){
   v=String(v||"");
+  /* الرئيسية (home) مش بتتغطى بقفل — عشان الطالب يقدر يرجع دايمًا */
+  if(v==="home"||v==="loading"||v==="admin")return "";
   if(v==="chatList"||v==="chatThread"||v==="groupThread")return "chat";
   if(v==="games"||v.indexOf("qb")===0||v.indexOf("los")===0||v==="mathg"||v==="xo"||v==="hang"||v==="spin"||v==="react"||v==="memory"||v.indexOf("dg")===0)return "games";
   if(v==="gallery"||v==="tanagha")return "tanagha";
@@ -9765,7 +9767,7 @@ function featOfView(v){
   if(v==="ai")return "ai";
   if(v==="life")return "life";
   if(v==="progress")return "progress";
-  if(v==="subject"||v==="exam"||v==="result"||v==="review"||v==="home"||v==="checklist"||v==="weakQuiz"||v==="flash")return "subjects";
+  if(v==="subject"||v==="exam"||v==="result"||v==="review"||v==="checklist"||v==="weakQuiz"||v==="flash")return "subjects";
   if(v==="videos")return "videos";
   if(v==="me"||v==="profile")return "me";
   if(v==="focus")return "focus";
@@ -9774,7 +9776,7 @@ function featOfView(v){
   if(v==="cert"||v==="board")return "board";
   return "";
 }
-function featOffView(){return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">الرئيسية</button>`)}<div class="card empty"><div class="ei">⛔</div><b>القسم ده متوقف مؤقتاً</b><div class="mut" style="margin:8px auto 14px">المدرس قفله دلوقتي. جرّب بعدين.</div><button class="btn" data-act="home">الرجوع للرئيسية</button></div></div>${studentNav()}`}
+function featOffView(){return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">الرئيسية</button>`)}<div class="card empty"><div class="ei">⛔</div><b>القسم ده متوقف مؤقتاً</b><div class="mut" style="margin:8px auto 14px">المدرس قفله دلوقتي. جرّب بعدين.</div><button class="btn gold" data-act="home">الرجوع للرئيسية</button></div></div>${studentNav()}`}
 function isBlockedP(p){return !!(p&&p.blocked&&!(p.blockedUntil>0&&p.blockedUntil<Date.now()))}
 function applyAiCfg(){
   try{
@@ -16899,7 +16901,7 @@ async function musWarm(){
 
 
 Object.assign(A,{
-  openVideos(){S.view="videos";VID.cur=null;vidLoad(false).then(()=>render(true));render(true)},
+  openVideos(){if(!featOn("videos")){toast("الفيديوهات متوقفة مؤقتاً");return}S.view="videos";VID.cur=null;vidLoad(false).then(()=>render(true));render(true)},
   videosReload(){vidLoad(true).then(()=>{toast("اتحدّثت القايمة ✓",true);render(true)})},
   videoPlay(d){VID.cur=d.id||d;S.view="videos";render(true);setTimeout(()=>{try{const v=document.getElementById("vidPlayer");if(v){v.play().catch(()=>{})}}catch(_){}},200)},
   async videoAdd(){
