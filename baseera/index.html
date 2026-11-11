@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>بصيرة</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <noscript>بصيرة محتاج JavaScript عشان يشتغل.</noscript>
+
+  <main id="app">
+
+    <!-- شاشة البداية: الشاشة كلها زر، لأن المتصفح مبيسمحش بالنطق قبل أول لمسة -->
+    <section class="screen" id="screen-start" hidden>
+      <button type="button" id="start-btn" class="big start" aria-label="تطبيق بصيرة. المس الشاشة في أي مكان للبدء.">
+        <span class="icon" aria-hidden="true">👁️</span>
+        <span class="t">بصيرة</span>
+        <small>المس الشاشة للبدء</small>
+        <small id="ver-label" class="ver"></small>
+      </button>
+    </section>
+
+    <!-- الترحيب (أول مرة) -->
+    <section class="screen welcome" id="screen-welcome" hidden>
+      <h1 tabindex="-1">أهلا بيك في بصيرة</h1>
+      <div class="welcome-text">
+        <p>اسحب يمين أو شمال للتنقل بين الأزرار، وهقولك اسم كل زر.</p>
+        <p>اضغط ضغطتين في أي مكان لتشغيل الزر اللي اخترته.</p>
+        <p>اسحب لتحت للرجوع، ولفوق عشان أعيد الكلام.</p>
+        <p>زر الطوارئ الأحمر: اضغط عليه مطولاً.</p>
+      </div>
+      <p id="no-ar" class="warn" hidden>الجهاز ده مفيهوش صوت عربي. من إعدادات الموبايل: «تحويل النص إلى كلام» ثم نزّل اللغة العربية.</p>
+      <div class="row">
+        <button type="button" class="big" data-action="tutorial-done" data-say="فهمت، ابدأ">
+          <span class="t">فهمت، ابدأ</span>
+        </button>
+        <button type="button" class="big" data-action="tutorial-again" data-say="اسمع الشرح تاني">
+          <span class="t">اسمع الشرح تاني</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- الرئيسية -->
+    <section class="screen home" id="screen-home" hidden>
+      <h1 class="sr-only" tabindex="-1">الشاشة الرئيسية</h1>
+      <button type="button" class="big" data-action="read" data-say="اقرأ نص">
+        <span class="icon" aria-hidden="true">📖</span><span class="t">اقرأ</span><small>قراءة نص بالكاميرا</small>
+      </button>
+      <button type="button" class="big" data-action="currency" data-say="اعرف قيمة العملة">
+        <span class="icon" aria-hidden="true">💵</span><span class="t">عملة</span><small>قيمة الفلوس</small>
+      </button>
+      <button type="button" class="big" data-action="product" data-say="منتج أو دواء">
+        <span class="icon" aria-hidden="true">💊</span><span class="t">منتج / دواء</span><small>اسم وصلاحية</small>
+      </button>
+      <button type="button" class="big" data-action="scene" data-say="إيه اللي قدامي">
+        <span class="icon" aria-hidden="true">🔍</span><span class="t">إيه قدامي؟</span><small>وصف المكان</small>
+      </button>
+      <button type="button" class="big" data-action="mic" data-say="الأوامر الصوتية">
+        <span class="icon" aria-hidden="true">🎤</span><span class="t">الأوامر الصوتية</span>
+      </button>
+      <button type="button" class="big" data-action="settings" data-say="الإعدادات">
+        <span class="icon" aria-hidden="true">⚙️</span><span class="t">الإعدادات</span>
+      </button>
+      <button type="button" class="big danger span2" id="btn-emergency" data-hold="emergency"
+              data-say="زر الطوارئ. اضغط عليه مطولاً لتفعيله.">
+        <span class="icon" aria-hidden="true">🚨</span><span class="t">طوارئ</span><small>اضغط مطولاً</small>
+      </button>
+    </section>
+
+    <!-- شاشة قسم لسه مش جاهز (بتتعبّى من الكود) -->
+    <section class="screen section" id="screen-section" hidden>
+      <h1 id="section-title" tabindex="-1"></h1>
+      <p id="section-desc" class="desc"></p>
+      <button type="button" class="big" data-action="back" data-say="رجوع">
+        <span class="icon" aria-hidden="true">↩️</span><span class="t">رجوع</span>
+      </button>
+    </section>
+
+    <!-- الإعدادات -->
+    <section class="screen list" id="screen-settings" hidden>
+      <h1 tabindex="-1">الإعدادات</h1>
+      <button type="button" class="big" id="btn-rate" data-action="rate"><span class="t"></span></button>
+      <button type="button" class="big" id="btn-vibrate" data-action="vibrate"><span class="t"></span></button>
+      <button type="button" class="big" id="btn-touch" data-action="touch"><span class="t"></span></button>
+      <button type="button" class="big" id="btn-updatemode" data-action="updatemode"><span class="t"></span></button>
+      <button type="button" class="big" id="btn-checkupdate" data-action="checkupdate"><span class="t"></span></button>
+      <button type="button" class="big" id="btn-replay" data-action="replay" data-say="اسمع شرح الاستخدام"><span class="t">اسمع شرح الاستخدام</span></button>
+      <button type="button" class="big" data-action="back" data-say="رجوع"><span class="t">رجوع</span></button>
+    </section>
+
+  </main>
+
+  <script src="version.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
