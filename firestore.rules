@@ -1,34 +1,1307 @@
 rules_version = '2';
 /*
-  تحذير: النسخة الكاملة من القواعد موجودة في commit f0cb54291c53c0a26c5a8f4b90be08847500d5a8
-  انشر من Firebase Console النسخة السابقة + عدّل videos كالتالي فقط.
-  v234 videos: allow read: if true;
+  التفوق — Firestore Rules الموحّدة (v224 — videos public + frame)
+  v216: wpRooms بقت تدعم public + expireAt (حذف تلقائي بعد ساعة).
+  v215: إضافة wpRooms (ارسم وخمّن الجديدة): غرفة + msgs + strokes + secret + presence. القواعد القديمة (dgRooms) متسابة زي ما هي.
+  v214: نفس قواعد v213 (تم إلغاء تعديل قص النص لأنه غير مدعوم في القواعد).
+  v213: إصلاح الملصقات المخصصة/المرسومة — الشرط كان sticker.matches('^data:image/') و matches في القواعد بتطابق النص كله (مش جزء منه)
+        فكان بيرفض كل ملصق مخصص (permission-denied). بقى 'data:image/.*'. + قيود أدق على strokes (نوع الأداة وحجم النقاط) و expireAt لازم timestamp.
+  v212: expireAt على msgs/strokes (حذف تلقائي بعد ساعة بـ TTL) · الرسم اللحظي في strokes بمصفوفات مسطّحة.
+  v211: msgs تقبل replyName/replyText (الرد على رسالة كان permission-denied) · حدود أكبر: جولات 30، لاعبين 40، وقت رسم 300 ث.
+  v210: إصلاح خطأ صياغة في قاعدة إنشاء غرفة ارسم وخمّن (كان map literal بمفتاح من غير علامات تنصيص: {drawSecs: 75})
+        — ده كان بيخلّي Console يرفض النشر أو يسيب القواعد القديمة، فكل setDoc على dgRooms يطلع permission-denied.
+        دلوقتي: لو settings مش موجودة الإنشاء مسموح، ولو موجودة بتتفحص بـ dgValidSettings.
+  v209: msgs/sticker حتى 950000 حرف (الملصق المخصص data:image) + تعليم اللاعب لنفسه بعد التخمين الصحيح.
+  v208: مطابقة dgRooms لكود المنصة (أنواع الرسائل، الكلمة الفاضية، كشف النتيجة، تقديم الدور).
+  v140-143: ارسم وخمّن آمن (كلمة سرية للرسام فقط، نقاط للرسام/المضيف، منع كتابة الكلمة في الشات).
+  حد المستند في Firestore = 1 ميجا — حدود الصور هنا 950000 حرف.
 */
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function signedIn() { return request.auth != null; }
+    /* ======================= دوال مساعدة ======================= */
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    // معرّف الأدمن (نفس ADMIN_UID في index.html)
     function isAdmin() {
       return signedIn() && request.auth.uid == 'JQs0vS5OomSJy3qlYf8HRXAwS1w1';
     }
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+    function notBlocked() {
+      let p = /databases/$(database)/documents/students/$(request.auth.uid);
+      return !exists(p) || get(p).data.get('blocked', false) == false;
+    }
+
+    // فريق الإشراف: mod = مراجعة الصور والمنشورات، admin(staff) = + قراءة الأخطاء والأداء
+    function staffRole() {
+      let sp = /databases/$(database)/documents/staff/$(request.auth.uid);
+      return exists(sp) ? get(sp).data.get('role', '') : '';
+    }
+    function isStaff() {
+      return signedIn() && (staffRole() == 'mod' || staffRole() == 'admin');
+    }
+    function isDiagStaff() {
+      return signedIn() && staffRole() == 'admin';
+    }
+
+    // v139: قفل الأقسام على مستوى السيرفر (مش بس واجهة التطبيق) — الأدمن لما يقفل قسم عن طالب أو التناغة لسه مش معتمدة،
+    // الطالب ما يقدرش يقرا المحتوى حتى لو فتح التطبيق القديم أو الكونسول. الشرط مستقل عن المستند فالاستعلامات بتفضل شغالة.
+    function tgApproved() {
+      let sp = /databases/$(database)/documents/students/$(request.auth.uid);
+      return !exists(sp) || get(sp).data.get('tanaghaAccess', 'approved') == 'approved';
+    }
+    function sectionNotHidden(sec) {
+      let sp = /databases/$(database)/documents/students/$(request.auth.uid);
+      return !exists(sp) || !get(sp).data.get('hiddenSections', []).hasAny([sec]);
+    }
+
+    // مدير تقييمات: عنده roles فيها asm، أو uid بتاعه في config/site.asmManagers
+    function isAsmManager() {
+      let sp = /databases/$(database)/documents/students/$(request.auth.uid);
+      let cp = /databases/$(database)/documents/config/site;
+      return signedIn() && (
+        (exists(sp) && get(sp).data.get('roles', []).hasAny(['asm']))
+        || (exists(cp) && get(cp).data.get('asmManagers', []).hasAny([request.auth.uid]))
+      );
+    }
+
+    // أقسام المنصة (config/features) ووضع التشغيل (config/site.appMode)
+    function featureFlagOn(feature) {
+      let p = /databases/$(database)/documents/config/features;
+      return !exists(p) || get(p).data.get(feature, true) == true;
+    }
+    function platformMode() {
+      let p = /databases/$(database)/documents/config/site;
+      return !exists(p) || get(p).data.get('appMode', 'platform') == 'platform';
+    }
+    // في أي وضع غير "المنصة" (وضع ألعاب أو موقع) بنسمح بقسم الألعاب بس
+    function featureAllowed(feature) {
+      return isAdmin() || (featureFlagOn(feature) && (platformMode() || feature == 'games'));
+    }
+
+    // مستندات config العامة ممنوع تحتوي أي مفتاح سري
+    function publicConfigSafe() {
+      return !resource.data.keys().hasAny([
+        'aiKey', 'booksKey', 'apiKey', 'openaiKey', 'geminiKey', 'anthropicKey',
+        'turnUser', 'turnCred', 'turnCredential', 'privateKey', 'serviceAccountKey',
+        'clientSecret', 'accessToken', 'adminKey', 'secret', 'password', 'html'
+      ]);
+    }
+    // كود HTML للعبة/الوضع النشط بس هو اللي يتقري من الطلاب
+    function activeHtmlGame(docId) {
+      let p = /databases/$(database)/documents/config/site;
+      return signedIn() && featureFlagOn('games') && exists(p)
+        && docId == 'gameMode_' + get(p).data.get('appMode', 'platform');
+    }
+
+    function validStudentCreate() {
+      let d = request.resource.data;
+      return d.keys().hasAll(['name', 'tanaghaAccess', 'createdAt'])
+        && d.keys().hasOnly(['name', 'tanaghaAccess', 'createdAt', 'lastLogin', 'phone', 'chatName'])
+        && d.name is string
+        && d.name.size() >= 2
+        && d.name.size() <= 80
+        && d.tanaghaAccess == 'pending'
+        && d.createdAt is timestamp
+        && (!d.keys().hasAny(['phone']) || (d.phone is string && d.phone.size() <= 20))
+        && (!d.keys().hasAny(['chatName']) || (d.chatName is string && d.chatName.size() <= 80));
+    }
+
+    function validInitialRoomPlayer(uid, player) {
+      return player is map
+        && player.keys().hasOnly(['uid', 'name', 'ready', 'score', 'correct', 'wrong', 'streak', 'bestStreak', 'away', 'seen', 'avatar', 'invited'])
+        && player.get('uid', '') == uid
+        && player.get('name', '') is string
+        && player.get('name', '').size() <= 80
+        && player.get('score', 0) == 0
+        && player.get('correct', 0) == 0
+        && player.get('wrong', 0) == 0
+        && player.get('streak', 0) == 0
+        && player.get('bestStreak', 0) == 0;
+    }
+
+    // بيانات اللاعب الحالي داخل الغرفة (تقدم المباراة بيتكتب من العميل)
+    function validRoomPlayerUpdate(oldP, newP) {
+      return oldP.diff(newP).affectedKeys().hasOnly(['ready', 'away', 'seen', 'ans', 'ansAt', 'score', 'correct', 'wrong', 'streak', 'bestStreak', 'steps', 'lives', 'elim', 'avatar'])
+        && newP.get('score', 0) >= 0 && newP.get('score', 0) <= 1000000
+        && newP.get('correct', 0) >= 0 && newP.get('correct', 0) <= 1000
+        && newP.get('wrong', 0) >= 0 && newP.get('wrong', 0) <= 1000;
+    }
+
+    function publicCommentTarget(targetType, targetId) {
+      let galleryPath = /databases/$(database)/documents/galleries/$(targetId);
+      let postPath = /databases/$(database)/documents/fadaye7/$(targetId);
+      return (targetType == 'gallery' && exists(galleryPath)
+                && get(galleryPath).data.get('status', 'approved') == 'approved')
+          || (targetType == 'fadaye7' && exists(postPath)
+                && get(postPath).data.get('status', 'approved') == 'approved'
+                && get(postPath).data.get('published', true) == true);
+    }
+
+    function validLifeKeys() {
+      return ['coins', 'earned', 'inv', 'eq', 'pet', 'lucky', 'lastDaily', 'q', 'tot', 'ach', 'w', 'paid', 'refunded', 'hatched', 'all', 'updatedAt', 'eDay', 'eToday'];
+    }
+    function validLifeDocument() {
+      let d = request.resource.data;
+      return d.coins is number && d.coins >= 0 && d.coins <= 10000000
+        && d.earned is number && d.earned >= 0 && d.earned <= 100000000
+        && d.inv is list && d.inv.size() <= 200
+        && d.eq is map
+        && d.updatedAt is timestamp
+        && (!d.keys().hasAny(['eToday']) || (d.eToday is number && d.eToday >= 0 && d.eToday <= 100000));
+    }
+
+    function validPerfDoc(logId) {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['day', 'uid', 'dev', 'ver', 'pages', 'games', 'mem', 'ltN', 'ltMs', 'secs', 'load', 'upd'])
+        && d.keys().hasAll(['day', 'uid', 'pages', 'games', 'upd'])
+        && d.uid == request.auth.uid
+        && d.day is string && d.day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && logId.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}_[A-Za-z0-9]{6}$')
+        && logId.matches('^' + d.day + '_.*')
+        && request.auth.uid.matches('^' + logId.split('_')[1] + '.*')
+        && d.pages is map && d.pages.size() <= 40
+        && d.games is map && d.games.size() <= 8
+        && d.get('dev', '') is string && d.get('dev', '').size() <= 120
+        && d.get('ver', '') is string && d.get('ver', '').size() <= 20
+        && d.get('mem', 0) is number && d.get('ltN', 0) is number
+        && d.get('ltMs', 0) is number && d.get('secs', 0) is number
+        && d.get('load', 0) is number
+        && d.upd == request.time;
+    }
+
+    /* ======================= الإعدادات ======================= */
 
     match /config/{docId} {
-      allow read: if true;
+      // config/ai فيه مفاتيح (aiKey/booksKey) → للأدمن بس. الباقي عام (شاشة الدخول والأوضاع محتاجينه).
+      allow read: if isAdmin() || (docId != 'ai' && (activeHtmlGame(docId) || publicConfigSafe()));
       allow write: if isAdmin();
     }
 
-    /* فيديوهات — قراءة عامة ضرورية لوضع videosOnly */
-    match /videos/{vidId} {
-      allow read: if true;
-      allow create, update, delete: if isAdmin();
-    }
+    /* ======================= الطلاب ======================= */
 
     match /students/{uid} {
-      allow read, write: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow read: if isAdmin() || isOwner(uid);
+      // حساب جديد ينشئ ملفه المعلّق (pending) بحقول التسجيل بس — مفيش رتب ولا صلاحيات ذاتية.
+      allow create: if isAdmin() || (isOwner(uid) && validStudentCreate());
+      allow update: if isAdmin()
+        || (isOwner(uid)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                 'lastLogin', 'chatName', 'name', 'avatar', 'avatarThumb', 'fcmToken', 'fcmUpdatedAt',
+                 'clientType', 'theme', 'blockedUsers', 'onboarded', 'pwChangedAt', 'pwResetCode', 'pwResetUntil',
+                 'xp', 'level', 'title', 'badges', 'lastXpAt', 'xpDay', 'xpToday',
+                 'streak', 'lastStreak', 'lastStreakDay', 'lastSeenAt'])
+            && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['name'])
+                || (request.resource.data.name is string
+                    && request.resource.data.name.size() >= 2
+                    && request.resource.data.name.size() <= 80))
+            // سقف منطقي لزيادة الـ XP والستريك في الكتابة الواحدة (الحد اليومي 600 XP)
+            && request.resource.data.get('xp', 0) <= resource.data.get('xp', 0) + 600
+            && request.resource.data.get('streak', 0) <= resource.data.get('streak', 0) + 1
+            && request.resource.data.get('xpToday', 0) <= 600);
+      allow delete: if isAdmin();
+
+      match /logins/{loginId} {
+        allow create: if isOwner(uid)
+          && request.resource.data.keys().hasOnly(['ip', 'device', 'screen', 'lang', 'tz', 'createdAt'])
+          && request.resource.data.createdAt is timestamp;
+        allow read: if isAdmin() || isOwner(uid);
+        allow delete: if isAdmin();
+      }
+    }
+
+    match /studentsPrivate/{uid} {
+      allow read: if isAdmin() || isOwner(uid);
+      allow create: if isAdmin() || (isOwner(uid)
+        && request.resource.data.keys().hasOnly(['phone', 'ip', 'device', 'regIp', 'regDevice', 'updatedAt']));
+      allow update: if isAdmin() || (isOwner(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['phone', 'ip', 'device', 'regIp', 'regDevice', 'updatedAt']));
+      allow delete: if isAdmin();
+    }
+
+    // دليل عام بالأسماء فقط للبحث والشات؛ pk = بصمات أجزاء الرقم (بحث الأصدقاء من غير كشف الرقم)
+    match /publicProfiles/{uid} {
+      allow read: if isAdmin() || isOwner(uid) || (signedIn() && notBlocked()
+        && (featureAllowed('chat') || featureAllowed('progress') || featureAllowed('games')));
+      allow create: if isAdmin() || (isOwner(uid) && notBlocked()
+        && request.resource.data.keys().hasOnly(['name', 'updatedAt', 'avatar', 'title', 'level', 'xp', 'pk'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 2
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.updatedAt is timestamp
+        && (!request.resource.data.keys().hasAny(['pk']) || (request.resource.data.pk is list && request.resource.data.pk.size() <= 24)));
+      allow update: if isAdmin() || (isOwner(uid) && notBlocked()
+        && request.resource.data.keys().hasOnly(['name', 'updatedAt', 'avatar', 'title', 'level', 'xp', 'pk'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'updatedAt', 'avatar', 'title', 'level', 'xp', 'pk'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 2
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.updatedAt is timestamp
+        && (!request.resource.data.keys().hasAny(['pk']) || (request.resource.data.pk is list && request.resource.data.pk.size() <= 24)));
+      allow delete: if isAdmin();
+    }
+
+    match /avatars/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isAdmin() || (isOwner(uid)
+        && request.resource.data.keys().hasOnly(['data', 'updatedAt'])
+        && request.resource.data.data is string
+        && request.resource.data.data.size() <= 950000
+        && request.resource.data.updatedAt is timestamp);
+      allow delete: if isAdmin() || isOwner(uid);
+    }
+
+    match /staff/{uid} {
+      allow read: if isAdmin() || isOwner(uid);
+      allow write: if isAdmin();
+    }
+
+    match /presence/{uid} {
+      allow read: if isAdmin() || isOwner(uid)
+        || (signedIn() && featureAllowed('chat')
+            && resource.data.get('online', false) == true
+            && !resource.data.keys().hasAny(['where']));
+      allow create: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(['clientType', 'lastSeenAt', 'online', 'away'])
+        && request.resource.data.clientType is string
+        && request.resource.data.lastSeenAt is timestamp
+        && request.resource.data.online is bool
+        && request.resource.data.away is bool;
+      allow update: if isOwner(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clientType', 'lastSeenAt', 'online', 'away', 'where']) /* v139: رجّعنا 'where' — الكود بيمسحه بـ deleteField() من المستندات القديمة، ومن غيرها نبض التواجد كان بيترفض لأي مستند قديم فيه where (الشرط التاني hasOnly بيمنع وجوده بعد الكتابة) */
+        && request.resource.data.keys().hasOnly(['clientType', 'lastSeenAt', 'online', 'away'])
+        && request.resource.data.clientType is string
+        && request.resource.data.lastSeenAt is timestamp
+        && request.resource.data.online is bool
+        && request.resource.data.away is bool;
+      allow delete: if isAdmin() || isOwner(uid);
+    }
+
+    /* ======================= الامتحانات والنتائج ======================= */
+
+    match /exams/{examId} {
+      // قسم الألعاب محتاج الامتحانات المنشورة كمصدر أسئلة
+      allow read: if isAdmin() || (signedIn()
+        && (featureAllowed('subjects') || featureAllowed('games'))
+        && resource.data.published == true);
+      allow write: if isAdmin();
+    }
+
+    match /results/{resultId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow create: if signedIn() && notBlocked()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasAll(['uid', 'examId', 'attempt', 'score', 'total', 'ans', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['uid', 'examId', 'examTitle', 'subject', 'name', 'phone', 'attempt', 'score', 'total', 'passMark', 'passed', 'ans', 'secs', 'tabs', 'createdAt'])
+        && request.resource.data.examId is string
+        && request.resource.data.examId.size() <= 120
+        && request.resource.data.attempt in [1, 2]
+        && (request.resource.data.score is int || request.resource.data.score is float)
+        && request.resource.data.total is int
+        && request.resource.data.total > 0
+        && request.resource.data.total <= 250
+        && request.resource.data.score >= 0
+        && request.resource.data.score <= request.resource.data.total
+        && request.resource.data.ans is list
+        && request.resource.data.ans.size() <= 300
+        && request.resource.data.createdAt is timestamp
+        && resultId == request.auth.uid + '_' + request.resource.data.examId + '_' + string(request.resource.data.attempt)
+        && (request.resource.data.attempt == 1
+            || exists(/databases/$(database)/documents/results/$(request.auth.uid + '_' + request.resource.data.examId + '_1')));
+      allow update, delete: if isAdmin();
+    }
+
+    match /starts/{startId} {
+      allow read: if isAdmin() || (signedIn() && startId.matches(request.auth.uid + '_.*'));
+      allow create: if signedIn() && notBlocked()
+        && request.resource.data.uid == request.auth.uid
+        && startId.matches(request.auth.uid + '_.*');
+      allow update: if signedIn() && resource.data.uid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['answered', 'away', 'awayAt', 'seen']);
+      allow delete: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+    }
+
+    match /alerts/{alertId} {
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'phone', 'examId', 'examTitle', 'attempt', 'count', 'createdAt']);
+      allow read, delete: if isAdmin();
+    }
+
+    match /leaderboard/{uid} {
+      // الكتابة محكومة بقائمة حقول مسموحة؛ مفيش حقول خاصة تقدر تدخل هنا أصلاً.
+      allow read: if isAdmin() || (signedIn() && featureAllowed('progress'));
+      allow create: if isAdmin() || (signedIn() && notBlocked() && request.auth.uid == uid
+        && request.resource.data.uid == uid
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'score', 'examsDone', 'totalScore', 'totalQ', 'pct', 'ex', 'v', 'updatedAt'])
+        && request.resource.data.examsDone is int
+        && request.resource.data.examsDone >= 0 && request.resource.data.examsDone <= 100000
+        && (request.resource.data.totalScore is int || request.resource.data.totalScore is float)
+        && request.resource.data.totalScore >= 0 && request.resource.data.totalScore <= 1000000
+        && request.resource.data.totalQ is int
+        && request.resource.data.totalQ >= 0 && request.resource.data.totalQ <= 1000000
+        && (request.resource.data.pct is int || request.resource.data.pct is float)
+        && request.resource.data.pct >= 0 && request.resource.data.pct <= 100);
+      allow update: if isAdmin() || (signedIn() && notBlocked() && request.auth.uid == uid
+        && request.resource.data.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['uid', 'name', 'score', 'examsDone', 'totalScore', 'totalQ', 'pct', 'ex', 'v', 'updatedAt'])
+        && request.resource.data.examsDone is int
+        && request.resource.data.examsDone >= 0 && request.resource.data.examsDone <= 100000
+        && (request.resource.data.totalScore is int || request.resource.data.totalScore is float)
+        && request.resource.data.totalScore >= 0 && request.resource.data.totalScore <= 1000000
+        && request.resource.data.totalQ is int
+        && request.resource.data.totalQ >= 0 && request.resource.data.totalQ <= 1000000
+        && (request.resource.data.pct is int || request.resource.data.pct is float)
+        && request.resource.data.pct >= 0 && request.resource.data.pct <= 100);
+      allow delete: if isAdmin();
+    }
+
+    /* ======================= التناغة والفضائح والتعليقات ======================= */
+
+    match /galleries/{galleryId} {
+      // الطالب بيشوف المعتمد بس (الاستعلام: where status == approved). الأدمن والمشرف يشوفوا الكل (المعلّق كمان).
+      allow read: if isAdmin()
+        || (signedIn() && featureAllowed('tanagha') && tgApproved() && resource.data.status == 'approved')
+        || isStaff();
+      allow create: if isAdmin() || (signedIn() && notBlocked() && featureAllowed('tanagha')
+        && request.resource.data.keys().hasOnly(['kind', 'title', 'images', 'authorUid', 'authorName', 'status', 'fromAdmin', 'pinned', 'hideFrom', 'createdAt'])
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.fromAdmin == false
+        && request.resource.data.pinned == false
+        && request.resource.data.hideFrom is list
+        && request.resource.data.hideFrom.size() == 0
+        && request.resource.data.kind is string
+        && request.resource.data.kind.size() <= 32
+        && request.resource.data.title is string
+        && request.resource.data.title.size() <= 120
+        && request.resource.data.authorName is string
+        && request.resource.data.authorName.size() <= 80
+        && request.resource.data.images is list
+        && request.resource.data.images.size() == 1
+        && request.resource.data.images[0] is string
+        && request.resource.data.images[0].size() <= 950000
+        && request.resource.data.createdAt is timestamp);
+      // المشرف يوافق/يرفض (status بس)؛ باقي التعديلات للأدمن
+      allow update: if isAdmin()
+        || (isStaff() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']));
+      allow delete: if isAdmin();
+    }
+
+    match /fadaye7/{id} {
+      /* v138: الطالب يشوف المنشور المعروض بس (published==true) — المخفي/المرفوض للأدمن والمشرفين فقط.
+         الاستعلام في التطبيق مطابق (where published == true للطلاب) عشان القاعدة تثبت على القايمة كلها. */
+      allow read: if isAdmin() || isStaff()
+        || (signedIn() && featureAllowed('fadaye7') && tgApproved() && sectionNotHidden('fadaye7') && resource.data.published == true);
+      allow create: if isAdmin() || (signedIn() && notBlocked() && featureAllowed('fadaye7')
+        && request.resource.data.keys().hasOnly(['title', 'status', 'published', 'fromAdmin', 'authorUid', 'authorName', 'batchId', 'seq', 'fp', 'url', 'kind', 'createdAt'])
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.fromAdmin == false
+        && request.resource.data.status == 'approved'
+        && request.resource.data.published == true
+        && request.resource.data.title is string
+        && request.resource.data.title.size() <= 120
+        && request.resource.data.authorName is string
+        && request.resource.data.authorName.size() <= 80
+        && request.resource.data.batchId is string
+        && request.resource.data.batchId.size() <= 60
+        && request.resource.data.kind in ['image', 'video']
+        && request.resource.data.url is string
+        && request.resource.data.url.size() <= 950000
+        && (request.resource.data.kind == 'image'
+            ? (request.resource.data.url.matches('^data:image/.*') || request.resource.data.url.matches('^https?://.*'))
+            : request.resource.data.url.matches('^https?://.*'))
+        && request.resource.data.createdAt is timestamp
+        && (!request.resource.data.keys().hasAny(['seq']) || (request.resource.data.seq is int && request.resource.data.seq >= 0 && request.resource.data.seq < 10))
+        && (!request.resource.data.keys().hasAny(['fp']) || request.resource.data.fp == null || (request.resource.data.fp is string && request.resource.data.fp.size() <= 500)));
+      // المشرف يخفي/يظهر المنشور فقط
+      // v138: الطالب يقدر يعمل تفاعل/حفظ/إخفاء شخصي — حقل واحد في الكتابة، والـ reactions مفتاحه هو فقط
+      allow update: if isAdmin()
+        || (isStaff() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'published']))
+        || (signedIn() && notBlocked() && featureAllowed('fadaye7')
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions', 'savedBy', 'hiddenBy'])
+            && ((request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
+                  && request.resource.data.get('reactions', {}) is map
+                  && request.resource.data.get('reactions', {}).size() <= 2000
+                  && resource.data.get('reactions', {}).diff(request.resource.data.get('reactions', {})).affectedKeys().hasOnly([request.auth.uid]))
+              || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['savedBy'])
+                  && request.resource.data.get('savedBy', []) is list
+                  && request.resource.data.get('savedBy', []).size() <= 2000)
+              || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hiddenBy'])
+                  && request.resource.data.get('hiddenBy', []) is list
+                  && request.resource.data.get('hiddenBy', []).size() <= 2000)));
+      allow delete: if isAdmin() || (signedIn() && resource.data.authorUid == request.auth.uid);
+    }
+
+    match /comments/{commentId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && notBlocked()
+        && request.resource.data.keys().hasOnly(['targetType', 'targetId', 'parentId', 'uid', 'name', 'text', 'audio', 'createdAt'])
+        && request.resource.data.keys().hasAll(['targetType', 'targetId', 'uid', 'name', 'text', 'createdAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.targetType in ['gallery', 'fadaye7']
+        && request.resource.data.targetId is string
+        && request.resource.data.targetId.size() <= 150
+        && publicCommentTarget(request.resource.data.targetType, request.resource.data.targetId)
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 50
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 400
+        && (request.resource.data.text.size() > 0
+            || (request.resource.data.keys().hasAny(['audio'])
+                && request.resource.data.audio is string
+                && request.resource.data.audio.size() > 0
+                && request.resource.data.audio.size() <= 950000))
+        && (!request.resource.data.keys().hasAny(['audio']) || (request.resource.data.audio is string && request.resource.data.audio.size() <= 950000))
+        && (!request.resource.data.keys().hasAny(['parentId']) || request.resource.data.parentId == null || request.resource.data.parentId is string)
+        && request.resource.data.createdAt is timestamp;
+      allow update: if isAdmin();
+      allow delete: if isAdmin() || isStaff() || (signedIn() && resource.data.uid == request.auth.uid);
+    }
+
+    match /books/{id} {
+      allow read: if isAdmin() || (signedIn() && featureAllowed('books'));
+      allow write: if isAdmin();
+    }
+
+    /* ======================= الشات والمجموعات والمكالمات ======================= */
+
+    match /conversations/{convId} {
+      allow read: if isAdmin()
+        || (signedIn() && featureAllowed('chat')
+            && resource.data.participants.hasAny([request.auth.uid]));
+      allow create: if signedIn() && notBlocked() && featureAllowed('chat')
+        && request.resource.data.keys().hasOnly(['participants', 'names', 'updatedAt', 'readBy', 'typingUid', 'typingAt', 'lastText', 'lastAt', 'lastFrom'])
+        && request.resource.data.participants is list
+        && request.resource.data.participants.size() == 2
+        && request.resource.data.participants.hasAny([request.auth.uid]);
+      allow update: if isAdmin()
+        || (signedIn() && featureAllowed('chat')
+            && resource.data.participants.hasAny([request.auth.uid])
+            && request.resource.data.participants.hasAll(resource.data.participants)
+            && resource.data.participants.hasAll(request.resource.data.participants)
+            && request.resource.data.diff(resource.data).affectedKeys()
+                 .hasOnly(['participants', 'names', 'updatedAt', 'readBy', 'typingUid', 'typingAt', 'lastText', 'lastAt', 'lastFrom']));
+      allow delete: if isAdmin()
+        || (signedIn() && featureAllowed('chat')
+            && resource.data.participants.hasAny([request.auth.uid]));
+
+      match /msgs/{msgId} {
+        allow read: if isAdmin() || (signedIn() && featureAllowed('chat')
+          && get(/databases/$(database)/documents/conversations/$(convId)).data.participants.hasAny([request.auth.uid]));
+        allow create: if signedIn() && notBlocked() && featureAllowed('chat')
+          && get(/databases/$(database)/documents/conversations/$(convId)).data.participants.hasAny([request.auth.uid])
+          && request.resource.data.fromUid == request.auth.uid
+          && request.resource.data.get('text', '') is string
+          && request.resource.data.get('text', '').size() <= 4000
+          && (!request.resource.data.keys().hasAny(['img']) || request.resource.data.img == null
+              || (request.resource.data.img is string && request.resource.data.img.size() <= 950000));
+        // المشارك: قراءة + تفاعلات (reacts)؛ صاحب الرسالة: يمسحها عن الجميع (deleted/text/img)
+        allow update: if isAdmin() || (signedIn() && featureAllowed('chat')
+          && get(/databases/$(database)/documents/conversations/$(convId)).data.participants.hasAny([request.auth.uid])
+          && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reacts', 'read'])
+              || (resource.data.fromUid == request.auth.uid
+                  && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['deleted', 'text', 'img']))));
+        allow delete: if isAdmin() || (signedIn() && resource.data.fromUid == request.auth.uid);
+      }
+    }
+
+    match /groups/{groupId} {
+      allow read: if isAdmin() || (signedIn() && featureAllowed('chat')
+        && resource.data.members.hasAny([request.auth.uid]));
+      allow create: if signedIn() && notBlocked() && featureAllowed('chat')
+        && request.resource.data.keys().hasOnly(['name', 'owner', 'ownerName', 'members', 'memberNames', 'createdAt', 'updatedAt'])
+        && request.resource.data.owner == request.auth.uid
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.members is list
+        && request.resource.data.members.size() == 1
+        && request.resource.data.members.hasAny([request.auth.uid]);
+      allow update: if isAdmin()
+        || (signedIn() && featureAllowed('chat')
+            && resource.data.members.hasAny([request.auth.uid])
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastText', 'updatedAt']))
+        || (signedIn() && notBlocked() && featureAllowed('chat')
+            && resource.data.owner == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'ownerName', 'members', 'memberNames', 'lastText', 'updatedAt'])
+            && request.resource.data.members is list
+            && request.resource.data.members.hasAny([request.auth.uid])
+            && request.resource.data.members.size() <= 100
+            && request.resource.data.memberNames is map);
+      allow delete: if isAdmin() || (signedIn() && resource.data.owner == request.auth.uid);
+
+      match /msgs/{msgId} {
+        allow read: if isAdmin() || (signedIn() && featureAllowed('chat')
+          && get(/databases/$(database)/documents/groups/$(groupId)).data.members.hasAny([request.auth.uid]));
+        allow create: if signedIn() && notBlocked() && featureAllowed('chat')
+          && get(/databases/$(database)/documents/groups/$(groupId)).data.members.hasAny([request.auth.uid])
+          && request.resource.data.fromUid == request.auth.uid
+          && request.resource.data.get('text', '') is string
+          && request.resource.data.get('text', '').size() <= 4000
+          && (!request.resource.data.keys().hasAny(['img']) || request.resource.data.img == null
+              || (request.resource.data.img is string && request.resource.data.img.size() <= 950000));
+        allow update: if isAdmin() || (signedIn() && featureAllowed('chat')
+          && get(/databases/$(database)/documents/groups/$(groupId)).data.members.hasAny([request.auth.uid])
+          && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reacts'])
+              || (resource.data.fromUid == request.auth.uid
+                  && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['deleted', 'text', 'img']))));
+        allow delete: if isAdmin() || (signedIn() && resource.data.fromUid == request.auth.uid);
+      }
+    }
+
+    // مكالمات صوتية
+    match /calls/{callId} {
+      allow read: if isAdmin() || (signedIn() && featureAllowed('calls')
+        && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid));
+      allow create: if signedIn() && notBlocked() && featureAllowed('calls')
+        && request.resource.data.from == request.auth.uid
+        && request.resource.data.to is string
+        && request.resource.data.to != request.auth.uid;
+      allow update: if signedIn()
+        && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['callerIce', 'calleeIce', 'answer', 'status', 'endedAt'])
+        && (featureAllowed('calls')
+            || request.resource.data.get('status', '') in ['cancelled', 'rejected', 'ended', 'missed']);
+      allow delete: if isAdmin()
+        || (signedIn() && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid));
+    }
+
+    /* ======================= التقييمات ======================= */
+
+    match /assessments/{asmId} {
+      allow read: if isAdmin() || isAsmManager() || (signedIn() && featureAllowed('asms'));
+      allow write: if isAdmin() || isAsmManager();
+      match /files/{fileId} {
+        allow read: if isAdmin() || isAsmManager() || (signedIn() && featureAllowed('asms'));
+        allow write: if isAdmin() || isAsmManager();
+      }
+      match /chunks/{chunkId} {
+        allow read: if isAdmin() || isAsmManager() || (signedIn() && featureAllowed('asms'));
+        allow write: if isAdmin() || isAsmManager();
+      }
+    }
+
+    /* ======================= الألعاب ======================= */
+
+    match /qb_rooms/{code} {
+      allow read: if signedIn() && featureAllowed('games');
+      allow create: if signedIn() && notBlocked() && featureAllowed('games')
+        && request.resource.data.get('code', '') == code
+        && request.resource.data.get('host', '') == request.auth.uid
+        && request.resource.data.get('status', '') == 'lobby'
+        && request.resource.data.get('players', {}) is map
+        && request.resource.data.players.keys().hasOnly([request.auth.uid])
+        && validInitialRoomPlayer(request.auth.uid, request.resource.data.players.get(request.auth.uid, {}));
+      allow update: if isAdmin()
+        // المضيف يتحكم في حالة الغرفة كلها
+        || (signedIn() && notBlocked() && featureAllowed('games')
+            && resource.data.get('host', '') == request.auth.uid)
+        // اللاعب: ينضم لنفسه أو يعدّل بياناته/تقدمه هو بس (ومعاها flag/roundFirst اللي بتتحدث مع الإجابة)
+        || (signedIn() && notBlocked() && featureAllowed('games')
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['players', 'flag', 'roundFirst'])
+            && resource.data.players.diff(request.resource.data.players).affectedKeys().hasOnly([request.auth.uid])
+            && ((!resource.data.players.keys().hasAny([request.auth.uid])
+                  && request.resource.data.players.keys().hasAny([request.auth.uid])
+                  && validInitialRoomPlayer(request.auth.uid, request.resource.data.players.get(request.auth.uid, {})))
+                || (resource.data.players.keys().hasAny([request.auth.uid])
+                    && (!request.resource.data.players.keys().hasAny([request.auth.uid])
+                        || validRoomPlayerUpdate(resource.data.players.get(request.auth.uid, {}), request.resource.data.players.get(request.auth.uid, {}))))))
+        // طلب الدخول
+        || (signedIn() && notBlocked() && featureAllowed('games')
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['joinRequests'])
+            && resource.data.get('joinRequests', {}).diff(request.resource.data.get('joinRequests', {})).affectedKeys().hasOnly([request.auth.uid])
+            && request.resource.data.get('joinRequests', {}).get(request.auth.uid, {}).get('uid', request.auth.uid) == request.auth.uid);
+      // المضيف يقفل الغرفة، وأي لاعب يقدر يمسح غرفة فاضية
+      allow delete: if isAdmin()
+        || (signedIn() && resource.data.get('host', '') == request.auth.uid)
+        || (signedIn() && resource.data.get('players', {}).size() == 0);
+
+      match /chat/{msgId} {
+        allow read: if signedIn() && featureAllowed('games');
+        allow create: if signedIn() && notBlocked() && featureAllowed('games')
+          && get(/databases/$(database)/documents/qb_rooms/$(code)).data.get('players', {}).keys().hasAny([request.auth.uid])
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.get('text', '') is string
+          && request.resource.data.get('text', '').size() <= 1000
+          && (!request.resource.data.keys().hasAny(['img']) || request.resource.data.img == null
+              || (request.resource.data.img is string && request.resource.data.img.size() <= 950000));
+        allow update: if isAdmin() || (signedIn() && featureAllowed('games')
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reacts']));
+        allow delete: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      }
+    }
+
+    match /qb_battles/{id} {
+      allow read: if isAdmin() || (signedIn() && featureAllowed('games') && resource.data.uid == request.auth.uid);
+      // السجل مرفوع من العميل؛ ما يُستخدمش كمكافأة/ترتيب رسمي من غير خادم موثوق.
+      allow create: if signedIn() && notBlocked() && featureAllowed('games')
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'mode', 'diff', 'subject', 'score', 'correct', 'wrong', 'total', 'bestStreak', 'rank', 'players', 'createdAt'])
+        && request.resource.data.score is int
+        && request.resource.data.score >= 0
+        && request.resource.data.correct is int
+        && request.resource.data.correct >= 0
+        && request.resource.data.wrong is int
+        && request.resource.data.wrong >= 0
+        && request.resource.data.total is int
+        && request.resource.data.total > 0
+        && request.resource.data.total <= 250
+        && request.resource.data.createdAt is timestamp;
+      allow update, delete: if isAdmin();
+    }
+
+    // المتجر والحيوان والعملات (بيانات شخصية تجميلية، مش درجات رسمية)
+    match /life/{uid} {
+      allow read: if isAdmin() || isOwner(uid)
+        || (signedIn() && (featureAllowed('life') || featureAllowed('games')));
+      allow create: if isAdmin() || (isOwner(uid)
+        && request.resource.data.keys().hasOnly(validLifeKeys())
+        && validLifeDocument());
+      allow update: if isAdmin() || (isOwner(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(validLifeKeys())
+        && validLifeDocument());
+      allow delete: if isAdmin();
+    }
+
+    /* ======================= الذكاء الاصطناعي والإشعارات ======================= */
+
+    match /aiChats/{uid} {
+      allow read: if isAdmin() || isOwner(uid);
+      allow create: if isAdmin() || (isOwner(uid)
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'phone', 'msgs', 'updatedAt'])
+        && request.resource.data.get('uid', request.auth.uid) == request.auth.uid
+        && request.resource.data.msgs is list
+        && request.resource.data.msgs.size() <= 80
+        && request.resource.data.updatedAt is timestamp);
+      allow update: if isAdmin() || (isOwner(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['uid', 'name', 'phone', 'msgs', 'updatedAt'])
+        && request.resource.data.get('uid', request.auth.uid) == request.auth.uid
+        && request.resource.data.msgs is list
+        && request.resource.data.msgs.size() <= 80
+        && request.resource.data.updatedAt is timestamp);
+      allow delete: if isAdmin() || isOwner(uid);
+    }
+
+    match /notifications/{id} {
+      allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      // الطالب يبعت إشعار لنفسه، أو لزميله بشرط fromUid بتاعه (إشعارات الرسايل والمكالمات)
+      allow create: if isAdmin() || (signedIn()
+        && (request.resource.data.uid == request.auth.uid || request.resource.data.get('fromUid', '') == request.auth.uid)
+        && request.resource.data.uid is string
+        && request.resource.data.get('text', '') is string
+        && request.resource.data.get('text', '').size() <= 500
+        && !request.resource.data.keys().hasAny(['fromAdmin', 'broadcast']));
+      allow update: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']));
+      allow delete: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+    }
+
+    // طلبات إشعار (اختياري لـ Cloud Function)
+    match /pushRequests/{id} {
+      allow create: if signedIn() && notBlocked()
+        && request.resource.data.get('uid', request.auth.uid) == request.auth.uid;
+      allow read, update, delete: if isAdmin();
+    }
+
+    /* ======================= المراقبة والأمان ======================= */
+
+    match /activity/{id} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'phone', 'action', 'detail', 'device', 'createdAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.get('action', '') is string
+        && request.resource.data.get('action', '').size() <= 80
+        && request.resource.data.get('detail', '') is string
+        && request.resource.data.get('detail', '').size() <= 300;
+      allow read, delete: if isAdmin();
+    }
+
+    match /perfLogs/{logId} {
+      allow read: if isAdmin() || isDiagStaff();
+      allow create: if signedIn() && notBlocked() && validPerfDoc(logId);
+      allow update: if signedIn() && notBlocked() && resource.data.uid == request.auth.uid && validPerfDoc(logId);
+      allow delete: if isAdmin();
+    }
+
+    match /errorLogs/{logId} {
+      allow read: if isAdmin() || isDiagStaff();
+      allow create: if signedIn() && notBlocked()
+        && logId.size() <= 60
+        && request.resource.data.keys().hasAll(['sig', 'type', 'msg', 'uid', 'status', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['sig', 'type', 'msg', 'stack', 'fn', 'page', 'uid', 'dev', 'ver', 'day', 'status', 'impact', 'count', 'trail', 'ctx', 'createdAt'])
+        && request.resource.data.get('trail', '') is string && request.resource.data.get('trail', '').size() <= 700
+        && request.resource.data.get('ctx', '') is string && request.resource.data.get('ctx', '').size() <= 240
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.type in ['js', 'promise', 'firebase', 'network', 'upload', 'console']
+        && request.resource.data.status == 'open'
+        && request.resource.data.sig is string && request.resource.data.sig.size() <= 16
+        && request.resource.data.msg is string && request.resource.data.msg.size() <= 300
+        && request.resource.data.get('stack', '') is string && request.resource.data.get('stack', '').size() <= 800
+        && request.resource.data.get('fn', '') is string && request.resource.data.get('fn', '').size() <= 80
+        && request.resource.data.get('page', '') is string && request.resource.data.get('page', '').size() <= 60
+        && request.resource.data.get('dev', '') is string && request.resource.data.get('dev', '').size() <= 120
+        && request.resource.data.get('ver', '') is string && request.resource.data.get('ver', '').size() <= 20
+        && request.resource.data.get('day', '') is string && request.resource.data.get('day', '').size() == 10
+        && request.resource.data.get('impact', 0) is number && request.resource.data.get('impact', 0) >= 0 && request.resource.data.get('impact', 0) <= 100
+        && request.resource.data.get('count', 1) is number && request.resource.data.get('count', 1) >= 1 && request.resource.data.get('count', 1) <= 1000000
+        && request.resource.data.createdAt == request.time;
+      // الأدمن ومشرف التشخيص يعلّموا الخطأ "اتصلّح" (حقول محددة بس — v138)؛ الحذف للأدمن
+      allow update: if (isAdmin() || isDiagStaff())
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'fixedAt', 'fixedVer', 'count']);
+      allow delete: if isAdmin();
+    }
+
+    match /audit/{entryId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['by', 'byName', 'action', 'detail', 'createdAt'])
+        && request.resource.data.by == request.auth.uid
+        && request.resource.data.byName is string
+        && request.resource.data.byName.size() <= 80
+        && request.resource.data.action is string
+        && request.resource.data.action.size() <= 80
+        && request.resource.data.detail is string
+        && request.resource.data.detail.size() <= 300
+        && request.resource.data.createdAt is timestamp;
+      allow update, delete: if isAdmin();
+    }
+
+    match /suspicious/{entryId} {
+      allow read: if isAdmin();
+      allow create: if signedIn() && notBlocked()
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'phone', 'text', 'source', 'createdAt', 'seen'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.source == 'ai'
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.phone is string
+        && request.resource.data.phone.size() <= 20
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 1000
+        && request.resource.data.get('seen', false) == false
+        && request.resource.data.createdAt is timestamp;
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seen']);
+      allow delete: if isAdmin();
+    }
+
+    /* v150: مكتبة الأغاني — القراءة للمسجّلين والكتابة للأدمن فقط.
+       v138: اتشال شرط hidden==false من القراءة — التطبيق بيفلتر hidden بنفسه، والشرط مع استعلام بدون فلتر
+       كان هيوقّف قايمة الأغاني كلها لأول أغنية تتخفي (rules are not filters). */
+    match /songs/{songId} {
+      allow read: if signedIn();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['title','artist','lyrics','cover','size','mime','parts','vol','url','ts','by','hidden'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 160
+        && request.resource.data.get('parts', 0) is int
+        && request.resource.data.get('parts', 0) >= 0 && request.resource.data.get('parts', 0) <= 40
+        && request.resource.data.get('vol', 100) is number
+        && request.resource.data.get('vol', 100) >= 100 && request.resource.data.get('vol', 100) <= 10000
+        && (!request.resource.data.keys().hasAny(['lyrics']) || (request.resource.data.lyrics is string && request.resource.data.lyrics.size() <= 200000))
+        && (!request.resource.data.keys().hasAny(['cover']) || (request.resource.data.cover is string && request.resource.data.cover.size() <= 180000));
+      allow update: if isAdmin()
+        && request.resource.data.get('vol', 100) >= 100
+        && request.resource.data.get('vol', 100) <= 10000
+        && (!request.resource.data.keys().hasAny(['lyrics']) || (request.resource.data.lyrics is string && request.resource.data.lyrics.size() <= 200000))
+        && (!request.resource.data.keys().hasAny(['cover']) || (request.resource.data.cover is string && request.resource.data.cover.size() <= 180000));
+      allow delete: if isAdmin();
+    }
+    match /songParts/{partId} {
+      allow read: if signedIn();
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['sid','k','d'])
+        && request.resource.data.sid is string
+        && request.resource.data.k is int && request.resource.data.k >= 0 && request.resource.data.k < 40
+        && request.resource.data.d is string && request.resource.data.d.size() > 0 && request.resource.data.d.size() <= 900000;
+      allow delete: if isAdmin();
+    }
+
+    /* ===== فيديوهات المنصة (روابط Catbox/خارجية) — v224 =====
+       قراءة عامة: قسم/وضع الفيديوهات يشتغل بدون تسجيل دخول.
+       feat + frame: تمييز واختيار برواز الإضاءة من الأدمن. */
+    match /videos/{vidId} {
+      allow read: if true;
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['title','url','desc','cover','hidden','feat','frame','ts','by','kind'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 160
+        && request.resource.data.url is string
+        && request.resource.data.url.size() > 8 && request.resource.data.url.size() <= 500
+        && request.resource.data.url.matches('https://.*')
+        && (!request.resource.data.keys().hasAny(['desc']) || (request.resource.data.desc is string && request.resource.data.desc.size() <= 1000))
+        && (!request.resource.data.keys().hasAny(['cover']) || (request.resource.data.cover is string && request.resource.data.cover.size() <= 500))
+        && (!request.resource.data.keys().hasAny(['kind']) || (request.resource.data.kind is string && request.resource.data.kind.size() <= 40))
+        && (!request.resource.data.keys().hasAny(['hidden']) || request.resource.data.hidden is bool)
+        && (!request.resource.data.keys().hasAny(['feat']) || request.resource.data.feat is bool)
+        && (!request.resource.data.keys().hasAny(['frame']) || (request.resource.data.frame is string && request.resource.data.frame.size() <= 40));
+      allow update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['title','url','desc','cover','hidden','feat','frame','ts','by','kind'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 160
+        && request.resource.data.url is string
+        && request.resource.data.url.size() > 8 && request.resource.data.url.size() <= 500
+        && request.resource.data.url.matches('https://.*')
+        && (!request.resource.data.keys().hasAny(['feat']) || request.resource.data.feat is bool)
+        && (!request.resource.data.keys().hasAny(['frame']) || (request.resource.data.frame is string && request.resource.data.frame.size() <= 40));
+      allow delete: if isAdmin();
+    }
+
+    /* v138: الأدمن له صلاحية كاملة على أي مسار (بما فيها subcollections) —
+       مطلوب لأداة النسخ الاحتياطي/الاستعادة الكاملة، وللوصول لبيانات زي starts بتاعة الطلاب.
+       مفيش أي تغيير لصلاحيات الطلاب — اللي مش أدمن بيفضل ممنوع من المسار العام تحت. */
+    /* ===== ارسم وخمّن — dgRooms (v140) =====
+       المبادئ:
+       1) الكلمة السرية في dgRooms/{code}/word/state — الرسام فقط يقدر يقرأها (بيمنع كشف الإجابة فعليًا).
+       2) اللاعب العادي يكتب في مستند الغرفة بياناته هو بس (انضمام/نبض حضور/خروج).
+       3) مجرى الدور (status/turn/hint/guessed/reveal/stats) للرسام الحالي أو المضيف،
+          وأي عضو بعد انتهاء وقت الدور بـ 2.5 ثانية (فك تعليق الدور لو الرسام خرج فجأة).
+       4) النقاط في scores — الرسام الحالي أو المضيف بس (مفيش حد يزود نقاطه بنفسه).
+       5) الشات نص/صور/صوت + رسائل نظام ✔ — ومنع كتابة الكلمة السرية نصًا في الشات العادي
+          (get على مستند الكلمة داخل القاعدة نفسها).
+       6) الرسم strokes وتحكم drawctl للرسام الحالي بس، والمحفوظات بتستخدم في Replay.
+    */
+    match /dgRooms/{code} {
+      /* v142 — يدعم نسختين:
+         (A) اللعبة المبسطة داخل index.html (المنصة الحية)
+         (B) dg-game.html المتقدمة (كلمة سرية + subcollections)
+      */
+      function dgOk() { return signedIn() && notBlocked() && featureAllowed('games'); }
+      function dgPlayers() { return resource.data.get('players', {}); }
+      function dgInRoom() { return dgPlayers().keys().hasAny([request.auth.uid]); }
+      function dgIsHost() { return resource.data.get('host', '') == request.auth.uid; }
+      function dgIsDrawer() {
+        return resource.data.get('drawer', '') == request.auth.uid
+          || resource.data.get('turn', {}).get('drawerUid', '') == request.auth.uid;
+      }
+
+      /* لاعب النسخة المبسطة: {name} فقط أو حقول اختيارية */
+      function dgSimplePlayer(p) {
+        return p is map
+          && p.keys().hasOnly(['name', 'uid', 'lastSeen', 'away', 'seen', 'joinedAt', 'ready', 'avatar', 'level'])
+          && p.get('name', '') is string
+          && p.get('name', '').size() >= 1
+          && p.get('name', '').size() <= 80;
+      }
+      /* لاعب النسخة المتقدمة */
+      function dgFullPlayer(p) {
+        return p is map
+          && p.keys().hasOnly(['uid', 'name', 'lastSeen', 'away', 'seen', 'joinedAt', 'ready', 'avatar', 'level'])
+          && (!p.keys().hasAny(['uid']) || p.get('uid', '') == request.auth.uid)
+          && p.get('name', '') is string
+          && p.get('name', '').size() >= 1
+          && p.get('name', '').size() <= 80;
+      }
+      function dgValidPlayer(p) {
+        return dgSimplePlayer(p) || dgFullPlayer(p);
+      }
+      function dgValidSettings(s) {
+        return s is map
+          && (!s.keys().hasAny(['mode']) || s.get('mode', 'rounds') in ['rounds', 'target'])
+          && (!s.keys().hasAny(['rounds']) || (s.get('rounds', 3) is number && s.get('rounds', 3) >= 1 && s.get('rounds', 3) <= 30))
+          && (!s.keys().hasAny(['maxRounds']) || (s.get('maxRounds', 5) is number && s.get('maxRounds', 5) >= 1 && s.get('maxRounds', 5) <= 30))
+          && (!s.keys().hasAny(['maxPlayers']) || (s.get('maxPlayers', 8) is number && s.get('maxPlayers', 8) >= 2 && s.get('maxPlayers', 8) <= 40))
+          && (!s.keys().hasAny(['target']) || (s.get('target', 100) is number && s.get('target', 100) >= 20 && s.get('target', 100) <= 10000))
+          && s.get('drawSecs', 75) is number && s.get('drawSecs', 75) >= 30 && s.get('drawSecs', 75) <= 300
+          && (!s.keys().hasAny(['hints']) || s.hints is bool)
+          && (!s.keys().hasAny(['order']) || s.get('order', 'random') in ['random', 'join'])
+          && (!s.keys().hasAny(['voice']) || s.voice is bool)
+          && (!s.keys().hasAny(['privacy']) || s.privacy in ['public', 'private']);
+      }
+
+      allow read: if isAdmin() || signedIn();
+
+      /* ===== إنشاء غرفة ===== */
+      allow create: if dgOk() && (
+        /* (A) شكل المنصة الحية — index.html dgCreate legacy */
+        (
+          request.resource.data.keys().hasOnly(['host', 'status', 'players', 'scores', 'strokes', 'round', 'createdAt'])
+          && request.resource.data.get('host', '') == request.auth.uid
+          && request.resource.data.get('status', '') == 'lobby'
+          && request.resource.data.get('round', -1) == 0
+          && request.resource.data.get('scores', {}) is map
+          && request.resource.data.get('strokes', []) is list
+          && request.resource.data.players.keys().hasOnly([request.auth.uid])
+          && dgValidPlayer(request.resource.data.players.get(request.auth.uid, {}))
+          && request.resource.data.createdAt is timestamp
+        )
+        ||
+        /* (A2) v200 production — public/private + order + settings */
+        (
+          request.resource.data.keys().hasOnly(['host', 'status', 'privacy', 'public', 'game', 'players', 'order', 'scores', 'strokes', 'round', 'maxRounds', 'settings', 'createdAt', 'updatedAt'])
+          && request.resource.data.get('host', '') == request.auth.uid
+          && request.resource.data.get('status', '') == 'lobby'
+          && request.resource.data.get('privacy', 'private') in ['public', 'private']
+          && request.resource.data.get('public', false) is bool
+          && request.resource.data.get('game', 'dg') == 'dg'
+          && request.resource.data.get('round', -1) == 0
+          && request.resource.data.get('maxRounds', 5) is number
+          && request.resource.data.get('scores', {}) is map
+          && request.resource.data.get('strokes', []) is list
+          && request.resource.data.get('order', []) is list
+          && request.resource.data.order.size() == 1
+          && request.resource.data.order[0] == request.auth.uid
+          && request.resource.data.players.keys().hasOnly([request.auth.uid])
+          && dgValidPlayer(request.resource.data.players.get(request.auth.uid, {}))
+          && (!request.resource.data.keys().hasAny(['settings']) || dgValidSettings(request.resource.data.settings))
+          && request.resource.data.createdAt is timestamp
+          && request.resource.data.updatedAt is timestamp
+        )
+        ||
+        /* (B) شكل dg-game.html المتقدم */
+        (
+          request.resource.data.keys().hasOnly(['host', 'hostName', 'status', 'settings', 'players', 'order', 'turnIdx', 'round', 'guessed', 'privacy', 'createdAt', 'updatedAt'])
+          && request.resource.data.get('host', '') == request.auth.uid
+          && request.resource.data.get('hostName', '') is string && request.resource.data.get('hostName', '').size() <= 80
+          && request.resource.data.get('status', '') == 'lobby'
+          && dgValidSettings(request.resource.data.get('settings', {}))
+          && request.resource.data.get('privacy', 'private') in ['public', 'private']
+          && request.resource.data.get('turnIdx', -1) == 0
+          && request.resource.data.get('round', -1) == 0
+          && request.resource.data.get('guessed', {}) == {}
+          && request.resource.data.get('order', []) is list
+          && request.resource.data.order.size() == 1
+          && request.resource.data.order[0] == request.auth.uid
+          && request.resource.data.players.keys().hasOnly([request.auth.uid])
+          && dgValidPlayer(request.resource.data.players.get(request.auth.uid, {}))
+          && request.resource.data.createdAt is timestamp
+          && request.resource.data.updatedAt is timestamp
+        )
+      );
+
+      /* ===== تحديث غرفة ===== */
+      allow update: if dgOk() && (
+        /* (1) المضيف — إدارة الغرفة والمباراة كاملة */
+        (dgIsHost()
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['host', 'hostName', 'status', 'settings', 'players', 'order', 'turn', 'turnIdx',
+                         'round', 'guessed', 'hint', 'reveal', 'stats', 'updatedAt', 'endedAt', 'winners',
+                         'mid', 'privacy', 'public', 'drawer', 'word', 'strokes', 'scores', 'maxRounds'])
+          && (!request.resource.data.keys().hasAny(['settings']) || dgValidSettings(request.resource.data.settings)))
+        ||
+        /* (2) الرسّام الحالي — مجرى الدور كامل (اختيار/رسم/كشف/تقدّم) */
+        (dgInRoom() && dgIsDrawer()
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['status', 'drawer', 'turn', 'turnIdx', 'round', 'order', 'guessed', 'hint', 'reveal',
+                         'stats', 'updatedAt', 'endedAt', 'winners', 'word', 'strokes', 'scores'])
+          && request.resource.data.get('status', resource.data.get('status', '')) in ['lobby', 'choosing', 'drawing', 'playing', 'reveal', 'ended'])
+        ||
+        /* (3) أي لاعب بعد تخمين صحيح — النقاط والكشف والدور التالي (منطق v207)
+               + تعليم نفسه في players (خمّن صح) — بس بياناته هو، ممنوع تعديل غيره */
+        (dgInRoom()
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['scores', 'players', 'drawer', 'word', 'hint', 'strokes', 'round', 'updatedAt', 'status',
+                         'reveal', 'turn', 'guessed', 'order', 'winners', 'endedAt'])
+          && dgPlayers().diff(request.resource.data.players).affectedKeys().hasOnly([request.auth.uid])
+          && request.resource.data.get('status', resource.data.get('status', '')) in ['playing', 'drawing', 'reveal'])
+        ||
+        /* (4) انضمام / خروج / نبض حضور / استعداد — players (+ order/scores عند الانضمام) */
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['players', 'order', 'updatedAt', 'scores'])
+          && request.resource.data.players.size() <= 40
+          && (
+            /* انضمام جديد */
+            (!dgPlayers().keys().hasAny([request.auth.uid])
+              && request.resource.data.players.keys().hasAny([request.auth.uid])
+              && dgValidPlayer(request.resource.data.players.get(request.auth.uid, {}))
+              && dgPlayers().diff(request.resource.data.players).affectedKeys().hasOnly([request.auth.uid])
+              && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['order'])
+                  || (request.resource.data.order is list
+                      && request.resource.data.order.size() <= 40
+                      && request.resource.data.order.hasAny([request.auth.uid]))))
+            ||
+            /* تحديث/خروج نفسي */
+            (dgPlayers().keys().hasAny([request.auth.uid])
+              && dgPlayers().diff(request.resource.data.players).affectedKeys().hasOnly([request.auth.uid]))
+          ))
+        ||
+        /* (5) أي عضو بعد انتهاء وقت الدور +2.5 ثانية — تقدّم تلقائي (فك تعليق الدور) */
+        (dgInRoom()
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['status', 'drawer', 'turn', 'turnIdx', 'round', 'order', 'guessed', 'hint', 'reveal',
+                         'stats', 'updatedAt', 'endedAt', 'winners', 'word', 'strokes', 'scores'])
+          && request.time.toMillis() > resource.data.get('turn', {}).get('endsAt', 0) + 2500)
+        ||
+        /* (6) استلام المضيف لو المضيف خرج */
+        (dgInRoom()
+          && !dgPlayers().keys().hasAny([resource.data.get('host', '')])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['host', 'hostName', 'updatedAt'])
+          && request.resource.data.get('host', '') == request.auth.uid)
+      );
+
+      allow delete: if isAdmin()
+        || (signedIn() && resource.data.get('host', '') == request.auth.uid)
+        || (signedIn() && dgPlayers().size() == 0);
+
+      /* كلمة سرية — القراءة للرسّام فقط (سرية الكلمة).
+         الكتابة: كلمة فاضية = تهيئة اختيارات الدور الجديد (أي عضو في الغرفة)،
+         الكلمة الحقيقية = الرسّام نفسه أو المضيف بس. */
+      match /word/state {
+        allow read: if isAdmin()
+          || (signedIn() && resource.data.get('drawerUid', '') == request.auth.uid);
+        allow create, update: if isAdmin()
+          || (signedIn() && notBlocked() && featureAllowed('games')
+              && get(/databases/$(database)/documents/dgRooms/$(code)).data.get('players', {}).keys().hasAny([request.auth.uid])
+              && request.resource.data.keys().hasOnly(['drawerUid', 'options', 'word', 'updatedAt'])
+              && request.resource.data.get('drawerUid', '') is string
+              && request.resource.data.get('drawerUid', '').size() <= 80
+              && request.resource.data.get('options', []) is list
+              && request.resource.data.options.size() <= 3
+              && request.resource.data.get('word', '') is string
+              && request.resource.data.word.size() <= 48
+              && (
+                request.resource.data.word.size() == 0
+                || (request.resource.data.word.size() >= 1
+                    && (request.resource.data.get('drawerUid', '') == request.auth.uid
+                        || get(/databases/$(database)/documents/dgRooms/$(code)).data.get('host', '') == request.auth.uid))
+              ));
+        allow delete: if isAdmin()
+          || (signedIn() && resource.data.get('drawerUid', '') == request.auth.uid);
+      }
+
+      match /guesses/{gId} {
+        allow read: if isAdmin() || (signedIn()
+          && get(/databases/$(database)/documents/dgRooms/$(code)).data.get('players', {}).keys().hasAny([request.auth.uid]));
+        allow create: if signedIn() && notBlocked() && featureAllowed('games')
+          && get(/databases/$(database)/documents/dgRooms/$(code)).data.get('players', {}).keys().hasAny([request.auth.uid])
+          && request.resource.data.keys().hasOnly(['uid', 'name', 'text', 'at', 'result'])
+          && request.resource.data.get('uid', '') == request.auth.uid
+          && request.resource.data.get('text', '') is string
+          && request.resource.data.text.size() >= 1 && request.resource.data.text.size() <= 60
+          && (!request.resource.data.keys().hasAny(['result']) || request.resource.data.result == null);
+        allow update: if isAdmin()
+          || (signedIn() && featureAllowed('games')
+              && (get(/databases/$(database)/documents/dgRooms/$(code)).data.get('host', '') == request.auth.uid
+                  || get(/databases/$(database)/documents/dgRooms/$(code)).data.get('turn', {}).get('drawerUid', '') == request.auth.uid)
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['result']));
+        allow delete: if isAdmin();
+      }
+
+      match /scores/{sId} {
+        allow read: if isAdmin() || (signedIn() && featureAllowed('games')
+          && get(/databases/$(database)/documents/dgRooms/$(code)).data.get('players', {}).keys().hasAny([request.auth.uid]));
+        allow create, update: if isAdmin()
+          || (signedIn() && notBlocked() && featureAllowed('games')
+              && request.resource.data.keys().hasOnly(['uid', 'name', 'score', 'dpts', 'correct', 'wrong', 'streak', 'bestStreak', 'fastest', 'lastPts', 'updatedAt'])
+              && request.resource.data.get('uid', '') == sId
+              && (get(/databases/$(database)/documents/dgRooms/$(code)).data.get('host', '') == request.auth.uid
+                  || get(/databases/$(database)/documents/dgRooms/$(code)).data.get('turn', {}).get('drawerUid', '') == request.auth.uid));
+        allow delete: if isAdmin()
+          || (signedIn() && get(/databases/$(database)/documents/dgRooms/$(code)).data.get('host', '') == request.auth.uid);
+      }
+
+      /* الشات / رسائل التخمين — نص/صورة/ملصق/ملصق مخصص/صوت/نظام/انضمام/خروج/صح */
+      match /msgs/{mId} {
+        allow read: if isAdmin() || (signedIn() && featureAllowed('games')
+          && get(/databases/$(database)/documents/dgRooms/$(code)).data.get('players', {}).keys().hasAny([request.auth.uid]));
+        allow create: if signedIn() && notBlocked() && featureAllowed('games')
+          && get(/databases/$(database)/documents/dgRooms/$(code)).data.get('players', {}).keys().hasAny([request.auth.uid])
+          && request.resource.data.keys().hasOnly(['uid', 'name', 'kind', 'text', 'img', 'audio', 'dur', 'solverUid', 'solverName', 'sticker', 'ts', 'pts', 'combo', 'drawerUid', 'drawerPts', 'perfect', 'replyName', 'replyText', 'expireAt'])
+          && request.resource.data.get('uid', '') == request.auth.uid
+          && request.resource.data.get('name', '') is string && request.resource.data.name.size() <= 80
+          && request.resource.data.get('kind', 'text') in ['text', 'correct', 'system', 'img', 'audio', 'sticker', 'csticker', 'voice', 'join', 'leave']
+          && request.resource.data.get('text', '') is string && request.resource.data.text.size() <= 500
+          && (!request.resource.data.keys().hasAny(['img']) || request.resource.data.img == null
+              || (request.resource.data.img is string && request.resource.data.img.size() <= 950000))
+          && (!request.resource.data.keys().hasAny(['audio']) || request.resource.data.audio == null
+              || (request.resource.data.audio is string && request.resource.data.audio.size() <= 950000))
+          && (!request.resource.data.keys().hasAny(['sticker']) || request.resource.data.sticker == null
+              || (request.resource.data.sticker is string
+                  && request.resource.data.sticker.size() <= 950000
+                  && (request.resource.data.get('kind', 'text') != 'csticker'
+                      || request.resource.data.sticker.matches('data:image/.*'))))
+          && (!request.resource.data.keys().hasAny(['dur']) || (request.resource.data.dur is number && request.resource.data.dur >= 0 && request.resource.data.dur <= 300))
+          && (!request.resource.data.keys().hasAny(['pts']) || (request.resource.data.pts is number && request.resource.data.pts >= 0 && request.resource.data.pts <= 10000))
+          && (!request.resource.data.keys().hasAny(['combo']) || (request.resource.data.combo is number && request.resource.data.combo >= 0 && request.resource.data.combo <= 10))
+          && (!request.resource.data.keys().hasAny(['drawerPts']) || (request.resource.data.drawerPts is number && request.resource.data.drawerPts >= 0 && request.resource.data.drawerPts <= 10000))
+          && (!request.resource.data.keys().hasAny(['solverUid']) || request.resource.data.solverUid == null
+              || (request.resource.data.solverUid is string && request.resource.data.solverUid.size() <= 80))
+          && (!request.resource.data.keys().hasAny(['solverName']) || request.resource.data.solverName == null
+              || (request.resource.data.solverName is string && request.resource.data.solverName.size() <= 80))
+          && (!request.resource.data.keys().hasAny(['drawerUid']) || request.resource.data.drawerUid == null
+              || (request.resource.data.drawerUid is string && request.resource.data.drawerUid.size() <= 80))
+          && (!request.resource.data.keys().hasAny(['perfect']) || request.resource.data.perfect is bool)
+          && (!request.resource.data.keys().hasAny(['replyName']) || (request.resource.data.replyName is string && request.resource.data.replyName.size() <= 80))
+          && (!request.resource.data.keys().hasAny(['replyText']) || (request.resource.data.replyText is string && request.resource.data.replyText.size() <= 200))
+          && (!request.resource.data.keys().hasAny(['expireAt']) || request.resource.data.expireAt is timestamp)
+          && request.resource.data.ts == request.time;
+        allow update: if isAdmin();
+        allow delete: if isAdmin()
+          || (signedIn() && (resource.data.get('uid', '') == request.auth.uid
+              || get(/databases/$(database)/documents/dgRooms/$(code)).data.get('host', '') == request.auth.uid));
+      }
+
+      match /strokes/{sId} {
+        allow read: if isAdmin() || (signedIn() && featureAllowed('games')
+          && get(/databases/$(database)/documents/dgRooms/$(code)).data.get('players', {}).keys().hasAny([request.auth.uid]));
+        allow create, update: if isAdmin()
+          || (signedIn() && notBlocked() && featureAllowed('games')
+              && get(/databases/$(database)/documents/dgRooms/$(code)).data.get('turn', {}).get('drawerUid', '') == request.auth.uid
+              && request.resource.data.keys().hasOnly(['t', 'i', 'c', 'w', 'tool', 'pts', 'p', 'x', 'y', 'at', 'epoch', 'uid', 'expireAt'])
+              && (!request.resource.data.keys().hasAny(['p']) || (request.resource.data.p is list && request.resource.data.p.size() <= 600))
+              && (!request.resource.data.keys().hasAny(['tool']) || request.resource.data.tool in ['pen', 'e', 'undo', 'clear'])
+              && (!request.resource.data.keys().hasAny(['expireAt']) || request.resource.data.expireAt is timestamp));
+        allow delete: if isAdmin()
+          || (signedIn() && (get(/databases/$(database)/documents/dgRooms/$(code)).data.get('host', '') == request.auth.uid
+              || get(/databases/$(database)/documents/dgRooms/$(code)).data.get('turn', {}).get('drawerUid', '') == request.auth.uid));
+      }
+
+      match /drawctl/{dId} {
+        allow read: if isAdmin() || (signedIn() && featureAllowed('games')
+          && get(/databases/$(database)/documents/dgRooms/$(code)).data.get('players', {}).keys().hasAny([request.auth.uid]));
+        allow create, update: if isAdmin()
+          || (signedIn() && notBlocked() && featureAllowed('games')
+              && (get(/databases/$(database)/documents/dgRooms/$(code)).data.get('turn', {}).get('drawerUid', '') == request.auth.uid
+                  || get(/databases/$(database)/documents/dgRooms/$(code)).data.get('host', '') == request.auth.uid)
+              && request.resource.data.keys().hasOnly(['tid', 'seq', 'epoch']));
+        allow delete: if isAdmin();
+      }
+
+      /* WebRTC signaling للصوت داخل الغرفة */
+      match /signal/{sId} {
+        allow read: if isAdmin() || (signedIn()
+          && get(/databases/$(database)/documents/dgRooms/$(code)).data.get('players', {}).keys().hasAny([request.auth.uid]));
+        allow create: if signedIn() && notBlocked() && featureAllowed('games')
+          && get(/databases/$(database)/documents/dgRooms/$(code)).data.get('players', {}).keys().hasAny([request.auth.uid])
+          && request.resource.data.keys().hasOnly(['from', 'to', 'type', 'sdp', 'candidate', 'at'])
+          && request.resource.data.get('from', '') == request.auth.uid
+          && request.resource.data.get('type', '') in ['offer', 'answer', 'ice', 'hang']
+          && request.resource.data.at is timestamp;
+        allow update: if false;
+        allow delete: if isAdmin()
+          || (signedIn() && resource.data.get('from', '') == request.auth.uid);
+      }
+    }
+
+
+    /* ===== v215 — ارسم وخمّن الجديدة (wpRooms) — على نمط ويبلاي =====
+       - الكلمة السرية: secret/{uid} للرسام فقط (قراءة/كتابة). الغرفة فيها hash بس.
+       - الرسم اللحظي: strokes (مستند لكل chunk، إنشاء فقط) — الرسام الحالي بس.
+       - التخمين: msgs (كلمة غلط = رسالة guess) والإجابة الصحيحة بتتسجل من اللاعب نفسه في solved/scores.
+       - الحضور: presence/{uid} (نبض + ساعة السيرفر). */
+    match /wpRooms/{code} {
+      function wpOk() { return signedIn() && notBlocked() && featureAllowed('games'); }
+      function wpPl() { return resource.data.get('players', {}); }
+      function wpIn() { return wpPl().keys().hasAny([request.auth.uid]); }
+      function wpMember() {
+        return signedIn() && get(/databases/$(database)/documents/wpRooms/$(code)).data.get('players', {}).keys().hasAny([request.auth.uid]);
+      }
+      function wpDrawer() {
+        return signedIn() && get(/databases/$(database)/documents/wpRooms/$(code)).data.get('drawer', '') == request.auth.uid;
+      }
+
+      allow read: if isAdmin() || signedIn();
+
+      allow create: if wpOk()
+        && request.resource.data.keys().hasOnly(['host', 'hostName', 'status', 'public', 'players', 'order', 'scores', 'solved', 'idx', 'round', 'maxRounds', 'secs', 'createdAt', 'updatedAt'])
+        && request.resource.data.host == request.auth.uid
+        && request.resource.data.status == 'lobby'
+        && request.resource.data.players.keys().hasOnly([request.auth.uid])
+        && request.resource.data.createdAt is timestamp;
+
+      allow update: if isAdmin() || (wpOk() && (
+        /* عضو في الغرفة: مجرى اللعب والنقاط والإعدادات */
+        (wpIn()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['players', 'order', 'scores', 'solved', 'status', 'idx', 'round', 'drawer',
+               'wh', 'wlen', 'hint', 'answer', 'choiceAt', 'startedAt', 'revealAt', 'maxRounds', 'secs', 'public', 'host', 'hostName', 'endedAt', 'updatedAt'])
+          && request.resource.data.players.size() <= 12)
+        ||
+        /* انضمام لاعب جديد */
+        (!wpIn()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['players', 'updatedAt'])
+          && request.resource.data.players.diff(resource.data.players).affectedKeys().hasOnly([request.auth.uid])
+          && request.resource.data.players.size() <= 12)
+      ));
+
+      allow delete: if isAdmin()
+        || (signedIn() && resource.data.get('host', '') == request.auth.uid)
+        || (signedIn() && resource.data.get('players', {}).size() == 0)
+        || (signedIn() && wpIn() && resource.data.get('players', {}).size() == 1);
+
+      match /msgs/{mId} {
+        allow read: if isAdmin() || wpMember();
+        allow create: if wpOk() && wpMember()
+          && request.resource.data.keys().hasOnly(['uid', 'name', 'av', 'kind', 'text', 'team', 'img', 'audio', 'dur', 'pts', 'ts', 'expireAt'])
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.get('name', '') is string && request.resource.data.name.size() <= 60
+          && request.resource.data.kind in ['text', 'guess', 'correct', 'sticker', 'img', 'audio']
+          && request.resource.data.get('text', '') is string && request.resource.data.get('text', '').size() <= 400
+          && request.resource.data.get('av', '').size() <= 8000
+          && request.resource.data.get('img', '').size() <= 950000
+          && request.resource.data.get('audio', '').size() <= 950000
+          && request.resource.data.get('dur', 0) is number && request.resource.data.get('dur', 0) <= 300
+          && request.resource.data.get('pts', 0) is number && request.resource.data.get('pts', 0) <= 500
+          && (!request.resource.data.keys().hasAny(['expireAt']) || request.resource.data.expireAt is timestamp)
+          && request.resource.data.ts == request.time;
+        allow update: if isAdmin();
+        allow delete: if isAdmin() || (signedIn() && resource.data.get('uid', '') == request.auth.uid)
+          || (signedIn() && get(/databases/$(database)/documents/wpRooms/$(code)).data.get('host', '') == request.auth.uid);
+      }
+
+      match /strokes/{sId} {
+        allow read: if isAdmin() || wpMember();
+        allow create: if wpOk() && wpDrawer()
+          && request.resource.data.keys().hasOnly(['turn', 's', 'k', 'c', 'w', 'p', 't', 'u'])
+          && request.resource.data.p is list && request.resource.data.p.size() <= 400
+          && request.resource.data.turn is number && request.resource.data.s is number && request.resource.data.k is number
+          && (!request.resource.data.keys().hasAny(['t']) || request.resource.data.t in ['undo', 'clear']);
+        allow update: if false;
+        allow delete: if isAdmin() || (signedIn() && get(/databases/$(database)/documents/wpRooms/$(code)).data.get('host', '') == request.auth.uid) || wpDrawer();
+      }
+
+      match /secret/{uid} {
+        allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
+        allow create, update: if wpOk() && request.auth.uid == uid && wpMember()
+          && request.resource.data.keys().hasOnly(['w', 'idx'])
+          && request.resource.data.w is string && request.resource.data.w.size() <= 48;
+        allow delete: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      }
+
+      match /presence/{uid} {
+        allow read: if isAdmin() || wpMember();
+        allow create, update: if signedIn() && request.auth.uid == uid && wpMember()
+          && request.resource.data.keys().hasOnly(['at'])
+          && request.resource.data.at == request.time;
+        allow delete: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      }
+    }
+
+    /* إحصائيات «ارسم وخمّن» الدائمة (XP/إنجازات/آخر المباريات) — اللاعب يكتب بياناته هو بس */
+    match /dgStats/{uid} {
+      allow read: if isAdmin() || (signedIn() && featureAllowed('games'));
+      allow create, update: if isAdmin() || (signedIn() && notBlocked() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'games', 'wins', 'drawn', 'correct', 'best', 'xp', 'level', 'title', 'ach', 'last', 'updatedAt'])
+        && request.resource.data.get('uid', '') == uid
+        && request.resource.data.get('name', '') is string && request.resource.data.name.size() <= 80
+        && request.resource.data.get('games', 0) is number && request.resource.data.games >= 0 && request.resource.data.games <= 100000
+        && request.resource.data.get('wins', 0) is number && request.resource.data.wins >= 0 && request.resource.data.wins <= 100000
+        && request.resource.data.get('drawn', 0) is number && request.resource.data.drawn >= 0 && request.resource.data.drawn <= 100000
+        && request.resource.data.get('correct', 0) is number && request.resource.data.correct >= 0 && request.resource.data.correct <= 100000
+        && request.resource.data.get('best', 0) is number && request.resource.data.best >= 0 && request.resource.data.best <= 1000000
+        && request.resource.data.get('xp', 0) is number && request.resource.data.xp >= 0 && request.resource.data.xp <= 10000000
+        && request.resource.data.get('level', 0) is number && request.resource.data.level >= 1 && request.resource.data.level <= 1000
+        && request.resource.data.get('title', '') is string && request.resource.data.title.size() <= 60
+        && request.resource.data.get('ach', []) is list && request.resource.data.ach.size() <= 50
+        && request.resource.data.get('last', []) is list && request.resource.data.last.size() <= 5
+        && request.resource.data.updatedAt == request.time);
+      allow delete: if isAdmin();
     }
 
     match /{document=**} {
       allow read, write: if isAdmin();
+    }
+
+    /* أي مسار تاني ممنوع */
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

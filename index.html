@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v224">
+<meta name="sw-build" content="v225">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v224";/* v216: الغرف العامة لـ«ارسم وخمّن» في «الغرف المفتوحة» · إصلاح ظهور خانة كتابة الشات · حذف بحث المحادثة · الحذف التلقائي بعد ساعة اتعمم على شات الغرف ·  v215: «ارسم وخمّن» اتعمل من الصفر على نمط ويبلاي (ملف wp.js): رسم لحظي بـ chunks · التخمين في الشات نفسه (الإجابة الصحيحة بتتسجل لحظيًا من غير ما تتكشف) · نقاط بالوقت + بونص أول مخمّن + نقاط للرسام · اختيار كلمة من 4 · تلميحات حروف · رسائل صوتية/صور/ملصقات · لوبي بجاهزية · نهاية بترتيب · لازم تنشر firestore.rules v215 · */ v214: (1) شاشة اختيار الكلمة كانت بتعلّق لأن المؤقّت مكانش بيشتغل غير أثناء الرسم — اتصلّح (2) تنبيه لو فيه لاعبين مش مستعدين قبل البدء (3) تحذير لو لاعب نسخته قديمة + زر تحديث فوري (4) ملصقات: قاعدة آمنة بدل regex (5) ملخّص «جاهزين X من Y» في اللوبي · v213: ارسم وخمّن — (1) الملصقات المخصصة والمرسومة كانت بتترفض من قواعد Firestore (مطابقة regex غلط) · (2) تصحيح التخمينات مبقاش بيفوّت تخمين لو وصل وقت ما الرسام بيصحّح غيره + تجاهل تخمينات الجولات القديمة · (3) الرسم اللحظي: استماع بالدور فقط + الخط مبيختفيش لحظة الإرسال + مقاس الكانفاس بيتظبط تلقائيًا · (4) الكتابة في الشات مبتضيعش مع إعادة رسم الشاشة · (5) لو الرسام خرج وسط الدور الجولة بتتكشف تلقائيًا · (6) زر ابدأ محمي من الضغط المزدوج · (7) رسائل خطأ واضحة بدل «فشل» · (8) أزرار الإيموجي/المايك لم تعد تتكرر عند المخمّن · (9) حذف رسائل الغرف المنتهية (ساعة) من السيرفر · v212: إصلاح جذري للرسم (Nested arrays → strokes subcollection لحظي) · توقيت موحّد · انضمام/خروج بدون سباق · ملصقات مخصصة أخف وآمنة · رسائل الشات تتحذف بعد ساعة (expireAt) · v211: إصلاح «dgRoom is not defined» (كان بيكسر إرسال الملصقات والملصقات المخصصة والمايك) + إصلاح N (الاهتزاز) · الرد على رسالة بقى مسموح في القواعد · ملصق من صورة الفون (من المعرض/الكاميرا) مع إمكانية الرسم فوقها · حدود أكبر: ملصقاتي 50، لاعبين لحد 40، جولات لحد 30، وقت الرسم لحد 300 ث، شات 100 رسالة، رسالة صوتية 90 ث · v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
+<script>window.APP_BUILD="v225";/* v216: الغرف العامة لـ«ارسم وخمّن» في «الغرف المفتوحة» · إصلاح ظهور خانة كتابة الشات · حذف بحث المحادثة · الحذف التلقائي بعد ساعة اتعمم على شات الغرف ·  v215: «ارسم وخمّن» اتعمل من الصفر على نمط ويبلاي (ملف wp.js): رسم لحظي بـ chunks · التخمين في الشات نفسه (الإجابة الصحيحة بتتسجل لحظيًا من غير ما تتكشف) · نقاط بالوقت + بونص أول مخمّن + نقاط للرسام · اختيار كلمة من 4 · تلميحات حروف · رسائل صوتية/صور/ملصقات · لوبي بجاهزية · نهاية بترتيب · لازم تنشر firestore.rules v215 · */ v214: (1) شاشة اختيار الكلمة كانت بتعلّق لأن المؤقّت مكانش بيشتغل غير أثناء الرسم — اتصلّح (2) تنبيه لو فيه لاعبين مش مستعدين قبل البدء (3) تحذير لو لاعب نسخته قديمة + زر تحديث فوري (4) ملصقات: قاعدة آمنة بدل regex (5) ملخّص «جاهزين X من Y» في اللوبي · v213: ارسم وخمّن — (1) الملصقات المخصصة والمرسومة كانت بتترفض من قواعد Firestore (مطابقة regex غلط) · (2) تصحيح التخمينات مبقاش بيفوّت تخمين لو وصل وقت ما الرسام بيصحّح غيره + تجاهل تخمينات الجولات القديمة · (3) الرسم اللحظي: استماع بالدور فقط + الخط مبيختفيش لحظة الإرسال + مقاس الكانفاس بيتظبط تلقائيًا · (4) الكتابة في الشات مبتضيعش مع إعادة رسم الشاشة · (5) لو الرسام خرج وسط الدور الجولة بتتكشف تلقائيًا · (6) زر ابدأ محمي من الضغط المزدوج · (7) رسائل خطأ واضحة بدل «فشل» · (8) أزرار الإيموجي/المايك لم تعد تتكرر عند المخمّن · (9) حذف رسائل الغرف المنتهية (ساعة) من السيرفر · v212: إصلاح جذري للرسم (Nested arrays → strokes subcollection لحظي) · توقيت موحّد · انضمام/خروج بدون سباق · ملصقات مخصصة أخف وآمنة · رسائل الشات تتحذف بعد ساعة (expireAt) · v211: إصلاح «dgRoom is not defined» (كان بيكسر إرسال الملصقات والملصقات المخصصة والمايك) + إصلاح N (الاهتزاز) · الرد على رسالة بقى مسموح في القواعد · ملصق من صورة الفون (من المعرض/الكاميرا) مع إمكانية الرسم فوقها · حدود أكبر: ملصقاتي 50، لاعبين لحد 40، جولات لحد 30، وقت الرسم لحد 300 ث، شات 100 رسالة، رسالة صوتية 90 ث · v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -3156,7 +3156,9 @@ async function startSession(u){
         }
       }catch(e){console.warn("publicProfile",e)}
       setTimeout(()=>{try{pkSync()}catch(_){}},1500);setTimeout(()=>{try{rvAuto()}catch(_){}},15000);
-      S.view="home";S.examsLoaded=false;render(true);
+      /* وضع الفيديوهات: افتح الفيديوهات مباشرة حتى لو الحساب مسجّل */
+      S.view=(typeof shouldOpenVideosDirect==="function"&&shouldOpenVideosDirect())?"videos":"home";
+      S.examsLoaded=false;render(true);
       // رابط مباشر للغرفة: #room=CODE
       try{
         const h=(location.hash||"").replace(/^#/,"");
@@ -3312,6 +3314,12 @@ if(configured){
       return;
     }
     try{if(was&&!S.site.maintenance&&S.user&&!S.isAdmin&&auth.currentUser)startSession(auth.currentUser)}catch(_){}
+    /* وضع/قسم الفيديوهات: أول ما يفتح الرابط يروح للفيديوهات مباشرة (ضيف أو حساب) */
+    try{
+      if(!S.isAdmin&&typeof shouldOpenVideosDirect==="function"&&shouldOpenVideosDirect()){
+        if(S.view!=="videos"){S.view="videos";render(true);return}
+      }
+    }catch(_){}
     if(S.view==="loading")return;
     if(S.view==="auth"&&was===S.site.maintenance)return;
     render();
@@ -3347,8 +3355,8 @@ if(configured){
           // أول مرة null بعد الإقلاع = مش مسجّل؛ بعد كده null = خرج فعلًا
           stopSubs();try{musSubStop();musStop();S.admMenu=undefined}catch(_){}
           S.user=null;S.isAdmin=false;S.profile=null;S.myList=[];S.attempts={};
-          /* فيديوهات عامة بدون دخول */
-          S.view=(S.site&&S.site.videosPublic)?"videos":"auth";
+          /* فيديوهات عامة / وضع فيديوهات: بدون شاشة دخول */
+          S.view=(typeof shouldOpenVideosDirect==="function"&&shouldOpenVideosDirect())?"videos":"auth";
           __authBoot=false;
           render(true);
           try{window.__credAuto&&window.__credAuto()}catch(_){}
@@ -3357,9 +3365,9 @@ if(configured){
         console.error("auth run",e);
         if(u){
           S.user=u;S.profile=S.profile||{name:"طالب",phone:""};
-          S.view="home";
+          S.view=(typeof shouldOpenVideosDirect==="function"&&shouldOpenVideosDirect())?"videos":"home";
         }else if(!S.user){
-          S.view="auth";
+          S.view=(typeof shouldOpenVideosDirect==="function"&&shouldOpenVideosDirect())?"videos":"auth";
         }
         render(true);
       }
@@ -3370,7 +3378,7 @@ if(configured){
   // لو التحميل طول: متودّيش لشاشة الدخول لو في مستخدم
   setTimeout(function(){
     if(S.view==="loading"&&!S.user&&!(auth&&auth.currentUser)){
-      S.view=(S.site&&S.site.videosPublic)?"videos":"auth";
+      S.view=(typeof shouldOpenVideosDirect==="function"&&shouldOpenVideosDirect())?"videos":"auth";
       render(true);
     }
   },10000);
@@ -3464,8 +3472,9 @@ function render(force,soft){
   if(S.view==="loading")h=splash();
   else if(S.site.maintenance&&!S.isAdmin&&!S.adminLogin)h=maintenance();
   else if(!S.user){
-    /* وضع/قسم الفيديوهات وحده: بدون شاشة دخول */
-    if(S.view==="videos"||(S.site&&S.site.videosPublic)||(typeof isVideosOnlyMode==="function"&&isVideosOnlyMode())){
+    /* وضع/قسم الفيديوهات وحده: بدون شاشة دخول — أول ضغطة على الرابط */
+    if(S.view==="videos"||(typeof shouldOpenVideosDirect==="function"&&shouldOpenVideosDirect())){
+      S.view="videos";
       try{h=videosView()}catch(ve){h=`<div class="wrap"><div class="card"><b>خطأ في الفيديوهات</b><p class="mut">${esc(String(ve&&ve.message||ve))}</p><button class="btn" data-act="videosReload">إعادة المحاولة</button></div></div>`}
     }else h=authView();
   }
@@ -3532,7 +3541,7 @@ function render(force,soft){
   if(soft&&!__newView&&typeof h==="string"&&h&&window.__lastHtml===h&&app.firstChild){window.__renderSkipped=(window.__renderSkipped||0)+1;return}
   window.__lastHtml=(typeof h==="string")?h:"";
   app.innerHTML=h||`<div class="wrap"><div class="card empty"><div class="ei">⏳</div><b>لحظة…</b><div class="mut" style="margin:8px 0 12px">بنجهّز الصفحة</div><button class="btn" data-act="home">الرئيسية</button></div></div>`;
-  if(!h&&!window.__emptyFix){window.__emptyFix=1;setTimeout(()=>{window.__emptyFix=0;try{if(!S.user){S.view="auth"}else if(!S.view||S.view==="loading"){S.view="home"}render(true)}catch(_){}},1200)}
+  if(!h&&!window.__emptyFix){window.__emptyFix=1;setTimeout(()=>{window.__emptyFix=0;try{if(!S.user){S.view=(typeof shouldOpenVideosDirect==="function"&&shouldOpenVideosDirect())?"videos":"auth"}else if(!S.view||S.view==="loading"){S.view=(typeof shouldOpenVideosDirect==="function"&&shouldOpenVideosDirect())?"videos":"home"}render(true)}catch(_){}},1200)}
   if(__aeId){const el=document.getElementById(__aeId);if(el){if(__aeVal!=null&&"value" in el)el.value=__aeVal;el.focus();if(__aePos!=null)try{el.setSelectionRange(__aePos,__aePos)}catch(_){}}}
   if(__sy>0){try{window.scrollTo(0,__sy)}catch(_){}}
   if(__inner.length){try{const __all=app.querySelectorAll("div,section,ul,table,pre");__inner.forEach(([i,t])=>{const el=__all[i];if(el)el.scrollTop=t})}catch(_){}}
@@ -8746,6 +8755,18 @@ function isVideosOnlyMode(){
     const m=typeof modeCur==="function"?modeCur():null;
     if(m&&(m.kind==="videos"||m.id==="videos"||/فيديو|videos/i.test(String(m.n||""))))return true;
     if(S.site&&S.site.appMode==="videos")return true;
+  }catch(_){}
+  return false;
+}
+/* أول ضغطة على الرابط → قسم الفيديوهات مباشرة (ضيف أو مسجّل، أول مرة أو كل مرة) */
+function shouldOpenVideosDirect(){
+  try{
+    if(S.isAdmin)return false;
+    if(S.site&&S.site.videosPublic)return true;
+    if(isVideosOnlyMode())return true;
+    const q=new URLSearchParams(location.search||"");
+    if(q.get("videos")==="1"||q.get("view")==="videos"||q.get("mode")==="videos")return true;
+    if(/#videos/i.test(location.hash||""))return true;
   }catch(_){}
   return false;
 }
