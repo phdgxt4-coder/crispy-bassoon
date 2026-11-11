@@ -2,14 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v233">
+<meta name="sw-build" content="v224">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v233";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
-</script>
+<script>window.APP_BUILD="v224";/* v216: الغرف العامة لـ«ارسم وخمّن» في «الغرف المفتوحة» · إصلاح ظهور خانة كتابة الشات · حذف بحث المحادثة · الحذف التلقائي بعد ساعة اتعمم على شات الغرف ·  v215: «ارسم وخمّن» اتعمل من الصفر على نمط ويبلاي (ملف wp.js): رسم لحظي بـ chunks · التخمين في الشات نفسه (الإجابة الصحيحة بتتسجل لحظيًا من غير ما تتكشف) · نقاط بالوقت + بونص أول مخمّن + نقاط للرسام · اختيار كلمة من 4 · تلميحات حروف · رسائل صوتية/صور/ملصقات · لوبي بجاهزية · نهاية بترتيب · لازم تنشر firestore.rules v215 · */ v214: (1) شاشة اختيار الكلمة كانت بتعلّق لأن المؤقّت مكانش بيشتغل غير أثناء الرسم — اتصلّح (2) تنبيه لو فيه لاعبين مش مستعدين قبل البدء (3) تحذير لو لاعب نسخته قديمة + زر تحديث فوري (4) ملصقات: قاعدة آمنة بدل regex (5) ملخّص «جاهزين X من Y» في اللوبي · v213: ارسم وخمّن — (1) الملصقات المخصصة والمرسومة كانت بتترفض من قواعد Firestore (مطابقة regex غلط) · (2) تصحيح التخمينات مبقاش بيفوّت تخمين لو وصل وقت ما الرسام بيصحّح غيره + تجاهل تخمينات الجولات القديمة · (3) الرسم اللحظي: استماع بالدور فقط + الخط مبيختفيش لحظة الإرسال + مقاس الكانفاس بيتظبط تلقائيًا · (4) الكتابة في الشات مبتضيعش مع إعادة رسم الشاشة · (5) لو الرسام خرج وسط الدور الجولة بتتكشف تلقائيًا · (6) زر ابدأ محمي من الضغط المزدوج · (7) رسائل خطأ واضحة بدل «فشل» · (8) أزرار الإيموجي/المايك لم تعد تتكرر عند المخمّن · (9) حذف رسائل الغرف المنتهية (ساعة) من السيرفر · v212: إصلاح جذري للرسم (Nested arrays → strokes subcollection لحظي) · توقيت موحّد · انضمام/خروج بدون سباق · ملصقات مخصصة أخف وآمنة · رسائل الشات تتحذف بعد ساعة (expireAt) · v211: إصلاح «dgRoom is not defined» (كان بيكسر إرسال الملصقات والملصقات المخصصة والمايك) + إصلاح N (الاهتزاز) · الرد على رسالة بقى مسموح في القواعد · ملصق من صورة الفون (من المعرض/الكاميرا) مع إمكانية الرسم فوقها · حدود أكبر: ملصقاتي 50، لاعبين لحد 40، جولات لحد 30، وقت الرسم لحد 300 ث، شات 100 رسالة، رسالة صوتية 90 ث · v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -2121,227 +2120,104 @@ html.lite .card,html.lite .dlg,html.lite .btn.ghost{
 .dg214-warn{margin:8px 0;padding:10px 14px;border-radius:14px;background:color-mix(in srgb,#f59e0b 16%,var(--card));border:1px solid color-mix(in srgb,#f59e0b 50%,var(--line));font-size:13px;line-height:1.7;text-align:center}
 </style>
 <style id="vidFeedCss">
-/* ===== مشغّل فيديوهات — 5 براويز إضاءة فائقة ===== */
+/* مشغّل فيديوهات احترافي — براويز فخمة سطوع عالي جدًا */
+.vid-feed{min-height:70vh}
 .vid-feed .vid-h{margin:8px 0 14px;font-size:22px;text-align:center;letter-spacing:.5px}
-.vid-list{display:flex;flex-direction:column;gap:40px;padding:10px 6px 52px;scroll-snap-type:y proximity}
-.vid-card{background:transparent;border:none;overflow:visible;scroll-snap-align:start;scroll-margin-top:14px;opacity:.48;transform:scale(.975);transition:opacity .3s,transform .3s;position:relative}
-.vid-card.is-active{opacity:1;transform:scale(1)}
-.vid-frame{
-  position:relative;background:#000;aspect-ratio:16/10;max-height:62vh;
-  border-radius:18px;overflow:hidden;isolation:isolate;
-  box-shadow:0 12px 40px rgba(0,0,0,.6);
-}
-.vid-el{width:100%;height:100%;object-fit:contain;display:block;background:#000;border-radius:inherit;position:relative;z-index:1}
-.vid-mute-tip{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:700;z-index:5;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.vid-reconnect{position:absolute;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);color:#fff;font-weight:700;font-size:14px;pointer-events:none;opacity:0;transition:opacity .25s;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
-.vid-reconnect.on{opacity:1}
-.vid-meta{position:absolute;left:12px;right:12px;bottom:12px;z-index:4;pointer-events:none;opacity:0;transition:opacity .25s}
-.vid-card.is-active .vid-meta{opacity:1}
-.vid-meta b{display:block;color:#fff;font-size:14px;text-shadow:0 2px 12px #000;margin-bottom:2px}
-.vid-meta span{color:rgba(255,255,255,.88);font-size:12px;text-shadow:0 1px 8px #000}
-
-.vid-frame::before,.vid-frame::after{content:"";position:absolute;pointer-events:none;z-index:2;border-radius:24px;opacity:0;transition:opacity .3s}
-.vid-card.is-active .vid-frame::before,.vid-card.is-active .vid-frame::after{opacity:1}
-
-/* 1 GOLD — سطوع أقصى */
-.vid-frame.f-gold{
-  border:3px solid #fde68a;
-  box-shadow:
-    0 0 0 2px #fbbf24,
-    0 0 12px 2px #fbbf24,
-    0 0 28px 8px rgba(251,191,36,1),
-    0 0 55px 18px rgba(245,158,11,.95),
-    0 0 100px 28px rgba(251,191,36,.65),
-    0 0 140px 40px rgba(253,230,138,.35),
-    0 14px 44px rgba(0,0,0,.55);
-}
-.vid-frame.f-gold::before{
-  inset:-14px;z-index:0;
-  background:radial-gradient(ellipse at 50% 40%,#fff 0%,#fde68a 18%,#fbbf24 40%,transparent 68%);
-  filter:blur(16px) brightness(2.4);opacity:1;animation:vidPulse 1.6s ease-in-out infinite;
-}
-.vid-frame.f-gold::after{
-  inset:0;border-radius:18px;z-index:2;
-  box-shadow:inset 0 0 0 2px rgba(255,255,255,.85),inset 0 0 36px rgba(251,191,36,.5);
-}
-
-/* 2 ENERGY — أزرق+ذهبي من الصورة، سطوع عالي */
-.vid-frame.f-energy{
-  border:3px solid transparent;
-  background:linear-gradient(#000,#000) padding-box,linear-gradient(135deg,#67e8f9,#fde68a,#38bdf8,#fbbf24,#22d3ee,#fde68a) border-box;
-  box-shadow:
-    0 0 0 2px #38bdf8,
-    0 0 14px 3px rgba(56,189,248,1),
-    0 0 32px 10px rgba(251,191,36,1),
-    0 0 60px 20px rgba(56,189,248,.85),
-    0 0 110px 32px rgba(251,191,36,.55),
-    0 14px 44px rgba(0,0,0,.55);
-}
-.vid-frame.f-energy::before{
-  inset:-12px;z-index:0;border-radius:26px;
-  background:conic-gradient(from 0deg,#67e8f9,#fde68a,#38bdf8,#fbbf24,#22d3ee,#fde68a,#67e8f9);
-  filter:blur(18px) brightness(2.35) saturate(1.8);opacity:.95;animation:vidSpin 5s linear infinite;
-}
-.vid-frame.f-energy::after{
-  inset:0;border-radius:18px;z-index:2;
-  box-shadow:inset 0 0 0 2px rgba(255,255,255,.7),inset 0 0 28px rgba(56,189,248,.4),0 0 36px 10px rgba(251,191,36,.7);
-  animation:vidPulse 2s ease-in-out infinite;
-}
-
-/* 3 NEON — نيون ساطع جدًا */
-.vid-frame.f-neon{
-  border:3px solid #f0abfc;
-  box-shadow:
-    0 0 0 2px #e879f9,
-    0 0 14px 3px rgba(232,121,249,1),
-    0 0 32px 10px rgba(168,85,247,1),
-    0 0 60px 18px rgba(236,72,153,.9),
-    0 0 110px 30px rgba(232,121,249,.5),
-    0 14px 44px rgba(0,0,0,.55);
-}
-.vid-frame.f-neon::before{
-  inset:-13px;z-index:0;border-radius:26px;
-  background:conic-gradient(from 90deg,#f0abfc,#a855f7,#ec4899,#e879f9,#c026d3,#f0abfc);
-  filter:blur(17px) brightness(2.35) saturate(1.7);opacity:.95;animation:vidSpin 4.5s linear infinite reverse;
-}
-.vid-frame.f-neon::after{
-  inset:0;border-radius:18px;z-index:2;
-  box-shadow:inset 0 0 0 2px rgba(255,255,255,.65),0 0 40px 12px rgba(232,121,249,.7);
-  animation:vidPulse 1.8s ease-in-out infinite;
-}
-
-/* 4 ICE — جليد أبيض/أزرق ساطع (بدل سايبر) */
-.vid-frame.f-ice{
-  border:3px solid #f0f9ff;
-  box-shadow:
-    0 0 0 2px #e0f2fe,
-    0 0 14px 3px rgba(255,255,255,1),
-    0 0 30px 10px rgba(186,230,253,1),
-    0 0 58px 18px rgba(125,211,252,.95),
-    0 0 105px 28px rgba(255,255,255,.55),
-    0 0 140px 36px rgba(186,230,253,.35),
-    0 14px 44px rgba(0,0,0,.5);
-}
-.vid-frame.f-ice::before{
-  inset:-14px;z-index:0;border-radius:26px;
-  background:radial-gradient(ellipse at 50% 35%,#fff 0%,#e0f2fe 22%,#7dd3fc 48%,transparent 70%);
-  filter:blur(16px) brightness(2.5);opacity:1;animation:vidPulse 1.7s ease-in-out infinite;
-}
-.vid-frame.f-ice::after{
-  inset:0;border-radius:18px;z-index:2;
-  box-shadow:inset 0 0 0 2px rgba(255,255,255,.95),inset 0 0 32px rgba(186,230,253,.55),0 0 36px 10px rgba(255,255,255,.55);
-}
-
-/* 5 FIRE — نار ساطعة */
-.vid-frame.f-fire{
-  border:3px solid #fdba74;
-  box-shadow:
-    0 0 0 2px #fb923c,
-    0 0 14px 3px rgba(251,146,60,1),
-    0 0 32px 10px rgba(239,68,68,1),
-    0 0 60px 18px rgba(251,146,60,.9),
-    0 0 110px 30px rgba(239,68,68,.5),
-    0 14px 44px rgba(0,0,0,.55);
-}
-.vid-frame.f-fire::before{
-  inset:-13px;z-index:0;border-radius:26px;
-  background:conic-gradient(from 180deg,#fdba74,#ef4444,#f97316,#fde68a,#fb923c,#fdba74);
-  filter:blur(17px) brightness(2.4) saturate(1.6);opacity:.95;animation:vidSpin 4s linear infinite;
-}
-.vid-frame.f-fire::after{
-  inset:0;border-radius:18px;z-index:2;
-  box-shadow:inset 0 0 0 2px rgba(255,255,255,.7),0 0 40px 12px rgba(251,146,60,.7);
-  animation:vidPulse 1.7s ease-in-out infinite;
-}
-
+.vid-list{display:flex;flex-direction:column;gap:36px;padding:6px 0 48px;scroll-snap-type:y proximity}
+.vid-card{background:transparent;border-radius:24px;overflow:visible;scroll-snap-align:start;scroll-margin-top:14px;opacity:.58;transform:scale(.97);transition:opacity .35s,transform .4s cubic-bezier(.22,1,.36,1);position:relative;isolation:isolate}
+.vid-card.is-active{opacity:1;transform:scale(1);z-index:3}
+.vid-frame-wrap{position:relative;padding:5px;border-radius:22px}
+.vid-frame-wrap::before,.vid-frame-wrap::after{content:"";position:absolute;inset:-4px;border-radius:26px;pointer-events:none;z-index:0}
+.vid-frame{position:relative;background:#000;aspect-ratio:16/10;max-height:64vh;border-radius:18px;overflow:hidden;z-index:1}
+.vid-el{width:100%;height:100%;object-fit:contain;display:block;background:#000}
+.vid-mute-tip{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;border-radius:999px;padding:9px 16px;font-size:13px;font-weight:700;z-index:5;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 6px 24px rgba(0,0,0,.55)}
+.vid-load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);z-index:4;opacity:0;pointer-events:none;transition:opacity .25s}
+.vid-card.is-loading .vid-load{opacity:1}
+.vid-load i{width:44px;height:44px;border:3px solid rgba(255,255,255,.18);border-top-color:#fff;border-radius:50%;animation:vidSpin .65s linear infinite}
 @keyframes vidSpin{to{transform:rotate(360deg)}}
-@keyframes vidPulse{
-  0%,100%{filter:brightness(1.15) saturate(1.3);opacity:.92}
-  50%{filter:brightness(1.55) saturate(1.65);opacity:1}
+.vid-progress{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.12);z-index:3}
+.vid-progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#fff,#fbbf24);border-radius:0 2px 2px 0}
+.vid-err{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:rgba(0,0,0,.78);z-index:6;color:#fff;font-size:14px;text-align:center;padding:16px}
+.vid-card.is-error .vid-err{display:flex}
+.vid-fail{text-align:center;padding:48px 18px;max-width:360px;margin:40px auto}
+.vid-fail .ic{font-size:52px;line-height:1;margin-bottom:12px;filter:drop-shadow(0 0 18px rgba(0,200,255,.45))}
+.vid-fail b{display:block;font-size:18px;margin-bottom:6px}
+.vid-fail .mut{margin-bottom:16px;line-height:1.7}
+
+/* 1 Neon أزرق/ذهبي — من الصورة، سطوع فائق */
+.vf-neon .vid-frame-wrap{background:linear-gradient(135deg,#061428,#12081c)}
+.vf-neon .vid-frame-wrap::before{
+  background:linear-gradient(135deg,#00f0ff,#3b82f6 28%,#fbbf24 55%,#ff9f0a 78%,#00e5ff);
+  box-shadow:0 0 12px 3px #00f0ff,0 0 36px 10px rgba(0,240,255,.95),0 0 70px 22px rgba(59,130,246,.8),0 0 110px 34px rgba(251,191,36,.65),0 0 160px 48px rgba(255,159,10,.4);
+  filter:brightness(1.65) saturate(1.55);animation:vfPulse 2s ease-in-out infinite
 }
+.vf-neon .vid-frame-wrap::after{
+  inset:-12px;border-radius:32px;
+  background:radial-gradient(ellipse at 18% 12%,rgba(0,240,255,.7),transparent 42%),radial-gradient(ellipse at 82% 88%,rgba(251,191,36,.65),transparent 42%);
+  filter:blur(16px);opacity:1;animation:vfGlowShift 4s ease-in-out infinite alternate
+}
+.vf-neon.is-active .vid-frame-wrap::before{filter:brightness(1.9) saturate(1.7)}
+.vf-neon .vf-stars{position:absolute;inset:-16px;pointer-events:none;z-index:3}
+.vf-neon .vf-stars span{position:absolute;width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 10px 3px #00e5ff,0 0 20px 6px rgba(251,191,36,.9);animation:vfStar 2.6s ease-in-out infinite}
+.vf-neon .vf-stars span:nth-child(1){top:6%;left:10%}
+.vf-neon .vf-stars span:nth-child(2){top:14%;right:8%;background:#fbbf24;animation-delay:.35s}
+.vf-neon .vf-stars span:nth-child(3){bottom:10%;left:16%;animation-delay:.7s}
+.vf-neon .vf-stars span:nth-child(4){bottom:18%;right:12%;background:#fbbf24;animation-delay:1.1s}
+.vf-neon .vf-stars span:nth-child(5){top:42%;left:1%;animation-delay:.5s}
+.vf-neon .vf-stars span:nth-child(6){top:55%;right:2%;background:#67e8f9;animation-delay:1.4s}
 
-.vid-frame-picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;margin-top:10px}
-.vid-frame-opt{position:relative;aspect-ratio:16/10;border-radius:12px;overflow:hidden;cursor:pointer;border:2px solid transparent;background:#0a0a12;transition:border-color .2s,transform .2s,box-shadow .2s}
-.vid-frame-opt:hover{transform:translateY(-2px)}
-.vid-frame-opt.on{border-color:var(--pri);box-shadow:0 0 0 2px color-mix(in srgb,var(--pri) 45%,transparent)}
-.vid-frame-opt span{position:absolute;inset:0;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;text-shadow:0 1px 5px #000;z-index:2;background:rgba(0,0,0,.28)}
-.vid-frame-opt[data-f="gold"]{box-shadow:0 0 18px 5px rgba(251,191,36,1);border-color:#fbbf24}
-.vid-frame-opt[data-f="energy"]{box-shadow:0 0 16px 4px rgba(56,189,248,.9),0 0 28px 8px rgba(251,191,36,.7);border-color:#38bdf8}
-.vid-frame-opt[data-f="neon"]{box-shadow:0 0 18px 5px rgba(232,121,249,1);border-color:#e879f9}
-.vid-frame-opt[data-f="ice"]{box-shadow:0 0 18px 5px rgba(255,255,255,.95),0 0 28px 8px rgba(186,230,253,.85);border-color:#e0f2fe}
-.vid-frame-opt[data-f="fire"]{box-shadow:0 0 18px 5px rgba(251,146,60,1);border-color:#fb923c}
-@media (prefers-reduced-motion:reduce){.vid-frame::before,.vid-frame::after{animation:none!important}}
-.vid-focus-top{padding:10px 14px 4px}
-.vid-focus-title{font-family:'Reem Kufi',sans-serif;font-size:20px;font-weight:700;color:var(--ink);letter-spacing:.3px;line-height:1.35;max-width:78vw}
-.vid-focus-mode{padding-bottom:28px}
-body.vid-focus-body #credit{display:none!important}
-body.vid-focus-body nav.bot{display:none!important}
+/* 2 Gold ملكي */
+.vf-gold .vid-frame-wrap{background:#1a1004}
+.vf-gold .vid-frame-wrap::before{
+  background:linear-gradient(135deg,#fff1a8,#ffd700 30%,#f5b800 55%,#ffe566 80%,#fff8d0);
+  box-shadow:0 0 14px 4px #ffd700,0 0 40px 14px rgba(255,215,0,.95),0 0 80px 28px rgba(245,184,0,.75),0 0 130px 40px rgba(255,230,100,.45);
+  filter:brightness(1.7) saturate(1.4);animation:vfPulse 1.9s ease-in-out infinite
+}
+.vf-gold .vid-frame-wrap::after{inset:-14px;border-radius:34px;background:radial-gradient(circle at 50% 0%,rgba(255,240,150,.75),transparent 55%);filter:blur(18px);opacity:.95}
+.vf-gold.is-active .vid-frame-wrap::before{filter:brightness(2) saturate(1.55)}
 
-body.vid-focus-body nav.bot,
-body.vid-focus-body .bot,
-.vid-focus-mode ~ nav.bot{display:none!important;height:0!important;overflow:hidden!important;opacity:0!important;pointer-events:none!important}
-body.vid-focus-body #credit,
-body.vid-focus-body #verBadge{display:none!important}
+/* 3 Cyber */
+.vf-cyber .vid-frame-wrap{background:#0a0418}
+.vf-cyber .vid-frame-wrap::before{
+  background:linear-gradient(120deg,#f0abfc,#c026d3 28%,#22d3ee 58%,#67e8f9);
+  box-shadow:0 0 14px 4px #e879f9,0 0 42px 14px rgba(232,121,249,.95),0 0 80px 28px rgba(168,85,247,.8),0 0 130px 42px rgba(34,211,238,.55);
+  filter:brightness(1.7) saturate(1.6);animation:vfPulse 1.7s ease-in-out infinite
+}
+.vf-cyber .vid-frame-wrap::after{inset:-12px;background:radial-gradient(ellipse at 12% 18%,rgba(240,171,252,.7),transparent 48%),radial-gradient(ellipse at 88% 82%,rgba(34,211,238,.65),transparent 48%);filter:blur(16px);opacity:.95}
 
-.vid-secret-hit{position:fixed;top:0;left:0;width:56px;height:56px;z-index:40;opacity:0;pointer-events:auto}
-.vid-focus-title{cursor:default;-webkit-user-select:none;user-select:none}
+/* 4 Fire */
+.vf-fire .vid-frame-wrap{background:#1a0604}
+.vf-fire .vid-frame-wrap::before{
+  background:linear-gradient(135deg,#ff7a45,#ff2d00 28%,#ff9500 55%,#ffd000 78%,#ff6b35);
+  box-shadow:0 0 16px 5px #ff4500,0 0 44px 16px rgba(255,69,0,.95),0 0 85px 30px rgba(255,140,0,.8),0 0 140px 44px rgba(255,200,0,.5);
+  filter:brightness(1.75) saturate(1.55);animation:vfFirePulse 1.5s ease-in-out infinite
+}
+.vf-fire .vid-frame-wrap::after{inset:-14px;background:radial-gradient(ellipse at 50% 100%,rgba(255,80,0,.7),transparent 52%);filter:blur(18px);opacity:.95}
 
-.vid-focus-mode{min-height:100vh;padding-bottom:28px!important}
-.vid-focus-mode .vid-card{opacity:1}
+/* 5 Aurora */
+.vf-aurora .vid-frame-wrap{background:#03140f}
+.vf-aurora .vid-frame-wrap::before{
+  background:linear-gradient(135deg,#4ade80,#14b8a6 22%,#2dd4bf 45%,#818cf8 68%,#e879f9);
+  box-shadow:0 0 14px 4px #34d399,0 0 40px 14px rgba(52,211,153,.95),0 0 80px 28px rgba(45,212,191,.75),0 0 130px 40px rgba(129,140,248,.5);
+  filter:brightness(1.7) saturate(1.5);animation:vfPulse 2.2s ease-in-out infinite
+}
+.vf-aurora .vid-frame-wrap::after{inset:-12px;background:radial-gradient(ellipse at 22% 28%,rgba(52,211,153,.65),transparent 48%),radial-gradient(ellipse at 78% 72%,rgba(129,140,248,.55),transparent 48%);filter:blur(15px);opacity:.92}
 
-</style>
-<style id="vx233">
-/* v233 — قسم الفيديوهات (ريلز) */
-.vx{position:fixed;inset:0;bottom:var(--vx-b,0);z-index:30;background:#05060b;color:#fff;direction:rtl;overflow:hidden}
-.vx:not(.vx-focus){--vx-b:calc(76px + env(safe-area-inset-bottom,0px))}
-.vx-feed{height:100%;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.vx-feed::-webkit-scrollbar{display:none}
-.vx-item{position:relative;height:100%;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden;background:radial-gradient(80% 50% at 50% 0%,color-mix(in srgb,var(--c1,#7c5cff) 28%,transparent),transparent 70%),#07080f}
-.vx-bg{position:absolute;inset:-30px;background-size:cover;background-position:center;filter:blur(30px) brightness(.45) saturate(1.4);transform:scale(1.1);opacity:.9}
-.vx-stage{position:absolute;top:calc(58px + env(safe-area-inset-top,0px));bottom:62px;left:50%;transform:translateX(-50%);width:min(calc(100% - 20px),520px);border-radius:22px;overflow:hidden;background:#000;box-shadow:0 18px 50px rgba(0,0,0,.6);cursor:pointer;-webkit-tap-highlight-color:transparent}
-.vx-v{width:100%;height:100%;object-fit:contain;display:block;background:#000}
-.vx-ring{position:absolute;inset:0;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--c1) 35%,transparent);transition:box-shadow .35s}
-.vx-item.is-active .vx-ring{box-shadow:inset 0 0 0 2px var(--c1),inset 0 0 34px -6px var(--c2);animation:vxGlow 2.6s ease-in-out infinite}
-@keyframes vxGlow{50%{box-shadow:inset 0 0 0 2px var(--c2),inset 0 0 46px -4px var(--c1)}}
-.vx-center{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
-.vx-center i{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:30px;background:rgba(0,0,0,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;transform:scale(.7)}
-.vx-center.on i{animation:vxPop .7s ease-out}
-@keyframes vxPop{0%{opacity:0;transform:scale(.6)}25%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.15)}}
-.vx-item.is-paused:not(.is-fail) .vx-center i{opacity:.95;transform:scale(1);animation:none}
-.vx-wait{position:absolute;inset:0;display:none;place-items:center;pointer-events:none}.vx-wait.on{display:grid}
-.vx-spin{width:38px;height:38px;border-radius:50%;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;animation:vxSp .8s linear infinite}
-@keyframes vxSp{to{transform:rotate(360deg)}}
-.vx-fail{position:absolute;inset:0;display:none;flex-direction:column;gap:12px;align-items:center;justify-content:center;background:rgba(0,0,0,.72);font-weight:700}
-.vx-item.is-fail .vx-fail{display:flex}
-.vx-fail button,.vx-retry{border:0;border-radius:14px;padding:10px 18px;font:inherit;font-weight:800;color:#111;background:linear-gradient(135deg,#fbbf24,#f59e0b);cursor:pointer}
-.vx-top{position:absolute;z-index:6;top:0;inset-inline:0;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 22px;background:linear-gradient(#000a,transparent);pointer-events:none}
-.vx-top>*{pointer-events:auto}
-.vx-title{flex:1;font-family:'Reem Kufi',sans-serif;font-size:20px;font-weight:700;letter-spacing:.3px;text-shadow:0 2px 12px #000;-webkit-user-select:none;user-select:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.vx-count{font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-.vx-count:empty{display:none}
-.vx-btn{width:42px;height:42px;border-radius:50%;border:0;display:grid;place-items:center;font-size:20px;color:#fff;background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);cursor:pointer;font-family:inherit}
-.vx-info{position:absolute;z-index:4;inset-inline:calc(50% - min(calc(50% - 10px),260px) + 14px);bottom:78px;display:flex;flex-direction:column;gap:4px;pointer-events:none;text-shadow:0 2px 14px #000}
-.vx-info b{font-size:16px;line-height:1.4}.vx-info span{font-size:13px;opacity:.9;line-height:1.5;max-height:4.5em;overflow:hidden}
-.vx-badge{align-self:flex-start;font-style:normal;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;color:#241800;background:linear-gradient(135deg,var(--c1),var(--c2));text-shadow:none}
-.vx-side{position:absolute;z-index:5;inset-inline-end:calc(50% - min(calc(50% - 10px),260px) + 12px);bottom:calc(62px + 120px);display:flex;flex-direction:column;gap:12px}
-.vx-snd.pulse{animation:vxPulse 1.6s ease-in-out infinite}
-@keyframes vxPulse{50%{box-shadow:0 0 0 8px rgba(255,255,255,.14)}}
-.vx-bar{position:absolute;z-index:5;left:50%;transform:translateX(-50%);width:min(calc(100% - 44px),480px);bottom:26px;height:22px;display:flex;align-items:center;cursor:pointer}
-.vx-bar::before{content:"";position:absolute;inset-inline:0;height:4px;border-radius:4px;background:rgba(255,255,255,.22)}
-.vx-bar i{position:relative;display:block;height:4px;width:0;border-radius:4px;background:linear-gradient(90deg,var(--c2),var(--c1));margin-inline-end:auto}
-.vx-time{position:absolute;inset-inline-end:0;top:14px;font-size:10px;opacity:.75;text-decoration:none;font-variant-numeric:tabular-nums}
-.vx-hint{position:absolute;z-index:4;bottom:4px;inset-inline:0;text-align:center;font-size:11px;opacity:0;pointer-events:none}
-.vx-item:first-child.is-active .vx-hint{animation:vxHint 4.5s ease .6s both}
-@keyframes vxHint{0%,100%{opacity:0}15%,70%{opacity:.7}}
-.vx-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px}
-.vx-state b{font-size:18px}.vx-state span{opacity:.7;font-size:14px}.vx-ico{font-size:52px}
-@media (prefers-reduced-motion:reduce){.vx-item.is-active .vx-ring,.vx-snd.pulse{animation:none}}
-body.vid-focus-body .vx-top .vx-btn{display:none}
-.vx-count,.vx-time{direction:ltr;unicode-bidi:isolate}
-.vx-bar{direction:ltr}
-.vx-time{inset-inline-end:auto;right:0}
-.vx-stage::after{content:"";position:absolute;inset:auto 0 0 0;height:46%;background:linear-gradient(transparent,rgba(0,0,0,.78));pointer-events:none;z-index:2}
-.vx-ring,.vx-center,.vx-wait,.vx-fail{z-index:3}
+/* 6 Ice */
+.vf-ice .vid-frame-wrap{background:#050c16}
+.vf-ice .vid-frame-wrap::before{
+  background:linear-gradient(135deg,#f0f9ff,#7dd3fc 28%,#38bdf8 52%,#a5f3fc 75%,#ffffff);
+  box-shadow:0 0 16px 5px #e0f2fe,0 0 44px 16px rgba(224,242,254,1),0 0 85px 30px rgba(56,189,248,.85),0 0 140px 48px rgba(165,243,252,.55);
+  filter:brightness(1.85) saturate(1.25);animation:vfPulse 1.85s ease-in-out infinite
+}
+.vf-ice .vid-frame-wrap::after{inset:-15px;background:radial-gradient(circle at 50% 35%,rgba(240,249,255,.75),transparent 55%);filter:blur(18px);opacity:.95}
+
+@keyframes vfPulse{0%,100%{opacity:1;filter:brightness(1.55) saturate(1.4)}50%{opacity:.94;filter:brightness(1.95) saturate(1.65)}}
+@keyframes vfGlowShift{0%{opacity:.8;transform:scale(1)}100%{opacity:1;transform:scale(1.04)}}
+@keyframes vfFirePulse{0%,100%{filter:brightness(1.55) saturate(1.4)}40%{filter:brightness(2) saturate(1.65)}70%{filter:brightness(1.75) saturate(1.5)}}
+@keyframes vfStar{0%,100%{opacity:.25;transform:scale(.5)}50%{opacity:1;transform:scale(1.5)}}
+html.lite .vid-frame-wrap::before,html.lite .vid-frame-wrap::after,html.lite .vf-stars{animation:none!important;filter:brightness(1.2)!important}
+@media (prefers-reduced-motion:reduce){.vid-frame-wrap::before,.vid-frame-wrap::after,.vf-stars span{animation:none!important}}
 </style>
 </head>
 <body>
@@ -2615,8 +2491,7 @@ const S = {asms:[],asm:null,editingAsm:null,logins:{},sq:"",starts:[],examsLoade
   qb:null,qbSub:null,qbChatSub:null,qbChat:[],board:[],notifs:[],unreadNotif:0,activity:[],activityLoaded:false,
   fadaye7:[],suspicious:[],adminRooms:[],adminConvs:[]};
 // زيارة تانية: مفيش انتظار. أول زيارة: 200ms بس
-let splashUntil=Date.now()+2100;
-try{if(localStorage.getItem("videos_only_fast")==="1")splashUntil=Date.now()+120}catch(_){}
+const splashUntil=Date.now()+2100;
 
 const vis=e=>!e.publishAt||Date.now()>=e.publishAt;
 const todayKey=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
@@ -3281,10 +3156,7 @@ async function startSession(u){
         }
       }catch(e){console.warn("publicProfile",e)}
       setTimeout(()=>{try{pkSync()}catch(_){}},1500);setTimeout(()=>{try{rvAuto()}catch(_){}},15000);
-      S.examsLoaded=false;
-      if(shouldVideosLanding()){S.view="videos";S._homeDone=1;try{vidLoad(true)}catch(_){}}
-      else S.view="home";
-      render(true);
+      S.view="home";S.examsLoaded=false;render(true);
       // رابط مباشر للغرفة: #room=CODE
       try{
         const h=(location.hash||"").replace(/^#/,"");
@@ -3419,23 +3291,8 @@ if(configured){
   onSnapshot(doc(db,"config","site"),s=>{
     const d=s.exists()?s.data():{};
     const was=S.site.maintenance;
-    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",aiProxy:d.aiProxy||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",pushUrl:d.pushUrl||"",resetPassUrl:d.resetPassUrl||"",booksUrl:d.booksUrl||"",proxyUrl:d.proxyUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0,appMode:d.appMode||"platform",modes:Array.isArray(d.modes)?d.modes:[],modesOff:Array.isArray(d.modesOff)?d.modesOff.filter(x=>typeof x==="string").slice(0,30):[],modeHome:(d.modeHome&&typeof d.modeHome==="object")?d.modeHome:{},lastBackupAt:d.lastBackupAt||null,lastBackupDocs:d.lastBackupDocs||0,videosTabName:(typeof d.videosTabName==="string"?d.videosTabName.slice(0,24):""),videosOnly:!!d.videosOnly,videosTitle:(typeof d.videosTitle==="string"?d.videosTitle.slice(0,60):"")};
+    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",aiProxy:d.aiProxy||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",pushUrl:d.pushUrl||"",resetPassUrl:d.resetPassUrl||"",booksUrl:d.booksUrl||"",proxyUrl:d.proxyUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0,appMode:d.appMode||"platform",modes:Array.isArray(d.modes)?d.modes:[],modesOff:Array.isArray(d.modesOff)?d.modesOff.filter(x=>typeof x==="string").slice(0,30):[],modeHome:(d.modeHome&&typeof d.modeHome==="object")?d.modeHome:{},lastBackupAt:d.lastBackupAt||null,lastBackupDocs:d.lastBackupDocs||0,videosTabName:(typeof d.videosTabName==="string"?d.videosTabName.slice(0,24):""),videosPublic:!!d.videosPublic};
     S.siteRaw=d;applyAiCfg();
-    try{localStorage.setItem("videos_only_fast",S.site.videosOnly?"1":"0")}catch(_){}
-    try{
-      try{if(/(?:[?&]__m=7(?:&|$)|#__m7)/.test(String(location.search||"")+String(location.hash||""))){S.adminLogin=true;S.view="auth";S.guestVideos=false}}catch(_){}
-      if(!S.user&&!(auth&&auth.currentUser)&&S.view==="videos"&&S.guestVideos&&!guestVideosAllowed()&&!shouldVideosLanding()){S.view="auth";S.guestVideos=false;render(true)}
-      if(shouldVideosLanding()||guestVideosAllowed()){
-        if(!S.user&&!(auth&&auth.currentUser)){
-          if(guestVideosAllowed()){S.view="videos";S.guestVideos=true;
-          try{vidLoad(true).then(()=>{if(!S.user)render(true)})}catch(_){}}
-        }else if(S.user&&!S.isAdmin){
-          S.view="videos";S._homeDone=1;
-          try{vidLoad(true).then(()=>render(true))}catch(_){render(true)}
-        }
-      }
-    }catch(_){}
-
     if(S.user&&!S.isAdmin)try{syncFeatureAvailability()}catch(_){}
     // تحديث جماعي غير قسري: لا نمسح كاش المستخدم ولا نعيد تحميل الصفحة تلقائيًا.
     try{
@@ -3464,7 +3321,7 @@ if(configured){
   window.__credAuto=async function(){
     if(window.__credTried||!window.PasswordCredential||!navigator.credentials||S.registering)return;window.__credTried=1;
     try{
-      let c=null;try{c=await navigator.credentials.get({password:true,mediation:"silent"})}catch(__cm){c=null}
+      const c=await navigator.credentials.get({password:true,mediation:"silent"});
       if(c&&c.id&&c.password&&!auth.currentUser){const e=c.id.includes("@");await signInWithEmailAndPassword(auth,e?c.id.toLowerCase():phoneClean(c.id)+DOMAIN,c.password)}
     }catch(_){}
   };
@@ -3490,16 +3347,11 @@ if(configured){
           // أول مرة null بعد الإقلاع = مش مسجّل؛ بعد كده null = خرج فعلًا
           stopSubs();try{musSubStop();musStop();S.admMenu=undefined}catch(_){}
           S.user=null;S.isAdmin=false;S.profile=null;S.myList=[];S.attempts={};
+          /* فيديوهات عامة بدون دخول */
+          S.view=(S.site&&S.site.videosPublic)?"videos":"auth";
           __authBoot=false;
-          if(guestVideosAllowed()||shouldVideosLanding()){
-            S.view="videos";if(guestVideosAllowed())S.guestVideos=true;
-            try{vidLoad(true).then(()=>{if(!S.user)render(true)})}catch(_){}
-            render(true);
-          }else{
-            S.view="auth";S.guestVideos=false;
-            render(true);
-            try{window.__credAuto&&window.__credAuto()}catch(_){}
-          }
+          render(true);
+          try{window.__credAuto&&window.__credAuto()}catch(_){}
         }
       }catch(e){
         console.error("auth run",e);
@@ -3518,8 +3370,7 @@ if(configured){
   // لو التحميل طول: متودّيش لشاشة الدخول لو في مستخدم
   setTimeout(function(){
     if(S.view==="loading"&&!S.user&&!(auth&&auth.currentUser)){
-      S.view=(guestVideosAllowed()||shouldVideosLanding())?"videos":"auth";
-      if(S.view==="videos"&&guestVideosAllowed())S.guestVideos=true;
+      S.view=(S.site&&S.site.videosPublic)?"videos":"auth";
       render(true);
     }
   },10000);
@@ -3607,19 +3458,15 @@ function render(force,soft){
     const privileged=!!S.isAdmin||!!S.role||(typeof isAsmManager==="function"&&isAsmManager());
     if(!privileged&&ADMIN_ONLY_VIEWS.has(S.view)){S.view=S.user?"home":"auth";S.tab="dash";S.adminLogin=false}
     if(S.user&&!S.isAdmin)S.adminLogin=false;
-    if(S.user&&!S.isAdmin&&shouldVideosLanding()&&S.view!=="videos"&&S.view!=="loading"&&S.view!=="auth"){
-      S.view="videos";
-    }
-  }catch(_){if(S.user&&!S.isAdmin){S.view=shouldVideosLanding()?"videos":"home";S.adminLogin=false}}
+  }catch(_){if(S.user&&!S.isAdmin){S.view="home";S.adminLogin=false}}
   let h;
   try{
   if(S.view==="loading")h=splash();
   else if(S.site.maintenance&&!S.isAdmin&&!S.adminLogin)h=maintenance();
   else if(!S.user){
-    if(S.adminLogin){h=authView()}
-    else if((guestVideosAllowed()||shouldVideosLanding())&&(S.view==="videos"||S.view==="loading"||S.view==="auth"||!S.view)){
-      S.view="videos";if(guestVideosAllowed())S.guestVideos=true;
-      h=typeof videosView==="function"?videosView():authView();
+    /* وضع/قسم الفيديوهات وحده: بدون شاشة دخول */
+    if(S.view==="videos"||(S.site&&S.site.videosPublic)||(typeof isVideosOnlyMode==="function"&&isVideosOnlyMode())){
+      try{h=videosView()}catch(ve){h=`<div class="wrap"><div class="card"><b>خطأ في الفيديوهات</b><p class="mut">${esc(String(ve&&ve.message||ve))}</p><button class="btn" data-act="videosReload">إعادة المحاولة</button></div></div>`}
     }else h=authView();
   }
   else if(S.isAdmin){
@@ -3672,10 +3519,9 @@ function render(force,soft){
   try{
     let cr=document.getElementById("credit");
     if(!cr){cr=document.createElement("div");cr.id="credit";cr.innerHTML=`<div><b>بواسطة المبرمج مورا 么</b></div><div class="cr-sub">للتواصل:</div><div class="cr-links"><a href="https://wa.me/201013905431" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="#25D366"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.2 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.2-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.8-.1 1.4z"/></svg> واتساب 01013905431</a><a href="https://t.me/T_YAXC" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="#2AABEE"><path d="M21.9 4.3 2.6 11.7c-1 .4-1 1.1-.2 1.3l4.9 1.5 1.9 5.8c.2.6.4.8.8.8s.6-.2.9-.5l2.4-2.3 4.9 3.6c.9.5 1.5.2 1.8-.8l3.2-15.1c.3-1.3-.5-1.900-1.300-1.700zM9.200 13.800l9.100-5.700c.4-.3.800-.1.500.2l-7.500 6.800-.3 3.200-1.800-4.500z"/></svg> تلجرام T_YAXC</a></div>`;app.insertAdjacentElement("afterend",cr)}
-    const noCr=["loading","exam","chatThread","groupThread","ai","qbPlay"].includes(S.view)||(typeof isVideosFocus==="function"&&isVideosFocus()&&!S.isAdmin)||(S.view==="videos"&&typeof isVideosFocus==="function"&&isVideosFocus());
+    const noCr=["loading","exam","chatThread","groupThread","ai","qbPlay"].includes(S.view);
     cr.style.display=noCr?"none":"";document.body.classList.toggle("has-credit",!noCr);
     cr.classList.toggle("nav",!!S.user&&!S.isAdmin&&!noCr&&!(typeof isAsmManager==="function"&&S.view==="asmAdmin"));
-    try{document.body.classList.toggle("vid-focus-body",(!S.isAdmin&&typeof isVideosFocus==="function"&&isVideosFocus())||!!S.guestVideos)}catch(_){}
   }catch(_){}
   let __chatKeepTop=0;
   try{if(S.view==="chatThread"||S.view==="groupThread"){const __ck=chatLogEl();if(__ck)__chatKeepTop=__ck.scrollTop}}catch(_){}
@@ -3686,7 +3532,7 @@ function render(force,soft){
   if(soft&&!__newView&&typeof h==="string"&&h&&window.__lastHtml===h&&app.firstChild){window.__renderSkipped=(window.__renderSkipped||0)+1;return}
   window.__lastHtml=(typeof h==="string")?h:"";
   app.innerHTML=h||`<div class="wrap"><div class="card empty"><div class="ei">⏳</div><b>لحظة…</b><div class="mut" style="margin:8px 0 12px">بنجهّز الصفحة</div><button class="btn" data-act="home">الرئيسية</button></div></div>`;
-  if(!h&&!window.__emptyFix){window.__emptyFix=1;setTimeout(()=>{window.__emptyFix=0;try{if(!S.user){S.view=(guestVideosAllowed()||shouldVideosLanding())?"videos":"auth";if(S.view==="videos"&&guestVideosAllowed())S.guestVideos=true}else if(!S.view||S.view==="loading"){S.view="home"}render(true)}catch(_){}},1200)}
+  if(!h&&!window.__emptyFix){window.__emptyFix=1;setTimeout(()=>{window.__emptyFix=0;try{if(!S.user){S.view="auth"}else if(!S.view||S.view==="loading"){S.view="home"}render(true)}catch(_){}},1200)}
   if(__aeId){const el=document.getElementById(__aeId);if(el){if(__aeVal!=null&&"value" in el)el.value=__aeVal;el.focus();if(__aePos!=null)try{el.setSelectionRange(__aePos,__aePos)}catch(_){}}}
   if(__sy>0){try{window.scrollTo(0,__sy)}catch(_){}}
   if(__inner.length){try{const __all=app.querySelectorAll("div,section,ul,table,pre");__inner.forEach(([i,t])=>{const el=__all[i];if(el)el.scrollTop=t})}catch(_){}}
@@ -3731,50 +3577,16 @@ const logo=`<div class="logo"><img class="logo-mark" src="mark.png" alt="" width
 const aiBtn=()=>S.user?`<button type="button" class="tg tg-icon" data-act="openAI" aria-label="么" title="مساعد 么">🤖</button>`:"";
 const boostBtn=()=>S.user?`<button type="button" class="tg tg-icon tg-lbl" data-act="speedBoost" aria-label="تسريع المنصة للهواتف الضعيفة" title="تسريع المنصة للهواتف الضعيفة"><span>⚡</span><small>للهواتف<br>الضعيفة</small></button>`:"";
 const findBtn=()=>(S.user&&!S.isAdmin)?`<button type="button" class="tg tg-icon hdr-s" data-act="openSearch" aria-label="بحث" title="بحث عن زميل">🔍</button>`:"";
-const header=(extra)=>{
-  if(typeof isVideosFocus==="function"&&isVideosFocus()&&!S.isAdmin){
-    const tit=typeof videosPageTitle==="function"?videosPageTitle():"";
-    return `<div class="top vid-focus-top"><div class="hdr-r"><div class="vid-focus-title" data-act="secretStaffGate" title="">${esc(tit||videosTabName())}</div><span class="vid-secret-hit" data-act="secretStaffGate" aria-hidden="true"></span></div><div class="row hdr-l">${extra||""}</div></div>`;
-  }
-  return `<div class="top"><div class="hdr-r">${logo}${aiBtn()}${boostBtn()}${themeBtn()}${findBtn()}</div><div class="row hdr-l">${extra||""}</div></div>`;
-};
+const header=(extra)=>`<div class="top"><div class="hdr-r">${logo}${aiBtn()}${boostBtn()}${themeBtn()}${findBtn()}</div><div class="row hdr-l">${extra||""}</div></div>`;
 const NOHDR="<span></span>";
 const videosTabName=()=>((S.site&&S.site.videosTabName)||"❤️‍🔥🔪");
-const videosPageTitle=()=>{const t=(S.site&&S.site.videosTitle)||"";return String(t).trim().slice(0,60)};
-/* وضع فيديوهات فقط: إما إعداد يدوي، أو الفيديوهات مفتوحة وباقي الأقسام الأساسية مقفولة */
-function isVideosFocus(){
-  try{
-    if(S.isAdmin)return false;
-    if(S.siteRaw){if(S.site&&S.site.videosOnly)return true}else if(vxFast())return true;
-    if(!featOn("videos"))return false;
-    const core=["subjects","chat","games","life","progress","me","books","asms","fadaye7","tanagha","ai","calls","focus","notes","search","board","songs"];
-    return core.every(k=>!featState(k));
-  }catch(_){return false}
-}
-/* v233: قبل ما إعدادات الموقع توصل من السيرفر بنعتمد على آخر قيمة محفوظة — فالرابط يفتح الفيديوهات علطول من غير ما تظهر صفحة تسجيل الدخول لحظة */
-function vxFast(){try{return localStorage.getItem("videos_only_fast")==="1"}catch(_){return false}}
-function guestVideosAllowed(){
-  try{if(S.siteRaw)return !!(S.site&&S.site.videosOnly);return vxFast()}catch(_){return false}
-}
-/* هبوط تلقائي على الفيديوهات: وضع يدوي أو الفيديوهات مفتوحة وباقي الأساسيات مقفولة */
-function shouldVideosLanding(){
-  try{
-    if(S.isAdmin)return false;
-    if(S.adminLogin)return false;
-    if(guestVideosAllowed())return true;
-    if(typeof isVideosFocus==="function"&&isVideosFocus())return true;
-    return false;
-  }catch(_){return false}
-}
-
-
 const studentNav=()=>modeOn()?modeNav():`<nav class="bot">
-${featOn("subjects")?`<button class="${S.view==="home"||S.view==="subject"||S.view==="exam"||S.view==="result"?"on":""}" data-act="home">المواد</button>`:""}
+<button class="${S.view==="home"||S.view==="subject"||S.view==="exam"||S.view==="result"?"on":""}" data-act="home">المواد</button>
 ${featOn("progress")?`<button class="${S.view==="progress"?"on":""}" data-act="progress">تقدمي${(S.unreadNotif||0)?` <span class="badge">${S.unreadNotif}</span>`:""}</button>`:""}
 ${featOn("chat")?`<button class="${S.view==="chatList"||S.view==="chatThread"?"on":""}" data-act="openChats">تواصل${(S.unreadChat||0)?` <span class="badge">${S.unreadChat}</span>`:""}</button>`:""}
-${featOn("videos")?`<button class="${S.view==="videos"?"on":""}" data-act="openVideos">${esc(videosTabName())}</button>`:""}
+<button class="${S.view==="videos"?"on":""}" data-act="openVideos">${esc(videosTabName())}</button>
 ${featOn("life")?`<button class="${S.view==="life"?"on":""}" data-act="openLife">المتجر</button>`:""}
-${featOn("me")?`<button class="${S.view==="me"||S.view==="profile"||S.view==="search"?"on":""}" data-act="openMe">أنا</button>`:""}
+<button class="${S.view==="me"||S.view==="profile"||S.view==="search"?"on":""}" data-act="openMe">أنا</button>
 </nav>`;
 
 function maintenance(){return `<div class="wrap"><div class="center mt-wrap"><div class="mt-glass"><div class="mt-ic">🛠️</div><div class="logo" data-act="logoTap" style="display:inline-block;font-size:34px">التفوق</div>
@@ -3789,7 +3601,7 @@ function authView(){
   return `<div class="wrap">${header()}
 <img class="auth-hero" src="logo.webp" alt="منصة التفوق" decoding="async">
 <form class="card" data-submit="${reg?"doRegister":rec?"doRecover":"doLogin"}" autocomplete="on">
-<h2>${S.adminLogin?"تسجيل الدخول":reg?"إنشاء حساب جديد":rec?"استعادة كلمة السر 🔑":"تسجيل الدخول"}</h2>
+<h2>${S.adminLogin?"دخول الأدمن":reg?"إنشاء حساب جديد":rec?"استعادة كلمة السر 🔑":"تسجيل الدخول"}</h2>
 ${reg?`<label class="f" for="nm">الاسم بالكامل</label><input id="nm" type="text" autocomplete="name" required>`:""}
 ${rec?`<div class="mut" style="margin:0 0 8px">اطلب «كود استعادة» لرقمك، وبعدين اكتب رقمك + الكود + كلمة السر الجديدة.</div>
 <label class="f" for="rid">رقم التليفون</label>
@@ -8927,60 +8739,73 @@ ${modeSharedCard()}`;
 
 
 /* ===== فيديوهات المنصة (Catbox / روابط مباشرة) ===== */
+const VF_STYLES=["vf-neon","vf-gold","vf-cyber","vf-fire","vf-aurora","vf-ice"];
+const VF_LABELS={ "vf-neon":"نيون أزرق/ذهبي","vf-gold":"ذهب ملكي","vf-cyber":"سايبر","vf-fire":"نار","vf-aurora":"أورورا","vf-ice":"ماس جليدي" };
+function isVideosOnlyMode(){
+  try{
+    const m=typeof modeCur==="function"?modeCur():null;
+    if(m&&(m.kind==="videos"||m.id==="videos"||/فيديو|videos/i.test(String(m.n||""))))return true;
+    if(S.site&&S.site.appMode==="videos")return true;
+  }catch(_){}
+  return false;
+}
 async function vidLoad(force){
   if(VID.loaded&&!force)return VID.list;
+  VID.err="";
   try{
     const sn=await getDocs(query(collection(db,"videos"),limit(100)));
     VID.list=sn.docs.map(d=>Object.assign({id:d.id},d.data())).sort((a,b)=>(b.ts||0)-(a.ts||0));
     VID.loaded=true;VID.err="";
   }catch(e){
     VID.err=(e&&e.code)||"error";
+    VID.loaded=false;
     console.warn("vidLoad",e);
+    try{if(typeof EC!=="undefined"&&EC.report)EC.report("firebase",e,{fn:"vidLoad"})}catch(_){}
   }
   return VID.list;
 }
 function vidIsOkUrl(u){
   u=String(u||"").trim();
   if(!/^https:\/\//i.test(u)||u.length>500)return false;
-  /* Catbox + litterbox + generic https video links */
   return true;
+}
+function vidFrameClass(x,i){
+  const f=String((x&&x.frame)||"").trim();
+  if(VF_STYLES.includes(f))return f;
+  if(x&&x.feat)return "vf-gold";
+  return VF_STYLES[(i||0)%VF_STYLES.length];
 }
 function adminVideos(){
   if(!VID.loaded&&!VID._adm){VID._adm=1;vidLoad(true).then(()=>{VID._adm=0;if(S.isAdmin&&S.tab==="videos")render(true)})}
   const l=VID.list||[];
-  const frameOpts=[["gold","ذهب ✨"],["energy","طاقة ⚡"],["neon","نيون 💜"],["ice","جليد ❄️"],["fire","نار 🔥"]];
-  const frameNames={gold:"ذهب",energy:"طاقة",neon:"نيون",ice:"جليد",fire:"نار"};
-  const pickHtml=frameOpts.map(([id,lab])=>`<button type="button" class="vid-frame-opt${id==="gold"?" on":""}" data-act="vidFramePick" data-f="${id}"><span>${lab}</span></button>`).join("");
+  const frameOpts=VF_STYLES.map(s=>`<option value="${s}">${VF_LABELS[s]||s}</option>`).join("");
   return `<div class="card"><h3>🎬 مكتبة الفيديوهات</h3>
-<p class="mut">ارفع على <b>Catbox</b> والصق الرابط. التشغيل تلقائي + براويز مضيئة فخمة (5 أنماط).</p>
+<p class="mut">ارفع الفيديو على <b>Catbox</b> وانسخ الرابط المباشر. التشغيل عند الطلاب زي تيليجرام (تلقائي لما يوصل على الشاشة). البراويز فخمة بإضاءة ساطعة — اختار برواز لكل فيديو.</p>
 <div class="card" style="margin:10px 0;background:rgba(255,176,32,.08);border-color:rgba(255,176,32,.28)">
 <label class="f">اسم تبويب الشريط السفلي</label>
 <div class="row" style="gap:8px;align-items:center;margin-top:6px">
 <input id="vidTabName" maxlength="24" value="${esc((S.site&&S.site.videosTabName)||"❤️‍🔥🔪")}" placeholder="❤️‍🔥🔪" style="flex:1">
 <button class="btn sm gold" data-act="videoTabSave">حفظ الاسم</button>
 </div>
-<label class="f" style="margin-top:12px">عنوان الصفحة من فوق (اختياري)</label>
-<input id="vidPageTitle" maxlength="60" value="${esc((S.site&&S.site.videosTitle)||"")}" placeholder="مثال: قناة التفوق · فيديوهات اليوم">
-<div class="mut" style="font-size:12px;margin-top:4px">يظهر أعلى شاشة الفيديوهات بدل الأيقونات (بحث / تاج / روبوت…)</div>
-<label class="f" style="margin-top:12px;display:flex;align-items:center;gap:10px">
-<input type="checkbox" id="vidOnlyMode" ${(S.site&&S.site.videosOnly)?"checked":""} style="width:18px;height:18px">
-<span>وضع فيديوهات فقط — فتح تلقائي + إخفاء هيدر المنصة و«بواسطة المبرمج» والتواصل</span>
-</label>
-<div class="row" style="gap:8px;margin-top:10px"><button class="btn sm gold" data-act="videoFocusSave">حفظ إعدادات العرض</button></div>
+</div>
+<div class="card" style="margin:10px 0;background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.3)">
+<label class="f">وصول عام بدون تسجيل دخول</label>
+<div class="row" style="gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap">
+<button class="btn sm ${(S.site&&S.site.videosPublic)?"gold":"ghost"}" data-act="videosPublicToggle">${(S.site&&S.site.videosPublic)?"✓ مفعّل — الفيديوهات بدون دخول":"تفعيل الفيديوهات بدون دخول"}</button>
+</div>
+<div class="mut" style="font-size:12px;margin-top:6px">مهم: انشر قواعد Firestore اللي بتسمح بقراءة videos بدون تسجيل (allow read: if true). وإلا هيفضل يظهر «تعذّر تحميل الفيديوهات».</div>
 </div>
 <div class="card" style="margin-top:10px;background:rgba(47,181,168,.08);border-color:rgba(47,181,168,.25)">
 <label class="f">رابط الفيديو (Catbox) *</label>
 <input id="vidUrl" class="ltr" maxlength="500" placeholder="https://files.catbox.moe/xxxx.mp4" dir="ltr">
 <label class="f" style="margin-top:8px">عنوان (اختياري)</label>
-<input id="vidTitle" maxlength="120" placeholder="عنوان الفيديو">
+<input id="vidTitle" maxlength="120" placeholder="لو سيبته فاضي مش هيظهر عنوان">
 <label class="f" style="margin-top:8px">وصف (اختياري)</label>
 <input id="vidDesc" maxlength="300" placeholder="سطرين عن الفيديو">
 <label class="f" style="margin-top:8px">صورة غلاف (اختياري)</label>
 <input id="vidCover" class="ltr" maxlength="500" placeholder="https://files.catbox.moe/cover.jpg" dir="ltr">
-<label class="f" style="margin-top:10px">برواز الفيديو (سطوع عالي)</label>
-<input type="hidden" id="vidFrame" value="gold">
-<div class="vid-frame-picker" id="vidFramePicker">${pickHtml}</div>
-<div class="mut" style="font-size:12px;margin-top:6px">ذهب = البرواز الذهبي الأصلي · طاقة = برواز الصورة (أزرق+ذهبي) · + نيون / جليد / نار</div>
+<label class="f" style="margin-top:8px">برواز الإضاءة</label>
+<select id="vidFrame">${frameOpts}</select>
 <button class="btn gold block" style="margin-top:12px" data-act="videoAdd">＋ نشر فيديو</button>
 </div>
 <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px">
@@ -8989,161 +8814,145 @@ function adminVideos(){
 </div></div>
 <div class="card"><b>الفيديوهات المنشورة (${l.length})</b>
 ${l.length?l.map((x,i)=>{
-  const fr=String(x.frame||(x.feat?"gold":"energy")).toLowerCase();
-  const frLab=frameNames[fr]||fr;
+  const curF=vidFrameClass(x,i);
+  const sel=VF_STYLES.map(s=>`<option value="${s}" ${s===curF?"selected":""}>${VF_LABELS[s]||s}</option>`).join("");
   return `<div class="row" style="padding:10px 0;border-bottom:1px solid var(--line);align-items:flex-start;gap:10px">
 ${x.cover?`<img src="${esc(x.cover)}" alt="" style="width:72px;height:48px;object-fit:cover;border-radius:10px;flex:0 0 auto">`:`<div style="width:72px;height:48px;border-radius:10px;background:linear-gradient(135deg,#1a2744,#0d3d38);display:grid;place-items:center;flex:0 0 auto">🎬</div>`}
 <div style="flex:1;min-width:0"><b>${esc(x.title||"فيديو")}</b>
-<div class="mut" style="font-size:12px">${x.feat?"★ مميز · ":""}${x.hidden?"مخفي":"منشور"} · برواز: <b>${esc(frLab)}</b></div>
+<div class="mut" style="font-size:12px">${x.feat?"★ مميز · ":""}${x.hidden?"مخفي":"منشور"} · ${esc(VF_LABELS[curF]||curF)}</div>
 ${x.desc?`<div class="mut" style="font-size:12px;margin-top:2px">${esc(x.desc)}</div>`:""}
 <div class="mut ltr" style="font-size:11px;direction:ltr;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.url||"")}</div>
-<div class="row" style="gap:6px;margin-top:6px;flex-wrap:wrap">
-<select data-change="videoSetFrame" data-i="${i}" style="min-width:120px;border-radius:10px;padding:6px 8px;background:var(--card);color:var(--ink);border:1px solid var(--line)">
-${frameOpts.map(([id,lab])=>`<option value="${id}" ${fr===id?"selected":""}>${lab}</option>`).join("")}
-</select>
+<div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center">
+<label class="mut" style="font-size:12px">البرواز</label>
+<select data-change="videoFrame" data-i="${i}" style="min-width:140px">${sel}</select>
 <button class="btn sm ${x.feat?"gold":"ghost"}" data-act="videoFeat" data-i="${i}">${x.feat?"★ مميز":"☆ مميز"}</button>
 <button class="btn sm ghost" data-act="videoToggle" data-i="${i}">${x.hidden?"إظهار":"إخفاء"}</button>
 <button class="btn sm danger" data-act="videoDel" data-i="${i}">🗑 حذف</button>
 </div></div></div>`;
-}).join(""):`<div class="mut" style="text-align:center;padding:16px 0">${VID.err?"تعذّر التحميل ("+esc(VID.err)+") — انشر قواعد Firestore":VID.loaded?"لسه مفيش فيديوهات":"جاري التحميل…"}</div>`}
+}).join(""):`<div class="mut" style="text-align:center;padding:16px 0">${VID.err?("تعذّر التحميل ("+esc(VID.err)+") — انشر قواعد Firestore: allow read على videos"):VID.loaded?"لسه مفيش فيديوهات — انشر أول رابط Catbox":"جاري التحميل…"}</div>`}
 </div>`;
 }
-/* ===== v233 — قسم الفيديوهات: إعادة تصميم كاملة (ريلز عمودي بملء الشاشة) ===== */
-const VX_FRAMES={gold:["#fbbf24","#f59e0b"],energy:["#38bdf8","#fbbf24"],neon:["#e879f9","#a78bfa"],ice:["#e0f2fe","#7dd3fc"],fire:["#fb923c","#ef4444"]};
-const VXS={i:0,muted:true,touched:false,io:null,off:null};
-function vxFrame(x){let f=String(x.frame||(x.feat?"gold":"energy")).toLowerCase();if(!VX_FRAMES[f])f=x.feat?"gold":"energy";return f}
-function vxFmt(t){t=Math.max(0,Math.floor(t||0));return Math.floor(t/60)+":"+String(t%60).padStart(2,"0")}
 function videosView(){
   if(!VID.loaded&&!VID._stu){VID._stu=1;vidLoad(true).then(()=>{VID._stu=0;if(S.view==="videos")render(true)})}
   const all=(VID.list||[]).filter(x=>!x.hidden);
-  /* المميّز الأول، وبعده الأحدث */
-  all.sort((a,b)=>(b.feat?1:0)-(a.feat?1:0)||(b.ts||0)-(a.ts||0));
-  const focus=(typeof isVideosFocus==="function"&&isVideosFocus()&&!S.isAdmin)||!!S.guestVideos;
-  const tit=(typeof videosPageTitle==="function"&&videosPageTitle())||(typeof videosTabName==="function"?videosTabName():"");
-  const back=focus?"":`<button type="button" class="vx-btn" data-act="home" aria-label="رجوع">‹</button>`;
-  const top=`<div class="vx-top">${back}<div class="vx-title" data-act="secretStaffGate">${esc(tit)}</div><span class="vid-secret-hit" data-act="secretStaffGate" aria-hidden="true"></span><span class="vx-count" id="vxCount">${all.length?"1 / "+all.length:""}</span></div>`;
-  let body;
-  if(!VID.loaded&&!VID.err){
-    body=`<section class="vx-item vx-state"><div class="vx-spin"></div><b>بنجهّز الفيديوهات…</b></section>`;
-  }else if(VID.err&&!all.length){
-    body=`<section class="vx-item vx-state"><div class="vx-ico">📡</div><b>تعذّر تحميل الفيديوهات</b><span>اتأكد من النت وجرّب تاني</span><button type="button" class="vx-retry" data-act="vxRetry">↻ إعادة المحاولة</button></section>`;
+  const guest=!S.user;
+  const backBtn=guest?``:`<button class="btn ghost sm" data-act="home">رجوع</button>`;
+  const nav=guest?``:studentNav();
+  let body="";
+  if(VID.err){
+    body=`<div class="vid-fail">
+      <div class="ic">📡</div>
+      <b>تعذّر تحميل الفيديوهات</b>
+      <div class="mut">اتأكد من النت وجرّب تاني${VID.err==="permission-denied"?" — أو انشر قواعد Firestore اللي بتسمح بقراءة videos بدون تسجيل":""}</div>
+      <button class="btn gold" data-act="videosReload">↻ إعادة المحاولة</button>
+    </div>`;
+  }else if(!VID.loaded){
+    body=`<div class="vid-fail"><div class="ic">⏳</div><b>بنجهّز الفيديوهات…</b><div class="mut">ثواني وهتظهر</div></div>`;
   }else if(!all.length){
-    body=`<section class="vx-item vx-state"><div class="vx-ico">🎬</div><b>مفيش فيديوهات لسه</b><span>أول ما يتضاف فيديو هيظهر هنا لحظيًا</span></section>`;
+    body=`<div class="vid-fail"><div class="ic">🎬</div><b>لسه مفيش فيديوهات</b><div class="mut">الأدمن يقدر ينشر روابط Catbox من لوحة التحكم</div></div>`;
   }else{
-    body=all.map((x,k)=>{
-      const f=vxFrame(x),c=VX_FRAMES[f];
-      return `<section class="vx-item" data-k="${k}" data-vid="${esc(x.id)}" style="--c1:${c[0]};--c2:${c[1]}">
-  <div class="vx-bg"${x.cover?` style="background-image:url('${esc(x.cover)}')"`:""}></div>
-  <div class="vx-stage">
-    <video class="vx-v" playsinline webkit-playsinline loop preload="none" data-src="${esc(x.url)}"${x.cover?` poster="${esc(x.cover)}"`:""}></video>
-    <div class="vx-ring"></div>
-    <div class="vx-center" aria-hidden="true"><i>▶</i></div>
-    <div class="vx-wait"><div class="vx-spin"></div></div>
-    <div class="vx-fail"><span>⚠️ الفيديو مش بيتحمّل</span><button type="button" data-act="vxReload">↻ جرّب تاني</button></div>
+    body=`<div class="vid-list" id="vidList">${all.map((x,i)=>{
+      const style=vidFrameClass(x,i);
+      const stars=style==="vf-neon"?`<div class="vf-stars"><span></span><span></span><span></span><span></span><span></span><span></span></div>`:"";
+      return `<article class="vid-card ${style}${x.feat?" is-feat":""}" data-vid="${esc(x.id)}">
+  <div class="vid-frame-wrap">${stars}
+    <div class="vid-frame">
+      <video class="vid-el" playsinline webkit-playsinline preload="metadata" poster="${esc(x.cover||"")}" src="${esc(x.url)}" data-vid="${esc(x.id)}"></video>
+      <div class="vid-load"><i></i></div>
+      <div class="vid-progress"><i></i></div>
+      <div class="vid-err">انقطع الاتصال<br><button type="button" class="btn sm gold" data-act="vidRetry">إعادة التشغيل</button></div>
+      <div class="vid-mute-tip" hidden>اضغط للصوت 🔊</div>
+    </div>
   </div>
-  <div class="vx-info">${x.feat?`<em class="vx-badge">⭐ مميّز</em>`:""}${x.title?`<b>${esc(x.title)}</b>`:""}${x.desc?`<span>${esc(x.desc)}</span>`:""}</div>
-  <div class="vx-side"><button type="button" class="vx-btn vx-snd" data-act="vxMute" aria-label="الصوت">🔇</button></div>
-  <div class="vx-bar" data-act="vxSeek"><i></i><u class="vx-time">0:00</u></div>
-  <div class="vx-hint">اسحب لفوق لفيديو تاني</div>
-</section>`}).join("");
+</article>`;
+    }).join("")}</div>`;
   }
-  return `<div class="vx${focus?" vx-focus":""}" id="vxRoot">${top}<div class="vx-feed" id="vxFeed">${body}</div></div>${focus?``:studentNav()}`;
+  return `<div class="wrap vid-feed">${header(backBtn)}
+<h2 class="vid-h">${esc(videosTabName())}</h2>
+${body}
+</div>${nav}`;
 }
 function vidStopAll(except){
-  try{document.querySelectorAll("#vxFeed video.vx-v").forEach(v=>{if(v!==except){try{v.pause()}catch(_){}}})}catch(_){}
-}
-function vxSetSrc(v,on){
-  if(!v)return;
-  if(on){if(!v.getAttribute("src")&&v.dataset.src){v.setAttribute("src",v.dataset.src);v.preload="auto"}}
-}
-function vxFreeFar(items,idx){
-  /* بنفضّي مصدر الفيديوهات البعيدة (أكتر من 2 عن الحالي) عشان الذاكرة/الداتا */
-  items.forEach((it,k)=>{
-    if(Math.abs(k-idx)<=2)return;
-    const v=it.querySelector("video");
-    if(v&&v.getAttribute("src")){try{v.pause();v.removeAttribute("src");v.load()}catch(_){}}
-  });
+  try{
+    document.querySelectorAll("#vidList video.vid-el").forEach(v=>{
+      if(except&&v===except)return;
+      try{v.pause();if(!v.dataset.keepTime)v.currentTime=v.currentTime}catch(_){}
+    });
+    document.querySelectorAll("#vidList .vid-card").forEach(c=>{
+      if(except&&c.contains(except))return;
+      c.classList.remove("is-active");
+    });
+  }catch(_){}
 }
 function vidBindFeed(){
-  const feed=document.getElementById("vxFeed");
-  if(!feed)return;
-  if(feed._vx)return;feed._vx=true;
-  try{if(VXS.off)VXS.off()}catch(_){}
-  const items=[...feed.querySelectorAll(".vx-item[data-vid]")];
-  if(!items.length)return;
-  const cnt=document.getElementById("vxCount");
-  const flash=(it,ic)=>{const c=it.querySelector(".vx-center");if(!c)return;c.firstElementChild.textContent=ic;c.classList.remove("on");void c.offsetWidth;c.classList.add("on")};
-  const setMuteUI=()=>document.querySelectorAll("#vxFeed .vx-snd").forEach(b=>{b.textContent=VXS.muted?"🔇":"🔊";b.classList.toggle("pulse",VXS.muted)});
-  let active=null;
-  const wait=(it,on)=>{const w=it.querySelector(".vx-wait");if(w)w.classList.toggle("on",!!on)};
-  const fail=(it,on)=>{it.classList.toggle("is-fail",!!on);if(on)wait(it,false)};
-  const play=async(it)=>{
-    const v=it.querySelector("video");if(!v)return;
-    vxSetSrc(v,true);v.muted=VXS.muted;
-    try{await v.play();it.classList.remove("is-paused")}
-    catch(e){
-      if(!VXS.muted||v.muted){it.classList.add("is-paused");return}
-      v.muted=true;try{await v.play();it.classList.remove("is-paused")}catch(_){it.classList.add("is-paused")}
-    }
+  const list=document.getElementById("vidList");
+  if(!list||list._vidBound)return;
+  list._vidBound=true;
+  const vids=[...list.querySelectorAll("video.vid-el")];
+  if(!vids.length)return;
+  let active=null,lock=false;
+  const cardOf=v=>v&&v.closest(".vid-card");
+  const setActiveCard=v=>{
+    document.querySelectorAll("#vidList .vid-card").forEach(c=>c.classList.remove("is-active"));
+    const card=cardOf(v);if(card)card.classList.add("is-active");
   };
-  const activate=(k)=>{
-    const it=items[k];if(!it||it===active)return;
-    if(active){const pv=active.querySelector("video");try{pv&&pv.pause()}catch(_){}active.classList.remove("is-active")}
-    active=it;VXS.i=k;it.classList.add("is-active");
-    if(cnt)cnt.textContent=(k+1)+" / "+items.length;
-    /* حمّل الحالي والجاي والسابق */
-    [k-1,k,k+1].forEach(j=>{const o=items[j];if(o){const v=o.querySelector("video");vxSetSrc(v,true);if(j!==k&&v)v.preload="metadata"}});
-    vxFreeFar(items,k);
-    play(it);
+  const setLoading=(v,on)=>{const c=cardOf(v);if(c)c.classList.toggle("is-loading",!!on)};
+  const setError=(v,on)=>{const c=cardOf(v);if(c)c.classList.toggle("is-error",!!on)};
+  const updateProgress=v=>{try{const bar=v.parentElement&&v.parentElement.querySelector(".vid-progress i");if(!bar||!v.duration||!isFinite(v.duration))return;bar.style.width=((v.currentTime/v.duration)*100).toFixed(2)+"%"}catch(_){}};
+  const savePos=v=>{try{if(v&&v.currentTime>1)v.dataset.savedT=String(v.currentTime)}catch(_){}};
+  const restorePos=v=>{try{const t=parseFloat(v.dataset.savedT||"0");if(t>1&&isFinite(t)&&(!v.currentTime||v.currentTime<1.5))v.currentTime=t}catch(_){}};
+  const tryPlay=async v=>{
+    if(!v||lock)return;
+    if(active===v&&!v.paused)return;
+    lock=true;
+    try{
+      vidStopAll(v);active=v;setActiveCard(v);setError(v,false);restorePos(v);v.muted=false;
+      try{const p=v.play();if(p&&p.then)await p;const tip=v.parentElement&&v.parentElement.querySelector(".vid-mute-tip");if(tip)tip.hidden=true}
+      catch(_){try{v.muted=true;await v.play();const tip=v.parentElement&&v.parentElement.querySelector(".vid-mute-tip");if(tip){tip.hidden=false;tip.onclick=async ev=>{ev.stopPropagation();try{v.muted=false;await v.play();tip.hidden=true}catch(e){}}}}catch(e){setError(v,true)}}
+    }finally{lock=false}
   };
-  /* تحديد الفيديو الحالي بالـ IntersectionObserver */
-  const io=new IntersectionObserver((es)=>{
-    es.forEach(e=>{if(e.isIntersecting&&e.intersectionRatio>=.6){activate(items.indexOf(e.target))}});
-  },{root:feed,threshold:[.6,.9]});
-  items.forEach(it=>io.observe(it));
-  /* أحداث الفيديو */
-  items.forEach((it,k)=>{
-    const v=it.querySelector("video"),bar=it.querySelector(".vx-bar"),fill=bar.querySelector("i"),tm=bar.querySelector(".vx-time");
-    let errN=0;
-    v.addEventListener("loadstart",()=>{if(it===active)wait(it,true)});
-    v.addEventListener("waiting",()=>{if(it===active)wait(it,true)});
-    v.addEventListener("stalled",()=>{if(it===active&&!v.paused)setTimeout(()=>{if(v.readyState<3&&it===active){const t=v.currentTime;try{v.load();v.currentTime=t;v.play().catch(()=>{})}catch(_){}}},3500)});
-    ["playing","canplay","loadeddata"].forEach(n=>v.addEventListener(n,()=>{wait(it,false);fail(it,false);errN=0}));
-    v.addEventListener("play",()=>{it.classList.remove("is-paused")});
-    v.addEventListener("pause",()=>{if(it===active&&!v.ended&&document.visibilityState==="visible")it.classList.add("is-paused")});
-    v.addEventListener("timeupdate",()=>{if(v.duration&&isFinite(v.duration)){fill.style.width=(v.currentTime/v.duration*100)+"%";tm.textContent=vxFmt(v.currentTime)+" / "+vxFmt(v.duration)}});
-    v.addEventListener("error",()=>{errN++;if(!v.getAttribute("src"))return;if(errN<=2){const t=v.currentTime;setTimeout(()=>{try{v.load();v.currentTime=t;if(it===active)v.play().catch(()=>{})}catch(_){}},700*errN)}else fail(it,true)});
-    /* لمسة على الفيديو = تشغيل/إيقاف (وأول لمسة بتفتح الصوت لكل الفيديوهات) */
-    it.querySelector(".vx-stage").addEventListener("click",()=>{
-      if(!VXS.touched){VXS.touched=true;if(VXS.muted){VXS.muted=false;v.muted=false;setMuteUI()}}
-      if(v.paused){play(it);flash(it,"▶")}else{v.pause();flash(it,"⏸")}
+  const recover=v=>{
+    if(!v)return;savePos(v);setError(v,false);setLoading(v,true);
+    try{
+      const t=parseFloat(v.dataset.savedT||String(v.currentTime||0));v.load();
+      const onReady=()=>{v.removeEventListener("canplay",onReady);try{if(t>1)v.currentTime=t}catch(_){}setLoading(v,false);if(active===v||cardOf(v)?.classList.contains("is-active"))tryPlay(v)};
+      v.addEventListener("canplay",onReady,{once:true});setTimeout(()=>setLoading(v,false),8000);
+    }catch(e){setLoading(v,false);setError(v,true)}
+  };
+  const pickCenter=()=>{
+    const mid=window.innerHeight*0.45;let best=null,bestDist=1e9;
+    vids.forEach(v=>{
+      const r=v.getBoundingClientRect();if(r.height<=0)return;
+      const c=r.top+r.height*0.5,dist=Math.abs(c-mid);
+      const visible=Math.min(r.bottom,window.innerHeight)-Math.max(r.top,0);
+      const ratio=visible/Math.max(r.height,1);
+      if(ratio>=0.45&&dist<bestDist){bestDist=dist;best=v}
     });
-    /* سحب على شريط التقدّم */
-    const seek=(ev)=>{const r=bar.getBoundingClientRect();const x=(ev.touches?ev.touches[0].clientX:ev.clientX);const p=Math.min(1,Math.max(0,(x-r.left)/r.width));if(v.duration&&isFinite(v.duration))v.currentTime=p*v.duration};
-    bar.addEventListener("click",ev=>{ev.stopPropagation();seek(ev)});
-    bar.addEventListener("touchmove",ev=>{ev.stopPropagation();seek(ev)},{passive:true});
+    if(best)tryPlay(best);
+    else if(active){const r=active.getBoundingClientRect();const visible=Math.min(r.bottom,window.innerHeight)-Math.max(r.top,0);if(visible/Math.max(r.height,1)<0.3){try{active.pause()}catch(_){}active=null;setActiveCard(null)}}
+  };
+  let tmr=null;
+  const onScroll=()=>{clearTimeout(tmr);tmr=setTimeout(pickCenter,80)};
+  window.addEventListener("scroll",onScroll,{passive:true});
+  const onOnline=()=>{if(active)recover(active);else pickCenter()};
+  window.addEventListener("online",onOnline);
+  list._vidOff=()=>{window.removeEventListener("scroll",onScroll);window.removeEventListener("online",onOnline);clearTimeout(tmr)};
+  vids.forEach(v=>{
+    v.addEventListener("play",()=>{if(active&&active!==v){try{active.pause()}catch(_){}}active=v;setActiveCard(v);vidStopAll(v);setError(v,false);setLoading(v,false)});
+    v.addEventListener("click",()=>tryPlay(v));
+    v.addEventListener("waiting",()=>setLoading(v,true));
+    v.addEventListener("playing",()=>{setLoading(v,false);setError(v,false)});
+    v.addEventListener("canplay",()=>setLoading(v,false));
+    v.addEventListener("timeupdate",()=>{updateProgress(v);if(v.currentTime>2)savePos(v)});
+    v.addEventListener("stalled",()=>{savePos(v);setLoading(v,true)});
+    v.addEventListener("error",()=>{savePos(v);setError(v,true);setLoading(v,false)});
+    const errBtn=v.parentElement&&v.parentElement.querySelector("[data-act=vidRetry]");
+    if(errBtn)errBtn.addEventListener("click",ev=>{ev.stopPropagation();recover(v)});
   });
-  /* أزرار عامة */
-  feed.addEventListener("click",(ev)=>{
-    const b=ev.target.closest("[data-act]");if(!b)return;
-    const a=b.getAttribute("data-act");
-    if(a==="vxMute"){ev.stopPropagation();VXS.touched=true;VXS.muted=!VXS.muted;items.forEach(it=>{const v=it.querySelector("video");if(v)v.muted=VXS.muted});setMuteUI();if(active){const v=active.querySelector("video");if(v&&v.paused)play(active)}}
-    else if(a==="vxReload"){ev.stopPropagation();const it=b.closest(".vx-item"),v=it.querySelector("video");fail(it,false);wait(it,true);try{v.removeAttribute("src");vxSetSrc(v,true);v.load();v.play().catch(()=>{})}catch(_){}}
-  });
-  const onVis=()=>{if(!active)return;const v=active.querySelector("video");if(!v)return;if(document.hidden){try{v.pause()}catch(_){}}else if(!active.classList.contains("is-paused")){v.play().catch(()=>{})}};
-  const onOnline=()=>{if(!active)return;const v=active.querySelector("video");if(v&&(v.error||v.readyState<2)){try{v.load();v.play().catch(()=>{})}catch(_){}}};
-  const onKey=(e)=>{if(S.view!=="videos")return;const t=(e.target&&e.target.tagName)||"";if(/INPUT|TEXTAREA|SELECT/.test(t))return;
-    if(e.key==="ArrowDown"||e.key==="PageDown"){e.preventDefault();const n=items[Math.min(items.length-1,VXS.i+1)];n&&n.scrollIntoView({behavior:"smooth"})}
-    else if(e.key==="ArrowUp"||e.key==="PageUp"){e.preventDefault();const n=items[Math.max(0,VXS.i-1)];n&&n.scrollIntoView({behavior:"smooth"})}
-    else if(e.key===" "){e.preventDefault();const st=active&&active.querySelector(".vx-stage");st&&st.click()}};
-  document.addEventListener("visibilitychange",onVis);window.addEventListener("online",onOnline);document.addEventListener("keydown",onKey);
-  VXS.off=()=>{try{io.disconnect()}catch(_){}document.removeEventListener("visibilitychange",onVis);window.removeEventListener("online",onOnline);document.removeEventListener("keydown",onKey)};
-  setMuteUI();
-  /* ارجع لآخر فيديو كان مفتوح (لو الشاشة اتعمّلها render) وإلا ابدأ من الأول */
-  const start=Math.min(VXS.i||0,items.length-1);
-  if(start>0){feed.scrollTop=items[start].offsetTop}
-  setTimeout(()=>{if(!active)activate(start)},60);
+  setTimeout(pickCenter,300);
 }
+
+
 
 function adminSongs(){
   if(!MUS.loaded&&!MUS._adm){MUS._adm=1;musLoad(true).then(()=>{MUS._adm=0;if(S.isAdmin&&S.tab==="songs")render(true)})}
@@ -9655,12 +9464,7 @@ ${row(false,"الإجابات الصحيحة للامتحانات","الطالب
 ${row(false,"أرقام التليفونات","أي طالب مسجّل يقدر يقرأ بيانات الطلاب بما فيها الرقم (البحث بالرقم شغّال بسببها).")}
 </div>
 <div class="card"><h3 style="margin-top:0">🎛 تشغيل وإيقاف الأقسام</h3>
-<p class="mut">اقفل أي قسم من المنصة بالكامل — الشريط السفلي (مواد · أنا · فيديوهات) + الألعاب + الشات + المتجر + التركيز + الملاحظات + البحث + لوحة الشرف… القسم بيتقفّل من كل مداخله فورًا. الأدمن بيفضل يشوف كل حاجة. مش بيمسح أي بيانات.</p>
-<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:10px">
-<button class="btn sm danger" data-act="featuresLockAll">🔐 قفل الكل</button>
-<button class="btn sm gold" data-act="featuresUnlockAll">🔓 فتح الكل</button>
-</div>
-${feats}</div>
+<p class="mut">أي قسم تقفله بيختفي من عند الطلاب فوراً (الأدمن بيفضل يشوفه). مش بيمسح أي بيانات.</p>${feats}</div>
 <div class="card"><h3 style="margin-top:0">⛔ المحظورين</h3>${blk||`<div class="mut">مفيش محظورين.</div>`}
 <p class="mut" style="font-size:12px;margin-top:8px">الحظر المؤقت بتحدده من صفحة الطالب (زر الحظر بيسأل عن المدة والسبب).</p></div>
 <div class="card"><h3 style="margin-top:0">📜 سجل التدقيق (آخر 100)</h3>
@@ -9858,8 +9662,8 @@ const uiConfirm=(msg,o)=>uiDialog(Object.assign({msg},o||{}));
 const uiPrompt=(msg,def,o)=>uiDialog(Object.assign({msg,input:true,def:def||""},o||{}));
 
 /* ===== مرحلة 2: مفاتيح الأقسام + سجل تدقيق + حظر مؤقت + إعدادات AI محمية ===== */
-const FEATURES=[["subjects","📚 المواد والامتحانات (تبويب المواد)"],["progress","📊 تقدمي ولوحة الشرف"],["chat","💬 التواصل (شات وجروبات)"],["calls","📞 المكالمات"],["videos","🎬 الفيديوهات / ❤️‍🔥🔪 (تبويب الشريط)"],["life","🛒 المتجر والحيوان"],["me","👤 أنا (حسابي وملفي)"],["games","🎮 الألعاب"],["fadaye7","😂 الفضائح"],["tanagha","💗 التناغه والمعرض"],["books","📚 الكتب"],["asms","📝 التقييمات"],["ai","🤖 المساعد 么"],["focus","🎯 وضع التركيز"],["notes","📝 ملاحظاتي"],["songs","🎵 مشغّل الأغاني"],["search","🔍 البحث عن الطلاب"],["board","🏆 لوحة الشرف والشهادات"]];
-const FEAT_ACT={openChats:"chat",openChat:"chat",startChat:"chat",startCall:"calls",openGames:"games",qbCreateRoom:"games",qbStartBot:"games",qbBot:"games",losBot:"games",losStart:"games",losRoomAnswer:"games",losRoomSkip:"games",qbJoinRoom:"games",qbFriends:"games",openGameFriends:"games",openMath:"games",openXo:"games",openHang:"games",openSpin:"games",openReact:"games",openMemory:"games",openDraw:"games",openTanagha:"tanagha",openGallery:"tanagha",openFadaye7:"fadaye7",openBooks:"books",openBag:"books",openAsms:"asms",openAI:"ai",openLife:"life",openProgress:"progress",openSubject:"subjects",openVideos:"videos",openMe:"me",openFocus:"focus",openNotes:"notes",openSongs:"songs",searchFriend:"search",openSearch:"search",studentCard:"me",openBoard:"board",openCert:"board",giftOpen:"life"};
+const FEATURES=[["chat","💬 التواصل (شات وجروبات)"],["calls","📞 المكالمات"],["games","🎮 الألعاب"],["fadaye7","😂 الفضائح"],["tanagha","💗 التناغه"],["books","📚 الكتب"],["asms","📝 التقييمات"],["ai","🤖 المساعد 么"],["life","🛒 المتجر والحيوان"],["progress","📊 تقدمي ولوحة الشرف"],["subjects","📚 المواد والامتحانات"]];
+const FEAT_ACT={openChats:"chat",openChat:"chat",startChat:"chat",startCall:"calls",openGames:"games",qbCreateRoom:"games",qbStartBot:"games",qbBot:"games",losBot:"games",losStart:"games",losRoomAnswer:"games",losRoomSkip:"games",qbJoinRoom:"games",qbFriends:"games",openGameFriends:"games",openMath:"games",openXo:"games",openHang:"games",openSpin:"games",openReact:"games",openMemory:"games",openDraw:"games",openTanagha:"tanagha",openGallery:"tanagha",openFadaye7:"fadaye7",openBooks:"books",openBag:"books",openAsms:"asms",openAI:"ai",openLife:"life",openProgress:"progress",openSubject:"subjects"};
 function featState(k){return !(S.features&&S.features[k]===false)}
 function featOn(k){return S.isAdmin||featState(k)}
 function clientFeatureAllowed(k){
@@ -9919,27 +9723,19 @@ function secKick(){
 function fadBlockedView(){return `<div class="wrap screen">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}<div class="card empty"><div class="ei">⛔</div><b>القسم ده مش متاح ليك دلوقتي</b></div></div>${studentNav()}`}
 function featOfView(v){
   v=String(v||"");
-  /* الرئيسية (home) مش بتتغطى بقفل — عشان الطالب يقدر يرجع دايمًا */
-  if(v==="home"||v==="loading"||v==="admin")return "";
   if(v==="chatList"||v==="chatThread"||v==="groupThread")return "chat";
-  if(v==="games"||v.indexOf("qb")===0||v.indexOf("los")===0||v==="mathg"||v==="xo"||v==="hang"||v==="spin"||v==="react"||v==="memory"||v.indexOf("dg")===0)return "games";
+  if(v==="games"||v.indexOf("qb")===0||v.indexOf("los")===0||v==="mathg"||v==="xo"||v==="hang"||v==="spin"||v==="react"||v==="memory")return "games";
   if(v==="gallery"||v==="tanagha")return "tanagha";
   if(v==="fadaye7")return "fadaye7";
   if(v==="books")return "books";
   if(v==="asmList"||v==="asm")return "asms";
   if(v==="ai")return "ai";
   if(v==="life")return "life";
-  if(v==="progress")return "progress";
-  if(v==="subject"||v==="exam"||v==="result"||v==="review"||v==="checklist"||v==="weakQuiz"||v==="flash")return "subjects";
-  if(v==="videos")return "videos";
-  if(v==="me"||v==="profile")return "me";
-  if(v==="focus")return "focus";
-  if(v==="notes")return "notes";
-  if(v==="search")return "search";
-  if(v==="cert"||v==="board")return "board";
+  if(v==="progress"||v==="profile")return "progress";
+  if(v==="subject"||v==="exam"||v==="result"||v==="review")return "subjects";
   return "";
 }
-function featOffView(){return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">الرئيسية</button>`)}<div class="card empty"><div class="ei">⛔</div><b>القسم ده متوقف مؤقتاً</b><div class="mut" style="margin:8px auto 14px">المدرس قفله دلوقتي. جرّب بعدين.</div><button class="btn gold" data-act="home">الرجوع للرئيسية</button></div></div>${studentNav()}`}
+function featOffView(){return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">الرئيسية</button>`)}<div class="card empty"><div class="ei">⛔</div><b>القسم ده متوقف مؤقتاً</b><div class="mut" style="margin:8px auto 14px">المدرس قفله دلوقتي. جرّب بعدين.</div><button class="btn" data-act="home">الرجوع للرئيسية</button></div></div>${studentNav()}`}
 function isBlockedP(p){return !!(p&&p.blocked&&!(p.blockedUntil>0&&p.blockedUntil<Date.now()))}
 function applyAiCfg(){
   try{
@@ -10160,11 +9956,8 @@ const A={
   },
   theme(d,el){document.querySelectorAll('.tg[data-act="theme"]').forEach(b=>{b.classList.add("spin");setTimeout(()=>b.classList.remove("spin"),500)});cycleTheme();},
   mode(){S.mode=S.mode==="login"?"register":"login";S.error="";render(true)},
-  logoTap(){const n=Date.now();S.taps=S.taps.filter(t=>n-t<2500);S.taps.push(n);if(S.taps.length>=3){S.taps=[];if(S.user&&!S.isAdmin){S.adminLogin=false;return}S.adminLogin=true;S.error="";S.mode="login";S.guestVideos=false;S.view="auth";render(true)}},
-  /* بوابة سرية: 3 ضغطات سريعة على منطقة العنوان / الزاوية — مش ظاهرة كـ«تسجيل أدمن» */
-  secretStaffGate(){A.logoTap()},
-  vxRetry(){VID.err="";VID.loaded=false;VID._stu=0;render(true)},vxMute(){},vxReload(){},vxSeek(){},
-  studentLink(){S.adminLogin=false;S.error="";if(guestVideosAllowed()&&!S.user){S.view="videos";S.guestVideos=true}render(true)},
+  logoTap(){const n=Date.now();S.taps=S.taps.filter(t=>n-t<2500);S.taps.push(n);if(S.taps.length>=3){S.taps=[];if(S.user&&!S.isAdmin){S.adminLogin=false;return}S.adminLogin=true;S.error="";render(true)}},
+  studentLink(){S.adminLogin=false;S.error="";render(true)},
   async logout(){
     if(!await uiConfirm("تسجيل خروج من التفوق؟\nهتحتاج تسجّل تاني لما ترجع."))return;
     try{
@@ -12402,35 +12195,6 @@ const A={
     try{await setDoc(doc(db,"config","features"),{[d.id]:want},{merge:true})}
     catch(e){S.features=prev;render(true);window.__cancel=true;toast("مقدرتش أحفظ التغيير: "+(e.code||e.message||""),true)}
   },
-  async featuresLockAll(){
-    if(!S.isAdmin)return;
-    if(!await uiConfirm("تقفل كل أقسام المنصة على الطلاب؟",{title:"قفل الكل",icon:"🔐",ok:"اقفل الكل"}))return;
-    const prev=S.features;
-    const next={};
-    FEATURES.forEach(([k])=>{next[k]=false});
-    S.features={...(S.features||{}),...next};
-    render(true);
-    try{
-      await setDoc(doc(db,"config","features"),next,{merge:true});
-      toast("🔐 اتقفلت كل الأقسام على الطلاب",true);
-      try{await addDoc(collection(db,"audit"),{action:"setFeature",detail:"lock_all",by:(S.user&&S.user.uid)||"",byName:(S.profile&&S.profile.name)||"",createdAt:serverTimestamp()})}catch(_){}
-    }catch(e){S.features=prev;render(true);toast("فشل قفل الكل: "+(e.code||e.message||""),true)}
-  },
-  async featuresUnlockAll(){
-    if(!S.isAdmin)return;
-    if(!await uiConfirm("تفتح كل أقسام المنصة للطلاب؟",{title:"فتح الكل",icon:"🔓",ok:"افتح الكل"}))return;
-    const prev=S.features;
-    const next={};
-    FEATURES.forEach(([k])=>{next[k]=true});
-    S.features={...(S.features||{}),...next};
-    render(true);
-    try{
-      await setDoc(doc(db,"config","features"),next,{merge:true});
-      toast("🔓 اتفتحت كل الأقسام",true);
-      try{await addDoc(collection(db,"audit"),{action:"setFeature",detail:"unlock_all",by:(S.user&&S.user.uid)||"",byName:(S.profile&&S.profile.name)||"",createdAt:serverTimestamp()})}catch(_){}
-    }catch(e){S.features=prev;render(true);toast("فشل فتح الكل: "+(e.code||e.message||""),true)}
-  },
-
   async unblock(d){
     const st=(S.students||[]).find(x=>x.id===d.id);const prev=st?{blocked:st.blocked,blockedUntil:st.blockedUntil,blockReason:st.blockReason}:null;
     if(st){st.blocked=false;st.blockedUntil=0;st.blockReason=""}
@@ -14826,12 +14590,6 @@ const PF_VIEWS={home:"الرئيسية",games:"الألعاب",checklist:"قائ
 const pfLabel=v=>PF_VIEWS[v]||String(v||"?");
 function modeHomeApply(){
   S._homeDone=1;
-  try{
-    if(shouldVideosLanding()){
-      setTimeout(()=>{try{S.view="videos";if(A.openVideos)A.openVideos();else render(true)}catch(_){}},0);
-      return true;
-    }
-  }catch(_){}
   const v=((S.site&&S.site.modeHome)||{})[modeCur().id],act=MODE_HOME_ACT[v];
   if(act&&A[act])setTimeout(()=>{try{if(S.view==="home")A[act]()}catch(_){}},0);
   return true;
@@ -17073,23 +16831,22 @@ async function musWarm(){
 
 
 Object.assign(A,{
-  openVideos(){if(!S.guestVideos&&!featOn("videos")&&!shouldVideosLanding()){toast("الفيديوهات متوقفة مؤقتاً");return}S.view="videos";VID.cur=null;vidLoad(false).then(()=>render(true));render(true)},
-  videosReload(){vidLoad(true).then(()=>{toast("اتحدّثت القايمة ✓",true);render(true)})},
+  openVideos(){S.view="videos";VID.cur=null;VID.loaded=false;vidLoad(true).then(()=>render(true));render(true)},
+  videosReload(){VID.loaded=false;VID.err="";vidLoad(true).then(()=>{try{toast(VID.err?"لسه في مشكلة: "+VID.err:"اتحدّثت القايمة ✓",!!VID.err)}catch(_){}render(true)})},
   videoPlay(d){VID.cur=d.id||d;S.view="videos";render(true);setTimeout(()=>{try{const v=document.getElementById("vidPlayer");if(v){v.play().catch(()=>{})}}catch(_){}},200)},
   async videoAdd(){
     const title=(document.getElementById("vidTitle")&&document.getElementById("vidTitle").value||"").trim();
     const url=(document.getElementById("vidUrl")&&document.getElementById("vidUrl").value||"").trim();
     const desc=(document.getElementById("vidDesc")&&document.getElementById("vidDesc").value||"").trim();
     const cover=(document.getElementById("vidCover")&&document.getElementById("vidCover").value||"").trim();
+    const frameEl=document.getElementById("vidFrame");
+    const frame=String(frameEl&&frameEl.value||"vf-neon").trim();
     if(!vidIsOkUrl(url)){toast("حط رابط https صحيح من Catbox");return}
     try{
-      const allowed=["gold","energy","neon","ice","fire"];
-    let frame=(document.getElementById("vidFrame")&&document.getElementById("vidFrame").value||"gold").toLowerCase();
-    if(allowed.indexOf(frame)<0)frame="gold";
-    await addDoc(collection(db,"videos"),{title:title.slice(0,160),url:url.slice(0,500),desc:desc.slice(0,300),cover:cover.slice(0,500),frame:frame,kind:"",hidden:false,feat:false,ts:Date.now(),by:(S.user&&S.user.uid)||""});
+      await addDoc(collection(db,"videos"),{title:title.slice(0,160)||"فيديو",url:url.slice(0,500),desc:desc.slice(0,300),cover:cover.slice(0,500),kind:"",hidden:false,feat:false,frame:VF_STYLES.includes(frame)?frame:"vf-neon",ts:Date.now(),by:(S.user&&S.user.uid)||""});
       toast("الفيديو اتنشر ✓",true);
       await vidLoad(true);render(true);
-    }catch(e){console.warn(e);toast("فشل النشر: "+((e&&e.code)||e.message||"")+" — انشر قواعد Firestore")}
+    }catch(e){console.warn(e);toast("فشل النشر: "+((e&&e.code)||e.message||"")+" — انشر قواعد Firestore (feat/frame)")}
   },
   async videoDel(d){
     const x=(VID.list||[])[+d.i];if(!x)return;
@@ -17102,7 +16859,22 @@ Object.assign(A,{
   },
   async videoFeat(d){
     const x=(VID.list||[])[+d.i];if(!x)return;
-    try{await updateDoc(doc(db,"videos",x.id),{feat:!x.feat});await vidLoad(true);render(true);toast(x.feat?"اتشال التمييز":"اتميز ببرواز دهب ✓",true)}catch(e){toast("فشل التعديل")}
+    try{await updateDoc(doc(db,"videos",x.id),{feat:!x.feat});await vidLoad(true);render(true);toast(x.feat?"اتشال التمييز":"اتميز ✓",true)}catch(e){toast("فشل التعديل")}
+  },
+  async videoFrame(d,el){
+    const x=(VID.list||[])[+d.i];if(!x)return;
+    const frame=String((el&&el.value)||d.frame||"vf-neon").trim();
+    if(!VF_STYLES.includes(frame)){toast("برواز غير معروف");return}
+    try{await updateDoc(doc(db,"videos",x.id),{frame});x.frame=frame;toast("اتحفظ البرواز: "+(VF_LABELS[frame]||frame)+" ✓",true);render(true)}catch(e){toast("فشل حفظ البرواز — انشر قواعد Firestore")}
+  },
+  async videosPublicToggle(){
+    if(!S.isAdmin)return;
+    const on=!(S.site&&S.site.videosPublic);
+    try{
+      await setDoc(doc(db,"config","site"),{videosPublic:on},{merge:true});
+      if(S.site)S.site.videosPublic=on;
+      toast(on?"الفيديوهات متاحة بدون دخول ✓":"اتقفل الوصول العام",true);render(true);
+    }catch(e){toast("فشل الحفظ")}
   },
   async videoTabSave(){
     const el=document.getElementById("vidTabName");
@@ -17112,6 +16884,19 @@ Object.assign(A,{
       if(S.site)S.site.videosTabName=name;
       toast("اتحفظ اسم التبويب ✓",true);render(true);
     }catch(e){toast("فشل الحفظ")}
+  },
+  vidRetry(d,el){
+    try{
+      const card=el&&el.closest&&el.closest(".vid-card");
+      const v=card&&card.querySelector("video.vid-el");
+      if(!v)return;
+      const t=parseFloat(v.dataset.savedT||String(v.currentTime||0));
+      card.classList.remove("is-error");card.classList.add("is-loading");
+      v.load();
+      const go=()=>{v.removeEventListener("canplay",go);try{if(t>1)v.currentTime=t}catch(_){}card.classList.remove("is-loading");v.play().catch(()=>{try{v.muted=true;v.play()}catch(e){}})};
+      v.addEventListener("canplay",go,{once:true});
+      setTimeout(()=>card.classList.remove("is-loading"),8000);
+    }catch(_){}
   }
 });
 
@@ -17134,40 +16919,6 @@ Object.assign(A,{
     render(true);
     updateDoc(doc(db,"qb_rooms",g.roomCode),{[`players.${S.user.uid}.ans`]:m.pick,[`players.${S.user.uid}.ansAt`]:Date.now()}).catch(()=>{m.answered=false;m.pick=null;toast("تعذر إرسال الإجابة — جرّب تاني");render(true)});
   },
-  async videoFocusSave(){
-    if(!S.isAdmin)return;
-    const title=String((document.getElementById("vidPageTitle")&&document.getElementById("vidPageTitle").value)||"").trim().slice(0,60);
-    const only=!!(document.getElementById("vidOnlyMode")&&document.getElementById("vidOnlyMode").checked);
-    const tab=String((document.getElementById("vidTabName")&&document.getElementById("vidTabName").value)||"").trim().slice(0,24)||"❤️‍🔥🔪";
-    try{
-      await setDoc(doc(db,"config","site"),{videosTitle:title,videosOnly:only,videosTabName:tab},{merge:true});
-      if(S.site){S.site.videosTitle=title;S.site.videosOnly=only;S.site.videosTabName=tab}
-      try{localStorage.setItem("videos_only_fast",only?"1":"0")}catch(_){}
-      toast(only?"✓ وضع فيديوهات فقط شغّال — الزائر يدخل الفيديوهات بدون حساب":"✓ اتحفظت إعدادات العرض",true);
-      render(true);
-    }catch(e){toast("فشل الحفظ: "+((e&&e.code)||e.message||""))}
-  },
-  vidFramePick(d){
-    const f=String((d&&d.f)||"gold").toLowerCase();
-    const hid=document.getElementById("vidFrame");
-    if(hid)hid.value=f;
-    document.querySelectorAll("#vidFramePicker .vid-frame-opt").forEach(b=>b.classList.toggle("on",b.getAttribute("data-f")===f));
-  },
-  async videoSetFrame(d,el){
-    if(!S.isAdmin)return;
-    const x=(VID.list||[])[+(d&&d.i)];
-    if(!x)return;
-    const allowed=["gold","energy","neon","ice","fire"];
-    let frame=String((el&&el.value)||(d&&d.f)||"gold").toLowerCase();
-    if(allowed.indexOf(frame)<0)frame="gold";
-    try{
-      await updateDoc(doc(db,"videos",x.id),{frame:frame});
-      x.frame=frame;
-      toast("✓ اتحفظ البرواز («"+frame+"»)",true);
-      /* متوقفش عن render عشان القائمة تفضل مكانها — بس لو محتاج */
-    }catch(e){toast("فشل حفظ البرواز: "+((e&&e.code)||e.message||""))}
-  },
-
   losRoomSkip(){
     const g=S.qb;if(!g||!g.room)return;
     if(g.room.host!==S.user.uid){toast("المضيف بس يقدر يخطّي الجولة");return}
@@ -17423,7 +17174,7 @@ const LF_SHOP=[
 {id:"s1",c:"skin",i:"🌊",n:"Ocean",p:1800,lv:2,k:"ocean"},{id:"s2",c:"skin",i:"🟣",n:"Purple",p:1800,lv:2,k:"purple"},{id:"s3",c:"skin",i:"🌅",n:"Sunset",p:2100,lv:3,k:"sunset"},{id:"s4",c:"skin",i:"🌲",n:"Forest",p:2100,lv:3,k:"forest"},{id:"s5",c:"skin",i:"🌈",n:"Aurora",p:3600,lv:5,k:"aurora"},{id:"s6",c:"skin",i:"💗",n:"Neon",p:3600,lv:5,k:"neon"},
 {id:"x1",c:"fx",i:"⭐",n:"نجوم",p:2100,lv:2,k:"⭐"},{id:"x2",c:"fx",i:"❄️",n:"ثلج",p:2100,lv:3,k:"❄️"},{id:"x3",c:"fx",i:"💖",n:"قلوب",p:2400,lv:3,k:"💖"},{id:"x4",c:"fx",i:"✨",n:"شرارات",p:3000,lv:4,k:"✨"},{id:"x5",c:"fx",i:"💧",n:"مطر",p:2400,lv:3,k:"💧"},
 {id:"a1",c:"acc",i:"🎩",n:"قبعة",p:1400,lv:1,k:"hat"},{id:"a2",c:"acc",i:"🕶️",n:"نظارة",p:1400,lv:1,k:"glasses"},{id:"a3",c:"acc",i:"🧣",n:"وشاح",p:1750,lv:2,k:"scarf"},{id:"a4",c:"acc",i:"👑",n:"تاج",p:4900,lv:5,k:"crown"},{id:"a5",c:"acc",i:"🪽",n:"جناحين",p:6300,lv:6,k:"wings"},{id:"a6",c:"acc",i:"😇",n:"هالة",p:4200,lv:4,k:"halo"},
-{id:"r1",c:"room",s:"wall",i:"🦋",n:"فراشات",p:750,lv:1},{id:"r2",c:"room",s:"wall",i:"🐦",n:"عصافير",p:1000,lv:1},{id:"r3",c:"room",s:"desk",i:"📚",n:"رف كتب",p:1250,lv:2,rm:1},{id:"r4",c:"room",s:"desk",i:"🖥️",n:"كمبيوتر",p:3000,lv:4,rm:1},{id:"r5",c:"room",s:"plant",i:"🌵",n:"صبار",p:600,lv:1},{id:"r6",c:"room",s:"plant",i:"🌷",n:"زهور",p:900,lv:2},{id:"r7",c:"room",s:"floor",i:"🛏️",n:"سرير",p:2500,lv:3,rm:1},{id:"r8",c:"room",s:"floor",i:"🪑",n:"مقعد حديقة",p:1250,lv:2},{id:"r9",c:"room",s:"light",i:"💡",n:"عمود إنارة",p:1000,lv:1},{id:"r10",c:"room",s:"light",i:"🏮",n:"فانوس",p:2250,lv:3},{id:"r11",c:"room",s:"clock",i:"🪁",n:"طائرة ورقية",p:1100,lv:2},{id:"r12",c:"room",s:"clock",i:"🎈",n:"بالونات",p:750,lv:1},{id:"p1",c:"room",s:"paint",i:"☀️",n:"نهار صافي",p:900,lv:1,k:"#8ec5ff",f:"#79c24f"},{id:"p2",c:"room",s:"paint",i:"🌿",n:"ربيع",p:900,lv:1,k:"#bfe8d0",f:"#8bd05a"},{id:"p3",c:"room",s:"paint",i:"🌸",n:"غروب وردي",p:1100,lv:2,k:"#f6b9d3",f:"#6aa84a"},{id:"p4",c:"room",s:"paint",i:"🌅",n:"غروب برتقالي",p:1100,lv:2,k:"#ffc08a",f:"#8ea84a"},{id:"p5",c:"room",s:"paint",i:"🌙",n:"ليل",p:1500,lv:3,k:"#2b2f4a",f:"#2f5a3a"},{id:"g1",c:"room",s:"rug",i:"🟫",n:"ممر ترابي",p:800,lv:1,k:"#b58a5a"},{id:"g2",c:"room",s:"rug",i:"⬜",n:"ممر حجري",p:800,lv:1,k:"#a5adb7"},{id:"g3",c:"room",s:"rug",i:"🟩",n:"رقعة عشب فاتحة",p:800,lv:2,k:"#a6e06f"},{id:"h1",c:"room",s:"shelf",i:"🏆",n:"كأس",p:2000,lv:3,rm:1},{id:"h2",c:"room",s:"shelf",i:"🌍",n:"جلوب",p:1250,lv:2,rm:1},{id:"h3",c:"room",s:"shelf",i:"🧸",n:"دبدوب",p:750,lv:1,rm:1},{id:"h4",c:"room",s:"desk2",i:"🎧",n:"سماعات",p:1500,lv:3,rm:1},{id:"h5",c:"room",s:"desk2",i:"☕",n:"قهوة",p:500,lv:1,rm:1},{id:"h6",c:"room",s:"side",i:"🎸",n:"جيتار",p:2250,lv:4,rm:1},{id:"h7",c:"room",s:"side",i:"🔭",n:"تلسكوب",p:3000,lv:5,rm:1},{id:"h8",c:"room",s:"side",i:"⚽",n:"كورة",p:500,lv:1},{id:"h9",c:"room",s:"light",i:"🪔",n:"مشعل",p:3500,lv:6},{id:"n1",c:"snd",s:"win",i:"🎺",n:"فوز: ريترو",p:600,lv:1,k:[392,392,523,659,784],w:"square"},{id:"n2",c:"snd",s:"win",i:"🔔",n:"فوز: جرس",p:800,lv:2,k:[1047,1319,1568,2093],w:"sine"},{id:"n3",c:"snd",s:"lvl",i:"🎼",n:"ليفل: فانفار",p:1000,lv:3,k:[262,330,392,523,659,784],w:"sawtooth"},{id:"n4",c:"snd",s:"lvl",i:"🪄",n:"ليفل: سحر",p:1000,lv:3,k:[523,659,784,988,1319,1568],w:"sine"},{id:"n5",c:"snd",s:"box",i:"🔮",n:"صندوق: غموض",p:600,lv:1,k:[220,277,330,415,554],w:"sine"},{id:"n6",c:"snd",s:"box",i:"🕹️",n:"صندوق: أركيد",p:600,lv:1,k:[330,440,660,880],w:"square"},{id:"n7",c:"snd",s:"buy",i:"💵",n:"شراء: كاش",p:500,lv:1,k:[1568,2093],w:"sine"},{id:"n8",c:"snd",s:"buy",i:"🫧",n:"شراء: بوب",p:500,lv:1,k:[440,660,990],w:"triangle"},{id:"b1",c:"bub",i:"🟡",n:"ذهبي",p:2400,lv:3,k:"gold"},{id:"b2",c:"bub",i:"🔷",n:"نيون",p:3000,lv:4,k:"neon"},{id:"b3",c:"bub",i:"🪟",n:"زجاج",p:2700,lv:4,k:"glass"},{id:"b4",c:"bub",i:"💥",n:"كوميك",p:2100,lv:2,k:"comic"},{id:"b5",c:"bub",i:"🌇",n:"غروب",p:2400,lv:3,k:"sunset"},{id:"f8",c:"frame",i:"❤️",n:"روبي",p:7200,lv:6,k:"ruby"},{id:"f9",c:"frame",i:"💚",n:"زمرد",p:7200,lv:6,k:"emerald"},{id:"f10",c:"frame",i:"💙",n:"ياقوت",p:7200,lv:6,k:"sapphire"},{id:"f11",c:"frame",i:"🧊",n:"Ice",p:6000,lv:5,k:"ice"},{id:"f12",c:"frame",i:"🤖",n:"Cyber",p:10400,lv:8,k:"ice"},{id:"f13",c:"frame",i:"🌈",n:"RGB",p:11200,lv:9,k:"rgb"},{id:"f14",c:"frame",i:"⚡",n:"Electric",p:9200,lv:7,k:"electric"},{id:"f15",c:"frame",i:"🌑",n:"Shadow",p:8000,lv:7,k:"shadow"},{id:"f16",c:"frame",i:"🔮",n:"Crystal",p:12800,lv:10,k:"crystal"},{id:"s7",c:"skin",i:"🪟",n:"Glass",p:2400,lv:3,k:"glass"},{id:"s8",c:"skin",i:"🌃",n:"Midnight",p:2400,lv:3,k:"midnight"},{id:"s9",c:"skin",i:"🥇",n:"Gold",p:4200,lv:5,k:"gold"},{id:"s10",c:"skin",i:"🌸",n:"Pink",p:2100,lv:2,k:"pink"},{id:"s11",c:"skin",i:"☁️",n:"Sky",p:2100,lv:2,k:"sky"},{id:"s12",c:"skin",i:"☕",n:"Coffee",p:2100,lv:2,k:"coffee"},{id:"s13",c:"skin",i:"🦾",n:"Cyberpunk",p:5400,lv:6,k:"cyberpunk"},{id:"s14",c:"skin",i:"📼",n:"Retro",p:3000,lv:4,k:"retro"},{id:"s15",c:"skin",i:"⬜",n:"Minimal",p:1500,lv:2,k:"minimal"},{id:"x6",c:"fx",i:"🍃",n:"أوراق",p:2100,lv:3,k:"🍃"},{id:"x7",c:"fx",i:"☄️",n:"نيزك",p:4500,lv:5,k:"☄️"},{id:"x8",c:"fx",i:"⚡",n:"برق",p:4800,lv:5,k:"⚡"},{id:"x9",c:"fx",i:"🫧",n:"فقاعات",p:2400,lv:3,k:"🫧"},{id:"x10",c:"fx",i:"💎",n:"ألماس",p:7500,lv:7,k:"💎"},{id:"x11",c:"fx",i:"☁️",n:"سحب",p:2100,lv:2,k:"☁️"},{id:"x12",c:"fx",i:"🌠",n:"شهب",p:5400,lv:6,k:"🌠"},{id:"z1",c:"pet",i:"🦋",n:"فراشة",p:12000,lv:4,k:"🦋",rm:1},{id:"z2",c:"pet",i:"🦉",n:"بومة",p:15000,lv:5,k:"🦉",rm:1},{id:"z3",c:"pet",i:"🦛",n:"فرس النهر",p:15000,lv:6,k:"🦛"},{id:"z4",c:"pet",i:"🐙",n:"أخطبوط",p:20000,lv:7,k:"🐙",rm:1},{id:"z5",c:"pet",i:"🦁",n:"أسد",p:30000,lv:9,k:"🦁"},{id:"z6",c:"pet",i:"🐯",n:"نمر",p:25000,lv:8,k:"🐯",rm:1},{id:"z7",c:"pet",i:"🦅",n:"نسر",p:30000,lv:9,k:"🦅",rm:1},{id:"z8",c:"pet",i:"🐬",n:"دلفين",p:30000,lv:9,k:"🐬",rm:1},{id:"z9",c:"pet",i:"🐘",n:"فيل",p:35000,lv:10,k:"🐘",rm:1},{id:"z10",c:"pet",i:"🦖",n:"ديناصور",p:45000,lv:11,k:"🦖",rm:1},{id:"z11",c:"pet",i:"🦓",n:"حمار وحشي",p:20000,lv:8,k:"🦓"},{id:"z12",c:"pet",i:"🦖",n:"تي ركس",p:80000,lv:15,k:"🦖"},{id:"z13",c:"pet",i:"🦕",n:"سبينوصور",p:50000,lv:12,k:"🦕"},{id:"d1",c:"room",s:"hill",i:"🏞️",n:"تل أخضر",p:1800,lv:2,m:"Hill001"},{id:"d2",c:"room",s:"hill",i:"🏞️",n:"تل مرتفع",p:2200,lv:3,m:"Hill002"},{id:"d3",c:"room",s:"hill",i:"⛰️",n:"جبال بعيدة",p:3500,lv:5,m:"MountainFar001"},{id:"d4",c:"room",s:"hill",i:"🏔️",n:"جبل",p:4800,lv:7,m:"Mountain001"},{id:"d5",c:"room",s:"cloud",i:"☁️",n:"سحابة",p:700,lv:1,m:"Cloud001"},{id:"d6",c:"room",s:"cloud",i:"☁️",n:"سحابة كبيرة",p:900,lv:2,m:"Cloud002"},{id:"d7",c:"room",s:"cloud",i:"☁️",n:"سحابة ثقيلة",p:1100,lv:3,m:"Cloud003"},{id:"d8",c:"room",s:"tree",i:"🌳",n:"شجرة صغيرة",p:1200,lv:1,m:"TreeLow001"},{id:"d9",c:"room",s:"tree",i:"🌳",n:"شجرة متوسطة",p:2400,lv:3,m:"TreeMed001"},{id:"d10",c:"room",s:"tree",i:"🌲",n:"شجرة عالية",p:3800,lv:5,m:"TreeHigh001"},{id:"d11",c:"room",s:"tree2",i:"🌳",n:"شجرة صغيرة (يمين)",p:1200,lv:1,m:"TreeLow002"},{id:"d12",c:"room",s:"tree2",i:"🌳",n:"شجرة متوسطة (يمين)",p:2400,lv:3,m:"TreeMed002"},{id:"d13",c:"room",s:"tree2",i:"🌲",n:"شجرة عالية (يمين)",p:3800,lv:5,m:"TreeHigh002"},{id:"d14",c:"room",s:"bush",i:"🌿",n:"شجيرة",p:700,lv:1,m:"Bush001"},{id:"d15",c:"room",s:"bush",i:"🌿",n:"شجيرة كبيرة",p:1000,lv:2,m:"Bush002"},{id:"d16",c:"room",s:"bush2",i:"🌾",n:"قصب",p:800,lv:2,m:"Reed001"},{id:"d17",c:"room",s:"bush2",i:"🌾",n:"قصب طويل",p:1100,lv:3,m:"Reed002"},{id:"d18",c:"room",s:"rock",i:"🪨",n:"صخرة",p:600,lv:1,m:"Rock001"},{id:"d19",c:"room",s:"rock",i:"🪨",n:"صخرة كبيرة",p:900,lv:2,m:"Rock002"},{id:"d20",c:"room",s:"rock",i:"🪨",n:"صخرة ضخمة",p:1300,lv:3,m:"Rock003"},{id:"d21",c:"room",s:"grass",i:"🌱",n:"عشب",p:400,lv:1,m:"Grass001"},{id:"d22",c:"room",s:"grass",i:"🌱",n:"عشب كثيف",p:650,lv:2,m:"Grass002"},{id:"d23",c:"room",s:"grass",i:"🌱",n:"عشب طويل",p:900,lv:3,m:"Grass003"},{id:"d24",c:"room",s:"floor",i:"⛲",n:"نافورة",p:3500,lv:4},{id:"d25",c:"room",s:"floor",i:"⛺",n:"خيمة",p:2500,lv:3},{id:"d26",c:"room",s:"floor",i:"🛝",n:"زحليقة",p:2800,lv:4},
+{id:"r1",c:"room",s:"wall",i:"🦋",n:"فراشات",p:750,lv:1},{id:"r2",c:"room",s:"wall",i:"🐦",n:"عصافير",p:1000,lv:1},{id:"r3",c:"room",s:"desk",i:"📚",n:"رف كتب",p:1250,lv:2,rm:1},{id:"r4",c:"room",s:"desk",i:"🖥️",n:"كمبيوتر",p:3000,lv:4,rm:1},{id:"r5",c:"room",s:"plant",i:"🌵",n:"صبار",p:600,lv:1},{id:"r6",c:"room",s:"plant",i:"🌷",n:"زهور",p:900,lv:2},{id:"r7",c:"room",s:"floor",i:"🛏️",n:"سرير",p:2500,lv:3,rm:1},{id:"r8",c:"room",s:"floor",i:"🪑",n:"مقعد حديقة",p:1250,lv:2},{id:"r9",c:"room",s:"light",i:"💡",n:"عمود إنارة",p:1000,lv:1},{id:"r10",c:"room",s:"light",i:"🏮",n:"فانوس",p:2250,lv:3},{id:"r11",c:"room",s:"clock",i:"🪁",n:"طائرة ورقية",p:1100,lv:2},{id:"r12",c:"room",s:"clock",i:"🎈",n:"بالونات",p:750,lv:1},{id:"p1",c:"room",s:"paint",i:"☀️",n:"نهار صافي",p:900,lv:1,k:"#8ec5ff",f:"#79c24f"},{id:"p2",c:"room",s:"paint",i:"🌿",n:"ربيع",p:900,lv:1,k:"#bfe8d0",f:"#8bd05a"},{id:"p3",c:"room",s:"paint",i:"🌸",n:"غروب وردي",p:1100,lv:2,k:"#f6b9d3",f:"#6aa84a"},{id:"p4",c:"room",s:"paint",i:"🌅",n:"غروب برتقالي",p:1100,lv:2,k:"#ffc08a",f:"#8ea84a"},{id:"p5",c:"room",s:"paint",i:"🌙",n:"ليل",p:1500,lv:3,k:"#2b2f4a",f:"#2f5a3a"},{id:"g1",c:"room",s:"rug",i:"🟫",n:"ممر ترابي",p:800,lv:1,k:"#b58a5a"},{id:"g2",c:"room",s:"rug",i:"⬜",n:"ممر حجري",p:800,lv:1,k:"#a5adb7"},{id:"g3",c:"room",s:"rug",i:"🟩",n:"رقعة عشب فاتحة",p:800,lv:2,k:"#a6e06f"},{id:"h1",c:"room",s:"shelf",i:"🏆",n:"كأس",p:2000,lv:3,rm:1},{id:"h2",c:"room",s:"shelf",i:"🌍",n:"جلوب",p:1250,lv:2,rm:1},{id:"h3",c:"room",s:"shelf",i:"🧸",n:"دبدوب",p:750,lv:1,rm:1},{id:"h4",c:"room",s:"desk2",i:"🎧",n:"سماعات",p:1500,lv:3,rm:1},{id:"h5",c:"room",s:"desk2",i:"☕",n:"قهوة",p:500,lv:1,rm:1},{id:"h6",c:"room",s:"side",i:"🎸",n:"جيتار",p:2250,lv:4,rm:1},{id:"h7",c:"room",s:"side",i:"🔭",n:"تلسكوب",p:3000,lv:5,rm:1},{id:"h8",c:"room",s:"side",i:"⚽",n:"كورة",p:500,lv:1},{id:"h9",c:"room",s:"light",i:"🪔",n:"مشعل",p:3500,lv:6},{id:"n1",c:"snd",s:"win",i:"🎺",n:"فوز: ريترو",p:600,lv:1,k:[392,392,523,659,784],w:"square"},{id:"n2",c:"snd",s:"win",i:"🔔",n:"فوز: جرس",p:800,lv:2,k:[1047,1319,1568,2093],w:"sine"},{id:"n3",c:"snd",s:"lvl",i:"🎼",n:"ليفل: فانفار",p:1000,lv:3,k:[262,330,392,523,659,784],w:"sawtooth"},{id:"n4",c:"snd",s:"lvl",i:"🪄",n:"ليفل: سحر",p:1000,lv:3,k:[523,659,784,988,1319,1568],w:"sine"},{id:"n5",c:"snd",s:"box",i:"🔮",n:"صندوق: غموض",p:600,lv:1,k:[220,277,330,415,554],w:"sine"},{id:"n6",c:"snd",s:"box",i:"🕹️",n:"صندوق: أركيد",p:600,lv:1,k:[330,440,660,880],w:"square"},{id:"n7",c:"snd",s:"buy",i:"💵",n:"شراء: كاش",p:500,lv:1,k:[1568,2093],w:"sine"},{id:"n8",c:"snd",s:"buy",i:"🫧",n:"شراء: بوب",p:500,lv:1,k:[440,660,990],w:"triangle"},{id:"b1",c:"bub",i:"🟡",n:"ذهبي",p:2400,lv:3,k:"gold"},{id:"b2",c:"bub",i:"🔷",n:"نيون",p:3000,lv:4,k:"neon"},{id:"b3",c:"bub",i:"🪟",n:"زجاج",p:2700,lv:4,k:"glass"},{id:"b4",c:"bub",i:"💥",n:"كوميك",p:2100,lv:2,k:"comic"},{id:"b5",c:"bub",i:"🌇",n:"غروب",p:2400,lv:3,k:"sunset"},{id:"f8",c:"frame",i:"❤️",n:"روبي",p:7200,lv:6,k:"ruby"},{id:"f9",c:"frame",i:"💚",n:"زمرد",p:7200,lv:6,k:"emerald"},{id:"f10",c:"frame",i:"💙",n:"ياقوت",p:7200,lv:6,k:"sapphire"},{id:"f11",c:"frame",i:"🧊",n:"Ice",p:6000,lv:5,k:"ice"},{id:"f12",c:"frame",i:"🤖",n:"Cyber",p:10400,lv:8,k:"cyber"},{id:"f13",c:"frame",i:"🌈",n:"RGB",p:11200,lv:9,k:"rgb"},{id:"f14",c:"frame",i:"⚡",n:"Electric",p:9200,lv:7,k:"electric"},{id:"f15",c:"frame",i:"🌑",n:"Shadow",p:8000,lv:7,k:"shadow"},{id:"f16",c:"frame",i:"🔮",n:"Crystal",p:12800,lv:10,k:"crystal"},{id:"s7",c:"skin",i:"🪟",n:"Glass",p:2400,lv:3,k:"glass"},{id:"s8",c:"skin",i:"🌃",n:"Midnight",p:2400,lv:3,k:"midnight"},{id:"s9",c:"skin",i:"🥇",n:"Gold",p:4200,lv:5,k:"gold"},{id:"s10",c:"skin",i:"🌸",n:"Pink",p:2100,lv:2,k:"pink"},{id:"s11",c:"skin",i:"☁️",n:"Sky",p:2100,lv:2,k:"sky"},{id:"s12",c:"skin",i:"☕",n:"Coffee",p:2100,lv:2,k:"coffee"},{id:"s13",c:"skin",i:"🦾",n:"Cyberpunk",p:5400,lv:6,k:"cyberpunk"},{id:"s14",c:"skin",i:"📼",n:"Retro",p:3000,lv:4,k:"retro"},{id:"s15",c:"skin",i:"⬜",n:"Minimal",p:1500,lv:2,k:"minimal"},{id:"x6",c:"fx",i:"🍃",n:"أوراق",p:2100,lv:3,k:"🍃"},{id:"x7",c:"fx",i:"☄️",n:"نيزك",p:4500,lv:5,k:"☄️"},{id:"x8",c:"fx",i:"⚡",n:"برق",p:4800,lv:5,k:"⚡"},{id:"x9",c:"fx",i:"🫧",n:"فقاعات",p:2400,lv:3,k:"🫧"},{id:"x10",c:"fx",i:"💎",n:"ألماس",p:7500,lv:7,k:"💎"},{id:"x11",c:"fx",i:"☁️",n:"سحب",p:2100,lv:2,k:"☁️"},{id:"x12",c:"fx",i:"🌠",n:"شهب",p:5400,lv:6,k:"🌠"},{id:"z1",c:"pet",i:"🦋",n:"فراشة",p:12000,lv:4,k:"🦋",rm:1},{id:"z2",c:"pet",i:"🦉",n:"بومة",p:15000,lv:5,k:"🦉",rm:1},{id:"z3",c:"pet",i:"🦛",n:"فرس النهر",p:15000,lv:6,k:"🦛"},{id:"z4",c:"pet",i:"🐙",n:"أخطبوط",p:20000,lv:7,k:"🐙",rm:1},{id:"z5",c:"pet",i:"🦁",n:"أسد",p:30000,lv:9,k:"🦁"},{id:"z6",c:"pet",i:"🐯",n:"نمر",p:25000,lv:8,k:"🐯",rm:1},{id:"z7",c:"pet",i:"🦅",n:"نسر",p:30000,lv:9,k:"🦅",rm:1},{id:"z8",c:"pet",i:"🐬",n:"دلفين",p:30000,lv:9,k:"🐬",rm:1},{id:"z9",c:"pet",i:"🐘",n:"فيل",p:35000,lv:10,k:"🐘",rm:1},{id:"z10",c:"pet",i:"🦖",n:"ديناصور",p:45000,lv:11,k:"🦖",rm:1},{id:"z11",c:"pet",i:"🦓",n:"حمار وحشي",p:20000,lv:8,k:"🦓"},{id:"z12",c:"pet",i:"🦖",n:"تي ركس",p:80000,lv:15,k:"🦖"},{id:"z13",c:"pet",i:"🦕",n:"سبينوصور",p:50000,lv:12,k:"🦕"},{id:"d1",c:"room",s:"hill",i:"🏞️",n:"تل أخضر",p:1800,lv:2,m:"Hill001"},{id:"d2",c:"room",s:"hill",i:"🏞️",n:"تل مرتفع",p:2200,lv:3,m:"Hill002"},{id:"d3",c:"room",s:"hill",i:"⛰️",n:"جبال بعيدة",p:3500,lv:5,m:"MountainFar001"},{id:"d4",c:"room",s:"hill",i:"🏔️",n:"جبل",p:4800,lv:7,m:"Mountain001"},{id:"d5",c:"room",s:"cloud",i:"☁️",n:"سحابة",p:700,lv:1,m:"Cloud001"},{id:"d6",c:"room",s:"cloud",i:"☁️",n:"سحابة كبيرة",p:900,lv:2,m:"Cloud002"},{id:"d7",c:"room",s:"cloud",i:"☁️",n:"سحابة ثقيلة",p:1100,lv:3,m:"Cloud003"},{id:"d8",c:"room",s:"tree",i:"🌳",n:"شجرة صغيرة",p:1200,lv:1,m:"TreeLow001"},{id:"d9",c:"room",s:"tree",i:"🌳",n:"شجرة متوسطة",p:2400,lv:3,m:"TreeMed001"},{id:"d10",c:"room",s:"tree",i:"🌲",n:"شجرة عالية",p:3800,lv:5,m:"TreeHigh001"},{id:"d11",c:"room",s:"tree2",i:"🌳",n:"شجرة صغيرة (يمين)",p:1200,lv:1,m:"TreeLow002"},{id:"d12",c:"room",s:"tree2",i:"🌳",n:"شجرة متوسطة (يمين)",p:2400,lv:3,m:"TreeMed002"},{id:"d13",c:"room",s:"tree2",i:"🌲",n:"شجرة عالية (يمين)",p:3800,lv:5,m:"TreeHigh002"},{id:"d14",c:"room",s:"bush",i:"🌿",n:"شجيرة",p:700,lv:1,m:"Bush001"},{id:"d15",c:"room",s:"bush",i:"🌿",n:"شجيرة كبيرة",p:1000,lv:2,m:"Bush002"},{id:"d16",c:"room",s:"bush2",i:"🌾",n:"قصب",p:800,lv:2,m:"Reed001"},{id:"d17",c:"room",s:"bush2",i:"🌾",n:"قصب طويل",p:1100,lv:3,m:"Reed002"},{id:"d18",c:"room",s:"rock",i:"🪨",n:"صخرة",p:600,lv:1,m:"Rock001"},{id:"d19",c:"room",s:"rock",i:"🪨",n:"صخرة كبيرة",p:900,lv:2,m:"Rock002"},{id:"d20",c:"room",s:"rock",i:"🪨",n:"صخرة ضخمة",p:1300,lv:3,m:"Rock003"},{id:"d21",c:"room",s:"grass",i:"🌱",n:"عشب",p:400,lv:1,m:"Grass001"},{id:"d22",c:"room",s:"grass",i:"🌱",n:"عشب كثيف",p:650,lv:2,m:"Grass002"},{id:"d23",c:"room",s:"grass",i:"🌱",n:"عشب طويل",p:900,lv:3,m:"Grass003"},{id:"d24",c:"room",s:"floor",i:"⛲",n:"نافورة",p:3500,lv:4},{id:"d25",c:"room",s:"floor",i:"⛺",n:"خيمة",p:2500,lv:3},{id:"d26",c:"room",s:"floor",i:"🛝",n:"زحليقة",p:2800,lv:4},
 {id:"t14",c:"title",i:"🧮",n:"ملك الرياضيات",p:3000,lv:4},{id:"t15",c:"title",i:"⚛️",n:"ملك الفيزياء",p:3000,lv:4},{id:"t16",c:"title",i:"🧪",n:"ملك الكيمياء",p:3000,lv:4},{id:"t17",c:"title",i:"🧬",n:"ملك الأحياء",p:3000,lv:4},{id:"t18",c:"title",i:"📜",n:"ملك العربي",p:3000,lv:4},{id:"t19",c:"title",i:"🔤",n:"ملك الإنجليزي",p:3000,lv:4},{id:"t20",c:"title",i:"🔭",n:"نجم الفيزياء",p:2500,lv:4},{id:"t21",c:"title",i:"🥇",n:"الذهبي",p:4000,lv:5},{id:"t22",c:"title",i:"✨",n:"المتميز",p:2000,lv:3},{id:"t23",c:"title",i:"🏛️",n:"الأسطوري",p:8000,lv:8}
 ];
 const LF_POOL=[{id:"login",e:"login",t:"ادخل المنصة",n:1,r:20},{id:"e1",e:"exam",t:"خلّص امتحان",n:1,r:60},{id:"e2",e:"exam",t:"خلّص امتحانين",n:2,r:90},{id:"full",e:"full",t:"هات درجة كاملة",n:1,r:80},{id:"box",e:"box",t:"افتح صندوق الحظ",n:1,r:30},{id:"ai",e:"ai",t:"اسأل المساعد الذكي",n:1,r:30},{id:"game",e:"game",t:"ادخل لعبة",n:1,r:40},{id:"q10",e:"q",t:"حل 10 أسئلة",n:10,r:50},{id:"win1",e:"win",t:"اكسب مباراة Quiz Battle",n:1,r:60},{id:"min30",e:"min",t:"ذاكر 30 دقيقة (جلسة تركيز)",n:30,r:60}];
@@ -18668,7 +18419,7 @@ window.__WPFB=function(){var p=S.profile||{};return{db:db,uid:S.user&&S.user.uid
     el.classList.add("hide");
     setTimeout(function(){try{el.remove()}catch(e){}},500);
   }
-  function appReady(){var a=document.getElementById("app");return !!(a&&a.firstElementChild&&((a.innerText||"").length>8||a.querySelector("video,.vx,.vx-feed,.card,button,input")))}
+  function appReady(){var a=document.getElementById("app");return !!(a&&a.firstElementChild&&(a.innerText||"").length>8)}
   // أظهر التطبيق فور جاهزيته
   var iv=setInterval(function(){
     var elapsed=Date.now()-t0;
@@ -18682,7 +18433,18 @@ window.__WPFB=function(){var p=S.profile||{};return{db:db,uid:S.user&&S.user.uid
     if(!el)return;
     var box=el.querySelector(".splash-inner");
     if(!box)return;
-    /* v233: اتشال المسح التلقائي للكاش — المسح بقى يدوي بس (زرار «مسح الكاش وإعادة التحميل») */
+    /* محاولة تلقائية واحدة لمسح الكاش لو التحميل فشل */
+    try{
+      if(sessionStorage.getItem("sp_autoclear")!=="1"){
+        sessionStorage.setItem("sp_autoclear","1");
+        var jobs=[];
+        try{if(window.caches)jobs.push(caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}))}catch(e){}
+        try{if(navigator.serviceWorker)jobs.push(navigator.serviceWorker.getRegistrations().then(function(r){return Promise.all(r.map(function(x){return x.unregister()}))}))}catch(e){}
+        Promise.all(jobs).catch(function(){}).then(function(){location.reload()});
+        box.innerHTML='<div class="splash-logo">التفوق</div><div class="splash-sub" style="margin:14px 0">بنظّف الكاش ونحاول تاني…</div>';
+        return;
+      }
+    }catch(e){}
     box.innerHTML='<div class="splash-logo">التفوق</div><div class="splash-sub" style="margin:14px 0">تعذّر تحميل المنصة، اتأكد من النت وجرب تاني</div>'
       +'<button id="spRetry" style="padding:10px 22px;border-radius:12px;border:0;background:#2f6df6;color:#fff;font:inherit;font-weight:700;margin:4px">إعادة المحاولة</button>'
       +'<button id="spClear" style="padding:10px 22px;border-radius:12px;border:1px solid #888;background:transparent;color:inherit;font:inherit;margin:4px">مسح الكاش وإعادة التحميل</button>';
