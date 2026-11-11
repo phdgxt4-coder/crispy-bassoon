@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v225">
+<meta name="sw-build" content="v226">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v225";/* v216: الغرف العامة لـ«ارسم وخمّن» في «الغرف المفتوحة» · إصلاح ظهور خانة كتابة الشات · حذف بحث المحادثة · الحذف التلقائي بعد ساعة اتعمم على شات الغرف ·  v215: «ارسم وخمّن» اتعمل من الصفر على نمط ويبلاي (ملف wp.js): رسم لحظي بـ chunks · التخمين في الشات نفسه (الإجابة الصحيحة بتتسجل لحظيًا من غير ما تتكشف) · نقاط بالوقت + بونص أول مخمّن + نقاط للرسام · اختيار كلمة من 4 · تلميحات حروف · رسائل صوتية/صور/ملصقات · لوبي بجاهزية · نهاية بترتيب · لازم تنشر firestore.rules v215 · */ v214: (1) شاشة اختيار الكلمة كانت بتعلّق لأن المؤقّت مكانش بيشتغل غير أثناء الرسم — اتصلّح (2) تنبيه لو فيه لاعبين مش مستعدين قبل البدء (3) تحذير لو لاعب نسخته قديمة + زر تحديث فوري (4) ملصقات: قاعدة آمنة بدل regex (5) ملخّص «جاهزين X من Y» في اللوبي · v213: ارسم وخمّن — (1) الملصقات المخصصة والمرسومة كانت بتترفض من قواعد Firestore (مطابقة regex غلط) · (2) تصحيح التخمينات مبقاش بيفوّت تخمين لو وصل وقت ما الرسام بيصحّح غيره + تجاهل تخمينات الجولات القديمة · (3) الرسم اللحظي: استماع بالدور فقط + الخط مبيختفيش لحظة الإرسال + مقاس الكانفاس بيتظبط تلقائيًا · (4) الكتابة في الشات مبتضيعش مع إعادة رسم الشاشة · (5) لو الرسام خرج وسط الدور الجولة بتتكشف تلقائيًا · (6) زر ابدأ محمي من الضغط المزدوج · (7) رسائل خطأ واضحة بدل «فشل» · (8) أزرار الإيموجي/المايك لم تعد تتكرر عند المخمّن · (9) حذف رسائل الغرف المنتهية (ساعة) من السيرفر · v212: إصلاح جذري للرسم (Nested arrays → strokes subcollection لحظي) · توقيت موحّد · انضمام/خروج بدون سباق · ملصقات مخصصة أخف وآمنة · رسائل الشات تتحذف بعد ساعة (expireAt) · v211: إصلاح «dgRoom is not defined» (كان بيكسر إرسال الملصقات والملصقات المخصصة والمايك) + إصلاح N (الاهتزاز) · الرد على رسالة بقى مسموح في القواعد · ملصق من صورة الفون (من المعرض/الكاميرا) مع إمكانية الرسم فوقها · حدود أكبر: ملصقاتي 50، لاعبين لحد 40، جولات لحد 30، وقت الرسم لحد 300 ث، شات 100 رسالة، رسالة صوتية 90 ث · v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
+<script>window.APP_BUILD="v226";/* v216: الغرف العامة لـ«ارسم وخمّن» في «الغرف المفتوحة» · إصلاح ظهور خانة كتابة الشات · حذف بحث المحادثة · الحذف التلقائي بعد ساعة اتعمم على شات الغرف ·  v215: «ارسم وخمّن» اتعمل من الصفر على نمط ويبلاي (ملف wp.js): رسم لحظي بـ chunks · التخمين في الشات نفسه (الإجابة الصحيحة بتتسجل لحظيًا من غير ما تتكشف) · نقاط بالوقت + بونص أول مخمّن + نقاط للرسام · اختيار كلمة من 4 · تلميحات حروف · رسائل صوتية/صور/ملصقات · لوبي بجاهزية · نهاية بترتيب · لازم تنشر firestore.rules v215 · */ v214: (1) شاشة اختيار الكلمة كانت بتعلّق لأن المؤقّت مكانش بيشتغل غير أثناء الرسم — اتصلّح (2) تنبيه لو فيه لاعبين مش مستعدين قبل البدء (3) تحذير لو لاعب نسخته قديمة + زر تحديث فوري (4) ملصقات: قاعدة آمنة بدل regex (5) ملخّص «جاهزين X من Y» في اللوبي · v213: ارسم وخمّن — (1) الملصقات المخصصة والمرسومة كانت بتترفض من قواعد Firestore (مطابقة regex غلط) · (2) تصحيح التخمينات مبقاش بيفوّت تخمين لو وصل وقت ما الرسام بيصحّح غيره + تجاهل تخمينات الجولات القديمة · (3) الرسم اللحظي: استماع بالدور فقط + الخط مبيختفيش لحظة الإرسال + مقاس الكانفاس بيتظبط تلقائيًا · (4) الكتابة في الشات مبتضيعش مع إعادة رسم الشاشة · (5) لو الرسام خرج وسط الدور الجولة بتتكشف تلقائيًا · (6) زر ابدأ محمي من الضغط المزدوج · (7) رسائل خطأ واضحة بدل «فشل» · (8) أزرار الإيموجي/المايك لم تعد تتكرر عند المخمّن · (9) حذف رسائل الغرف المنتهية (ساعة) من السيرفر · v212: إصلاح جذري للرسم (Nested arrays → strokes subcollection لحظي) · توقيت موحّد · انضمام/خروج بدون سباق · ملصقات مخصصة أخف وآمنة · رسائل الشات تتحذف بعد ساعة (expireAt) · v211: إصلاح «dgRoom is not defined» (كان بيكسر إرسال الملصقات والملصقات المخصصة والمايك) + إصلاح N (الاهتزاز) · الرد على رسالة بقى مسموح في القواعد · ملصق من صورة الفون (من المعرض/الكاميرا) مع إمكانية الرسم فوقها · حدود أكبر: ملصقاتي 50، لاعبين لحد 40، جولات لحد 30، وقت الرسم لحد 300 ث، شات 100 رسالة، رسالة صوتية 90 ث · v210: إصلاح جذري لفشل إنشاء غرفة «ارسم وخمّن» — (1) firestore.rules كان فيه خطأ صياغة في قاعدة إنشاء الغرفة بيمنع نشر القواعد كلها · (2) اتصال Firestore بقى بيكتشف تلقائيًا لو الشبكة بتقطّع القناة (Long-Polling) فنشر/كتابة الغرفة مبقتش بتاخد 20 ثانية · (3) قفل ضغط مزدوج على «إنشاء غرفة» + رسالة تقدّم + دايلوج خطوات نشر القواعد لو لسه مش منشورة · (4) تحذيرات ساعة الجهاز و503 المؤقتة مبقتش بتتسجل كأخطاء · (5) توحيد رقم الإصدار (الـ SW والمنصة) · (6) رسم أخف في قاعدة البيانات (تقريب الإحداثيات) · (7) انتقالات وانيميشن للعبة: دخول الشاشات مرة واحدة بس عند تغيير الشاشة، كونفيتي للفوز، نبض عدّاد آخر 10 ثواني، فقاعات شات، لمعان زر الإنشاء، ضغطات أنعم · v209: ملصقات مخصصة + تخمين صحيح · v208: شاشة نوع الغرفة · v207: ملصقات وصوت · v200-206: ارسم وخمّن Production */</script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
 (function(){
@@ -2120,45 +2120,49 @@ html.lite .card,html.lite .dlg,html.lite .btn.ghost{
 .dg214-warn{margin:8px 0;padding:10px 14px;border-radius:14px;background:color-mix(in srgb,#f59e0b 16%,var(--card));border:1px solid color-mix(in srgb,#f59e0b 50%,var(--line));font-size:13px;line-height:1.7;text-align:center}
 </style>
 <style id="vidFeedCss">
-/* مشغّل فيديوهات احترافي — براويز فخمة سطوع عالي جدًا */
+/* مشغّل فيديوهات — براويز فخمة بإضاءة واضحة (مش مبالغ) */
 .vid-feed{min-height:70vh}
 .vid-feed .vid-h{margin:8px 0 14px;font-size:22px;text-align:center;letter-spacing:.5px}
 .vid-list{display:flex;flex-direction:column;gap:36px;padding:6px 0 48px;scroll-snap-type:y proximity}
-.vid-card{background:transparent;border-radius:24px;overflow:visible;scroll-snap-align:start;scroll-margin-top:14px;opacity:.58;transform:scale(.97);transition:opacity .35s,transform .4s cubic-bezier(.22,1,.36,1);position:relative;isolation:isolate}
+.vid-card{background:transparent;border-radius:24px;overflow:visible;scroll-snap-align:start;scroll-margin-top:14px;opacity:.62;transform:scale(.97);transition:opacity .35s,transform .4s cubic-bezier(.22,1,.36,1);position:relative;isolation:isolate}
 .vid-card.is-active{opacity:1;transform:scale(1);z-index:3}
-.vid-frame-wrap{position:relative;padding:5px;border-radius:22px}
-.vid-frame-wrap::before,.vid-frame-wrap::after{content:"";position:absolute;inset:-4px;border-radius:26px;pointer-events:none;z-index:0}
-.vid-frame{position:relative;background:#000;aspect-ratio:16/10;max-height:64vh;border-radius:18px;overflow:hidden;z-index:1}
+.vid-frame-wrap{position:relative;padding:4px;border-radius:20px}
+.vid-frame-wrap::before,.vid-frame-wrap::after{content:"";position:absolute;inset:-3px;border-radius:24px;pointer-events:none;z-index:0}
+.vid-frame{position:relative;background:#000;aspect-ratio:16/10;max-height:64vh;border-radius:16px;overflow:hidden;z-index:1}
 .vid-el{width:100%;height:100%;object-fit:contain;display:block;background:#000}
 .vid-mute-tip{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;border-radius:999px;padding:9px 16px;font-size:13px;font-weight:700;z-index:5;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 6px 24px rgba(0,0,0,.55)}
-.vid-load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);z-index:4;opacity:0;pointer-events:none;transition:opacity .25s}
+.vid-load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);z-index:4;opacity:0;pointer-events:none;transition:opacity .25s}
 .vid-card.is-loading .vid-load{opacity:1}
-.vid-load i{width:44px;height:44px;border:3px solid rgba(255,255,255,.18);border-top-color:#fff;border-radius:50%;animation:vidSpin .65s linear infinite}
+.vid-load i{width:40px;height:40px;border:3px solid rgba(255,255,255,.18);border-top-color:#fff;border-radius:50%;animation:vidSpin .65s linear infinite}
 @keyframes vidSpin{to{transform:rotate(360deg)}}
 .vid-progress{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.12);z-index:3}
 .vid-progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#fff,#fbbf24);border-radius:0 2px 2px 0}
 .vid-err{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:rgba(0,0,0,.78);z-index:6;color:#fff;font-size:14px;text-align:center;padding:16px}
 .vid-card.is-error .vid-err{display:flex}
 .vid-fail{text-align:center;padding:48px 18px;max-width:360px;margin:40px auto}
-.vid-fail .ic{font-size:52px;line-height:1;margin-bottom:12px;filter:drop-shadow(0 0 18px rgba(0,200,255,.45))}
+.vid-fail .ic{font-size:52px;line-height:1;margin-bottom:12px;filter:drop-shadow(0 0 12px rgba(0,200,255,.35))}
 .vid-fail b{display:block;font-size:18px;margin-bottom:6px}
 .vid-fail .mut{margin-bottom:16px;line-height:1.7}
 
-/* 1 Neon أزرق/ذهبي — من الصورة، سطوع فائق */
+@keyframes vfPulse{0%,100%{opacity:.92}50%{opacity:1}}
+@keyframes vfGlowShift{0%{opacity:.55}100%{opacity:.85}}
+@keyframes vfStar{0%,100%{opacity:.45;transform:scale(.9)}50%{opacity:1;transform:scale(1.15)}}
+
+/* 1 Neon أزرق/ذهبي */
 .vf-neon .vid-frame-wrap{background:linear-gradient(135deg,#061428,#12081c)}
 .vf-neon .vid-frame-wrap::before{
   background:linear-gradient(135deg,#00f0ff,#3b82f6 28%,#fbbf24 55%,#ff9f0a 78%,#00e5ff);
-  box-shadow:0 0 12px 3px #00f0ff,0 0 36px 10px rgba(0,240,255,.95),0 0 70px 22px rgba(59,130,246,.8),0 0 110px 34px rgba(251,191,36,.65),0 0 160px 48px rgba(255,159,10,.4);
-  filter:brightness(1.65) saturate(1.55);animation:vfPulse 2s ease-in-out infinite
+  box-shadow:0 0 8px 2px rgba(0,240,255,.7),0 0 22px 8px rgba(0,240,255,.45),0 0 42px 14px rgba(59,130,246,.35),0 0 64px 20px rgba(251,191,36,.25);
+  filter:brightness(1.15) saturate(1.2);animation:vfPulse 2.4s ease-in-out infinite
 }
 .vf-neon .vid-frame-wrap::after{
-  inset:-12px;border-radius:32px;
-  background:radial-gradient(ellipse at 18% 12%,rgba(0,240,255,.7),transparent 42%),radial-gradient(ellipse at 82% 88%,rgba(251,191,36,.65),transparent 42%);
-  filter:blur(16px);opacity:1;animation:vfGlowShift 4s ease-in-out infinite alternate
+  inset:-10px;border-radius:28px;
+  background:radial-gradient(ellipse at 18% 12%,rgba(0,240,255,.4),transparent 42%),radial-gradient(ellipse at 82% 88%,rgba(251,191,36,.35),transparent 42%);
+  filter:blur(12px);opacity:.7;animation:vfGlowShift 4s ease-in-out infinite alternate
 }
-.vf-neon.is-active .vid-frame-wrap::before{filter:brightness(1.9) saturate(1.7)}
-.vf-neon .vf-stars{position:absolute;inset:-16px;pointer-events:none;z-index:3}
-.vf-neon .vf-stars span{position:absolute;width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 10px 3px #00e5ff,0 0 20px 6px rgba(251,191,36,.9);animation:vfStar 2.6s ease-in-out infinite}
+.vf-neon.is-active .vid-frame-wrap::before{filter:brightness(1.28) saturate(1.3)}
+.vf-neon .vf-stars{position:absolute;inset:-14px;pointer-events:none;z-index:3}
+.vf-neon .vf-stars span{position:absolute;width:4px;height:4px;border-radius:50%;background:#fff;box-shadow:0 0 6px 2px rgba(0,229,255,.7),0 0 12px 3px rgba(251,191,36,.45);animation:vfStar 2.6s ease-in-out infinite}
 .vf-neon .vf-stars span:nth-child(1){top:6%;left:10%}
 .vf-neon .vf-stars span:nth-child(2){top:14%;right:8%;background:#fbbf24;animation-delay:.35s}
 .vf-neon .vf-stars span:nth-child(3){bottom:10%;left:16%;animation-delay:.7s}
@@ -2166,58 +2170,55 @@ html.lite .card,html.lite .dlg,html.lite .btn.ghost{
 .vf-neon .vf-stars span:nth-child(5){top:42%;left:1%;animation-delay:.5s}
 .vf-neon .vf-stars span:nth-child(6){top:55%;right:2%;background:#67e8f9;animation-delay:1.4s}
 
-/* 2 Gold ملكي */
+/* 2 Gold */
 .vf-gold .vid-frame-wrap{background:#1a1004}
 .vf-gold .vid-frame-wrap::before{
   background:linear-gradient(135deg,#fff1a8,#ffd700 30%,#f5b800 55%,#ffe566 80%,#fff8d0);
-  box-shadow:0 0 14px 4px #ffd700,0 0 40px 14px rgba(255,215,0,.95),0 0 80px 28px rgba(245,184,0,.75),0 0 130px 40px rgba(255,230,100,.45);
-  filter:brightness(1.7) saturate(1.4);animation:vfPulse 1.9s ease-in-out infinite
+  box-shadow:0 0 8px 2px rgba(255,215,0,.7),0 0 24px 8px rgba(255,215,0,.4),0 0 48px 16px rgba(245,184,0,.28);
+  filter:brightness(1.18) saturate(1.15);animation:vfPulse 2.2s ease-in-out infinite
 }
-.vf-gold .vid-frame-wrap::after{inset:-14px;border-radius:34px;background:radial-gradient(circle at 50% 0%,rgba(255,240,150,.75),transparent 55%);filter:blur(18px);opacity:.95}
-.vf-gold.is-active .vid-frame-wrap::before{filter:brightness(2) saturate(1.55)}
+.vf-gold .vid-frame-wrap::after{inset:-12px;border-radius:30px;background:radial-gradient(circle at 50% 0%,rgba(255,240,150,.45),transparent 55%);filter:blur(12px);opacity:.7}
+.vf-gold.is-active .vid-frame-wrap::before{filter:brightness(1.3) saturate(1.25)}
 
 /* 3 Cyber */
 .vf-cyber .vid-frame-wrap{background:#0a0418}
 .vf-cyber .vid-frame-wrap::before{
   background:linear-gradient(120deg,#f0abfc,#c026d3 28%,#22d3ee 58%,#67e8f9);
-  box-shadow:0 0 14px 4px #e879f9,0 0 42px 14px rgba(232,121,249,.95),0 0 80px 28px rgba(168,85,247,.8),0 0 130px 42px rgba(34,211,238,.55);
-  filter:brightness(1.7) saturate(1.6);animation:vfPulse 1.7s ease-in-out infinite
+  box-shadow:0 0 8px 2px rgba(232,121,249,.65),0 0 24px 8px rgba(168,85,247,.4),0 0 48px 16px rgba(34,211,238,.3);
+  filter:brightness(1.15) saturate(1.25);animation:vfPulse 2.1s ease-in-out infinite
 }
-.vf-cyber .vid-frame-wrap::after{inset:-12px;background:radial-gradient(ellipse at 12% 18%,rgba(240,171,252,.7),transparent 48%),radial-gradient(ellipse at 88% 82%,rgba(34,211,238,.65),transparent 48%);filter:blur(16px);opacity:.95}
+.vf-cyber .vid-frame-wrap::after{inset:-10px;border-radius:28px;background:radial-gradient(ellipse at 20% 80%,rgba(34,211,238,.35),transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(232,121,249,.35),transparent 50%);filter:blur(12px);opacity:.65}
+.vf-cyber.is-active .vid-frame-wrap::before{filter:brightness(1.28) saturate(1.35)}
 
 /* 4 Fire */
 .vf-fire .vid-frame-wrap{background:#1a0604}
 .vf-fire .vid-frame-wrap::before{
   background:linear-gradient(135deg,#ff7a45,#ff2d00 28%,#ff9500 55%,#ffd000 78%,#ff6b35);
-  box-shadow:0 0 16px 5px #ff4500,0 0 44px 16px rgba(255,69,0,.95),0 0 85px 30px rgba(255,140,0,.8),0 0 140px 44px rgba(255,200,0,.5);
-  filter:brightness(1.75) saturate(1.55);animation:vfFirePulse 1.5s ease-in-out infinite
+  box-shadow:0 0 8px 2px rgba(255,69,0,.65),0 0 24px 8px rgba(255,140,0,.4),0 0 48px 16px rgba(255,200,0,.25);
+  filter:brightness(1.15) saturate(1.2);animation:vfPulse 1.9s ease-in-out infinite
 }
-.vf-fire .vid-frame-wrap::after{inset:-14px;background:radial-gradient(ellipse at 50% 100%,rgba(255,80,0,.7),transparent 52%);filter:blur(18px);opacity:.95}
+.vf-fire .vid-frame-wrap::after{inset:-10px;border-radius:28px;background:radial-gradient(ellipse at 50% 100%,rgba(255,100,0,.4),transparent 55%);filter:blur(12px);opacity:.7}
+.vf-fire.is-active .vid-frame-wrap::before{filter:brightness(1.28) saturate(1.3)}
 
 /* 5 Aurora */
 .vf-aurora .vid-frame-wrap{background:#03140f}
 .vf-aurora .vid-frame-wrap::before{
   background:linear-gradient(135deg,#4ade80,#14b8a6 22%,#2dd4bf 45%,#818cf8 68%,#e879f9);
-  box-shadow:0 0 14px 4px #34d399,0 0 40px 14px rgba(52,211,153,.95),0 0 80px 28px rgba(45,212,191,.75),0 0 130px 40px rgba(129,140,248,.5);
-  filter:brightness(1.7) saturate(1.5);animation:vfPulse 2.2s ease-in-out infinite
+  box-shadow:0 0 8px 2px rgba(52,211,153,.6),0 0 24px 8px rgba(45,212,191,.35),0 0 48px 16px rgba(129,140,248,.28);
+  filter:brightness(1.12) saturate(1.2);animation:vfPulse 2.6s ease-in-out infinite
 }
-.vf-aurora .vid-frame-wrap::after{inset:-12px;background:radial-gradient(ellipse at 22% 28%,rgba(52,211,153,.65),transparent 48%),radial-gradient(ellipse at 78% 72%,rgba(129,140,248,.55),transparent 48%);filter:blur(15px);opacity:.92}
+.vf-aurora .vid-frame-wrap::after{inset:-10px;border-radius:28px;background:radial-gradient(ellipse at 30% 20%,rgba(74,222,128,.3),transparent 45%),radial-gradient(ellipse at 70% 80%,rgba(129,140,248,.3),transparent 45%);filter:blur(12px);opacity:.65}
+.vf-aurora.is-active .vid-frame-wrap::before{filter:brightness(1.25) saturate(1.3)}
 
 /* 6 Ice */
 .vf-ice .vid-frame-wrap{background:#050c16}
 .vf-ice .vid-frame-wrap::before{
   background:linear-gradient(135deg,#f0f9ff,#7dd3fc 28%,#38bdf8 52%,#a5f3fc 75%,#ffffff);
-  box-shadow:0 0 16px 5px #e0f2fe,0 0 44px 16px rgba(224,242,254,1),0 0 85px 30px rgba(56,189,248,.85),0 0 140px 48px rgba(165,243,252,.55);
-  filter:brightness(1.85) saturate(1.25);animation:vfPulse 1.85s ease-in-out infinite
+  box-shadow:0 0 8px 2px rgba(224,242,254,.7),0 0 24px 8px rgba(56,189,248,.4),0 0 48px 16px rgba(165,243,252,.28);
+  filter:brightness(1.15) saturate(1.1);animation:vfPulse 2.3s ease-in-out infinite
 }
-.vf-ice .vid-frame-wrap::after{inset:-15px;background:radial-gradient(circle at 50% 35%,rgba(240,249,255,.75),transparent 55%);filter:blur(18px);opacity:.95}
-
-@keyframes vfPulse{0%,100%{opacity:1;filter:brightness(1.55) saturate(1.4)}50%{opacity:.94;filter:brightness(1.95) saturate(1.65)}}
-@keyframes vfGlowShift{0%{opacity:.8;transform:scale(1)}100%{opacity:1;transform:scale(1.04)}}
-@keyframes vfFirePulse{0%,100%{filter:brightness(1.55) saturate(1.4)}40%{filter:brightness(2) saturate(1.65)}70%{filter:brightness(1.75) saturate(1.5)}}
-@keyframes vfStar{0%,100%{opacity:.25;transform:scale(.5)}50%{opacity:1;transform:scale(1.5)}}
-html.lite .vid-frame-wrap::before,html.lite .vid-frame-wrap::after,html.lite .vf-stars{animation:none!important;filter:brightness(1.2)!important}
-@media (prefers-reduced-motion:reduce){.vid-frame-wrap::before,.vid-frame-wrap::after,.vf-stars span{animation:none!important}}
+.vf-ice .vid-frame-wrap::after{inset:-10px;border-radius:28px;background:radial-gradient(ellipse at 50% 0%,rgba(186,230,253,.45),transparent 55%);filter:blur(12px);opacity:.65}
+.vf-ice.is-active .vid-frame-wrap::before{filter:brightness(1.28) saturate(1.2)}
 </style>
 </head>
 <body>
@@ -8878,10 +8879,10 @@ function videosView(){
       return `<article class="vid-card ${style}${x.feat?" is-feat":""}" data-vid="${esc(x.id)}">
   <div class="vid-frame-wrap">${stars}
     <div class="vid-frame">
-      <video class="vid-el" playsinline webkit-playsinline preload="metadata" poster="${esc(x.cover||"")}" src="${esc(x.url)}" data-vid="${esc(x.id)}"></video>
+      <video class="vid-el" playsinline webkit-playsinline preload="none" poster="${esc(x.cover||"")}" data-src="${esc(x.url)}" data-vid="${esc(x.id)}"></video>
       <div class="vid-load"><i></i></div>
       <div class="vid-progress"><i></i></div>
-      <div class="vid-err">انقطع الاتصال<br><button type="button" class="btn sm gold" data-act="vidRetry">إعادة التشغيل</button></div>
+      <div class="vid-err"><span class="vid-err-msg">تعذّر التشغيل</span><br><button type="button" class="btn sm gold" data-act="vidRetry">إعادة التشغيل</button></div>
       <div class="vid-mute-tip" hidden>اضغط للصوت 🔊</div>
     </div>
   </div>
@@ -8918,27 +8919,62 @@ function vidBindFeed(){
     const card=cardOf(v);if(card)card.classList.add("is-active");
   };
   const setLoading=(v,on)=>{const c=cardOf(v);if(c)c.classList.toggle("is-loading",!!on)};
-  const setError=(v,on)=>{const c=cardOf(v);if(c)c.classList.toggle("is-error",!!on)};
+  const setError=(v,on,msg)=>{const c=cardOf(v);if(c)c.classList.toggle("is-error",!!on);try{const m=c&&c.querySelector(".vid-err-msg");if(m&&msg)m.textContent=msg}catch(_){}};
   const updateProgress=v=>{try{const bar=v.parentElement&&v.parentElement.querySelector(".vid-progress i");if(!bar||!v.duration||!isFinite(v.duration))return;bar.style.width=((v.currentTime/v.duration)*100).toFixed(2)+"%"}catch(_){}};
   const savePos=v=>{try{if(v&&v.currentTime>1)v.dataset.savedT=String(v.currentTime)}catch(_){}};
   const restorePos=v=>{try{const t=parseFloat(v.dataset.savedT||"0");if(t>1&&isFinite(t)&&(!v.currentTime||v.currentTime<1.5))v.currentTime=t}catch(_){}};
+  const ensureSrc=v=>{
+    if(!v)return false;
+    const want=v.getAttribute("data-src")||"";
+    if(!want)return false;
+    if(v.getAttribute("src")===want)return true;
+    try{v.setAttribute("src",want);v.load()}catch(_){return false}
+    return true;
+  };
   const tryPlay=async v=>{
     if(!v||lock)return;
-    if(active===v&&!v.paused)return;
+    if(active===v&&!v.paused&&!v.ended)return;
     lock=true;
     try{
-      vidStopAll(v);active=v;setActiveCard(v);setError(v,false);restorePos(v);v.muted=false;
-      try{const p=v.play();if(p&&p.then)await p;const tip=v.parentElement&&v.parentElement.querySelector(".vid-mute-tip");if(tip)tip.hidden=true}
-      catch(_){try{v.muted=true;await v.play();const tip=v.parentElement&&v.parentElement.querySelector(".vid-mute-tip");if(tip){tip.hidden=false;tip.onclick=async ev=>{ev.stopPropagation();try{v.muted=false;await v.play();tip.hidden=true}catch(e){}}}}catch(e){setError(v,true)}}
+      vidStopAll(v);active=v;setActiveCard(v);setError(v,false);setLoading(v,true);
+      ensureSrc(v);restorePos(v);
+      v.muted=false;
+      try{
+        const p=v.play();
+        if(p&&p.then)await p;
+        const tip=v.parentElement&&v.parentElement.querySelector(".vid-mute-tip");
+        if(tip)tip.hidden=true;
+        setLoading(v,false);
+      }catch(_){
+        try{
+          v.muted=true;
+          await v.play();
+          setLoading(v,false);
+          const tip=v.parentElement&&v.parentElement.querySelector(".vid-mute-tip");
+          if(tip){tip.hidden=false;tip.onclick=async ev=>{ev.stopPropagation();try{v.muted=false;await v.play();tip.hidden=true}catch(e){}}}
+        }catch(e){
+          setLoading(v,false);
+          setError(v,true,"تعذّر التشغيل — جرّب تاني");
+        }
+      }
     }finally{lock=false}
   };
   const recover=v=>{
     if(!v)return;savePos(v);setError(v,false);setLoading(v,true);
     try{
-      const t=parseFloat(v.dataset.savedT||String(v.currentTime||0));v.load();
-      const onReady=()=>{v.removeEventListener("canplay",onReady);try{if(t>1)v.currentTime=t}catch(_){}setLoading(v,false);if(active===v||cardOf(v)?.classList.contains("is-active"))tryPlay(v)};
-      v.addEventListener("canplay",onReady,{once:true});setTimeout(()=>setLoading(v,false),8000);
-    }catch(e){setLoading(v,false);setError(v,true)}
+      const tpos=parseFloat(v.dataset.savedT||String(v.currentTime||0));
+      const want=v.getAttribute("data-src")||v.getAttribute("src")||"";
+      if(want){v.removeAttribute("src");v.setAttribute("data-src",want);v.setAttribute("src",want)}
+      v.load();
+      const onReady=()=>{
+        v.removeEventListener("canplay",onReady);
+        try{if(tpos>1)v.currentTime=tpos}catch(_){}
+        setLoading(v,false);
+        if(active===v||(cardOf(v)&&cardOf(v).classList.contains("is-active")))tryPlay(v);
+      };
+      v.addEventListener("canplay",onReady,{once:true});
+      setTimeout(()=>{try{v.removeEventListener("canplay",onReady)}catch(_){}setLoading(v,false)},10000);
+    }catch(e){setLoading(v,false);setError(v,true,"تعذّر إعادة التحميل")}
   };
   const pickCenter=()=>{
     const mid=window.innerHeight*0.45;let best=null,bestDist=1e9;
@@ -8950,10 +8986,14 @@ function vidBindFeed(){
       if(ratio>=0.45&&dist<bestDist){bestDist=dist;best=v}
     });
     if(best)tryPlay(best);
-    else if(active){const r=active.getBoundingClientRect();const visible=Math.min(r.bottom,window.innerHeight)-Math.max(r.top,0);if(visible/Math.max(r.height,1)<0.3){try{active.pause()}catch(_){}active=null;setActiveCard(null)}}
+    else if(active){
+      const r=active.getBoundingClientRect();
+      const visible=Math.min(r.bottom,window.innerHeight)-Math.max(r.top,0);
+      if(visible/Math.max(r.height,1)<0.3){try{active.pause()}catch(_){}active=null;setActiveCard(null)}
+    }
   };
   let tmr=null;
-  const onScroll=()=>{clearTimeout(tmr);tmr=setTimeout(pickCenter,80)};
+  const onScroll=()=>{clearTimeout(tmr);tmr=setTimeout(pickCenter,90)};
   window.addEventListener("scroll",onScroll,{passive:true});
   const onOnline=()=>{if(active)recover(active);else pickCenter()};
   window.addEventListener("online",onOnline);
@@ -8964,16 +9004,26 @@ function vidBindFeed(){
     v.addEventListener("waiting",()=>setLoading(v,true));
     v.addEventListener("playing",()=>{setLoading(v,false);setError(v,false)});
     v.addEventListener("canplay",()=>setLoading(v,false));
+    v.addEventListener("loadeddata",()=>setLoading(v,false));
     v.addEventListener("timeupdate",()=>{updateProgress(v);if(v.currentTime>2)savePos(v)});
     v.addEventListener("stalled",()=>{savePos(v);setLoading(v,true)});
-    v.addEventListener("error",()=>{savePos(v);setError(v,true);setLoading(v,false)});
+    v.addEventListener("error",()=>{
+      savePos(v);setLoading(v,false);
+      const code=(v.error&&v.error.code)||0;
+      const retries=Number(v.dataset.retries||0);
+      if(retries<2){
+        v.dataset.retries=String(retries+1);
+        setTimeout(()=>recover(v),600+retries*400);
+        return;
+      }
+      const msg=code===4?"الصيغة غير مدعومة":code===2?"مشكلة شبكة — جرّب تاني":"تعذّر التشغيل";
+      setError(v,true,msg);
+    });
     const errBtn=v.parentElement&&v.parentElement.querySelector("[data-act=vidRetry]");
-    if(errBtn)errBtn.addEventListener("click",ev=>{ev.stopPropagation();recover(v)});
+    if(errBtn)errBtn.addEventListener("click",ev=>{ev.stopPropagation();v.dataset.retries="0";recover(v)});
   });
-  setTimeout(pickCenter,300);
+  setTimeout(pickCenter,250);
 }
-
-
 
 function adminSongs(){
   if(!MUS.loaded&&!MUS._adm){MUS._adm=1;musLoad(true).then(()=>{MUS._adm=0;if(S.isAdmin&&S.tab==="songs")render(true)})}

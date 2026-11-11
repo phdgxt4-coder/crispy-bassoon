@@ -1,5 +1,4 @@
-/* v233: مزامنة مع index.html (قسم الفيديوهات الجديد) + طلبات Range (فيديو/صوت) بتعدّي للمتصفح مباشرة من غير ما الـ SW يلمسها */
-/* v219: fix reload loop + videos (رسم أسرع + ملصقات Premium + شات أثناء الرسم + أغاني) */
+/* v225: bypass SW for video/audio/catbox · /* v219: fix reload loop + videos (رسم أسرع + ملصقات Premium + شات أثناء الرسم + أغاني) */
 /* التفوق SW — CACHE=eltafawoq-v222 + توافق مع أي eltafawoq-v* + أوفلاين دائم */
 /* v214: إصلاح ملصقات ارسم وخمّن + الرسم اللحظي + تصحيح التخمينات */
 /* v210: توحيد الإصدار مع index.html (كان SW=v209 والمنصة=v208) — أي eltafawoq-v* قديم بيتنضّف تلقائيًا */
@@ -14,10 +13,10 @@
 
 const PETS = ["./pets/fox.glb","./pets/corgi.glb","./pets/hare.glb","./pets/sheep.glb","./pets/boar.glb"];
 /* اسم الكاش الحالي — v208: أول تحميل بعد النشر بينضّف كاشات v206 والقديم تلقائيًا */
-const CACHE = "eltafawoq-v233";
+const CACHE = "eltafawoq-v225";
 /* لا يُحذف كاش الأوفلاين عند التحديث؛ الإصدارات القديمة (v1…v مليون) بتترحّل هنا قبل المسح */
 const OFFLINE_CACHE = "eltafawoq-offline-v1";
-const BUILD = "20261110-v233";
+const BUILD = "20261109-v222";
 
 /* أي كاش إصدار واجهة: eltafawoq-v180 / v183 / v1000000 / v1.2-beta … */
 function isVersionCache(name) {
@@ -272,9 +271,21 @@ self.addEventListener("fetch", (e) => {
     e.respondWith(fetch(e.request));
     return;
   }
-  /* v233: طلبات Range (تشغيل/تقديم الفيديو والصوت) — الـ SW مايتدخلش فيها: الكاش مابيدعمش 206 والتدخّل كان بيعطّل التقديم */
-  if (e.request.headers.has("range")) return;
   const url = new URL(e.request.url);
+
+  /* v225: متتدخلش في فيديو/صوت — Range requests بتتبهدل لو الـ SW لفّها */
+  const dest = e.request.destination || "";
+  const host = (url.hostname || "").toLowerCase();
+  if (
+    dest === "video" || dest === "audio" || dest === "mediastream" ||
+    host.includes("catbox.moe") || host.includes("litterbox") ||
+    host.includes("cdn.discordapp") || host.includes("media.discordapp") ||
+    host.includes("drive.google") || host.includes("googlevideo") ||
+    host.includes("youtube") || host.includes("ytimg") ||
+    /\.(mp4|webm|m4v|mov|mp3|m4a|aac|ogg|wav)(\?|$)/i.test(url.pathname)
+  ) {
+    return; /* browser handles natively — no respondWith */
+  }
 
   /* cache local GLB pets — v152: لو الشبكة فشلت والملف مش متخزن نرجّع 504 بدل undefined (كان بيكسر respondWith) */
   if (url.origin === self.location.origin && url.pathname.endsWith(".glb")) {
