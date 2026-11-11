@@ -1,1 +1,34 @@
-SEE_NEXT
+rules_version = '2';
+/*
+  تحذير: النسخة الكاملة من القواعد موجودة في commit f0cb54291c53c0a26c5a8f4b90be08847500d5a8
+  انشر من Firebase Console النسخة السابقة + عدّل videos كالتالي فقط.
+  v234 videos: allow read: if true;
+*/
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isAdmin() {
+      return signedIn() && request.auth.uid == 'JQs0vS5OomSJy3qlYf8HRXAwS1w1';
+    }
+
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    /* فيديوهات — قراءة عامة ضرورية لوضع videosOnly */
+    match /videos/{vidId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /students/{uid} {
+      allow read, write: if isAdmin() || (signedIn() && request.auth.uid == uid);
+    }
+
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
