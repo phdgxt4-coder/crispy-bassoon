@@ -1,1 +1,246 @@
-PLACEHOLDER
+rules_version = '2';
+/*
+  التفوق — Firestore Rules الموحّدة (v234)
+  v234: videos — قراءة عامة (videosOnly/ضيوف) + حقول frame/feat
+  v216: wpRooms بقت تدعم public + expireAt (حذف تلقائي بعد ساعة).
+  v215: إضافة wpRooms (ارسم وخمّن الجديدة): غرفة + msgs + strokes + secret + presence. القواعد القديمة (dgRooms) متسابة زي ما هي.
+  حد المستند في Firestore = 1 ميجا — حدود الصور هنا 950000 حرف.
+*/
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isAdmin() {
+      return signedIn() && request.auth.uid == 'JQs0vS5OomSJy3qlYf8HRXAwS1w1';
+    }
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+    function notBlocked() {
+      let p = /databases/$(database)/documents/students/$(request.auth.uid);
+      return !exists(p) || get(p).data.get('blocked', false) == false;
+    }
+
+    function staffRole() {
+      let sp = /databases/$(database)/documents/staff/$(request.auth.uid);
+      return exists(sp) ? get(sp).data.get('role', '') : '';
+    }
+    function isStaff() {
+      return signedIn() && (staffRole() == 'mod' || staffRole() == 'admin');
+    }
+    function isDiagStaff() {
+      return signedIn() && staffRole() == 'admin';
+    }
+
+    function tgApproved() {
+      let sp = /databases/$(database)/documents/students/$(request.auth.uid);
+      return !exists(sp) || get(sp).data.get('tanaghaAccess', 'approved') == 'approved';
+    }
+    function sectionNotHidden(sec) {
+      let sp = /databases/$(database)/documents/students/$(request.auth.uid);
+      return !exists(sp) || !get(sp).data.get('hiddenSections', []).hasAny([sec]);
+    }
+
+    function isAsmManager() {
+      let sp = /databases/$(database)/documents/students/$(request.auth.uid);
+      let cp = /databases/$(database)/documents/config/site;
+      return signedIn() && (
+        (exists(sp) && get(sp).data.get('roles', []).hasAny(['asm']))
+        || (exists(cp) && get(cp).data.get('asmManagers', []).hasAny([request.auth.uid]))
+      );
+    }
+
+    function featureFlagOn(feature) {
+      let p = /databases/$(database)/documents/config/features;
+      return !exists(p) || get(p).data.get(feature, true) == true;
+    }
+    function platformMode() {
+      let p = /databases/$(database)/documents/config/site;
+      return !exists(p) || get(p).data.get('appMode', 'platform') == 'platform';
+    }
+    function featureAllowed(feature) {
+      return isAdmin() || (featureFlagOn(feature) && (platformMode() || feature == 'games'));
+    }
+
+    function publicConfigSafe() {
+      return !resource.data.keys().hasAny([
+        'aiKey', 'booksKey', 'apiKey', 'openaiKey', 'geminiKey', 'anthropicKey',
+        'turnUser', 'turnCred', 'turnCredential', 'privateKey', 'serviceAccountKey',
+        'clientSecret', 'accessToken', 'adminKey', 'secret', 'password', 'html'
+      ]);
+    }
+    function activeHtmlGame(docId) {
+      let p = /databases/$(database)/documents/config/site;
+      return signedIn() && featureFlagOn('games') && exists(p)
+        && docId == 'gameMode_' + get(p).data.get('appMode', 'platform');
+    }
+
+    function validStudentCreate() {
+      let d = request.resource.data;
+      return d.keys().hasAll(['name', 'tanaghaAccess', 'createdAt'])
+        && d.keys().hasOnly(['name', 'tanaghaAccess', 'createdAt', 'lastLogin', 'phone', 'chatName'])
+        && d.name is string
+        && d.name.size() >= 2
+        && d.name.size() <= 80
+        && d.tanaghaAccess == 'pending'
+        && d.createdAt is timestamp
+        && (!d.keys().hasAny(['phone']) || (d.phone is string && d.phone.size() <= 20))
+        && (!d.keys().hasAny(['chatName']) || (d.chatName is string && d.chatName.size() <= 80));
+    }
+
+    match /config/{docId} {
+      allow read: if isAdmin() || (docId != 'ai' && (activeHtmlGame(docId) || publicConfigSafe()));
+      allow write: if isAdmin();
+    }
+
+    match /students/{uid} {
+      allow read: if isAdmin() || isOwner(uid);
+      allow create: if isAdmin() || (isOwner(uid) && validStudentCreate());
+      allow update: if isAdmin()
+        || (isOwner(uid)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                 'lastLogin', 'chatName', 'name', 'avatar', 'avatarThumb', 'fcmToken', 'fcmUpdatedAt',
+                 'clientType', 'theme', 'blockedUsers', 'onboarded', 'pwChangedAt', 'pwResetCode', 'pwResetUntil',
+                 'xp', 'level', 'title', 'badges', 'lastXpAt', 'xpDay', 'xpToday',
+                 'streak', 'lastStreak', 'lastStreakDay', 'lastSeenAt'])
+            && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['name'])
+                || (request.resource.data.name is string
+                    && request.resource.data.name.size() >= 2
+                    && request.resource.data.name.size() <= 80))
+            && request.resource.data.get('xp', 0) <= resource.data.get('xp', 0) + 600
+            && request.resource.data.get('streak', 0) <= resource.data.get('streak', 0) + 1
+            && request.resource.data.get('xpToday', 0) <= 600);
+      allow delete: if isAdmin();
+
+      match /logins/{loginId} {
+        allow create: if isOwner(uid)
+          && request.resource.data.keys().hasOnly(['ip', 'device', 'screen', 'lang', 'tz', 'createdAt'])
+          && request.resource.data.createdAt is timestamp;
+        allow read: if isAdmin() || isOwner(uid);
+        allow delete: if isAdmin();
+      }
+    }
+
+    match /studentsPrivate/{uid} {
+      allow read: if isAdmin() || isOwner(uid);
+      allow create: if isAdmin() || (isOwner(uid)
+        && request.resource.data.keys().hasOnly(['phone', 'ip', 'device', 'regIp', 'regDevice', 'updatedAt']));
+      allow update: if isAdmin() || (isOwner(uid)
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['phone', 'ip', 'device', 'regIp', 'regDevice', 'updatedAt']));
+      allow delete: if isAdmin();
+    }
+
+    match /publicProfiles/{uid} {
+      allow read: if isAdmin() || isOwner(uid) || (signedIn() && notBlocked()
+        && (featureAllowed('chat') || featureAllowed('progress') || featureAllowed('games')));
+      allow create: if isAdmin() || (isOwner(uid) && notBlocked()
+        && request.resource.data.keys().hasOnly(['name', 'updatedAt', 'avatar', 'title', 'level', 'xp', 'pk'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 2
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.updatedAt is timestamp
+        && (!request.resource.data.keys().hasAny(['pk']) || (request.resource.data.pk is list && request.resource.data.pk.size() <= 24)));
+      allow update: if isAdmin() || (isOwner(uid) && notBlocked()
+        && request.resource.data.keys().hasOnly(['name', 'updatedAt', 'avatar', 'title', 'level', 'xp', 'pk'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'updatedAt', 'avatar', 'title', 'level', 'xp', 'pk'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 2
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.updatedAt is timestamp
+        && (!request.resource.data.keys().hasAny(['pk']) || (request.resource.data.pk is list && request.resource.data.pk.size() <= 24)));
+      allow delete: if isAdmin();
+    }
+
+    match /avatars/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isAdmin() || (isOwner(uid)
+        && request.resource.data.keys().hasOnly(['data', 'updatedAt'])
+        && request.resource.data.data is string
+        && request.resource.data.data.size() <= 950000
+        && request.resource.data.updatedAt is timestamp);
+      allow delete: if isAdmin() || isOwner(uid);
+    }
+
+    match /staff/{uid} {
+      allow read: if isAdmin() || isOwner(uid);
+      allow write: if isAdmin();
+    }
+
+    match /presence/{uid} {
+      allow read: if isAdmin() || isOwner(uid)
+        || (signedIn() && featureAllowed('chat')
+            && resource.data.get('online', false) == true
+            && !resource.data.keys().hasAny(['where']));
+      allow create: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(['clientType', 'lastSeenAt', 'online', 'away'])
+        && request.resource.data.clientType is string
+        && request.resource.data.lastSeenAt is timestamp
+        && request.resource.data.online is bool
+        && request.resource.data.away is bool;
+      allow update: if isOwner(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clientType', 'lastSeenAt', 'online', 'away', 'where'])
+        && request.resource.data.keys().hasOnly(['clientType', 'lastSeenAt', 'online', 'away'])
+        && request.resource.data.clientType is string
+        && request.resource.data.lastSeenAt is timestamp
+        && request.resource.data.online is bool
+        && request.resource.data.away is bool;
+      allow delete: if isAdmin() || isOwner(uid);
+    }
+
+    match /exams/{examId} {
+      allow read: if isAdmin() || (signedIn()
+        && (featureAllowed('subjects') || featureAllowed('games'))
+        && resource.data.published == true);
+      allow write: if isAdmin();
+    }
+
+    match /results/{resultId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow create: if signedIn() && notBlocked()
+        && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    /* ===== فيديوهات المنصة (روابط Catbox/خارجية) =====
+       v234: قراءة عامة بدون تسجيل — ضروري لوضع videosOnly والضيوف
+       + دعم حقول frame و feat */
+    match /videos/{vidId} {
+      allow read: if true;
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['title','url','desc','cover','hidden','ts','by','kind','frame','feat'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 160
+        && request.resource.data.url is string
+        && request.resource.data.url.size() > 8 && request.resource.data.url.size() <= 500
+        && request.resource.data.url.matches('https://.*')
+        && (!request.resource.data.keys().hasAny(['desc']) || (request.resource.data.desc is string && request.resource.data.desc.size() <= 1000))
+        && (!request.resource.data.keys().hasAny(['cover']) || (request.resource.data.cover is string && request.resource.data.cover.size() <= 500))
+        && (!request.resource.data.keys().hasAny(['kind']) || (request.resource.data.kind is string && request.resource.data.kind.size() <= 40))
+        && (!request.resource.data.keys().hasAny(['hidden']) || request.resource.data.hidden is bool)
+        && (!request.resource.data.keys().hasAny(['frame']) || (request.resource.data.frame is string && request.resource.data.frame in ['gold','energy','neon','ice','fire']))
+        && (!request.resource.data.keys().hasAny(['feat']) || request.resource.data.feat is bool);
+      allow update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['title','url','desc','cover','hidden','ts','by','kind','frame','feat'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 160
+        && request.resource.data.url is string
+        && request.resource.data.url.size() > 8 && request.resource.data.url.size() <= 500
+        && request.resource.data.url.matches('https://.*')
+        && (!request.resource.data.keys().hasAny(['frame']) || (request.resource.data.frame is string && request.resource.data.frame in ['gold','energy','neon','ice','fire']))
+        && (!request.resource.data.keys().hasAny(['feat']) || request.resource.data.feat is bool);
+      allow delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
