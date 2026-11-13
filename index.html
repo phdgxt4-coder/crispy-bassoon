@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v236">
+<meta name="sw-build" content="v239">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v236";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
+<script>window.APP_BUILD="v239";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
 </script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
@@ -2405,7 +2405,13 @@ body.vid-focus-body .vx-top .vx-btn{display:none}
 .vx-fail button{margin-top:6px}
 </style>
 
-<style id="vfast">.vfast #splash{display:none!important}.vfast body,.vfast html{background:#05060b!important}.vfast .bgfx{display:none!important}</style>
+<style id="vx237">
+.vx-snd-btn{display:none;position:absolute;z-index:7;left:50%;transform:translateX(-50%);bottom:54px;border:0;border-radius:999px;padding:9px 20px;font:inherit;font-size:14px;font-weight:800;color:#1a1200;background:linear-gradient(135deg,#fde68a,#fbbf24 55%,#f59e0b);box-shadow:0 8px 24px rgba(245,158,11,.4);cursor:pointer;white-space:nowrap}
+.vx.need-snd .vx-snd-btn{display:block;animation:vxSndIn .35s ease-out both}
+.vx.need-snd .vx-stage{bottom:104px}
+@keyframes vxSndIn{from{opacity:0;transform:translate(-50%,8px)}}
+</style>
+<style id="vfast">#splash:not(.fail){display:none!important}.vfast #splash{display:none!important}.vfast body,.vfast html{background:#05060b!important}.vfast .bgfx{display:none!important}</style>
 <script>try{if(localStorage.getItem("videos_only_fast")==="1")document.documentElement.classList.add("vfast")}catch(e){}</script>
 </head>
 <body>
@@ -2679,7 +2685,7 @@ const S = {asms:[],asm:null,editingAsm:null,logins:{},sq:"",starts:[],examsLoade
   qb:null,qbSub:null,qbChatSub:null,qbChat:[],board:[],notifs:[],unreadNotif:0,activity:[],activityLoaded:false,
   fadaye7:[],suspicious:[],adminRooms:[],adminConvs:[]};
 // زيارة تانية: مفيش انتظار. أول زيارة: 200ms بس
-let splashUntil=Date.now()+2100;
+let splashUntil=Date.now();
 try{if(localStorage.getItem("videos_only_fast")==="1")splashUntil=Date.now()+120}catch(_){}
 
 const vis=e=>!e.publishAt||Date.now()>=e.publishAt;
@@ -3747,9 +3753,16 @@ function render(force,soft){
   const __sy=(!__newView&&S.view!=="chatThread"&&S.view!=="groupThread")?window.scrollY:0;
   const __navL=((document.querySelector(".adm-nav")||{}).scrollLeft)||0;
   const __inner=[];if(!__newView){try{app.querySelectorAll("div,section,ul,table,pre").forEach((el,i)=>{if(el.scrollTop>0&&el.scrollHeight>el.clientHeight+4)__inner.push([i,el.scrollTop])})}catch(_){}}
+  /* v239: شاشة الفيديوهات متتعمللهاش إعادة بناء لو المحتوى ما اتغيّرش — كده الفيديو مايرجعش من الأول ولا الصوت يتلخبط */
+  if(S.view==="videos"&&typeof h==="string"&&h){
+    const sg=h.replace(/--ar:[\d.]+/g,"").replace(/data-shape="\w+"/g,"").replace(" need-snd","");
+    const fd=document.getElementById("vxFeed");
+    if(window.__vxSig===sg&&fd&&app.contains(fd)){window.__renderSkipped=(window.__renderSkipped||0)+1;return}
+    window.__vxSig=sg;
+  }else window.__vxSig=null;
   if(soft&&!__newView&&typeof h==="string"&&h&&window.__lastHtml===h&&app.firstChild){window.__renderSkipped=(window.__renderSkipped||0)+1;return}
   window.__lastHtml=(typeof h==="string")?h:"";
-  app.innerHTML=h||`<div class="wrap"><div class="card empty"><div class="ei">⏳</div><b>لحظة…</b><div class="mut" style="margin:8px 0 12px">بنجهّز الصفحة</div><button class="btn" data-act="home">الرئيسية</button></div></div>`;
+  app.innerHTML=h||`<div class="wrap" style="min-height:60vh"></div>`;
   if(!h&&!window.__emptyFix){window.__emptyFix=1;setTimeout(()=>{window.__emptyFix=0;try{if(!S.user){S.view=(guestVideosAllowed()||shouldVideosLanding())?"videos":"auth";if(S.view==="videos"&&guestVideosAllowed())S.guestVideos=true}else if(!S.view||S.view==="loading"){S.view="home"}render(true)}catch(_){}},1200)}
   if(__aeId){const el=document.getElementById(__aeId);if(el){if(__aeVal!=null&&"value" in el)el.value=__aeVal;el.focus();if(__aePos!=null)try{el.setSelectionRange(__aePos,__aePos)}catch(_){}}}
   if(__sy>0){try{window.scrollTo(0,__sy)}catch(_){}}
@@ -3757,7 +3770,7 @@ function render(force,soft){
   if(__navL){try{const __nn=document.querySelector(".adm-nav");if(__nn)__nn.scrollLeft=__navL}catch(_){}}
 
   try{app.querySelectorAll("img:not([loading])").forEach(function(im){im.loading="lazy";im.decoding="async"})}catch(_){}
-  try{if(S.view==="videos"&&typeof vidBindFeed==="function")vidBindFeed()}catch(_){}
+  try{if(S.view==="videos"&&typeof vidBindFeed==="function")vidBindFeed();else if(VXS.off){VXS.off();VXS.off=null}}catch(_){}
   if(S.view==="chatThread"||S.view==="groupThread"){
     bindChatScroll();
     if(S.chatStickBottom!==false)scrollChatBottom(false);
@@ -9099,6 +9112,36 @@ function vxArGet(id){try{const n=parseFloat(localStorage.getItem("vx_ar_"+id));r
 function vxArSet(id,n){try{localStorage.setItem("vx_ar_"+id,String(Math.round(n*1000)/1000))}catch(_){}}
 function vxClamp(n){return Math.min(2.4,Math.max(0.4,n||0.5625))}
 function vxShape(n){return n>1.15?"wide":n<0.9?"tall":"square"}
+/* v239: مُنسّق الصوت — مصدر صوت واحد بس شغّال في أي وقت (فيديو واحد / أغنية المنصة / رسالة صوتية) */
+function vxFeedVideos(){return [...document.querySelectorAll("#vxFeed video.vx-v")]}
+function vxPauseOthers(except){
+  vxFeedVideos().forEach(o=>{if(o!==except&&!o.paused){o._yield=true;try{o.pause()}catch(_){}}});
+}
+function vxPauseExternalAudio(){
+  try{if(typeof MUS!=="undefined"&&MUS.au&&!MUS.au.paused){MUS.up=Date.now();MUS.au.pause()}}catch(_){}
+  try{const d=window.__dgAudio;if(d&&!d.paused)d.pause()}catch(_){}
+}
+if(!window.__vxArb){
+  window.__vxArb=1;
+  document.addEventListener("play",(e)=>{
+    const t=e.target;if(!t||!t.tagName)return;
+    try{
+      if(t.tagName==="VIDEO"&&t.classList.contains("vx-v")){
+        t._yield=false;
+        if(!t.closest(".vx-item.is-active")){t._yield=true;t.pause();return} /* فيديو مش الحالي مينفعش يشتغل */
+        vxPauseOthers(t);vxPauseExternalAudio();
+      }
+    }catch(_){}
+  },true);
+  /* أي <audio> (أغنية/رسالة صوتية) بيبدأ وإحنا في الفيديوهات → الفيديو يسكت (المكالمات مستثناة) */
+  try{
+    const _pl=HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play=function(){
+      try{if(this.tagName==="AUDIO"&&!this.autoplay&&S.view==="videos")vxPauseOthers(null)}catch(_){}
+      return _pl.apply(this,arguments);
+    };
+  }catch(_){}
+}
 let _vxHls=null;
 function vxLoadHls(){
   if(window.Hls)return Promise.resolve(window.Hls);
@@ -9117,7 +9160,7 @@ function videosView(){
   const top=`<div class="vx-top">${back}<div class="vx-title" data-act="secretStaffGate">${esc(tit)}</div><span class="vid-secret-hit" data-act="secretStaffGate" aria-hidden="true"></span></div>`;
   let body;
   if(!VID.loaded&&!VID.err){
-    body=`<section class="vx-item vx-state"><div class="vx-spin"></div><b>بنجهّز الفيديوهات…</b></section>`;
+    body=`<section class="vx-item vx-state"></section>`;
   }else if(VID.err&&!all.length){
     body=`<section class="vx-item vx-state"><div class="vx-ico">📡</div><b>تعذّر تحميل الفيديوهات</b><span>اتأكد من النت وجرّب تاني</span><button type="button" class="vx-retry" data-act="vxRetry">↻ إعادة المحاولة</button></section>`;
   }else if(!all.length){
@@ -9147,7 +9190,7 @@ function videosView(){
   <div class="vx-bar" data-act="vxSeek"><i></i><u class="vx-time">0:00</u></div>
 </section>`}).join("");
   }
-  return `<div class="vx${focus?" vx-focus":""}" id="vxRoot">${top}<div class="vx-feed" id="vxFeed">${body}</div></div>${focus?``:studentNav()}`;
+  return `<div class="vx${focus?" vx-focus":""}${VXS.autoMuted?" need-snd":""}" id="vxRoot">${top}<div class="vx-feed" id="vxFeed">${body}</div><button type="button" class="vx-snd-btn" id="vxSndBtn">🔊 اضغط لتشغيل الصوت</button></div>${focus?``:studentNav()}`;
 }
 function vidStopAll(except){
   try{document.querySelectorAll("#vxFeed video.vx-v").forEach(v=>{if(v!==except){try{v.pause()}catch(_){}}})}catch(_){}
@@ -9215,17 +9258,18 @@ function vidBindFeed(){
   const flash=(it,ic)=>{const c=it.querySelector(".vx-center");if(!c)return;c.firstElementChild.textContent=ic;c.classList.remove("on");void c.offsetWidth;c.classList.add("on")};
   const play=async(it)=>{
     const v=vxMedia(it);if(!v||v.tagName!=="VIDEO")return;
-    vxSetSrc(it,true);v.muted=curMuted();
+    vxSetSrc(it,true);v.muted=curMuted();v._yield=false;
     try{await v.play();it.classList.remove("is-paused")}
     catch(e){
       if(e&&e.name==="AbortError")return;
-      if(!v.muted){v.muted=true;VXS.autoMuted=true;try{await v.play();it.classList.remove("is-paused");return}catch(_){}}
+      if(!v.muted){v.muted=true;VXS.autoMuted=true;const rt=document.getElementById("vxRoot");if(rt)rt.classList.add("need-snd");try{await v.play();it.classList.remove("is-paused");return}catch(_){}}
       it.classList.add("is-paused");
     }
   };
   const activate=(k)=>{
     const it=items[k];if(!it||it===active)return;
-    if(active){const pv=vxMedia(active);if(pv&&pv.tagName==="VIDEO"){try{pv.pause()}catch(_){}}else if(pv){vxSetSrc(active,false)}active.classList.remove("is-active")}
+    if(active){const pv=vxMedia(active);if(pv&&pv.tagName==="VIDEO"){pv._yield=true;try{pv.pause();pv.currentTime=0}catch(_){}}else if(pv){vxSetSrc(active,false)}active.classList.remove("is-active")}
+    vxPauseOthers(null);
     active=it;VXS.i=k;it.classList.add("is-active");
     /* بنحمّل الحالي بس؛ التالي بعد ما الحالي يجهز (أخف على النت والمعالج) */
     const nx=items[k+1];if(nx&&(nx.dataset.kind==="file"||nx.dataset.kind==="hls")){const v0=vxMedia(it);const go=()=>{if(active===it&&nx.dataset.kind){vxSetSrc(nx,true);const nv=vxMedia(nx);if(nv)nv.preload="metadata"}};if(v0&&v0.readyState>=3)setTimeout(go,300);else{if(v0)v0.addEventListener("canplay",()=>setTimeout(go,300),{once:true});setTimeout(go,6000)}}
@@ -9248,7 +9292,7 @@ function vidBindFeed(){
     v.addEventListener("stalled",()=>{if(it!==active||v.paused)return;const b0=v.buffered.length?v.buffered.end(v.buffered.length-1):0;setTimeout(()=>{if(it!==active||v.readyState>=3)return;const b1=v.buffered.length?v.buffered.end(v.buffered.length-1):0;if(b1<=b0+0.05){const t=v.currentTime;try{v.load();v.currentTime=t;v.play().catch(()=>{})}catch(_){}}},12000)});
     ["playing","canplay","loadeddata"].forEach(n=>v.addEventListener(n,()=>{wait(it,false);fail(it,false);errN=0;fit();if(v.readyState>=2)it.classList.add("has-frame")}));
     v.addEventListener("play",()=>{it.classList.remove("is-paused")});
-    v.addEventListener("pause",()=>{if(it===active&&!v.ended&&document.visibilityState==="visible"&&(v.getAttribute("src")||v._hls||v._blob)){setTimeout(()=>{if(it===active&&v.paused&&!document.hidden&&!it.classList.contains("is-fail"))v.play().then(()=>it.classList.remove("is-paused")).catch(()=>it.classList.add("is-paused"))},200)}});
+    v.addEventListener("pause",()=>{if(it===active&&!v.ended&&document.visibilityState==="visible"&&!v._yield&&(v.getAttribute("src")||v._hls||v._blob)){setTimeout(()=>{if(it===active&&v.paused&&!v._yield&&!document.hidden&&!it.classList.contains("is-fail"))v.play().then(()=>it.classList.remove("is-paused")).catch(()=>it.classList.add("is-paused"))},200)}});
     v.addEventListener("timeupdate",()=>{if(v.duration&&isFinite(v.duration)){fill.style.width=(v.currentTime/v.duration*100)+"%";tm.textContent=vxFmt(v.currentTime)+" / "+vxFmt(v.duration)}});
     v.addEventListener("error",()=>{
       if(!(v.getAttribute("src")||v._hls||v._blob))return;
@@ -9274,14 +9318,15 @@ function vidBindFeed(){
     });
     it.querySelector(".vx-stage").addEventListener("click",()=>{
       if(Date.now()-VXS.unl<450)return; /* اللمسة دي كانت لفتح الصوت بس */
-      if(v.paused){play(it);flash(it,"▶")}/* v236: اللمس مابيوقّفش الفيديو */
+      if(v.paused){v._yield=false;play(it);flash(it,"▶")}/* v236: اللمس مابيوقّفش الفيديو */
     });
     const seek=(ev)=>{const r=bar.getBoundingClientRect();const x=(ev.touches?ev.touches[0].clientX:ev.clientX);const p=Math.min(1,Math.max(0,(x-r.left)/r.width));if(v.duration&&isFinite(v.duration))v.currentTime=p*v.duration};
     bar.addEventListener("click",ev=>{ev.stopPropagation();seek(ev)});
     bar.addEventListener("touchmove",ev=>{ev.stopPropagation();seek(ev)},{passive:true});
   });
   /* أول لمسة/سحبة في أي مكان بتفتح الصوت (لو المتصفح بدأ التشغيل مكتوم) */
-  const unlock=()=>{if(!VXS.autoMuted)return;VXS.autoMuted=false;VXS.unl=Date.now();items.forEach(it=>{const v=vxMedia(it);if(v&&v.tagName==="VIDEO")v.muted=VXS.muted});if(active){const v=vxMedia(active);if(v&&v.tagName==="VIDEO"&&v.paused&&!active.classList.contains("is-paused"))v.play().catch(()=>{})}};
+  const unlock=()=>{if(!VXS.autoMuted)return;VXS.autoMuted=false;VXS.unl=Date.now();const rt=document.getElementById("vxRoot");if(rt)rt.classList.remove("need-snd");items.forEach(it=>{const v=vxMedia(it);if(v&&v.tagName==="VIDEO")v.muted=VXS.muted});if(active){const v=vxMedia(active);if(v&&v.tagName==="VIDEO"&&v.paused&&!active.classList.contains("is-paused"))v.play().catch(()=>{})}};
+  const sb=document.getElementById("vxSndBtn");if(sb)sb.addEventListener("click",(ev)=>{ev.stopPropagation();unlock();const v=active&&vxMedia(active);if(v&&v.tagName==="VIDEO"){v.muted=false;if(v.paused)v.play().catch(()=>{})}});
   feed.addEventListener("touchend",unlock,{passive:true});feed.addEventListener("pointerup",unlock,{passive:true});
   feed.addEventListener("click",(ev)=>{
     const b=ev.target.closest("[data-act]");if(!b)return;
@@ -16599,6 +16644,7 @@ const VID={list:[],loaded:false,err:"",cur:null,playing:null};
 function musAutoAllowed(){try{return localStorage.getItem("mus_autoplay")!=="0"}catch(_){return true}}
 function musRememberAuto(){try{localStorage.setItem("mus_autoplay","1")}catch(_){}MUS.auto=true}
 async function musAutoStart(){
+  if(S.view==="videos")return; /* v239: مفيش أغاني تلقائية فوق صوت الفيديوهات */
   if(!MUS.auto||!musAutoAllowed()||MUS.loading)return;
   const i=MUS.cur>=0?MUS.cur:(MUS.list.length?0:-1);if(i<0)return;
   MUS.autoTried=true;musUnlock();
@@ -18852,6 +18898,7 @@ window.__WPFB=function(){var p=S.profile||{};return{db:db,uid:S.user&&S.user.uid
     if(!el)return;
     var box=el.querySelector(".splash-inner");
     if(!box)return;
+    el.classList.add("fail");
     /* v233: اتشال المسح التلقائي للكاش — المسح بقى يدوي بس (زرار «مسح الكاش وإعادة التحميل») */
     box.innerHTML='<div class="splash-logo">التفوق</div><div class="splash-sub" style="margin:14px 0">تعذّر تحميل المنصة، اتأكد من النت وجرب تاني</div>'
       +'<button id="spRetry" style="padding:10px 22px;border-radius:12px;border:0;background:#2f6df6;color:#fff;font:inherit;font-weight:700;margin:4px">إعادة المحاولة</button>'
