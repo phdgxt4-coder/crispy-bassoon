@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0B0714">
+<title>⚔️ تحدي صاحبك — التفوق</title>
+<style>
+:root{--bg:#0B0714;--card:#170F2B;--ink:#F4EEFB;--mut:#A79BC8;--pri:#F5B94A;--pri2:#E3A02E;--gold:#FFD36B;--line:#2E1D5C;--ok:#4cd081;--bad:#ff8a80;--gbg:#183d2a;--rbg:#4a1f1b}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(110% 70% at 50% 0%,#1B0C3E 0%,var(--bg) 60%);color:var(--ink);font:16px/1.7 system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
+.wrap{max-width:560px;margin:0 auto;padding:20px 16px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:12px;box-shadow:0 10px 30px rgba(3,1,14,.45)}
+h1{font-size:24px;margin:0 0 6px}h2{font-size:19px;margin:0 0 10px}
+.mut{color:var(--mut);font-size:13.5px}
+.center{text-align:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 22px;border:0;border-radius:14px;font:inherit;font-weight:800;cursor:pointer;background:linear-gradient(135deg,var(--gold),var(--pri2));color:#1B1203;box-shadow:0 4px 18px rgba(245,185,74,.3);transition:transform .12s;text-decoration:none}
+.btn:active{transform:scale(.96)}
+.btn.ghost{background:rgba(155,123,255,.12);color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.btn.block{display:flex;width:100%}
+input{width:100%;font:inherit;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:rgba(255,255,255,.05);color:var(--ink);min-height:48px}
+input:focus{outline:0;border-color:var(--pri)}
+.hero{text-align:center;padding:18px 10px 6px}
+.hero .ic{font-size:52px;animation:bob 2.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-6px) rotate(-5deg)}}
+.big{font-size:42px;font-weight:900;color:var(--gold);line-height:1.2}
+.vs-row{display:flex;align-items:center;justify-content:center;gap:10px;margin:14px 0}
+.pcard{flex:1;max-width:210px;text-align:center;padding:16px 10px;border-radius:20px;background:var(--card);border:1.5px solid var(--line);position:relative}
+.pcard.win{border-color:var(--gold);box-shadow:0 0 26px rgba(255,211,107,.35)}
+.pcard .crown{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:24px;animation:bob 1.8s infinite}
+.pcard .nm{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcard .sc{font-size:36px;font-weight:900;color:var(--gold)}
+.pcard .bar{height:9px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:8px}
+.pcard .bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold),#9B7BFF);width:0;transition:width 1.1s cubic-bezier(.3,1,.4,1)}
+.vs{font-size:24px;font-weight:900;color:var(--gold)}
+.q p{margin:0 0 12px;font-weight:700;font-size:17px;white-space:pre-wrap;line-height:1.8}
+.opt{display:block;width:100%;text-align:start;margin-top:8px;padding:13px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:600;cursor:pointer;transition:transform .12s}
+.opt:active{transform:scale(.98)}
+.opt.right{border-color:var(--ok);background:var(--gbg)}
+.opt.wrong{border-color:var(--bad);background:var(--rbg);animation:shk .4s}
+.opt:disabled{opacity:.9;cursor:default}
+@keyframes shk{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.tbar{height:7px;border-radius:99px;background:var(--line);overflow:hidden;margin-bottom:10px}
+.tbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold),#9B7BFF);transition:width .2s linear}
+.tbar.low i{background:linear-gradient(90deg,#ef4444,#f97316)}
+.meta{display:flex;justify-content:space-between;font-size:13px;color:var(--mut);font-weight:700;margin-bottom:8px}
+.wd{padding:10px 14px;border-radius:14px;background:var(--rbg);border:1.5px solid var(--bad);color:var(--bad);font-weight:800;text-align:center;margin-bottom:10px}
+.wait{display:inline-flex;gap:6px;margin:10px 0}
+.wait i{width:10px;height:10px;border-radius:50%;background:var(--pri);animation:w1 1s infinite}
+.wait i:nth-child(2){animation-delay:.15s}.wait i:nth-child(3){animation-delay:.3s}
+@keyframes w1{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-7px);opacity:1}}
+#cf{position:fixed;inset:0;pointer-events:none;z-index:200;overflow:hidden}
+#cf b{position:absolute;top:-16px;width:9px;height:15px;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+.spin{width:38px;height:38px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--gold);animation:sp .8s linear infinite;margin:20px auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="card center"><div class="spin"></div><div class="mut">جاري فتح التحدي…</div></div></div>
+<div id="cf"></div>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+import {getFirestore,doc,getDoc,addDoc,updateDoc,onSnapshot,serverTimestamp,collection} from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+const firebaseConfig={
+  apiKey:"AIzaSyCo99zGbGOJSw1p-rdy3bk9PSxzsINWkxQ",
+  authDomain:"eltafawoq-8b700.firebaseapp.com",
+  projectId:"eltafawoq-8b700",
+  messagingSenderId:"892405720236",
+  appId:"1:892405720236:web:734c19429b8ee8e292eb09"
+};
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ID=new URLSearchParams(location.search).get("c")||"";
+const Q_SECS=30,WD_MS=8000;
+let D=null,unsub=null,ex=null,myName="";
+
+function vErr(m){
+  return `<div class="card center"><div style="font-size:44px">🚫</div><h2>${esc(m)}</h2><div class="mut">اللينك ده اتستخدم قبل كده أو غلط — اطلب من صاحبك لينك تحدي جديد</div></div>`;
+}
+function confetti(on){
+  const c=$("#cf");if(!c)return;c.innerHTML="";if(on===false)return;
+  const cols=["#F5B94A","#FFD36B","#9B7BFF","#4cc7fa","#fff","#ff8a80"];
+  for(let i=0;i<(on?90:40);i++){
+    const b=document.createElement("b");
+    b.style.cssText="left:"+(Math.random()*100)+"%;background:"+cols[i%cols.length]+";animation-duration:"+(2.2+Math.random()*1.6)+"s;animation-delay:"+(Math.random()*.6)+"s";
+    c.appendChild(b);
+  }
+  setTimeout(()=>{try{c.innerHTML=""}catch(_){}},4500);
+}
+function stopAll(){
+  try{clearInterval(ex&&ex.qT);clearInterval(ex&&ex.hbT)}catch(_){}
+  try{document.removeEventListener("visibilitychange",ex&&ex._h);removeEventListener("pagehide",ex&&ex._l)}catch(_){}
+}
+function watch(){
+  if(unsub)try{unsub()}catch(_){}
+  unsub=onSnapshot(doc(db,"challenges",ID),s=>{
+    if(!s.exists()){$("#app").innerHTML=vErr("التحدي مش موجود");return}
+    D=s.data();
+    if(D.toResult&&ex&&ex.phase==="waitOpp"){ex.phase="done";stopAll();renderResult()}
+    if(ex&&ex.phase==="exam"){
+      const oWd=D.fromWithdrawn,oAl=D.fromAlive;
+      const stale=oAl&&oAl.toMillis&&(Date.now()-oAl.toMillis()>WD_MS);
+      ex.oppGone=!!oWd||!!(stale&&!D.fromResult);
+      const b=$("#wdB");if(b)b.style.display=ex.oppGone?"":"none";
+    }
+  },()=>{});
+}
+function heartbeat(){
+  ex.hbT=setInterval(()=>{try{updateDoc(doc(db,"challenges",ID),{toAlive:serverTimestamp()})}catch(_){}},3000);
+  const wd=()=>{try{updateDoc(doc(db,"challenges",ID),{toWithdrawn:true,updatedAt:serverTimestamp()})}catch(_){}};
+  ex._h=()=>{if(document.hidden)wd()};
+  ex._l=()=>wd();
+  document.addEventListener("visibilitychange",ex._h);
+  addEventListener("pagehide",ex._l);
+}
+function verdict(a,b){
+  const aWd=!!D.fromWithdrawn&&!a,bWd=!!D.toWithdrawn&&!b;
+  if(aWd&&!bWd)return"b";if(bWd&&!aWd)return"a";
+  if(a&&b)return a.score>b.score?"a":b.score>a.score?"b":null;
+  if(a&&!b)return"a";if(b&&!a)return"b";return null;
+}
+function resultHtml(){
+  const a=D.fromResult,b=D.toResult,total=D.n||10;
+  const win=verdict(a,b);
+  const aName=D.fromName||"صاحبك",bName=(b&&b.name)||D.toName||"أنت";
+  const aWd=!!D.fromWithdrawn&&!a,bWd=!!D.toWithdrawn&&!b;
+  const card=(nm,r,wd_,w)=>`<div class="pcard ${w?"win":""}">${w?'<span class="crown">👑</span>':""}
+    <div class="nm">${esc(nm)}${w?" 🏆":""}</div>
+    <div class="sc">${wd_?"—":(r?r.score:0)}<small style="font-size:15px;color:var(--mut)">/${total}</small></div>
+    ${wd_?'<div style="color:var(--bad);font-weight:800;font-size:12px">انسحب ⚠️</div>':""}
+    <div class="bar"><i data-w="${wd_?0:(r?Math.round(r.score/total*100):0)}"></i></div></div>`;
+  let v;
+  if(!a||!b)v=win==="b"?"🏆 كسبت بالانسحاب!":"🏁 استنى الطرف التاني يمتحن…";
+  else v=win==="a"?esc(aName)+" كسب 🎉":win==="b"?"🎉 كسبت التحدي!":"🤝 تعادل!";
+  setTimeout(()=>{
+    document.querySelectorAll(".pcard .bar i").forEach(i=>i.style.width=i.dataset.w+"%");
+    if(a&&b)confetti(win==="b");
+  },80);
+  return `<div class="hero"><span class="ic">🏁</span><div class="big" style="font-size:28px">${v}</div>
+    <div class="mut">تحدي ${esc(D.subjectName||"")} — منصة التفوق</div></div>
+  <div class="vs-row">${card(aName,a,aWd,win==="a")}<span class="vs">ضد</span>${card(bName,b,bWd,win==="b")}</div>
+  <div class="card center">
+    <div class="mut" style="margin-bottom:10px">عايز ريفانج؟ ⚔️ ارجع للمنصة واعمل تحدي بأسئلة جديدة</div>
+    <a class="btn block" href="./">الرجوع للمنصة</a>
+  </div>`;
+}
+function renderResult(){$("#app").innerHTML=resultHtml()}
+function examHtml(){
+  const q=D.qs[ex.idx],answered=ex.ans[ex.idx]!=null,last=ex.ans[ex.idx];
+  return `<div class="hero"><span class="ic">⚔️</span>
+    <div class="mut">تحدي ${esc(D.subjectName||"")} ضد ${esc(D.fromName||"صاحبك")} · سؤال ${ex.idx+1} من ${D.qs.length}</div></div>
+  <div id="wdB" class="wd" style="display:${ex.oppGone?"":"none"}">⚠️ ${esc(D.fromName||"الخصم")} انسحب من التحدي — كمّل واكسب 🏆</div>
+  <div class="tbar ${ex.low?"low":""}"><i style="width:${ex.pct}%"></i></div>
+  <div class="card q"><p>${esc(q.q)}</p>
+  ${q.o.map((o,i)=>`<button class="opt ${answered?(i===q.a?"right":(i===last?"wrong":"")):""}" data-i="${i}" ${answered?"disabled":""}>${["أ","ب","ج","د"][i]}) ${esc(o)}</button>`).join("")}
+  </div>
+  <div class="meta"><span>صح: <b style="color:var(--ok)">${ex.score}</b></span><span>${ex.ans.filter(x=>x!=null).length}/${D.qs.length}</span></div>`;
+}
+function bindExam(){
+  document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+    if(ex.ans[ex.idx]!=null)return;
+    const i=+b.dataset.i,q=D.qs[ex.idx];
+    ex.ans[ex.idx]=i;
+    if(i===q.a){ex.score++;if(navigator.vibrate)try{navigator.vibrate(15)}catch(_){}}
+    $("#app").innerHTML=examHtml();bindExam();
+    setTimeout(()=>{
+      ex.qStart=null;
+      if(ex.idx<D.qs.length-1){ex.idx++;ex.pct=100;ex.low=false;ex.qStart=Date.now();$("#app").innerHTML=examHtml();bindExam()}
+      else finish();
+    },i===q.a?650:1000);
+  });
+}
+async function finish(){
+  stopAll();
+  const secs=Math.max(1,Math.round((Date.now()-ex.t0)/1000));
+  ex.phase="waitOpp";
+  try{
+    await updateDoc(doc(db,"challenges",ID),{
+      toResult:{name:myName,score:ex.score,total:D.qs.length,secs,at:serverTimestamp()},
+      toName:myName,
+      status:"done",
+      updatedAt:serverTimestamp()
+    });
+  }catch(e){
+    $("#app").innerHTML=vErr("حصلت مشكلة في حفظ نتيجتك — حدّث الصفحة");
+    return;
+  }
+  // refresh local D
+  try{const snap=await getDoc(doc(db,"challenges",ID));if(snap.exists())D=snap.data()}catch(_){}
+  if(D.fromResult){ex.phase="done";renderResult()}
+  else{
+    $("#app").innerHTML=`<div class="card center"><div style="font-size:44px">⏳</div><h2>خلّصت! جبت ${ex.score} من ${D.qs.length}</h2><div class="wait"><i></i><i></i><i></i></div><div class="mut">استنى ${esc(D.fromName||"صاحبك")} يمتحن والنتيجة هتظهر لوحدها</div></div>`;
+  }
+}
+function startExam(){
+  ex={phase:"exam",idx:0,score:0,ans:[],pct:100,low:false,t0:Date.now(),qStart:Date.now(),oppGone:false};
+  $("#app").innerHTML=examHtml();bindExam();heartbeat();
+  ex.qT=setInterval(()=>{
+    if(ex.phase!=="exam"||ex.ans[ex.idx]!=null)return;
+    const left=Math.max(0,Q_SECS*1000-(Date.now()-ex.qStart));
+    ex.pct=left/(Q_SECS*10);ex.low=left<8000;
+    const bar=document.querySelector(".tbar i");
+    if(bar){bar.style.width=ex.pct+"%";const t=document.querySelector(".tbar");if(t)t.classList.toggle("low",ex.low)}
+    if(left<=0){
+      ex.qStart=null;ex.ans[ex.idx]=-1;$("#app").innerHTML=examHtml();bindExam();
+      setTimeout(()=>{
+        if(ex.idx<D.qs.length-1){ex.idx++;ex.pct=100;ex.low=false;ex.qStart=Date.now();$("#app").innerHTML=examHtml();bindExam()}
+        else finish();
+      },900);
+    }
+  },200);
+}
+function showNameForm(titleHtml){
+  $("#app").innerHTML=`${titleHtml}
+  <div class="card"><h2>جاهز؟ اكتب اسمك</h2>
+    <input id="nmI" maxlength="40" placeholder="اسمك">
+    <button class="btn block" id="goB" style="margin-top:12px">ابدأ التحدي ⚔️</button>
+    <div class="mut center" style="margin-top:10px">لو خرجت من الامتحان هيتحسب عليك انسحاب ⚠️</div></div>`;
+  $("#goB").onclick=()=>{myName=($("#nmI").value||"ضيف").trim().slice(0,40)||"ضيف";startExam()};
+}
+async function boot(){
+  if(!ID){$("#app").innerHTML=vErr("لينك غلط");return}
+  let snap;
+  try{snap=await getDoc(doc(db,"challenges",ID))}
+  catch(e){$("#app").innerHTML=vErr("مفيش اتصال بالإنترنت");return}
+  if(!snap.exists()){$("#app").innerHTML=vErr("التحدي مش موجود");return}
+  D=snap.data();
+  watch();
+  if(D.toResult){renderResult();return}
+  if(D.fromWithdrawn&&!D.fromResult){
+    confetti(true);
+    showNameForm(`<div class="card center"><div style="font-size:52px">🏆</div><h1>كسبت بالانسحاب!</h1>
+    <div class="mut">${esc(D.fromName||"صاحبك")} انسحب من التحدي قبل ما يخلص</div></div>`);
+    return;
+  }
+  const scoreLine=D.fromResult?`${D.fromResult.score} من ${D.n}`:"؟";
+  showNameForm(`<div class="hero"><span class="ic">⚔️</span><h1>اتحديت!</h1>
+    <div class="big">${esc(D.fromName||"صاحبك")} جاب ${scoreLine}</div>
+    <div class="mut" style="margin-top:6px">تحدي ${esc(D.subjectName||"")} · ${D.n} أسئلة · ${Q_SECS} ثانية للسؤال · مرة واحدة بس ⚡</div></div>`);
+}
+boot();
+</script>
+</body>
+</html>

@@ -1295,6 +1295,30 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    /* ===== v243: تحدي صاحبك — قراءة عامة (صفحة التحدي المستقلة من غير تسجيل) ===== */
+    match /challenges/{id} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.keys().hasOnly(['subject','subjectName','n','qs','fromUid','fromName','fromResult','toResult','toName','fromWithdrawn','toWithdrawn','status','createdAt','updatedAt','fromAlive','toAlive'])
+        && request.resource.data.fromUid == request.auth.uid
+        && request.resource.data.n is int && request.resource.data.n >= 3 && request.resource.data.n <= 30
+        && request.resource.data.qs is list && request.resource.data.qs.size() >= 3 && request.resource.data.qs.size() <= 30
+        && request.resource.data.subject is string && request.resource.data.subject.size() <= 40
+        && request.resource.data.fromUid is string && request.resource.data.fromUid.size() <= 80
+        && request.resource.data.fromName is string && request.resource.data.fromName.size() <= 80
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp;
+      /* المرة الواحدة: النتيجة تتكتب مرة واحدة بس — بعدها ممنوع تتغير */
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['fromAlive','toAlive','fromResult','toResult','toName','fromWithdrawn','toWithdrawn','status','updatedAt'])
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['fromResult']) || resource.data.get('fromResult', null) == null)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['toResult']) || resource.data.get('toResult', null) == null)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['fromWithdrawn']) || request.resource.data.fromWithdrawn is bool)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['toWithdrawn']) || request.resource.data.toWithdrawn is bool)
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['toName']) || (request.resource.data.toName is string && request.resource.data.toName.size() <= 80))
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['fromResult']) || (request.resource.data.fromResult == null || (request.resource.data.fromResult is map && request.resource.data.fromResult.keys().hasOnly(['name','score','total','secs','at']) && request.resource.data.fromResult.get('score', 0) is number && request.resource.data.fromResult.get('score', 0) >= 0 && request.resource.data.fromResult.get('score', 0) <= 30)))
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['toResult']) || (request.resource.data.toResult == null || (request.resource.data.toResult is map && request.resource.data.toResult.keys().hasOnly(['name','score','total','secs','at']) && request.resource.data.toResult.get('score', 0) is number && request.resource.data.toResult.get('score', 0) >= 0 && request.resource.data.toResult.get('score', 0) <= 30)));
+      allow delete: if isAdmin() || (signedIn() && resource.data.fromUid == request.auth.uid);
+    }
+
     match /{document=**} {
       allow read, write: if isAdmin();
     }

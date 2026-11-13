@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v242">
+<meta name="sw-build" content="v243">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v242";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
+<script>window.APP_BUILD="v243";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
 </script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
@@ -2432,6 +2432,54 @@ body.vid-focus-body .vx-top .vx-btn{display:none}
 .chat-wrap .tk-compose{position:sticky!important;left:auto!important;right:auto!important;bottom:calc(72px + env(safe-area-inset-bottom,0px))!important;margin:8px 0 0!important;max-width:none!important;width:100%;z-index:45}
 .chat-wrap .tk-log{max-height:calc(100dvh - 300px);padding-bottom:12px!important}
 </style>
+<style id="v243ch">
+/* ===== v243: تحدي صاحبك ===== */
+.ch-invite{display:flex;align-items:center;gap:12px;cursor:pointer;border:1.5px solid color-mix(in srgb,var(--gold) 55%,var(--line));background:linear-gradient(135deg,color-mix(in srgb,var(--gold) 16%,var(--card)),color-mix(in srgb,var(--ind) 10%,var(--card)));transition:transform .15s}
+.ch-invite:active{transform:scale(.98)}
+.ch-invite .ch-ic{font-size:34px;animation:chBob 2.2s ease-in-out infinite}
+@keyframes chBob{50%{transform:translateY(-5px) rotate(-6deg)}}
+.ch-invite .ch-tx{flex:1;min-width:0}
+.ch-invite .ch-tx small{display:block;color:var(--mut);font-size:12.5px;line-height:1.5}
+.ch-invite .ch-go{flex:none;background:linear-gradient(135deg,var(--gold),color-mix(in srgb,var(--gold) 60%,#fff));color:#2b2000;font-weight:800;font-size:13px;border-radius:99px;padding:8px 14px;box-shadow:0 4px 14px color-mix(in srgb,var(--gold) 40%,transparent)}
+.ch-xwrap{max-width:560px;margin:0 auto;padding-bottom:40px}
+.ch-xhero{text-align:center;padding:14px 10px 6px}
+.ch-xhero .ic{font-size:46px;animation:chBob 2.4s ease-in-out infinite}
+.ch-xsub{color:var(--mut);font-size:13.5px;margin-top:4px}
+.ch-xvs{display:flex;align-items:center;justify-content:center;gap:10px;margin:10px 0}
+.ch-xvs .vs{font-family:'Reem Kufi',sans-serif;font-size:26px;color:var(--gold)}
+.ch-xcard{flex:1;max-width:210px;text-align:center;padding:16px 10px;border-radius:20px;background:var(--card);border:1.5px solid var(--line);position:relative;transition:border-color .3s}
+.ch-xcard.win{border-color:var(--gold);box-shadow:0 0 24px color-mix(in srgb,var(--gold) 35%,transparent)}
+.ch-xcard.lose{opacity:.75}
+.ch-xcard .crown{position:absolute;top:-16px;left:50%;transform:translateX(-50%);font-size:24px;animation:chBob 1.8s ease-in-out infinite}
+.ch-xcard .nm{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch-xcard .sc{font-family:'Reem Kufi',sans-serif;font-size:34px;color:var(--pri);line-height:1.2;margin-top:2px}
+.ch-xcard .lbl{font-size:11.5px;color:var(--mut)}
+.ch-xbar{height:9px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:8px}
+.ch-xbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--ind));width:0;transition:width 1.1s cubic-bezier(.3,1,.4,1)}
+.ch-xq{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 16px;margin:10px 0;box-shadow:var(--sh)}
+.ch-xq p{margin:0 0 12px;font-weight:700;font-size:17px;white-space:pre-wrap;line-height:1.7}
+.ch-xopt{display:block;width:100%;text-align:start;margin-top:8px;padding:13px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:600;cursor:pointer;transition:transform .12s,border-color .15s,background .15s}
+.ch-xopt:active{transform:scale(.98)}
+.ch-xopt.right{border-color:var(--ok);background:var(--gbg)}
+.ch-xopt.wrong{border-color:var(--bad);background:var(--rbg)}
+.ch-xopt:disabled{cursor:default;opacity:.9}
+.ch-xtimer{height:7px;border-radius:99px;background:var(--line);overflow:hidden;margin-bottom:10px}
+.ch-xtimer i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--pri));transition:width .2s linear}
+.ch-xtimer.low i{background:linear-gradient(90deg,#ef4444,#f97316)}
+.ch-xmeta{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--mut);margin-bottom:8px;font-weight:700}
+.ch-xwd{margin:0 0 10px;padding:10px 14px;border-radius:14px;background:var(--rbg);border:1.5px solid var(--bad);color:var(--bad);font-weight:800;text-align:center}
+.ch-xlink{display:flex;gap:8px;align-items:center;background:var(--sel);border:1.5px dashed var(--pri);border-radius:14px;padding:10px 12px;margin:12px 0;direction:ltr}
+.ch-xlink input{flex:1;border:0;background:transparent;color:var(--ink);font:inherit;font-size:13px;direction:ltr}
+.ch-xbig{font-family:'Reem Kufi',sans-serif;font-size:44px;color:var(--pri);line-height:1.2}
+.ch-xwait{display:inline-flex;gap:6px;margin:8px 0}
+.ch-xwait i{width:10px;height:10px;border-radius:50%;background:var(--pri);animation:chW 1s infinite}
+.ch-xwait i:nth-child(2){animation-delay:.15s}.ch-xwait i:nth-child(3){animation-delay:.3s}
+@keyframes chW{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-7px);opacity:1}}
+#chConfetti{position:fixed;inset:0;pointer-events:none;z-index:200;overflow:hidden}
+#chConfetti b{position:absolute;top:-16px;width:9px;height:15px;border-radius:2px;animation:chFall linear forwards}
+@keyframes chFall{to{transform:translateY(110vh) rotate(720deg)}}
+.ch-xflash{position:fixed;inset:0;display:grid;place-items:center;z-index:90;pointer-events:none;font-family:'Reem Kufi',sans-serif;font-size:40px;color:var(--gold);text-shadow:0 4px 20px rgba(0,0,0,.45)}
+</style>
 <script src="./wp.js?v=222" defer></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -3700,7 +3748,7 @@ function render(force,soft){
   else if(modeOn()&&modeCur().kind!=="games"){h=modeView()}
   else{
     if(modeOn()&&!MODE_GAMEVIEWS.has(S.view))S.view="games";
-    const m={games:gamesView,checklist:checklistView,mathg:mathView,xo:xoView,hang:hangView,spin:spinView,react:reactView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,weakQuiz:weakQuizView,flash:flashView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,losSetup:losSetupView,losPlay:losPlayView,losResult:losResultView,losRoomPlay:losRoomPlayView,losRoomResult:losRoomResultView,me:meView,videos:videosView,life:lifeView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View,staff:staffView,tanagha:tanaghaView,gallery:galleryView,groups:groupsView,groupThread:groupThreadView,ai:aiView,books:booksView,bag:bagView,focus:focusView,notes:notesView,cert:certView,board:boardView,dgOpen:dgOpenView,dgLobby:dgLobbyView,dgPick:dgPickView,dgPlay:dgPlayView,dgReveal:dgRevealView,dgEnd:dgEndView};
+    const m={games:gamesView,checklist:checklistView,mathg:mathView,xo:xoView,hang:hangView,spin:spinView,react:reactView,subject:subjectView,exam:examView,result:resultView,review:reviewView,progress:progressView,weakQuiz:weakQuizView,flash:flashView,asmList:asmListView,asm:asmView,qbSetup:qbSetupView,qbLobby:qbLobbyView,qbPlay:qbPlayView,qbResult:qbResultView,losSetup:losSetupView,losPlay:losPlayView,losResult:losResultView,losRoomPlay:losRoomPlayView,losRoomResult:losRoomResultView,me:meView,videos:videosView,life:lifeView,profile:profileView,search:searchView,chatList:chatListView,chatThread:chatThreadView,fadaye7:fadaye7View,staff:staffView,tanagha:tanaghaView,gallery:galleryView,groups:groupsView,groupThread:groupThreadView,ai:aiView,books:booksView,bag:bagView,focus:focusView,notes:notesView,cert:certView,board:boardView,dgOpen:dgOpenView,dgLobby:dgLobbyView,dgPick:dgPickView,dgPlay:dgPlayView,dgReveal:dgRevealView,dgEnd:dgEndView,chExam:chExamView,chShare:chShareView,chResult:chResultView};
     let fn=m[S.view];
     {const __ft=featOfView(S.view);if(__ft&&!featOn(__ft))fn=featOffView}
     if(S.view==="tanaghaLock"||(isTgView(S.view)&&tanaghaState(S.profile)!=="approved"))fn=tanaghaLockedView;
@@ -3763,6 +3811,8 @@ function render(force,soft){
   if(soft&&!__newView&&typeof h==="string"&&h&&window.__lastHtml===h&&app.firstChild){window.__renderSkipped=(window.__renderSkipped||0)+1;return}
   window.__lastHtml=(typeof h==="string")?h:"";
   app.innerHTML=h||`<div class="wrap" style="min-height:60vh"></div>`;
+  try{if(S.view==="chExam"&&S.ch){if(!S.ch.t0)S.ch.t0=Date.now();if(!S.ch.qStart)S.ch.qStart=Date.now();if(!S.ch.hbT){chHeartbeat();chListen()}}if((S.view==="chShare"||S.view==="chResult")&&S.ch&&!window.__chUnsub)chListen();if(!["chExam","chShare","chResult"].includes(S.view)&&S.ch&&S.ch.hbT){chStop();chUnhookLeave()}}catch(_){}
+
   if(!h&&!window.__emptyFix){window.__emptyFix=1;setTimeout(()=>{window.__emptyFix=0;try{if(!S.user){S.view=(guestVideosAllowed()||shouldVideosLanding())?"videos":"auth";if(S.view==="videos"&&guestVideosAllowed())S.guestVideos=true}else if(!S.view||S.view==="loading"){S.view="home"}render(true)}catch(_){}},1200)}
   if(__aeId){const el=document.getElementById(__aeId);if(el){if(__aeVal!=null&&"value" in el)el.value=__aeVal;el.focus();if(__aePos!=null)try{el.setSelectionRange(__aePos,__aePos)}catch(_){}}}
   if(__sy>0){try{window.scrollTo(0,__sy)}catch(_){}}
@@ -3913,6 +3963,7 @@ function subjectView(){
   const s=SUBJECTS.find(x=>x.id===S.subject),ex=(Array.isArray(S.exams)?S.exams:[]).filter(e=>e&&e.subject===s.id&&vis(e));
   return `<div class="wrap">${header(`<button class="btn ghost sm" data-act="home">رجوع</button>`)}
 <h2 style="color:${s.c2}">امتحانات ${s.name}</h2>
+<div class="card ch-invite" data-act="challengeStart" data-subject="${esc(s.id)}" role="button" tabindex="0"><span class="ch-ic">⚔️</span><div class="ch-tx"><b>تحدي صاحبك</b><small>امتحان سريع 10 أسئلة عشوائية مختلفة كل مرة — انسخ اللينك وابعته لصاحبك وشوف مين يجيب أكتر 🏆</small></div><span class="ch-go">ابدأ ⚡</span></div>
 ${ex.length?ex.map(e=>{
   const at=S.attempts[e.id]||[];
   return `<div class="card lift"><b>${esc(e.title)}</b>
@@ -10143,6 +10194,7 @@ function featOfView(v){
   v=String(v||"");
   /* الرئيسية (home) مش بتتغطى بقفل — عشان الطالب يقدر يرجع دايمًا */
   if(v==="home"||v==="loading"||v==="admin")return "";
+  if(v==="chExam"||v==="chShare"||v==="chResult")return "";
   if(v==="chatList"||v==="chatThread"||v==="groupThread")return "chat";
   if(v==="games"||v.indexOf("qb")===0||v.indexOf("los")===0||v==="mathg"||v==="xo"||v==="hang"||v==="spin"||v==="react"||v==="memory"||v.indexOf("dg")===0)return "games";
   if(v==="gallery"||v==="tanagha")return "tanagha";
@@ -18875,6 +18927,206 @@ Object.assign(A,{
 
 
 /* v215: جسر لعبة «ارسم وخمّن» الجديدة (wp.js) */
+
+/* ================= v243: تحدي صاحبك ================= */
+const CH_N=10,CH_Q_SECS=30,CH_WD_MS=8000;
+function chPool(subject){
+  const seen=new Set(),pool=[];
+  (S.exams||[]).forEach(e=>{
+    if(!e.published||e.subject!==subject||!Array.isArray(e.questions))return;
+    e.questions.forEach(q=>{
+      if(q.essay||q.fun||!Array.isArray(q.o)||q.o.length<2)return;
+      const k=normalizeAr(q.q).slice(0,80);if(!k||seen.has(k))return;seen.add(k);
+      pool.push({q:String(q.q).slice(0,600),o:q.o.slice(0,4).map(x=>String(x).slice(0,300)),a:q.a|0});
+    });
+  });
+  return pool;
+}
+function chPick(pool){const a=pool.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a.slice(0,CH_N)}
+function chDocRef(id){return doc(db,"challenges",id)}
+function chLink(id){return location.origin+location.pathname.replace(/[^\/]*$/,"")+"challenge.html?c="+id}
+function chStop(){try{clearInterval(S.ch&&S.ch.qT);clearInterval(S.ch&&S.ch.hbT)}catch(_){}}
+function chCleanup(){chStop();try{if(window.__chUnsub){window.__chUnsub();window.__chUnsub=null}}catch(_){}}
+function chConfetti(win){
+  try{
+    let c=document.getElementById("chConfetti");
+    if(!c){c=document.createElement("div");c.id="chConfetti";document.body.appendChild(c)}
+    c.innerHTML="";if(win===false)return;
+    const cols=["#F5B94A","#FFD36B","#9B7BFF","#4cc7ba","#fff","#ff8a80"];
+    for(let i=0;i<(win===null?40:90);i++){
+      const b=document.createElement("b");
+      b.style.cssText="left:"+Math.random()*100+"%;background:"+cols[i%cols.length]+";animation-duration:"+(2.2+Math.random()*1.6)+"s;animation-delay:"+Math.random()*.6+"s";
+      c.appendChild(b);
+    }
+    setTimeout(()=>{try{c.innerHTML=""}catch(_){}},4500);
+  }catch(_){}
+}
+function chHeartbeat(){
+  chStop();
+  const side=S.ch.side;
+  S.ch.hbT=setInterval(()=>{try{updateDoc(chDocRef(S.ch.id),{[side+"Alive"]:serverTimestamp()})}catch(_){}},3000);
+  const mark=()=>{try{updateDoc(chDocRef(S.ch.id),{[side+"Withdrawn"]:true,updatedAt:serverTimestamp()})}catch(_){}};
+  S.ch._onHide=()=>{if(document.hidden)mark()};
+  S.ch._onLeave=()=>mark();
+  document.addEventListener("visibilitychange",S.ch._onHide);
+  addEventListener("pagehide",S.ch._onLeave);
+}
+function chUnhookLeave(){try{document.removeEventListener("visibilitychange",S.ch._onHide);removeEventListener("pagehide",S.ch._onLeave)}catch(_){}}
+function chListen(){
+  try{
+    if(window.__chUnsub)window.__chUnsub();
+    window.__chUnsub=onSnapshot(chDocRef(S.ch.id),s=>{
+      if(!s.exists())return;
+      const d=s.data();S.ch.data=d;
+      const mine=S.ch.side,other=mine==="from"?"to":"from";
+      const oR=d[other+"Result"],oWd=d[other+"Withdrawn"],oAlive=d[other+"Alive"];
+      const stale=oAlive&&oAlive.toMillis&&(Date.now()-oAlive.toMillis()>CH_WD_MS);
+      S.ch.oppGone=!!oWd||!!(stale&&!oR);
+      const el=document.getElementById("chWdBanner");
+      if(el)el.style.display=S.ch.oppGone&&S.view==="chExam"?"":"none";
+      if(S.view==="chShare"&&d.toResult){S.view="chResult";render(true)}
+      if(S.view==="chResult"&&oR)render(true);
+    },()=>{});
+  }catch(_){}
+}
+async function chCreate(subject){
+  const pool=chPool(subject);
+  if(pool.length<5){toast("مفيش أسئلة كفاية في المادة دي للتحدي");return}
+  try{
+    const qs=chPick(pool);
+    const ref=await addDoc(collection(db,"challenges"),{
+      subject,subjectName:subName(subject),n:qs.length,qs,
+      fromUid:S.user.uid,fromName:(S.profile&&S.profile.name||"طالب").slice(0,60),
+      fromResult:null,toResult:null,toName:"",
+      fromWithdrawn:false,toWithdrawn:false,status:"open",
+      createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+    });
+    S.ch={id:ref.id,subject,side:"from",qs,idx:0,score:0,answers:[],data:null,oppGone:false,total:qs.length,t0:Date.now(),qStart:Date.now(),tPct:100,lowT:false};
+    S.view="chExam";render(true);
+  }catch(e){console.warn("chCreate",e);toast("مقدرتش أنشئ التحدي — حاول تاني")}
+}
+function chExamView(){
+  const c=S.ch;if(!c||!c.qs||!c.qs.length)return `<div class="wrap"><div class="card empty"><b>التحدي مش موجود</b><button class="btn" data-act="home" style="margin-top:10px">الرئيسية</button></div></div>`;
+  const q=c.qs[c.idx];
+  const done=c.answers.filter(x=>x!=null).length;
+  const answered=c.answers[c.idx]!=null;
+  const lastAns=c.answers[c.idx];
+  return `<div class="wrap ch-xwrap">
+<div class="ch-xhero"><span class="ic">⚔️</span><div class="ch-xsub">تحدي ${esc(subName(c.subject))} — أنت ضد صاحبك · سؤال ${Math.min(c.idx+1,c.total)} من ${c.total}</div></div>
+<div id="chWdBanner" class="ch-xwd" style="display:${c.oppGone?"":"none"}">⚠️ صاحبك انسحب من التحدي — كمّل واكسب 🏆</div>
+<div class="ch-xtimer ${c.lowT?"low":""}"><i style="width:${c.tPct==null?100:c.tPct}%"></i></div>
+<div class="ch-xq"><p>${esc(q.q)}</p>
+${q.o.map((o,i)=>`<button class="ch-xopt ${answered?(i===q.a?"right":(i===lastAns?"wrong":"")):""}" data-act="chAns" data-i="${i}" ${answered?"disabled":""}>${["أ","ب","ج","د"][i]}) ${esc(o)}</button>`).join("")}
+</div>
+<div class="ch-xmeta"><span>إجاباتك الصح: <b style="color:var(--ok)">${c.score}</b></span><span>${done}/${c.total}</span></div>
+</div>`;
+}
+function chShareView(){
+  const c=S.ch,d=c.data||{};
+  const link=chLink(c.id);
+  const oppDone=!!d.toResult;
+  return `<div class="wrap ch-xwrap">
+<div class="top"><div class="hdr-r"><div class="logo">التفوق</div></div><div class="row hdr-l"><button class="btn ghost sm" data-act="home">الرئيسية</button></div></div>
+<div class="ch-xhero"><span class="ic">🔗</span><div class="ch-xbig">جبت ${c.score} من ${c.total}</div><div class="ch-xsub">انسخ اللينك وابعته لصاحبك — الامتحان مرة واحدة بس لكل واحد</div></div>
+<div class="card">
+<div class="ch-xlink"><input id="chLinkIn" readonly value="${esc(link)}" onclick="this.select()"><button class="btn sm gold" data-act="chCopy">📋 نسخ</button></div>
+<div class="row" style="gap:8px;margin-top:8px">
+<a class="btn" style="flex:1;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent("⚔️ اتحداك في "+subName(c.subject)+" على منصة التفوق!\\nجبت "+c.score+" من "+c.total+" 😏\\nادخل امتحن وشوف هتجيب كام (اللينك مرة واحدة):\\n"+link)}">📲 واتساب</a>
+<a class="btn" style="flex:1;background:linear-gradient(135deg,#2AABEE,#229ED9);color:#fff" target="_blank" rel="noopener" href="https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("⚔️ اتحداك! جبت "+c.score+" من "+c.total)}">✈️ تلجرام</a>
+</div>
+</div>
+<div class="card center" style="margin-top:12px">
+${oppDone?`<b>صاحبك خلّص! 🏁</b><div class="mut" style="margin:6px 0">اضغط عشان تشوف النتيجة</div><button class="btn gold" data-act="chGotoResult">عرض النتيجة</button>`:`<b>مستني صاحبك يمتحن…</b><div class="ch-xwait"><i></i><i></i><i></i></div><div class="ch-xsub">النتيجة المقارنة هتظهر هنا أول ما يخلص</div>`}
+<button class="btn ghost sm" data-act="home" style="margin-top:8px">ارجع للمنصة</button>
+</div></div>`;
+}
+function chResultView(){
+  const d=(S.ch&&S.ch.data)||{};
+  const a=d.fromResult,b=d.toResult;
+  const total=(S.ch&&S.ch.total)||d.n||CH_N;
+  const aS=a?a.score:0,bS=b?b.score:0;
+  const aName=(d.fromName||"أنت"),bName=(d.toName||(b&&b.name)||"صاحبك");
+  const aWd=!!d.fromWithdrawn&&!a,bWd=!!d.toWithdrawn&&!b;
+  let win=null;
+  if(aWd&&!bWd)win="b";else if(bWd&&!aWd)win="a";
+  else if(a&&b){if(aS>bS)win="a";else if(bS>aS)win="b";}
+  else if(a&&!b)win="a";else if(b&&!a)win="b";
+  const meWin=(S.ch&&S.ch.side)==="from"?win==="a":win==="b";
+  const row=(nm,sc,wd,isWin)=>`<div class="ch-xcard ${isWin?"win":""}">
+${isWin?'<span class="crown">👑</span>':""}
+<div class="nm">${esc(nm)}${isWin?" 🏆":""}</div>
+<div class="sc">${wd?"—":sc}<small style="font-size:15px;color:var(--mut)">/${total}</small></div>
+${wd?'<div class="lbl" style="color:var(--bad);font-weight:800">انسحب ⚠️</div>':""}
+<div class="ch-xbar"><i data-w="${wd?0:Math.round(sc/total*100)}"></i></div></div>`;
+  const verdict=!a||!b?(win?(meWin?"كسبت! صاحبك لسه مايمتحنش 😎":"مستني صاحبك…"):""):
+    win==="a"?esc(aName)+" كسب التحدي 🎉":win==="b"?esc(bName)+" كسب التحدي 🎉":"تعادل! 🤝";
+  setTimeout(()=>{
+    document.querySelectorAll(".ch-xbar i").forEach(i=>i.style.width=i.dataset.w+"%");
+    if(a&&b)chConfetti(meWin?true:null);
+  },80);
+  return `<div class="wrap ch-xwrap">
+<div class="top"><div class="hdr-r"><div class="logo">التفوق</div></div><div class="row hdr-l"><button class="btn ghost sm" data-act="home">الرئيسية</button></div></div>
+<div class="ch-xhero"><span class="ic">🏁</span><div class="ch-xbig" style="font-size:30px">${verdict}</div>
+<div class="ch-xsub">تحدي ${esc(d.subjectName||subName(d.subject))}</div></div>
+<div class="ch-xvs">${row(aName,aS,aWd,win==="a")}<span class="vs">ضد</span>${row(bName,bS,bWd,win==="b")}</div>
+<div class="card center">
+<div class="ch-xsub" style="margin-bottom:10px">${a&&b?"عايز تاخد ريفانج؟ ⚔️ هتبقى أسئلة جديدة خالص":"أول ما الطرف التاني يمتحن النتيجة هتتحدث لوحدها"}</div>
+<div class="row" style="gap:8px">
+<button class="btn gold" style="flex:1" data-act="chRematch" data-subject="${esc(d.subject||(S.ch&&S.ch.subject)||"")}">🔁 تحدي تاني</button>
+<button class="btn ghost" style="flex:1" data-act="home">الرئيسية</button>
+</div></div></div>`;
+}
+async function chFinish(){
+  const c=S.ch;if(!c)return;
+  chStop();chUnhookLeave();
+  const secs=Math.max(1,Math.round((Date.now()-(c.t0||Date.now()))/1000));
+  try{
+    await updateDoc(chDocRef(c.id),{[c.side+"Result"]:{name:c.side==="from"?(S.profile&&S.profile.name||"طالب"):(c.myName||"ضيف"),score:c.score,total:c.total,secs,at:serverTimestamp()},status:"done",updatedAt:serverTimestamp()});
+  }catch(e){console.warn("chFinish",e);toast("حصلت مشكلة في حفظ نتيجتك — حاول تاني")}
+  try{
+    if(window.__chUnsub){window.__chUnsub();window.__chUnsub=null}
+    window.__chUnsub=onSnapshot(chDocRef(c.id),s=>{if(s.exists()){c.data=s.data();if(c.data.toResult&&S.view==="chShare"){S.view="chResult";render(true)}}});
+  }catch(_){}
+  S.view="chShare";render(true);
+}
+Object.assign(A,{
+  async challengeStart(d){try{EC.mark&&EC.mark("challenge")}catch(_){};await chCreate(d.subject||S.subject)},
+  chAns(d){
+    const c=S.ch;if(!c||c.answers[c.idx]!=null)return;
+    const q=c.qs[c.idx],i=+d.i;
+    c.answers[c.idx]=i;
+    if(i===q.a){c.score++;try{const f=document.createElement("div");f.className="ch-xflash";f.textContent="+1";document.body.appendChild(f);setTimeout(()=>f.remove(),650)}catch(_){}}
+    if(navigator.vibrate)try{navigator.vibrate(i===q.a?15:[40,40,40])}catch(_){}
+    render(true);
+    setTimeout(()=>{
+      if(c.idx<c.total-1){c.idx++;c.lowT=false;c.tPct=100;c.qStart=Date.now();render(true)}
+      else chFinish();
+    },i===q.a?650:1000);
+  },
+  chCopy(){
+    const inp=document.getElementById("chLinkIn");if(!inp)return;
+    const done=()=>toast("اتنسخ اللينك ✅ ابعته لصاحبك",true);
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(inp.value).then(done).catch(()=>{inp.select();document.execCommand("copy");done()})}
+    else{inp.select();try{document.execCommand("copy")}catch(_){}done()}
+  },
+  chGotoResult(){S.view="chResult";render(true)},
+  async chRematch(d){const sub=d.subject||S.subject;if(!sub){S.view="home";render(true);return}await chCreate(sub)}
+});
+setInterval(()=>{
+  if(S.view!=="chExam"||!S.ch||S.ch.answers[S.ch.idx]!=null)return;
+  const now=Date.now();
+  if(!S.ch.qStart)S.ch.qStart=now;
+  const left=Math.max(0,CH_Q_SECS*1000-(now-S.ch.qStart));
+  S.ch.tPct=left/(CH_Q_SECS*10);
+  S.ch.lowT=left<8000;
+  const bar=document.querySelector(".ch-xtimer i");
+  if(bar){bar.style.width=S.ch.tPct+"%";const t=document.querySelector(".ch-xtimer");if(t)t.classList.toggle("low",!!S.ch.lowT)}
+  if(left<=0){S.ch.qStart=null;const c=S.ch;c.answers[c.idx]=-1;render(true);setTimeout(()=>{if(c.idx<c.total-1){c.idx++;c.tPct=100;c.lowT=false;c.qStart=Date.now();render(true)}else chFinish()},900)}
+},200);
+
+/* ================= نهاية v243 ================= */
+
+
 window.__WPFB=function(){var p=S.profile||{};return{db:db,uid:S.user&&S.user.uid,name:p.chatName||p.name||"لاعب",thumb:p.avatarThumb||"",back:function(){try{S.view="games";render(true)}catch(_){}}}};
 </script>
 <script>

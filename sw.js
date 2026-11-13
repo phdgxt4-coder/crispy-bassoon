@@ -14,10 +14,10 @@
 
 const PETS = ["./pets/fox.glb","./pets/corgi.glb","./pets/hare.glb","./pets/sheep.glb","./pets/boar.glb"];
 /* اسم الكاش الحالي — v208: أول تحميل بعد النشر بينضّف كاشات v206 والقديم تلقائيًا */
-const CACHE = "eltafawoq-v242";
+const CACHE = "eltafawoq-v243";
 /* لا يُحذف كاش الأوفلاين عند التحديث؛ الإصدارات القديمة (v1…v مليون) بتترحّل هنا قبل المسح */
 const OFFLINE_CACHE = "eltafawoq-offline-v1";
-const BUILD = "20261113-v242";
+const BUILD = "20261113-v243";
 
 /* أي كاش إصدار واجهة: eltafawoq-v180 / v183 / v1000000 / v1.2-beta … */
 function isVersionCache(name) {
@@ -112,7 +112,7 @@ self.addEventListener("install", (e) => {
     Promise.all([caches.open(CACHE), caches.open(OFFLINE_CACHE)]).then(([c, offline]) =>
       /* الملفات الأساسية تُحفظ في الكاش العادي والدائم؛ كل ملف مستقل حتى لا يفشل التثبيت كله. */
       Promise.allSettled(
-        ["./index.html", "./dg-game.html", "./wp.js", "./dg-stickers.webp", "./push.html", "./manifest.json", "./sw.js"].concat(typeof PETS !== "undefined" ? PETS : []).map((u) =>
+        ["./index.html", "./challenge.html", "./dg-game.html", "./wp.js", "./dg-stickers.webp", "./push.html", "./manifest.json", "./sw.js"].concat(typeof PETS !== "undefined" ? PETS : []).map((u) =>
           Promise.all([c.add(u).catch(() => {}), offline.add(u).catch(() => {})])
         )
       )
