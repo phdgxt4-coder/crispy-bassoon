@@ -237,10 +237,10 @@ async function boot(){
     <div class="mut">${esc(D.fromName||"صاحبك")} انسحب من التحدي قبل ما يخلص</div></div>`);
     return;
   }
-  const scoreLine=D.fromResult?`${D.fromResult.score} من ${D.n}`:"؟";
+  const scoreLine=D.fromResult?`${esc(D.fromName||"صاحبك")} جاب ${D.fromResult.score} من ${D.n}`:`${esc(D.fromName||"صاحبك")} بعتلك تحدي`;
   showNameForm(`<div class="hero"><span class="ic">⚔️</span><h1>اتحديت!</h1>
-    <div class="big">${esc(D.fromName||"صاحبك")} جاب ${scoreLine}</div>
-    <div class="mut" style="margin-top:6px">تحدي ${esc(D.subjectName||"")} · ${D.n} أسئلة · ${Q_SECS} ثانية للسؤال · مرة واحدة بس ⚡</div></div>`);
+    <div class="big" style="font-size:28px">${scoreLine}</div>
+    <div class="mut" style="margin-top:6px">تحدي ${esc(D.subjectName||"")} · ${D.n} أسئلة · ${Q_SECS} ثانية للسؤال · مرة واحدة بس ⚡<br>كل واحد يمتحن لوحده والنتيجة تظهر لما الاتنين يخلصوا</div></div>`);
 }
 boot();
 </script>
