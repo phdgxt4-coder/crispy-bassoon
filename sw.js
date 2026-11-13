@@ -14,10 +14,10 @@
 
 const PETS = ["./pets/fox.glb","./pets/corgi.glb","./pets/hare.glb","./pets/sheep.glb","./pets/boar.glb"];
 /* اسم الكاش الحالي — v208: أول تحميل بعد النشر بينضّف كاشات v206 والقديم تلقائيًا */
-const CACHE = "eltafawoq-v240";
+const CACHE = "eltafawoq-v241";
 /* لا يُحذف كاش الأوفلاين عند التحديث؛ الإصدارات القديمة (v1…v مليون) بتترحّل هنا قبل المسح */
 const OFFLINE_CACHE = "eltafawoq-offline-v1";
-const BUILD = "20261113-v240";
+const BUILD = "20261113-v241";
 
 /* أي كاش إصدار واجهة: eltafawoq-v180 / v183 / v1000000 / v1.2-beta … */
 function isVersionCache(name) {

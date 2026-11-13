@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v240">
+<meta name="sw-build" content="v241">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v240";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
+<script>window.APP_BUILD="v241";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
 </script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
@@ -9113,9 +9113,11 @@ function vxArSet(id,n){try{localStorage.setItem("vx_ar_"+id,String(Math.round(n*
 function vxClamp(n){return Math.min(2.4,Math.max(0.4,n||0.5625))}
 function vxShape(n){return n>1.15?"wide":n<0.9?"tall":"square"}
 /* v239: مُنسّق الصوت — مصدر صوت واحد بس شغّال في أي وقت (فيديو واحد / أغنية المنصة / رسالة صوتية) */
-function vxFeedVideos(){return [...document.querySelectorAll("#vxFeed video.vx-v")]}
+const VX_ALL=new Set();
+function vxKill(o){try{o.pause();if(o._hls){o._hls.destroy();o._hls=null}if(o._blob){URL.revokeObjectURL(o._blob);o._blob=null}if(o.getAttribute("src")){o.removeAttribute("src");o.load()}}catch(_){}VX_ALL.delete(o)}
+function vxFeedVideos(){return [...VX_ALL]}
 function vxPauseOthers(except){
-  vxFeedVideos().forEach(o=>{if(o!==except&&!o.paused){o._yield=true;try{o.pause()}catch(_){}}});
+  vxFeedVideos().forEach(o=>{if(!o.isConnected){vxKill(o);return}if(o!==except&&!o.paused){o._yield=true;try{o.pause()}catch(_){}}});
 }
 function vxPauseExternalAudio(){
   try{if(typeof MUS!=="undefined"&&MUS.au&&!MUS.au.paused){MUS.up=Date.now();MUS.au.pause()}}catch(_){}
@@ -9137,7 +9139,12 @@ if(!window.__vxArb){
   try{
     const _pl=HTMLMediaElement.prototype.play;
     HTMLMediaElement.prototype.play=function(){
-      try{if(this.tagName==="AUDIO"&&!this.autoplay&&S.view==="videos")vxPauseOthers(null)}catch(_){}
+      try{
+        if(this.tagName==="VIDEO"&&this.classList.contains("vx-v")){
+          if(!this.isConnected||S.view!=="videos"){vxKill(this);return Promise.reject(new DOMException("vx-detached","AbortError"))}
+          vxPauseOthers(this);vxPauseExternalAudio();
+        }else if(this.tagName==="AUDIO"&&!this.autoplay&&S.view==="videos")vxPauseOthers(null);
+      }catch(_){}
       return _pl.apply(this,arguments);
     };
   }catch(_){}
@@ -9233,6 +9240,8 @@ function vidBindFeed(){
   try{if(VXS.off)VXS.off()}catch(_){}
   const items=[...feed.querySelectorAll(".vx-item[data-vid]")];
   if(!items.length)return;
+  let dead=false;
+  items.forEach(it=>{const v=vxMedia(it);if(v&&v.tagName==="VIDEO")VX_ALL.add(v)});
   const curMuted=()=>VXS.muted||VXS.autoMuted;
   let active=null;
   const wait=(it,on)=>{const w=it.querySelector(".vx-wait");if(w)w.classList.toggle("on",!!on)};
@@ -9257,7 +9266,7 @@ function vidBindFeed(){
   const failMsg=(v)=>{const e=v.error||{},c=e.code;return[c===4?"الصيغة أو الترميز مش مدعومين على الجهاز ده":c===3?"الفيديو بترميز الجهاز مش قادر يفكّه (غالبًا HEVC / H.265)":c===2?"مشكلة في الشبكة أثناء التحميل":"الفيديو مش بيتحمّل","كود "+(c||"؟")+(e.message?" · "+String(e.message).slice(0,70):"")]};
   const flash=(it,ic)=>{const c=it.querySelector(".vx-center");if(!c)return;c.firstElementChild.textContent=ic;c.classList.remove("on");void c.offsetWidth;c.classList.add("on")};
   const play=async(it)=>{
-    const v=vxMedia(it);if(!v||v.tagName!=="VIDEO")return;
+    const v=vxMedia(it);if(dead||!v||v.tagName!=="VIDEO")return;
     vxSetSrc(it,true);v.muted=curMuted();v._yield=false;
     try{await v.play();it.classList.remove("is-paused")}
     catch(e){
@@ -9267,7 +9276,7 @@ function vidBindFeed(){
     }
   };
   const activate=(k)=>{
-    const it=items[k];if(!it||it===active)return;
+    const it=items[k];if(dead||!it||it===active)return;
     if(active){const pv=vxMedia(active);if(pv&&pv.tagName==="VIDEO"){pv._yield=true;try{pv.pause();pv.currentTime=0}catch(_){}}else if(pv){vxSetSrc(active,false)}active.classList.remove("is-active")}
     vxPauseOthers(null);
     active=it;VXS.i=k;it.classList.add("is-active");
@@ -9292,13 +9301,13 @@ function vidBindFeed(){
     v.addEventListener("stalled",()=>{if(it!==active||v.paused)return;const b0=v.buffered.length?v.buffered.end(v.buffered.length-1):0;setTimeout(()=>{if(it!==active||v.readyState>=3)return;const b1=v.buffered.length?v.buffered.end(v.buffered.length-1):0;if(b1<=b0+0.05){const t=v.currentTime;try{v.load();v.currentTime=t;v.play().catch(()=>{})}catch(_){}}},12000)});
     ["playing","canplay","loadeddata"].forEach(n=>v.addEventListener(n,()=>{wait(it,false);fail(it,false);errN=0;fit();if(v.readyState>=2)it.classList.add("has-frame")}));
     v.addEventListener("play",()=>{it.classList.remove("is-paused")});
-    v.addEventListener("pause",()=>{if(it===active&&!v.ended&&document.visibilityState==="visible"&&!v._yield&&(v.getAttribute("src")||v._hls||v._blob)){setTimeout(()=>{if(it===active&&v.paused&&!v._yield&&!document.hidden&&!it.classList.contains("is-fail"))v.play().then(()=>it.classList.remove("is-paused")).catch(()=>it.classList.add("is-paused"))},200)}});
+    v.addEventListener("pause",()=>{if(it===active&&!v.ended&&document.visibilityState==="visible"&&!v._yield&&!dead&&v.isConnected&&(v.getAttribute("src")||v._hls||v._blob)){setTimeout(()=>{if(!dead&&v.isConnected&&it===active&&v.paused&&!v._yield&&!document.hidden&&!it.classList.contains("is-fail"))v.play().then(()=>it.classList.remove("is-paused")).catch(()=>it.classList.add("is-paused"))},200)}});
     v.addEventListener("timeupdate",()=>{if(v.duration&&isFinite(v.duration)){fill.style.width=(v.currentTime/v.duration*100)+"%";tm.textContent=vxFmt(v.currentTime)+" / "+vxFmt(v.duration)}});
     v.addEventListener("error",()=>{
       if(!(v.getAttribute("src")||v._hls||v._blob))return;
       errN++;
       const src=v.dataset.src;
-      if(errN===1){setTimeout(()=>{try{v.load();if(it===active)v.play().catch(()=>{})}catch(_){}},500);return}
+      if(errN===1){setTimeout(()=>{if(dead||!v.isConnected)return;try{v.load();if(it===active)v.play().catch(()=>{})}catch(_){}},500);return}
       /* محاولة 2: رابط بمعامل جديد (بيتخطّى أي رد معطوب متخزّن) وبدون قيود الـ referrer */
       if(errN===2&&!v._hls&&!v._blob&&src&&v.dataset.kind!=="hls"){
         try{v.removeAttribute("referrerpolicy");v.src=src+(src.indexOf("?")<0?"?":"&")+"_vx="+Date.now();v.load();if(it===active)v.play().catch(()=>{})}catch(_){}
@@ -9333,14 +9342,14 @@ function vidBindFeed(){
     const a=b.getAttribute("data-act");
     if(a==="vxReload"){ev.stopPropagation();const it=b.closest(".vx-item"),v=vxMedia(it);fail(it,false);wait(it,true);vxSetSrc(it,false);setTimeout(()=>{vxSetSrc(it,true);if(v&&v.tagName==="VIDEO"){try{v.load();v.play().catch(()=>{})}catch(_){}}},50)}
   });
-  const onVis=()=>{if(!active)return;const v=vxMedia(active);if(!v||v.tagName!=="VIDEO")return;if(document.hidden){try{v.pause()}catch(_){}}else if(!active.classList.contains("is-paused")){v.play().catch(()=>{})}};
-  const onOnline=()=>{if(!active)return;const v=vxMedia(active);if(v&&v.tagName==="VIDEO"&&(v.error||v.readyState<2)){try{v.load();v.play().catch(()=>{})}catch(_){}}};
+  const onVis=()=>{if(dead||!active)return;const v=vxMedia(active);if(!v||v.tagName!=="VIDEO")return;if(document.hidden){try{v.pause()}catch(_){}}else if(!active.classList.contains("is-paused")){v.play().catch(()=>{})}};
+  const onOnline=()=>{if(dead||!active)return;const v=vxMedia(active);if(v&&v.tagName==="VIDEO"&&(v.error||v.readyState<2)){try{v.load();v.play().catch(()=>{})}catch(_){}}};
   const onKey=(e)=>{if(S.view!=="videos")return;const t=(e.target&&e.target.tagName)||"";if(/INPUT|TEXTAREA|SELECT/.test(t))return;
     if(e.key==="ArrowDown"||e.key==="PageDown"){e.preventDefault();const n=items[Math.min(items.length-1,VXS.i+1)];n&&n.scrollIntoView({behavior:"smooth"})}
     else if(e.key==="ArrowUp"||e.key==="PageUp"){e.preventDefault();const n=items[Math.max(0,VXS.i-1)];n&&n.scrollIntoView({behavior:"smooth"})}
     };
   document.addEventListener("visibilitychange",onVis);window.addEventListener("online",onOnline);document.addEventListener("keydown",onKey);
-  VXS.off=()=>{try{io.disconnect()}catch(_){}document.removeEventListener("visibilitychange",onVis);window.removeEventListener("online",onOnline);document.removeEventListener("keydown",onKey)};
+  VXS.off=()=>{dead=true;clearTimeout(actT);items.forEach(it=>{const v=vxMedia(it);if(v&&v.tagName==="VIDEO")vxKill(v);else if(v)vxSetSrc(it,false)});try{io.disconnect()}catch(_){}document.removeEventListener("visibilitychange",onVis);window.removeEventListener("online",onOnline);document.removeEventListener("keydown",onKey)};
   const start=Math.min(VXS.i||0,items.length-1);
   if(start>0){feed.scrollTop=items[start].offsetTop}
   setTimeout(()=>{if(!active)activate(start)},60);
@@ -10373,7 +10382,7 @@ const A={
   },
   theme(d,el){document.querySelectorAll('.tg[data-act="theme"]').forEach(b=>{b.classList.add("spin");setTimeout(()=>b.classList.remove("spin"),500)});cycleTheme();},
   mode(){S.mode=S.mode==="login"?"register":"login";S.error="";render(true)},
-  logoTap(){const n=Date.now();S.taps=S.taps.filter(t=>n-t<2500);S.taps.push(n);if(S.taps.length>=3){S.taps=[];if(S.user&&!S.isAdmin){S.adminLogin=false;return}S.adminLogin=true;S.error="";S.mode="login";S.guestVideos=false;S.view="auth";render(true)}},
+  logoTap(){const n=Date.now();S.taps=S.taps.filter(t=>n-t<2500);S.taps.push(n);if(S.taps.length>=3){S.taps=[];if(S.user&&S.isAdmin){S.view="admin";S.tab=S.tab||"dash";S.adminLogin=false;S.guestVideos=false;render(true);return}if(S.user&&!S.isAdmin){S.adminLogin=false;return}S.adminLogin=true;S.error="";S.mode="login";S.guestVideos=false;S.view="auth";render(true)}},
   /* بوابة سرية: 3 ضغطات سريعة على منطقة العنوان / الزاوية — مش ظاهرة كـ«تسجيل أدمن» */
   secretStaffGate(){A.logoTap()},
   vxRetry(){VID.err="";VID.loaded=false;VID._stu=0;render(true)},vxMute(){},vxReload(){},vxSeek(){},
