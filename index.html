@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v234">
+<meta name="sw-build" content="v235">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v234";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
+<script>window.APP_BUILD="v235";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
 </script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
@@ -2369,6 +2369,40 @@ body.vid-focus-body .vx-top .vx-btn{display:none}
 .vx-hint,.vx-count,.vx-badge,.vx-side{display:none!important}
 .vx-fail{text-align:center;padding:16px}
 .vx-fail span{font-size:14px;line-height:1.6}
+</style>
+<style id="vx235">
+/* v235 — تصميم بريميوم خفيف (من غير blur/أنيميشن تقيل) */
+.vx{background:#04050a}
+.vx-item{background:radial-gradient(95% 55% at 50% 0%,color-mix(in srgb,var(--c1,#7c5cff) 20%,transparent),transparent 72%),radial-gradient(80% 40% at 50% 100%,color-mix(in srgb,var(--c2,#7c5cff) 13%,transparent),transparent 70%),#05060c;contain:layout paint style}
+.vx-bg{display:none}
+.vx-feed{scroll-behavior:auto}
+.vx-top{justify-content:center;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 26px;background:linear-gradient(#000c,transparent)}
+.vx-top .vx-btn{position:absolute;inset-inline-start:14px;top:calc(8px + env(safe-area-inset-top,0px))}
+.vx-title{flex:none;max-width:76vw;padding:7px 20px;border-radius:999px;font-size:18px;text-align:center;background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.16);box-shadow:0 6px 22px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.12)}
+.vx-btn{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(20,22,34,.72);border:1px solid rgba(255,255,255,.14)}
+.vx-stage{top:calc(62px + env(safe-area-inset-top,0px));bottom:64px;width:min(calc(100% - 22px),760px);position:absolute}
+.vx-stage::before{content:"";position:absolute;inset:0;margin:auto;width:min(100cqw,calc(100cqh * var(--ar,.5625)));aspect-ratio:var(--ar,.5625);border-radius:26px;pointer-events:none;
+  box-shadow:0 0 34px 0 color-mix(in srgb,var(--c1) 55%,transparent),0 0 90px 8px color-mix(in srgb,var(--c2) 28%,transparent);opacity:.5}
+.vx-item.is-active .vx-stage::before{animation:vxGl 3.4s ease-in-out infinite}
+@keyframes vxGl{50%{opacity:.95}}
+.vx-box{border-radius:26px;animation:none!important;box-shadow:0 24px 50px -10px rgba(0,0,0,.75)}
+.vx-item.is-active .vx-box{animation:vxIn .5s cubic-bezier(.2,.8,.2,1) both!important}
+@keyframes vxIn{from{transform:scale(.965);opacity:.6}to{transform:none;opacity:1}}
+.vx-ring{padding:2px;background:linear-gradient(145deg,var(--c1),color-mix(in srgb,var(--c1) 10%,transparent) 38%,color-mix(in srgb,var(--c2) 10%,transparent) 62%,var(--c2));opacity:1;z-index:3}
+.vx-box::after{height:46%;background:linear-gradient(transparent,rgba(0,0,0,.45) 45%,rgba(0,0,0,.82))}
+.vx-info{inset:auto 18px 18px 18px;gap:5px}
+.vx-info::before{content:"";width:30px;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--c1),var(--c2));margin-bottom:3px}
+.vx-info b{font-size:17px;font-weight:800;letter-spacing:.2px}
+.vx-info span{font-size:13px;opacity:.88}
+.vx-center i{background:rgba(10,12,20,.55);-webkit-backdrop-filter:none;backdrop-filter:none;border:1px solid rgba(255,255,255,.25);box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.vx-bar{bottom:22px;width:min(calc(100% - 52px),520px);height:26px}
+.vx-bar::before{height:4px;background:rgba(255,255,255,.16)}
+.vx-bar i{height:4px;overflow:visible;box-shadow:0 0 12px -1px var(--c1)}
+.vx-bar i::after{content:"";position:absolute;right:-6px;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px color-mix(in srgb,var(--c1) 45%,transparent)}
+.vx-time{top:17px;font-size:11px;opacity:.7}
+.vx-fail{background:rgba(5,6,12,.86);gap:8px}
+.vx-fdet{display:block;direction:ltr;font-size:10px;opacity:.5;max-width:90%}
+.vx-fail button{margin-top:6px}
 </style>
 
 <style id="vfast">.vfast #splash{display:none!important}.vfast body,.vfast html{background:#05060b!important}.vfast .bgfx{display:none!important}</style>
@@ -9038,7 +9072,7 @@ ${frameOpts.map(([id,lab])=>`<option value="${id}" ${fr===id?"selected":""}>${la
 }).join(""):`<div class="mut" style="text-align:center;padding:16px 0">${VID.err?"تعذّر التحميل ("+esc(VID.err)+") — انشر قواعد Firestore":VID.loaded?"لسه مفيش فيديوهات":"جاري التحميل…"}</div>`}
 </div>`;
 }
-/* ===== v234 — قسم الفيديوهات: برواز ذكي حسب أبعاد الفيديو + دعم صيغ/روابط أكتر ===== */
+/* ===== v235 — قسم الفيديوهات: برواز ذكي حسب أبعاد الفيديو + دعم صيغ/روابط أكتر ===== */
 const VX_FRAMES={gold:["#fbbf24","#f59e0b"],energy:["#38bdf8","#fbbf24"],neon:["#e879f9","#a78bfa"],ice:["#e0f2fe","#7dd3fc"],fire:["#fb923c","#ef4444"]};
 const VXS={i:0,muted:false,autoMuted:false,unl:0,io:null,off:null};
 function vxFrame(x){let f=String(x.frame||(x.feat?"gold":"energy")).toLowerCase();if(!VX_FRAMES[f])f=x.feat?"gold":"energy";return f}
@@ -9107,7 +9141,7 @@ function videosView(){
     <div class="vx-ring"></div>
     <div class="vx-center" aria-hidden="true"><i>▶</i></div>
     <div class="vx-wait"><div class="vx-spin"></div></div>
-    <div class="vx-fail"><span class="vx-fmsg">⚠️ الفيديو مش بيتحمّل</span><button type="button" data-act="vxReload">↻ جرّب تاني</button></div>
+    <div class="vx-fail"><span class="vx-fmsg">⚠️ الفيديو مش بيتحمّل</span><small class="vx-fdet"></small><button type="button" data-act="vxReload">↻ جرّب تاني</button></div>
     ${(x.title||x.desc)?`<div class="vx-info">${x.title?`<b>${esc(x.title)}</b>`:""}${x.desc?`<span>${esc(x.desc)}</span>`:""}</div>`:""}
   </div></div>
   <div class="vx-bar" data-act="vxSeek"><i></i><u class="vx-time">0:00</u></div>
@@ -9147,7 +9181,7 @@ function vxSetSrc(it,on){
   }
 }
 function vxFreeFar(items,idx){
-  items.forEach((it,k)=>{if(Math.abs(k-idx)>2||(it.dataset.kind!=="file"&&it.dataset.kind!=="hls"&&k!==idx))vxSetSrc(it,false)});
+  items.forEach((it,k)=>{if(Math.abs(k-idx)>1||(it.dataset.kind!=="file"&&it.dataset.kind!=="hls"&&k!==idx))vxSetSrc(it,false)});
 }
 function vidBindFeed(){
   const feed=document.getElementById("vxFeed");
@@ -9159,7 +9193,8 @@ function vidBindFeed(){
   const curMuted=()=>VXS.muted||VXS.autoMuted;
   let active=null;
   const wait=(it,on)=>{const w=it.querySelector(".vx-wait");if(w)w.classList.toggle("on",!!on)};
-  const fail=(it,on,msg)=>{it.classList.toggle("is-fail",!!on);if(on){wait(it,false);const m=it.querySelector(".vx-fmsg");if(m&&msg)m.textContent=msg}};
+  const fail=(it,on,msg,det)=>{it.classList.toggle("is-fail",!!on);if(on){wait(it,false);const m=it.querySelector(".vx-fmsg");if(m&&msg)m.textContent=msg;const d=it.querySelector(".vx-fdet");if(d)d.textContent=det||""}};
+  const failMsg=(v)=>{const e=v.error||{},c=e.code;return[c===4?"الصيغة أو الترميز مش مدعومين على الجهاز ده":c===3?"الفيديو بترميز الجهاز مش قادر يفكّه (غالبًا HEVC / H.265)":c===2?"مشكلة في الشبكة أثناء التحميل":"الفيديو مش بيتحمّل","كود "+(c||"؟")+(e.message?" · "+String(e.message).slice(0,70):"")]};
   const flash=(it,ic)=>{const c=it.querySelector(".vx-center");if(!c)return;c.firstElementChild.textContent=ic;c.classList.remove("on");void c.offsetWidth;c.classList.add("on")};
   const play=async(it)=>{
     const v=vxMedia(it);if(!v||v.tagName!=="VIDEO")return;
@@ -9175,11 +9210,13 @@ function vidBindFeed(){
     const it=items[k];if(!it||it===active)return;
     if(active){const pv=vxMedia(active);if(pv&&pv.tagName==="VIDEO"){try{pv.pause()}catch(_){}}else if(pv){vxSetSrc(active,false)}active.classList.remove("is-active")}
     active=it;VXS.i=k;it.classList.add("is-active");
-    [k-1,k,k+1].forEach(j=>{const o=items[j];if(o&&(o.dataset.kind==="file"||o.dataset.kind==="hls")){vxSetSrc(o,true);const v=vxMedia(o);if(j!==k&&v)v.preload="metadata"}});
+    /* بنحمّل الحالي بس؛ التالي بعد ما الحالي يجهز (أخف على النت والمعالج) */
+    const nx=items[k+1];if(nx&&(nx.dataset.kind==="file"||nx.dataset.kind==="hls")){const v0=vxMedia(it);const go=()=>{if(active===it&&nx.dataset.kind){vxSetSrc(nx,true);const nv=vxMedia(nx);if(nv)nv.preload="metadata"}};if(v0&&v0.readyState>=3)setTimeout(go,300);else{if(v0)v0.addEventListener("canplay",()=>setTimeout(go,300),{once:true});setTimeout(go,6000)}}
     vxFreeFar(items,k);
     if(it.dataset.kind==="yt"||it.dataset.kind==="vimeo"){vxSetSrc(it,true)}else play(it);
   };
-  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting&&e.intersectionRatio>=.6)activate(items.indexOf(e.target))})},{root:feed,threshold:[.6,.9]});
+  let actT=0;
+  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting&&e.intersectionRatio>=.6){const k=items.indexOf(e.target);clearTimeout(actT);actT=setTimeout(()=>activate(k),k===0&&!active?0:110)}})},{root:feed,threshold:[.6,.9]});
   items.forEach(it=>io.observe(it));
   items.forEach((it)=>{
     const v=vxMedia(it);if(!v)return;
@@ -9191,27 +9228,32 @@ function vidBindFeed(){
     v.addEventListener("loadedmetadata",fit);
     v.addEventListener("loadstart",()=>{if(it===active)wait(it,true)});
     v.addEventListener("waiting",()=>{if(it===active)wait(it,true)});
-    v.addEventListener("stalled",()=>{if(it===active&&!v.paused)setTimeout(()=>{if(v.readyState<3&&it===active){const t=v.currentTime;try{v.load();v.currentTime=t;v.play().catch(()=>{})}catch(_){}}},3500)});
+    v.addEventListener("stalled",()=>{if(it!==active||v.paused)return;const b0=v.buffered.length?v.buffered.end(v.buffered.length-1):0;setTimeout(()=>{if(it!==active||v.readyState>=3)return;const b1=v.buffered.length?v.buffered.end(v.buffered.length-1):0;if(b1<=b0+0.05){const t=v.currentTime;try{v.load();v.currentTime=t;v.play().catch(()=>{})}catch(_){}}},12000)});
     ["playing","canplay","loadeddata"].forEach(n=>v.addEventListener(n,()=>{wait(it,false);fail(it,false);errN=0;fit();if(v.readyState>=2)it.classList.add("has-frame")}));
     v.addEventListener("play",()=>{it.classList.remove("is-paused")});
     v.addEventListener("pause",()=>{if(it===active&&!v.ended&&document.visibilityState==="visible")it.classList.add("is-paused")});
     v.addEventListener("timeupdate",()=>{if(v.duration&&isFinite(v.duration)){fill.style.width=(v.currentTime/v.duration*100)+"%";tm.textContent=vxFmt(v.currentTime)+" / "+vxFmt(v.duration)}});
     v.addEventListener("error",()=>{
-      if(!v.getAttribute("src")&&!v._hls&&!v._blob)return;
+      if(!(v.getAttribute("src")||v._hls||v._blob))return;
       errN++;
-      const code=v.error&&v.error.code;
-      if(errN===1){setTimeout(()=>{try{const t=v.currentTime;v.load();v.currentTime=t;if(it===active)v.play().catch(()=>{})}catch(_){}},600);return}
-      /* محاولة إنقاذ: نزّل الملف ونلبّسه نوع MIME صح (بيحل مشاكل السيرفرات اللي بتبعت نوع غلط) */
-      if(errN===2&&!v._blob&&!v._hls&&v.dataset.src){
-        fetch(v.dataset.src,{referrerPolicy:"no-referrer"}).then(r=>{
+      const src=v.dataset.src;
+      if(errN===1){setTimeout(()=>{try{v.load();if(it===active)v.play().catch(()=>{})}catch(_){}},500);return}
+      /* محاولة 2: رابط بمعامل جديد (بيتخطّى أي رد معطوب متخزّن) وبدون قيود الـ referrer */
+      if(errN===2&&!v._hls&&!v._blob&&src&&v.dataset.kind!=="hls"){
+        try{v.removeAttribute("referrerpolicy");v.src=src+(src.indexOf("?")<0?"?":"&")+"_vx="+Date.now();v.load();if(it===active)v.play().catch(()=>{})}catch(_){}
+        return;
+      }
+      /* محاولة 3: نزّل الملف ولبّسه نوع MIME صح (بيحل مشاكل السيرفرات اللي بتبعت نوع غلط) */
+      if(errN===3&&!v._hls&&!v._blob&&src){
+        fetch(src,{referrerPolicy:"no-referrer"}).then(r=>{
           const len=+r.headers.get("content-length")||0;if(!r.ok||len>90*1048576)throw 0;return r.arrayBuffer()
         }).then(buf=>{
           if(buf.byteLength>90*1048576)throw 0;
-          const b=URL.createObjectURL(new Blob([buf],{type:vxMime(v.dataset.src)}));v._blob=b;v.src=b;v.load();if(it===active)v.play().catch(()=>{});
-        }).catch(()=>{fail(it,true,code===4?"الصيغة أو الترميز مش مدعومين على الجهاز ده":"الفيديو مش بيتحمّل — اتأكد من النت")});
+          const b=URL.createObjectURL(new Blob([buf],{type:vxMime(src)}));v._blob=b;v.src=b;v.load();if(it===active)v.play().catch(()=>{});
+        }).catch(()=>{const m=failMsg(v);fail(it,true,m[0],m[1])});
         return;
       }
-      fail(it,true,code===4?"الصيغة أو الترميز مش مدعومين على الجهاز ده":"الفيديو مش بيتحمّل — اتأكد من النت");
+      const m=failMsg(v);fail(it,true,m[0],m[1]);
     });
     it.querySelector(".vx-stage").addEventListener("click",()=>{
       if(Date.now()-VXS.unl<450)return; /* اللمسة دي كانت لفتح الصوت بس */
@@ -17192,7 +17234,7 @@ Object.assign(A,{
     const cover=(document.getElementById("vidCover")&&document.getElementById("vidCover").value||"").trim();
     if(!vidIsOkUrl(url)){toast("حط رابط https صحيح (Catbox أو Drive أو Dropbox أو YouTube أو Vimeo أو m3u8)");return}
     const pr=await vxProbe(vxNorm(url));
-    if(pr&&pr.ok===false&&pr.code===4&&!confirm("الجهاز ده مش قادر يشغّل الرابط ده (الصيغة أو الترميز). ممكن يشتغل عند طلاب تانيين. لو عايزه يشتغل عند الكل حوّله MP4 (H.264). تنشره برضه؟"))return;
+    if(pr&&pr.ok===false&&(pr.code===4||pr.code===3)&&!confirm("الجهاز ده مش قادر يشغّل الرابط ده (الصيغة أو الترميز). ممكن يشتغل عند طلاب تانيين. لو عايزه يشتغل عند الكل حوّله MP4 (H.264). تنشره برضه؟"))return;
     try{
       const allowed=["gold","energy","neon","ice","fire"];
     let frame=(document.getElementById("vidFrame")&&document.getElementById("vidFrame").value||"gold").toLowerCase();
