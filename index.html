@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v241">
+<meta name="sw-build" content="v242">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v241";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
+<script>window.APP_BUILD="v242";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
 </script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
@@ -19052,6 +19052,80 @@ window.addEventListener('appinstalled',()=>{
       }
     },true);
   }catch(_){}
+})();
+</script>
+<script id="cachetool">
+/* v242: أداة الكاش — بتظهر بس لو في كاش قديم على الجهاز أو في نسخة أحدث على السيرفر */
+(function(){
+  try{
+    var META=((document.querySelector('meta[name="sw-build"]')||{}).content||"").trim();
+    if(!META||!window.caches)return;
+    var CUR=("eltafawoq-"+META).toLowerCase();
+    var base=location.href.split("#")[0].split("?")[0].replace(/[^\/]*$/,"");
+    var btn=null,busy=false,lastRun=0;
+    function mk(){
+      if(btn)return btn;
+      var st=document.createElement("style");
+      st.textContent="#ctlBtn{position:fixed;z-index:2147483000;top:calc(8px + env(safe-area-inset-top,0px));inset-inline-end:10px;display:none;align-items:center;gap:6px;border:0;border-radius:999px;padding:8px 14px;font:inherit;font-size:13px;font-weight:800;color:#1a1200;background:linear-gradient(135deg,#fde68a,#fbbf24 55%,#f59e0b);box-shadow:0 8px 24px rgba(245,158,11,.45);cursor:pointer;max-width:80vw}#ctlBtn.on{display:inline-flex;animation:ctlIn .35s ease-out both}#ctlBtn:disabled{opacity:.7}@keyframes ctlIn{from{opacity:0;transform:translateY(-8px)}}";
+      document.head.appendChild(st);
+      btn=document.createElement("button");btn.id="ctlBtn";btn.type="button";
+      btn.addEventListener("click",wipe);
+      document.body.appendChild(btn);
+      return btn;
+    }
+    function show(t){var b=mk();if(busy)return;b.textContent=t;b.classList.add("on")}
+    function hide(){if(btn&&!busy)btn.classList.remove("on")}
+    function oldCaches(){
+      return caches.keys().then(function(ks){return ks.filter(function(k){return /^eltafawoq-v/i.test(k)&&k.toLowerCase()!==CUR})});
+    }
+    function serverBuild(){
+      var ctl=new AbortController(),to=setTimeout(function(){ctl.abort()},8000);
+      return fetch(base+"index.html?_="+Date.now(),{cache:"no-store",signal:ctl.signal}).then(function(r){
+        if(!r.ok||!r.body)return "";
+        var rd=r.body.getReader(),dec=new TextDecoder(),txt="";
+        function pump(){
+          return rd.read().then(function(x){
+            if(x.done)return "";
+            txt+=dec.decode(x.value,{stream:true});
+            var m=/name="sw-build"\s+content="([^"]+)"/.exec(txt);
+            if(m){try{ctl.abort()}catch(_){}return m[1]}
+            return txt.length>30000?"":pump();
+          });
+        }
+        return pump();
+      }).catch(function(){return ""}).then(function(v){clearTimeout(to);return v});
+    }
+    function check(){
+      if(busy||!navigator.onLine&&false)return Promise.resolve();
+      lastRun=Date.now();
+      return Promise.all([oldCaches(),serverBuild()]).then(function(r){
+        var old=r[0],sb=(r[1]||"").trim();
+        var newer=!!sb&&sb!==META;
+        if(newer)show("🔄 فيه نسخة أحدث — تحديث وحذف الكاش");
+        else if(old.length)show("🧹 فيه كاش قديم — حذف الكاش");
+        else hide();
+      }).catch(function(){});
+    }
+    function wipe(){
+      if(busy)return;busy=true;
+      var b=mk();b.disabled=true;b.textContent="⏳ بيتحذف الكاش…";b.classList.add("on");
+      var step=function(p){return p.catch(function(){})};
+      step((navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)?navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister()}))}):Promise.resolve())
+      .then(function(){return step(caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}))})
+      .then(function(){
+        try{var rm=[];for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&/^(exams_cache|books_cache|dmcache_|sw_v|cache_bust|vx_ar_)/i.test(k))rm.push(k)}rm.forEach(function(k){localStorage.removeItem(k)})}catch(_){}
+        return caches.keys();
+      }).then(function(left){
+        b.textContent=left&&left.length?"⚠️ فاضل "+left.length+" كاش — بنعيد المحاولة":"✅ اتحذف الكاش — بنفتح أحدث نسخة";
+        return step(Promise.all((left||[]).map(function(k){return caches.delete(k)})));
+      }).then(function(){setTimeout(function(){location.replace(base+"?fresh="+Date.now())},700)});
+    }
+    window.__cacheToolCheck=check;
+    var go=function(){setTimeout(check,3500)};
+    if(document.readyState==="complete")go();else window.addEventListener("load",go);
+    document.addEventListener("visibilitychange",function(){if(!document.hidden&&Date.now()-lastRun>60000)check()});
+    setInterval(function(){if(!document.hidden&&Date.now()-lastRun>180000)check()},60000);
+  }catch(e){}
 })();
 </script>
 </body>
