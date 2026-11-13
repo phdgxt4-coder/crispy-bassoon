@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v235">
+<meta name="sw-build" content="v236">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v235";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
+<script>window.APP_BUILD="v236";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
 </script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
@@ -2401,7 +2401,7 @@ body.vid-focus-body .vx-top .vx-btn{display:none}
 .vx-bar i::after{content:"";position:absolute;right:-6px;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px color-mix(in srgb,var(--c1) 45%,transparent)}
 .vx-time{top:17px;font-size:11px;opacity:.7}
 .vx-fail{background:rgba(5,6,12,.86);gap:8px}
-.vx-fdet{display:block;direction:ltr;font-size:10px;opacity:.5;max-width:90%}
+.vx-fdet{display:block;font-size:12px;opacity:.8;max-width:90%;line-height:1.6}
 .vx-fail button{margin-top:6px}
 </style>
 
@@ -9194,6 +9194,23 @@ function vidBindFeed(){
   let active=null;
   const wait=(it,on)=>{const w=it.querySelector(".vx-wait");if(w)w.classList.toggle("on",!!on)};
   const fail=(it,on,msg,det)=>{it.classList.toggle("is-fail",!!on);if(on){wait(it,false);const m=it.querySelector(".vx-fmsg");if(m&&msg)m.textContent=msg;const d=it.querySelector(".vx-fdet");if(d)d.textContent=det||""}};
+  const sniff=async(it,v)=>{
+    try{
+      const r=await fetch(v.dataset.src,{headers:{Range:"bytes=0-2047"},referrerPolicy:"no-referrer"});
+      const ct=(r.headers.get("content-type")||"").split(";")[0];
+      const b=new Uint8Array(await r.arrayBuffer());const t=String.fromCharCode.apply(null,[...b.slice(0,12)].map(x=>x>31&&x<127?x:46));
+      let kind="";
+      if(!r.ok)kind="السيرفر رد "+r.status+" — الرابط غالبًا اتحذف أو مش شغّال";
+      else if(/html|text|json/i.test(ct)||/^\s*</.test(t))kind="الرابط بيرجّع صفحة/نص مش فيديو — اتأكد إن الملف لسه موجود على Catbox";
+      else if(t.indexOf("ftyp")===4)kind="MP4/MOV ("+t.slice(8,12).trim()+") — الترميز هو اللي مش مدعوم، غالبًا HEVC: حوّله H.264";
+      else if(b[0]===0x1A&&b[1]===0x45)kind="MKV/WebM — ترميزه مش مدعوم على الجهاز";
+      else if(t.slice(0,4)==="RIFF")kind="AVI — الصيغة دي مش بيشغّلها أي متصفح، حوّلها MP4";
+      else if(b[0]===0x30&&b[1]===0x26)kind="WMV — مش بيشغّله أي متصفح، حوّله MP4";
+      else if(t.slice(0,3)==="FLV")kind="FLV — مش بيشغّله أي متصفح، حوّله MP4";
+      else kind="نوع الملف غير معروف ("+(ct||"?")+")";
+      const d=it.querySelector(".vx-fdet");if(d)d.textContent=kind;
+    }catch(_){}
+  };
   const failMsg=(v)=>{const e=v.error||{},c=e.code;return[c===4?"الصيغة أو الترميز مش مدعومين على الجهاز ده":c===3?"الفيديو بترميز الجهاز مش قادر يفكّه (غالبًا HEVC / H.265)":c===2?"مشكلة في الشبكة أثناء التحميل":"الفيديو مش بيتحمّل","كود "+(c||"؟")+(e.message?" · "+String(e.message).slice(0,70):"")]};
   const flash=(it,ic)=>{const c=it.querySelector(".vx-center");if(!c)return;c.firstElementChild.textContent=ic;c.classList.remove("on");void c.offsetWidth;c.classList.add("on")};
   const play=async(it)=>{
@@ -9231,7 +9248,7 @@ function vidBindFeed(){
     v.addEventListener("stalled",()=>{if(it!==active||v.paused)return;const b0=v.buffered.length?v.buffered.end(v.buffered.length-1):0;setTimeout(()=>{if(it!==active||v.readyState>=3)return;const b1=v.buffered.length?v.buffered.end(v.buffered.length-1):0;if(b1<=b0+0.05){const t=v.currentTime;try{v.load();v.currentTime=t;v.play().catch(()=>{})}catch(_){}}},12000)});
     ["playing","canplay","loadeddata"].forEach(n=>v.addEventListener(n,()=>{wait(it,false);fail(it,false);errN=0;fit();if(v.readyState>=2)it.classList.add("has-frame")}));
     v.addEventListener("play",()=>{it.classList.remove("is-paused")});
-    v.addEventListener("pause",()=>{if(it===active&&!v.ended&&document.visibilityState==="visible")it.classList.add("is-paused")});
+    v.addEventListener("pause",()=>{if(it===active&&!v.ended&&document.visibilityState==="visible"&&(v.getAttribute("src")||v._hls||v._blob)){setTimeout(()=>{if(it===active&&v.paused&&!document.hidden&&!it.classList.contains("is-fail"))v.play().then(()=>it.classList.remove("is-paused")).catch(()=>it.classList.add("is-paused"))},200)}});
     v.addEventListener("timeupdate",()=>{if(v.duration&&isFinite(v.duration)){fill.style.width=(v.currentTime/v.duration*100)+"%";tm.textContent=vxFmt(v.currentTime)+" / "+vxFmt(v.duration)}});
     v.addEventListener("error",()=>{
       if(!(v.getAttribute("src")||v._hls||v._blob))return;
@@ -9250,14 +9267,14 @@ function vidBindFeed(){
         }).then(buf=>{
           if(buf.byteLength>90*1048576)throw 0;
           const b=URL.createObjectURL(new Blob([buf],{type:vxMime(src)}));v._blob=b;v.src=b;v.load();if(it===active)v.play().catch(()=>{});
-        }).catch(()=>{const m=failMsg(v);fail(it,true,m[0],m[1])});
+        }).catch(()=>{const m=failMsg(v);fail(it,true,m[0],m[1]);sniff(it,v)});
         return;
       }
-      const m=failMsg(v);fail(it,true,m[0],m[1]);
+      const m=failMsg(v);fail(it,true,m[0],m[1]);sniff(it,v);
     });
     it.querySelector(".vx-stage").addEventListener("click",()=>{
       if(Date.now()-VXS.unl<450)return; /* اللمسة دي كانت لفتح الصوت بس */
-      if(v.paused){play(it);flash(it,"▶")}else{v.pause();flash(it,"⏸")}
+      if(v.paused){play(it);flash(it,"▶")}/* v236: اللمس مابيوقّفش الفيديو */
     });
     const seek=(ev)=>{const r=bar.getBoundingClientRect();const x=(ev.touches?ev.touches[0].clientX:ev.clientX);const p=Math.min(1,Math.max(0,(x-r.left)/r.width));if(v.duration&&isFinite(v.duration))v.currentTime=p*v.duration};
     bar.addEventListener("click",ev=>{ev.stopPropagation();seek(ev)});
@@ -9276,7 +9293,7 @@ function vidBindFeed(){
   const onKey=(e)=>{if(S.view!=="videos")return;const t=(e.target&&e.target.tagName)||"";if(/INPUT|TEXTAREA|SELECT/.test(t))return;
     if(e.key==="ArrowDown"||e.key==="PageDown"){e.preventDefault();const n=items[Math.min(items.length-1,VXS.i+1)];n&&n.scrollIntoView({behavior:"smooth"})}
     else if(e.key==="ArrowUp"||e.key==="PageUp"){e.preventDefault();const n=items[Math.max(0,VXS.i-1)];n&&n.scrollIntoView({behavior:"smooth"})}
-    else if(e.key===" "){e.preventDefault();const st=active&&active.querySelector(".vx-stage");st&&st.click()}};
+    };
   document.addEventListener("visibilitychange",onVis);window.addEventListener("online",onOnline);document.addEventListener("keydown",onKey);
   VXS.off=()=>{try{io.disconnect()}catch(_){}document.removeEventListener("visibilitychange",onVis);window.removeEventListener("online",onOnline);document.removeEventListener("keydown",onKey)};
   const start=Math.min(VXS.i||0,items.length-1);
