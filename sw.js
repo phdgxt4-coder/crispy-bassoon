@@ -14,10 +14,10 @@
 
 const PETS = ["./pets/fox.glb","./pets/corgi.glb","./pets/hare.glb","./pets/sheep.glb","./pets/boar.glb"];
 /* اسم الكاش الحالي — v208: أول تحميل بعد النشر بينضّف كاشات v206 والقديم تلقائيًا */
-const CACHE = "eltafawoq-v239";
+const CACHE = "eltafawoq-v240";
 /* لا يُحذف كاش الأوفلاين عند التحديث؛ الإصدارات القديمة (v1…v مليون) بتترحّل هنا قبل المسح */
 const OFFLINE_CACHE = "eltafawoq-offline-v1";
-const BUILD = "20261113-v239";
+const BUILD = "20261113-v240";
 
 /* أي كاش إصدار واجهة: eltafawoq-v180 / v183 / v1000000 / v1.2-beta … */
 function isVersionCache(name) {
@@ -358,45 +358,33 @@ self.addEventListener("fetch", (e) => {
       url.pathname.endsWith("/index.html") ||
       /\/crispy-bassoon\/?$/.test(url.pathname);
 
+    /* v240: الصفحة الرئيسية network-first (بمهلة 4.5 ثانية) — أي تحديث بيظهر من أول فتحة؛ ولو النت ضعيف/مقطوع بنرجع للنسخة المخزّنة */
     e.respondWith(
       (async () => {
         const cache = await caches.open(CACHE);
-        const cached = await cache.match(cacheKey);
-        const offline = cached || await offlineMatch(cacheKey);
-        if (offline) {
-          /* v167: نحدّث النسخة في الخلفية بس لو عدّي 30 دقيقة على آخر فحص */
-          if (await navNeedCheck()) {
-            const upd = fetch(e.request, { cache: "no-store" }).then(async (res) => {
-              if (res.ok && isHtmlResponse(res)) {
-                await cache.put(cacheKey, res.clone()).catch(() => {});
-                await navMarkFresh();
-              }
-              return res;
-            });
-            try { e.waitUntil(upd.catch(() => {})); } catch (_) {}
-          }
-          return offline;
-        }
         try {
-          const res = await fetch(e.request, { cache: "no-store" });
+          const ctl = new AbortController();
+          const t = setTimeout(() => ctl.abort(), 4500);
+          let res;
+          try { res = await fetch(e.request, { cache: "no-store", signal: ctl.signal }); }
+          finally { clearTimeout(t); }
           if (res.ok && isHtmlResponse(res)) {
             cache.put(cacheKey, res.clone()).catch(() => {});
-            await navMarkFresh();
+            navMarkFresh();
+            return res;
           }
-          return res;
-        } catch (_) {
-          const rootFallback = isAppRoot ? (await cache.match(indexKey) || await offlineMatch(indexKey)) : null;
-          return (
-            rootFallback ||
-            new Response(
-              "<!doctype html><meta charset=utf-8><title>غير متصل</title><h1>الصفحة غير متاحة دون اتصال</h1><p>اتصل بالإنترنت وحاول مرة أخرى.</p>",
-              {
-                status: 503,
-                headers: { "Content-Type": "text/html; charset=utf-8" }
-              }
-            )
-          );
-        }
+          if (res.ok) return res;
+        } catch (_) {}
+        const offline = (await cache.match(cacheKey)) || (await offlineMatch(cacheKey));
+        if (offline) return offline;
+        const rootFallback = isAppRoot ? ((await cache.match(indexKey)) || (await offlineMatch(indexKey))) : null;
+        return (
+          rootFallback ||
+          new Response(
+            "<!doctype html><meta charset=utf-8><title>غير متصل</title><h1>الصفحة غير متاحة دون اتصال</h1><p>اتصل بالإنترنت وحاول مرة أخرى.</p>",
+            { status: 503, headers: { "Content-Type": "text/html; charset=utf-8" } }
+          )
+        );
       })()
     );
     return;

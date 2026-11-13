@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v239">
+<meta name="sw-build" content="v240">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v239";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
+<script>window.APP_BUILD="v240";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
 </script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
@@ -2412,7 +2412,7 @@ body.vid-focus-body .vx-top .vx-btn{display:none}
 @keyframes vxSndIn{from{opacity:0;transform:translate(-50%,8px)}}
 </style>
 <style id="vfast">#splash:not(.fail){display:none!important}.vfast #splash{display:none!important}.vfast body,.vfast html{background:#05060b!important}.vfast .bgfx{display:none!important}</style>
-<script>try{if(localStorage.getItem("videos_only_fast")==="1")document.documentElement.classList.add("vfast")}catch(e){}</script>
+<script>try{var _vf=localStorage.getItem("videos_only_fast");if(_vf===null||_vf==="1")document.documentElement.classList.add("vfast")}catch(e){}</script>
 </head>
 <body>
 <div class="bgfx"><i></i><i></i></div>
@@ -2686,7 +2686,7 @@ const S = {asms:[],asm:null,editingAsm:null,logins:{},sq:"",starts:[],examsLoade
   fadaye7:[],suspicious:[],adminRooms:[],adminConvs:[]};
 // زيارة تانية: مفيش انتظار. أول زيارة: 200ms بس
 let splashUntil=Date.now();
-try{if(localStorage.getItem("videos_only_fast")==="1")splashUntil=Date.now()+120}catch(_){}
+
 
 const vis=e=>!e.publishAt||Date.now()>=e.publishAt;
 const todayKey=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
@@ -3829,7 +3829,7 @@ function isVideosFocus(){
   }catch(_){return false}
 }
 /* v233: قبل ما إعدادات الموقع توصل من السيرفر بنعتمد على آخر قيمة محفوظة — فالرابط يفتح الفيديوهات علطول من غير ما تظهر صفحة تسجيل الدخول لحظة */
-function vxFast(){try{return localStorage.getItem("videos_only_fast")==="1"}catch(_){return false}}
+function vxFast(){try{const v=localStorage.getItem("videos_only_fast");return v===null?true:v==="1"}catch(_){return false}}
 function guestVideosAllowed(){
   try{if(S.siteRaw)return !!(S.site&&S.site.videosOnly);return vxFast()}catch(_){return false}
 }

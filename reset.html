@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>إصلاح التفوق</title>
+<style>
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(80% 50% at 50% 0%,#2a1f5e,transparent 70%),#0b0d16;color:#fff;font-family:system-ui,"Segoe UI",Tahoma,sans-serif}
+.box{width:min(100%,440px);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:24px;padding:26px 22px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+h1{margin:0 0 6px;font-size:24px}
+p{margin:6px 0 18px;opacity:.78;line-height:1.7;font-size:14px}
+button{display:block;width:100%;border:0;border-radius:16px;padding:15px;font:inherit;font-weight:800;font-size:16px;cursor:pointer;margin:10px 0 0;color:#1a1200;background:linear-gradient(135deg,#fbbf24,#f59e0b)}
+button.alt{color:#fff;background:rgba(255,255,255,.12);font-weight:700}
+button:disabled{opacity:.5}
+#log{margin-top:18px;text-align:start;font-size:13px;line-height:1.9;direction:rtl}
+#log div::before{content:"✓ ";color:#4ade80}
+#log div.bad::before{content:"✗ ";color:#f87171}
+.bar{height:6px;border-radius:6px;background:rgba(255,255,255,.14);margin-top:16px;overflow:hidden;display:none}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#fbbf24,#f59e0b);transition:width .3s}
+small{display:block;margin-top:16px;opacity:.55;font-size:12px}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>🛠 إصلاح منصة التفوق</h1>
+  <p>لو المنصة بتقول «مفيش نت» أو مش بتفتح أو واقفة على نسخة قديمة، دوس على الزرار وهيمسح كل الملفات المخزّنة ويفتح المنصة من جديد.</p>
+  <button id="b1">🧹 مسح الكاش وفتح المنصة</button>
+  <button id="b2" class="alt">💣 مسح كل حاجة (يخرّجك من حسابك)</button>
+  <div class="bar" id="bar"><i id="fill"></i></div>
+  <div id="log"></div>
+  <small>الملف ده بيمسح بيانات الموقع على جهازك بس — مفيش حاجة بتتمسح من السيرفر.</small>
+</div>
+<script>
+(function(){
+  var logEl=document.getElementById("log"),bar=document.getElementById("bar"),fill=document.getElementById("fill");
+  function say(t,bad){var d=document.createElement("div");if(bad)d.className="bad";d.textContent=t;logEl.appendChild(d)}
+  function prog(p){bar.style.display="block";fill.style.width=p+"%"}
+  var wait=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
+  function withTimeout(p,ms){return Promise.race([p,wait(ms).then(function(){return "timeout"})])}
+
+  async function wipe(everything){
+    document.getElementById("b1").disabled=true;document.getElementById("b2").disabled=true;
+    logEl.innerHTML="";prog(5);
+
+    /* 1) إلغاء تسجيل كل Service Worker */
+    try{
+      var regs=await withTimeout(navigator.serviceWorker.getRegistrations(),4000);
+      if(Array.isArray(regs)){
+        for(var i=0;i<regs.length;i++){try{await regs[i].unregister()}catch(_){}}
+        say("اتلغى تشغيل "+regs.length+" مُحدّث خلفي (Service Worker)");
+      }
+    }catch(e){say("مفيش Service Worker",true)}
+    prog(30);
+
+    /* 2) مسح كل الكاشات (القديمة والأوفلاين) */
+    try{
+      var ks=await caches.keys();
+      await Promise.all(ks.map(function(k){return caches.delete(k)}));
+      say("اتمسح "+ks.length+" كاش"+(ks.length?" ("+ks.join("، ").slice(0,90)+")":""));
+    }catch(e){say("تعذّر مسح الكاش",true)}
+    prog(55);
+
+    /* 3) تخزين المتصفح */
+    try{
+      if(everything){localStorage.clear();sessionStorage.clear();say("اتمسحت إعدادات المتصفح المحفوظة")}
+      else{
+        /* بنشيل كاش المنصة بس ونسيب تسجيل الدخول والثيم */
+        var rm=[];for(var j=0;j<localStorage.length;j++){var k=localStorage.key(j);if(k&&/^(exams_cache|books_cache|dmcache_|sw_v|lg_|__dm|eltaf|cache_bust|fx_tier|c3d_off|mora_)/i.test(k))rm.push(k)}
+        rm.forEach(function(k){try{localStorage.removeItem(k)}catch(_){}});
+        try{sessionStorage.clear()}catch(_){}
+        say("اتنضّف مؤقّت المنصة ("+rm.length+" عنصر)");
+      }
+    }catch(e){say("تعذّر مسح التخزين",true)}
+    prog(75);
+
+    /* 4) قواعد البيانات المحلية (IndexedDB) — الأغاني المحفوظة وكاش Firestore. تسجيل الدخول بيتمسح في «كل حاجة» بس */
+    try{
+      if(indexedDB.databases){
+        var dbs=await withTimeout(indexedDB.databases(),3000);
+        if(Array.isArray(dbs)){
+          var n=0;
+          for(var m=0;m<dbs.length;m++){
+            var nm=dbs[m].name||"";
+            var isAuth=/firebaseLocalStorage|firebase-heartbeat|firebase-installations/i.test(nm);
+            if(isAuth&&!everything)continue;
+            await withTimeout(new Promise(function(res){var rq=indexedDB.deleteDatabase(nm);rq.onsuccess=rq.onerror=rq.onblocked=function(){res()}}),2500);n++;
+          }
+          say("اتمسح "+n+" قاعدة بيانات محلية");
+        }
+      }
+    }catch(e){say("تعذّر مسح قواعد البيانات المحلية",true)}
+    prog(95);
+
+    await wait(500);prog(100);
+    say("خلصنا! بنفتح المنصة…");
+    await wait(900);
+    /* بنرجع للمنصة بمعامل جديد عشان يتخطى أي نسخة مخزّنة */
+    var base=location.href.replace(/[^\/]*$/,"");
+    location.replace(base+"?fresh="+Date.now());
+  }
+  document.getElementById("b1").onclick=function(){wipe(false)};
+  document.getElementById("b2").onclick=function(){if(confirm("ده هيخرّجك من حسابك ويمسح كل الإعدادات المحفوظة. متأكد؟"))wipe(true)};
+  if(/[?&]auto=1/.test(location.search))wipe(false);
+})();
+</script>
+</body>
+</html>
