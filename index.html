@@ -2,13 +2,13 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="sw-build" content="v243">
+<meta name="sw-build" content="v244">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-<script>window.APP_BUILD="v243";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
+<script>window.APP_BUILD="v244";/* v228: وضع فيديوهات فقط + عنوان مخصص + إخفاء كريديت/هيدر · v227: home لا تتقفل مع المواد + قفل فيديوهات منفصل · v226: fix syntax load + ice frames + bright glow + full section locks */
 </script>
 <script>
 /* v92: Error Center collector — يلتقط الأخطاء مبكراً، يحتفظ بآخر 100 محلياً، ولا يكتب في Firebase إلا من الوحدة الرئيسية بحدود صارمة */
@@ -3537,7 +3537,7 @@ if(configured){
   onSnapshot(doc(db,"config","site"),s=>{
     const d=s.exists()?s.data():{};
     const was=S.site.maintenance;
-    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",aiProxy:d.aiProxy||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",pushUrl:d.pushUrl||"",resetPassUrl:d.resetPassUrl||"",booksUrl:d.booksUrl||"",proxyUrl:d.proxyUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0,appMode:d.appMode||"platform",modes:Array.isArray(d.modes)?d.modes:[],modesOff:Array.isArray(d.modesOff)?d.modesOff.filter(x=>typeof x==="string").slice(0,30):[],modeHome:(d.modeHome&&typeof d.modeHome==="object")?d.modeHome:{},lastBackupAt:d.lastBackupAt||null,lastBackupDocs:d.lastBackupDocs||0,videosTabName:(typeof d.videosTabName==="string"?d.videosTabName.slice(0,24):""),videosOnly:!!d.videosOnly,videosTitle:(typeof d.videosTitle==="string"?d.videosTitle.slice(0,60):"")};
+    S.site={maintenance:!!d.maintenance,message:d.message||"",announce:d.announce||"",announceOn:!!d.announceOn,aiUrl:d.aiUrl||"",aiKey:d.aiKey||"",aiProxy:d.aiProxy||"",vapidKey:d.vapidKey||"",turnUrl:d.turnUrl||"",pushUrl:d.pushUrl||"",resetPassUrl:d.resetPassUrl||"",booksUrl:d.booksUrl||"",proxyUrl:d.proxyUrl||"",turnUser:d.turnUser||"",turnCred:d.turnCred||"",cacheBust:d.cacheBust||0,appMode:d.appMode||"platform",modes:Array.isArray(d.modes)?d.modes:[],modesOff:Array.isArray(d.modesOff)?d.modesOff.filter(x=>typeof x==="string").slice(0,30):[],modeHome:(d.modeHome&&typeof d.modeHome==="object")?d.modeHome:{},lastBackupAt:d.lastBackupAt||null,lastBackupDocs:d.lastBackupDocs||0,videosTabName:(typeof d.videosTabName==="string"?d.videosTabName.slice(0,24):""),videosOnly:!!d.videosOnly,videosHideTitles:!!d.videosHideTitles,videosTitle:(typeof d.videosTitle==="string"?d.videosTitle.slice(0,60):"")};
     S.siteRaw=d;applyAiCfg();
     try{localStorage.setItem("videos_only_fast",S.site.videosOnly?"1":"0")}catch(_){}
     try{
@@ -3820,7 +3820,8 @@ function render(force,soft){
   if(__navL){try{const __nn=document.querySelector(".adm-nav");if(__nn)__nn.scrollLeft=__navL}catch(_){}}
 
   try{app.querySelectorAll("img:not([loading])").forEach(function(im){im.loading="lazy";im.decoding="async"})}catch(_){}
-  try{if(S.view==="videos"&&typeof vidBindFeed==="function")vidBindFeed();else if(VXS.off){VXS.off();VXS.off=null}}catch(_){}
+  try{auraSync()}catch(_){}
+  try{if(S.view==="videos"&&!auraOn()&&typeof vidBindFeed==="function")vidBindFeed();else if(VXS.off){VXS.off();VXS.off=null}}catch(_){}
   if(S.view==="chatThread"||S.view==="groupThread"){
     bindChatScroll();
     if(S.chatStickBottom!==false)scrollChatBottom(false);
@@ -9092,7 +9093,11 @@ function adminVideos(){
 <div class="mut" style="font-size:12px;margin-top:4px">يظهر أعلى شاشة الفيديوهات بدل الأيقونات (بحث / تاج / روبوت…)</div>
 <label class="f" style="margin-top:12px;display:flex;align-items:center;gap:10px">
 <input type="checkbox" id="vidOnlyMode" ${(S.site&&S.site.videosOnly)?"checked":""} style="width:18px;height:18px">
-<span>وضع فيديوهات فقط — فتح تلقائي + إخفاء هيدر المنصة و«بواسطة المبرمج» والتواصل</span>
+<span>وضع الأغاني والفيديوهات (مشغّل Aura) — فتح تلقائي + إخفاء هيدر المنصة و«بواسطة المبرمج» والتواصل</span>
+</label>
+<label class="f" style="margin-top:10px;display:flex;align-items:center;gap:10px">
+<input type="checkbox" id="vidHideTitles" ${(S.site&&S.site.videosHideTitles)?"checked":""} style="width:18px;height:18px">
+<span>إخفاء أسماء الفيديوهات (يظهر «فيديو 1، 2…» بدل الأسماء)</span>
 </label>
 <div class="row" style="gap:8px;margin-top:10px"><button class="btn sm gold" data-act="videoFocusSave">حفظ إعدادات العرض</button></div>
 </div>
@@ -9130,6 +9135,7 @@ ${x.desc?`<div class="mut" style="font-size:12px;margin-top:2px">${esc(x.desc)}<
 ${frameOpts.map(([id,lab])=>`<option value="${id}" ${fr===id?"selected":""}>${lab}</option>`).join("")}
 </select>
 <button class="btn sm ${x.feat?"gold":"ghost"}" data-act="videoFeat" data-i="${i}">${x.feat?"★ مميز":"☆ مميز"}</button>
+<button class="btn sm ghost" data-act="videoRename" data-i="${i}">✏️ الاسم</button>
 <button class="btn sm ghost" data-act="videoToggle" data-i="${i}">${x.hidden?"إظهار":"إخفاء"}</button>
 <button class="btn sm danger" data-act="videoDel" data-i="${i}">🗑 حذف</button>
 </div></div></div>`;
@@ -9208,6 +9214,7 @@ function vxLoadHls(){
   return _vxHls;
 }
 function videosView(){
+  if(auraOn())return `<div id="auraHost" style="min-height:100vh;background:#06080f"></div>`;
   if(!VID.loaded&&!VID._stu){VID._stu=1;vidLoad(true).then(()=>{VID._stu=0;if(S.view==="videos")render(true)})}
   const all=(VID.list||[]).filter(x=>!x.hidden);
   /* الأحدث الأول (المميّز بقى ترتيب بس من غير شارة) */
@@ -9425,7 +9432,7 @@ function adminSongs(){
 <p class="mut">ارفع أغاني من جهازك (لحد 25 ميجا للأغنية) أو حط رابط مباشر. الطلاب بيسمعوا بس ومفيش تنزيل. بتظهر لهم في «أنا» ← 🎵 أغاني المنصة.</p>
 <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn gold" data-act="songUpload">＋ رفع أغنية</button><button class="btn ghost" data-act="openSongs">▶ فتح المشغّل</button><button class="btn ghost" data-act="songsReload">↻ تحديث</button></div>
 <div class="card" style="margin:12px 0 0;background:rgba(255,176,32,.08);border-color:rgba(255,176,32,.3)"><b>🔊 الصوت العام لكل الأغاني</b><div class="mut" style="font-size:12px;margin:4px 0 8px">يتطبق لحظيًا على أي أغنية شغالة عند الطلاب. مستوى الأغنية المنفصل يفضل محفوظًا.</div><div class="row" style="gap:10px;align-items:center"><span>100</span><input id="musicGlobal" class="adm-vol" data-change="musicGlobal" type="range" min="100" max="150" step="5" value="${Math.min(150,MUS.globalVol||100)}"><span id="musicGlobalVal">${MUS.globalVol||100}</span><span>%</span></div><div class="mut" style="font-size:12px">المعادلة الفعلية: (مستوى الأغنية × الصوت العام) ÷ 100، بحد أقصى آمن 150% (أي قيمة أعلى بتتقصّ تلقائيًا).</div></div></div>
-<div class="card"><b>الأغاني الحالية (${l.length})</b>${l.length?l.map((x,i)=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><div><b>${esc(x.title||"أغنية")}</b><div class="mut">${esc(x.artist||"—")}${x.size?" · "+(x.size/1048576).toFixed(1)+" MB":""}</div></div><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${x.url?'<span class="mut">🔗 رابط خارجي (بدون تضخيم)</span>':`<span class="mut">🔊</span><input type="range" min="100" max="150" step="5" value="${Math.min(150,x.vol||100)}" id="sv${i}" class="adm-vol" title="مستوى الأغنية"> <span class="mut">${x.vol||100}%</span><span class="mut">%</span><button class="btn sm ghost" data-act="songVol" data-i="${i}">حفظ</button>`}<button class="btn sm danger" data-act="songDel" data-i="${i}">🗑 حذف</button></div></div>`).join(""):`<div class="mut" style="text-align:center;padding:14px 0">${MUS.err?"تعذّر التحميل ("+esc(MUS.err)+") — انشر firestore.rules الجديدة":MUS.loaded?"لسه مفيش أغاني — اضغط ＋ رفع أغنية":"جاري التجهيز…"}</div>`}</div>`;
+<div class="card"><b>الأغاني الحالية (${l.length})</b>${l.length?l.map((x,i)=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><div><b>${esc(x.title||"أغنية")}</b><div class="mut">${esc(x.artist||"—")}${x.size?" · "+(x.size/1048576).toFixed(1)+" MB":""}</div></div><div class="row" style="gap:6px;flex-wrap:wrap;margin-top:6px">${x.url?'<span class="mut">🔗 رابط خارجي (بدون تضخيم)</span>':`<span class="mut">🔊</span><input type="range" min="100" max="150" step="5" value="${Math.min(150,x.vol||100)}" id="sv${i}" class="adm-vol" title="مستوى الأغنية"> <span class="mut">${x.vol||100}%</span><span class="mut">%</span><button class="btn sm ghost" data-act="songVol" data-i="${i}">حفظ</button>`}<button class="btn sm ghost" data-act="songLyrics" data-i="${i}">📝 كلمات${x.lyrics?" ✓":""}</button><button class="btn sm danger" data-act="songDel" data-i="${i}">🗑 حذف</button></div></div>`).join(""):`<div class="mut" style="text-align:center;padding:14px 0">${MUS.err?"تعذّر التحميل ("+esc(MUS.err)+") — انشر firestore.rules الجديدة":MUS.loaded?"لسه مفيش أغاني — اضغط ＋ رفع أغنية":"جاري التجهيز…"}</div>`}</div>`;
 }
 function adminView(){
   const t=S.tab;
@@ -16953,6 +16960,7 @@ async function musPrefetch(){
 }
 async function musPlay(i){
   const s=MUS.list[i];if(!s)return;
+  try{AURA.fr&&AURA.fr.contentWindow.__auraPause&&AURA.fr.contentWindow.__auraPause()}catch(_){}
   const tok=++MUS.tok;const old=musAu();
   if(MUS.cur===i&&!old.paused&&!old.ended&&!MUS.loading){musApplyVol(s);return}
   try{old.pause();old.removeAttribute("src");old.load()}catch(_){}
@@ -17191,8 +17199,85 @@ const SG_CSS2=`
 .sg-menu button{display:block;width:100%;text-align:start;border:0;background:none;color:#fff;font:inherit;font-size:14.5px;padding:12px;border-radius:11px;cursor:pointer}.sg-menu button:active{background:rgba(255,255,255,.1)}
 `;
 
+
+/* ===== v244: مشغّل Aura (وضع الأغاني والفيديوهات) — صفحة aura-player.html جوه iframe دايم ===== */
+const AURA={fr:null};
+function auraOn(){try{return !!guestVideosAllowed()}catch(_){return false}}
+function auraRefresh(){try{AURA.fr&&AURA.fr.contentWindow&&AURA.fr.contentWindow.__auraRefresh&&AURA.fr.contentWindow.__auraRefresh()}catch(_){}}
+function auraHide(){if(AURA.fr)AURA.fr.style.display="none"}
+function auraMount(){
+  if(AURA.fr)return;
+  const f=document.createElement("iframe");f.id="auraFrame";f.src="aura-player.html?v=244";
+  f.allow="autoplay; fullscreen; picture-in-picture; encrypted-media";f.setAttribute("allowfullscreen","");
+  f.style.cssText="position:fixed;inset:0;width:100%;height:100%;border:0;z-index:8000;background:#06080f;display:none";
+  document.body.appendChild(f);AURA.fr=f;
+}
+async function auraFeed(){
+  try{await Promise.all([vidLoad(false),S.user?musLoad(false):Promise.resolve()])}catch(_){}
+  auraRefresh();
+}
+function auraSync(){
+  try{
+    if(S.view==="videos"&&auraOn()){
+      auraMount();const was=AURA.fr.style.display;AURA.fr.style.display="block";
+      try{vidStopAll&&vidStopAll()}catch(_){}
+      if(was!=="block")auraFeed();
+      try{AURA.fr.contentWindow.__auraAdmin&&AURA.fr.contentWindow.__auraAdmin()}catch(_){}
+    }else auraHide();
+  }catch(_){}
+}
+window.__auraBridge={
+  admin:()=>!!S.isAdmin,
+  signedIn:()=>!!S.user,
+  toast:m=>{try{toast(m)}catch(_){}},
+  hideTitles:()=>!!(S.site&&S.site.videosHideTitles),
+  songs:()=>(MUS.list||[]).map(s=>({id:s.id,title:s.title||"",artist:s.artist||"",cover:s.cover||"",lyrics:s.lyrics||"",vol:Math.min(150,Math.max(100,Number(s.vol)||100))})),
+  videos:()=>(VID.list||[]).filter(x=>!x.hidden).slice().sort((a,b)=>(b.feat?1:0)-(a.feat?1:0)||(b.ts||0)-(a.ts||0)).map(v=>({id:v.id,title:v.title||"",cover:v.cover||"",url:v.url||""})),
+  async resolve(kind,id){
+    if(kind==="song"){const s=(MUS.list||[]).find(x=>x.id===id);if(!s)throw new Error("الأغنية مش موجودة");return {url:await musSrc(s),kind:"file"}}
+    const v=(VID.list||[]).find(x=>x.id===id);if(!v)throw new Error("الفيديو مش موجود");
+    const u=vxNorm(v.url),k=vxKind(u);return {url:u,kind:k.k,id:k.id||""};
+  },
+  stopPlatform(){try{if(MUS.au&&!MUS.au.paused)MUS.au.pause()}catch(_){}try{vidStopAll&&vidStopAll()}catch(_){}},
+  async saveLyrics(id,raw){
+    if(!S.isAdmin)throw new Error("admin only");
+    raw=String(raw||"");if(raw.length>190000)throw new Error("الكلمات طويلة جدًا");
+    await updateDoc(doc(db,"songs",id),{lyrics:raw});
+    const s=(MUS.list||[]).find(x=>x.id===id);if(s)s.lyrics=raw;musPersistList();
+  },
+  async renameVideo(id,name){
+    if(!S.isAdmin)throw new Error("admin only");
+    name=String(name||"").trim().slice(0,160);if(!name)throw new Error("empty");
+    await updateDoc(doc(db,"videos",id),{title:name});
+    const v=(VID.list||[]).find(x=>x.id===id);if(v)v.title=name;
+  },
+  ask:(t,v)=>uiDialog({title:t,msg:"اكتب الاسم الجديد",input:true,def:v||"",ok:"حفظ"}),
+  canBack:()=>!!S.isAdmin||(!!S.user&&!shouldVideosLanding()),
+  close(){auraHide();try{if(A.home)A.home();else{S.view="home";render(true)}}catch(_){}},
+  openUpload(mode){
+    if(!S.isAdmin)return;
+    if(mode==="video"){auraHide();S.view="admin";S.tab="videos";render(true);return}
+    sgOpen(false);setTimeout(()=>{try{sgSheet()}catch(_){}},150);
+  }
+};
+function auraLyricsEdit(i){
+  const s=(MUS.list||[])[i];if(!s||!S.isAdmin)return;
+  const ov=document.createElement("div");ov.className="dlg-ov";
+  ov.innerHTML=`<div class="dlg" style="max-width:540px;width:100%"><h3 class="dlg-t">📝 كلمات «${esc(s.title||"أغنية")}»</h3><div class="dlg-m">ألصق الكلمات (نص عادي، أو LRC بتوقيت زي [00:12.50]) أو اختار ملف .lrc / .txt</div><textarea id="lyTa" dir="auto" rows="10" style="width:100%;min-height:200px;border-radius:12px;padding:10px;background:var(--card);color:var(--ink);border:1px solid var(--line);font:inherit"></textarea><input type="file" id="lyFile" accept=".lrc,.txt,text/plain" style="margin-top:8px"><div style="display:flex;gap:8px;margin-top:12px"><button class="btn gold" data-k="ok" style="flex:1">حفظ</button><button class="btn ghost" data-k="no" style="flex:1">إلغاء</button></div></div>`;
+  const ta=ov.querySelector("#lyTa");ta.value=s.lyrics||"";
+  ov.querySelector("#lyFile").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{ta.value=String(r.result||"")};r.readAsText(f,"UTF-8")});
+  ov.addEventListener("click",async e=>{
+    const k=e.target.dataset&&e.target.dataset.k;
+    if(e.target===ov||k==="no"){ov.remove();return}
+    if(k==="ok"){
+      try{await window.__auraBridge.saveLyrics(s.id,ta.value);toast("✓ اتحفظت الكلمات",true);ov.remove();auraRefresh();if(S.tab==="songs")render(true)}
+      catch(er){toast("فشل الحفظ: "+((er&&(er.code||er.message))||""))}
+    }
+  });
+  document.body.appendChild(ov);
+}
 function musUi(){try{sgNow()}catch(_){}}
-function musPanelRender(){try{sgList();sgNow()}catch(_){}}
+function musPanelRender(){try{sgList();sgNow()}catch(_){}try{auraRefresh()}catch(_){}}
 async function sgClick(e){
   const b=e.target.closest("[data-g]");
   if(!b){const r=e.target.closest(".sg-row");if(r){sgTap(+r.dataset.s)}return}
@@ -17373,6 +17458,12 @@ Object.assign(A,{
     if(!confirm("تحذف «"+(x.title||"فيديو")+"»؟"))return;
     try{await deleteDoc(doc(db,"videos",x.id));toast("اتحذف");await vidLoad(true);render(true)}catch(e){toast("فشل الحذف")}
   },
+  async videoRename(d){
+    const x=(VID.list||[])[+d.i];if(!x||!S.isAdmin)return;
+    const v=await uiDialog({title:"اسم الفيديو",msg:"اكتب الاسم الجديد (لو مش عايز أسماء خالص فعّل «إخفاء أسماء الفيديوهات» من الإعدادات)",input:true,def:x.title||"",ok:"حفظ"});
+    if(v==null)return;const n=String(v).trim();if(!n){toast("اكتب اسم");return}
+    try{await window.__auraBridge.renameVideo(x.id,n);toast("✓ اتغيّر الاسم",true);render(true);auraRefresh()}catch(e){toast("فشل التعديل: "+((e&&e.code)||""))}
+  },
   async videoToggle(d){
     const x=(VID.list||[])[+d.i];if(!x)return;
     try{await updateDoc(doc(db,"videos",x.id),{hidden:!x.hidden});await vidLoad(true);render(true)}catch(e){toast("فشل التعديل")}
@@ -17397,6 +17488,7 @@ Object.assign(A,{openMora(){moraOpen()},closeMora(){moraClose()},openSongs(){sgO
   async songVol(d){const x=MUS.list[+d.i];if(!x||!S.isAdmin)return;const el=document.getElementById("sv"+d.i),v=Math.max(100,Math.min(150,parseInt(el&&el.value,10)||100));try{await updateDoc(doc(db,"songs",x.id),{vol:v});x.vol=v;if(MUS.list[MUS.cur]&&MUS.list[MUS.cur].id===x.id)musApplyVol(x);try{toast("اتحفظ مستوى الصوت "+v+"% ✓",true)}catch(_){}}catch(e){const code=(e&&e.code)||"unknown";try{toast(code==="permission-denied"?"مفيش صلاحية — انشر firestore.rules v152 من Firebase Console":"فشل الحفظ — "+code)}catch(_){}try{moraErr("firebase","فشل حفظ مستوى الصوت: "+code,"admin.songs.volume")}catch(_){}}},
   async musicGlobal(d,el){if(!S.isAdmin||!el)return;const v=Math.max(100,Math.min(150,parseInt(el.value,10)||100));MUS.globalVol=v;const out=document.getElementById("musicGlobalVal");if(out)out.textContent=v;try{await setDoc(doc(db,"config","music"),{globalVol:v,updatedAt:serverTimestamp()},{merge:true});if(MUS.cur>=0)musApplyVol(MUS.list[MUS.cur]);toast("الصوت العام اتحفظ وبيتطبق لحظيًا ✓",true)}catch(e){toast("مقدرتش أحفظ الصوت العام",true)}},
   songsReload(){musLoad(true).then(()=>{if(S.tab==="songs")render(true)})},
+  songLyrics(d){auraLyricsEdit(+d.i)},
   async songDel(d){await sgDel(+d.i);if(S.tab==="songs")render(true)}});
 /* ===== v203: أوامر آخر واحد واقف (LOS) ===== */
 Object.assign(A,{
@@ -17415,10 +17507,12 @@ Object.assign(A,{
     if(!S.isAdmin)return;
     const title=String((document.getElementById("vidPageTitle")&&document.getElementById("vidPageTitle").value)||"").trim().slice(0,60);
     const only=!!(document.getElementById("vidOnlyMode")&&document.getElementById("vidOnlyMode").checked);
+    const hideT=!!(document.getElementById("vidHideTitles")&&document.getElementById("vidHideTitles").checked);
     const tab=String((document.getElementById("vidTabName")&&document.getElementById("vidTabName").value)||"").trim().slice(0,24)||"❤️‍🔥🔪";
     try{
-      await setDoc(doc(db,"config","site"),{videosTitle:title,videosOnly:only,videosTabName:tab},{merge:true});
-      if(S.site){S.site.videosTitle=title;S.site.videosOnly=only;S.site.videosTabName=tab}
+      await setDoc(doc(db,"config","site"),{videosTitle:title,videosOnly:only,videosTabName:tab,videosHideTitles:hideT},{merge:true});
+      if(S.site){S.site.videosTitle=title;S.site.videosOnly=only;S.site.videosTabName=tab;S.site.videosHideTitles=hideT}
+      auraRefresh();
       try{localStorage.setItem("videos_only_fast",only?"1":"0")}catch(_){}
       toast(only?"✓ وضع فيديوهات فقط شغّال — الزائر يدخل الفيديوهات بدون حساب":"✓ اتحفظت إعدادات العرض",true);
       render(true);
