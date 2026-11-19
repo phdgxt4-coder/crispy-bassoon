@@ -1025,6 +1025,9 @@ html.in-platform .add-btn.plat{display:none;background:linear-gradient(135deg,#f
 html.in-platform.is-admin .add-btn.plat{display:inline-flex}
 html.in-platform.cur-remote:not(.is-admin) #btnLoadLrc,html.in-platform.cur-remote:not(.is-admin) #lvEdit,html.in-platform.cur-remote:not(.is-admin) #lvLrc{display:none!important}
 html.in-platform.cur-remote #btnCover{display:none!important}
+html.in-platform .add-btn#btnAdd{display:none!important}
+html.in-platform.no-lyr:not(.is-admin) #btnEditLyrics{display:none!important}
+html.in-platform:not(.is-admin) #lyricsActions{display:flex}
 .stage-wrap .emb{position:absolute;inset:0;width:100%;height:100%;border:0;z-index:6;background:#000}
 </style>
 </head>
@@ -3124,7 +3127,7 @@ videoEl.addEventListener('loadedmetadata', function () {
  function refresh(){
   var cur=playlist[currentIndex],ck=cur&&cur.key;
   var old={};playlist.forEach(function(it){if(it.remote)old[it.key]=it});
-  var local=playlist.filter(function(it){return !it.remote});
+  var local=[];
   var rem=[],n=0;
   (B.songs()||[]).forEach(function(s){
    var k='s'+s.id,o=old[k]||{};
@@ -3207,6 +3210,7 @@ videoEl.addEventListener('loadedmetadata', function () {
   var it=playlist[currentIndex],de=document.documentElement;
   de.classList.toggle('cur-remote',!!(it&&it.remote));
   de.classList.toggle('is-admin',adm());
+  de.classList.toggle('no-lyr',!(it&&it.lyrics&&it.lyrics.length));
  }
  /* كلمات: الأدمن بس يحفظها على المنصة */
  var _sl=setLyrics;
@@ -3254,6 +3258,8 @@ videoEl.addEventListener('loadedmetadata', function () {
   if(B.canBack()){var bk=document.createElement('button');bk.id='plBack';bk.className='pl-top';bk.type='button';bk.textContent='‹ المنصة';bk.onclick=function(){B.close()};top.insertBefore(bk,top.firstChild)}
  }
  var add=$('btnAdd');
+ if(add)add.style.display='none';
+ window.addFiles=function(){};
  if(add&&add.parentNode){
   var up=document.createElement('button');up.id='btnUpPlat';up.className='add-btn plat';up.type='button';up.textContent='⬆ رفع للمنصة';
   up.onclick=function(){B.openUpload(currentMode)};add.parentNode.insertBefore(up,add);
